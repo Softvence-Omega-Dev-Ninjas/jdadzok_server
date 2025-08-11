@@ -1,0 +1,46 @@
+model Announcement {
+  id                    String    @id @default(uuid())
+  title                 String
+  description           Json
+  publishedNow          Boolean   @default(false)
+  publishedAt           DateTime?
+  sendEmailNotification Boolean   @default(false)
+  enabledReadReceipt    Boolean   @default(false)
+  likeCount             Int       @default(0)
+  viewCount             Int       @default(0)
+  isForAllUsers         Boolean   @default(false)
+
+  createdBy  String
+  categoryId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  likedUser   AnnouncementReactedUser[]
+  attachments Attachments[]
+
+  author   User                 @relation(fields: [createdBy], references: [id])
+  category AnnouncementCategory @relation(fields: [categoryId], references: [id])
+
+  teamAnnouncements TeamAnnouncement[]
+}
+
+model AnnouncementReactedUser {
+  id             String   @id @default(uuid())
+  userId         String
+  announcementId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id])
+  announcement Announcement @relation(fields: [announcementId], references: [id])
+}
+
+model Attachments {
+  id             String   @id @default(uuid())
+  file           String
+  announcementId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  announcement Announcement @relation(fields: [announcementId], references: [id])
+}

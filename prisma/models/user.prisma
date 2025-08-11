@@ -1,0 +1,53 @@
+model User {
+  id           String    @id @default(uuid())
+  phone        String    @unique
+  employeeID   Int       @unique
+  email        String    @unique
+  role         UserEnum
+  isLogin      Boolean   @default(false)
+  lastLoginAt  DateTime?
+  password     String?
+  otp          String? // * real otp hashed and encrypted
+  otpExpiresAt DateTime?
+  isVerified   Boolean   @default(false)
+  pinCode      Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  profile              Profile?
+  payroll              Payroll?
+  projects             Project[]
+  educations           Education[]
+  recognitions         RecognitionUser[]
+  experience           Experience[]
+  defaultShifts        DefaultShift[]
+  shift                Shift[]
+  taskUsers            TaskUser[]
+  teamMembers          TeamMembers[]
+  projectUsers         ProjectUser[]
+  companiesBranch      CompaniesBranch[]
+  likeAnnouncement     AnnouncementReactedUser[]
+  Announcement         Announcement[]
+  survey               Survey[]
+  surveyUser           SurveyUser[]
+  timeOffRequest       TimeOffRequest[]
+  team                 Team[]
+  notificationToggle   NotificationToggle?
+  teamMessages         TeamMessage[]
+  teamMessageStatus    TeamMessageStatus[]
+  privateConversation1 PrivateConversation[]     @relation("User1Conversations")
+  privateConversation2 PrivateConversation[]     @relation("User2Conversations")
+  privateMessage       PrivateMessage[]
+  privateMessageStatus PrivateMessageStatus[]
+  taskComments         TaskComment[]
+  notifications        UserNotification[]
+  ShiftActivity        ShiftActivity[]
+}
+
+enum UserEnum {
+  SUPER_ADMIN
+  ADMIN
+  USER
+  EMPLOYEE
+  MANAGER
+}

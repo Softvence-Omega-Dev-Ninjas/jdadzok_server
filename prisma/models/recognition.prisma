@@ -1,0 +1,60 @@
+model Recognition {
+  id                 String                   @id @default(uuid())
+  badgeId            String
+  message            String
+  visibility         VisibilityType
+  shouldNotify       Boolean
+  isAllowedToLike    Boolean
+  badge              Badge                    @relation(fields: [badgeId], references: [id])
+  recognitionUsers   RecognitionUser[] // 👈 relation to User through join table
+  RecognitionComment RecognitionLikeComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RecognitionLikeComment {
+  id            String      @id @default(uuid())
+  comment       String?
+  reaction      Reaction? // optional reaction (like, smile, etc.)
+  recognitionId String
+  recognition   Recognition @relation(fields: [recognitionId], references: [id])
+
+  recognitionUserId String // who made the comment/reaction
+  recognitionUser   RecognitionUser @relation(fields: [recognitionId, recognitionUserId], references: [recognitionId, userId])
+
+  // 👇 for replies
+  parentCommentId String?
+  parentComment   RecognitionLikeComment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         RecognitionLikeComment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RecognitionUser {
+  recognitionId String
+  userId        String
+
+  recognition Recognition @relation(fields: [recognitionId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+
+  RecognitionLikeComment RecognitionLikeComment[]
+
+  @@id([recognitionId, userId]) // composite primary key
+}
+
+enum Reaction {
+  LIKE
+  LOVE_FACE
+  SMILE_FACE
+  WOW_FACE
+  SAD_FACE
+  CELEBRATION
+}
+
+enum VisibilityType {
+  Only_Recipient
+  All_user_in_the_company
+  Specific_user_in_the_company
+}

@@ -1,0 +1,60 @@
+model Task {
+  id          String     @id @default(uuid())
+  projectId   String?
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  attachment  String?
+  labels      Labels?
+  status      TaskStatus @default(DAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasksUsers   TaskUser[]
+  project      Project?      @relation(fields: [projectId], references: [id])
+  taskComments TaskComment[]
+
+  ShiftActivity ShiftActivity[]
+  Shift         Shift[]
+}
+
+enum Labels {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model TaskUser {
+  id     String @id @default(uuid())
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([taskId, userId])
+}
+
+model TaskComment {
+  id        String @id @default(uuid())
+  commentBy String @unique
+  commentar User   @relation(fields: [commentBy], references: [id])
+  comment   String
+  taskId    String
+  task      Task   @relation(fields: [taskId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TaskStatus {
+  DAFT
+  OPEN
+  DONE
+  OVERDUE
+}

@@ -1,0 +1,12 @@
+model CompaniesBranch {
+  id        String   @id @default(uuid())
+  companyId String
+  name      String
+  location  String
+  managerId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  manager User      @relation(fields: [managerId], references: [id])
+  company Companies @relation(fields: [companyId], references: [id])
+}

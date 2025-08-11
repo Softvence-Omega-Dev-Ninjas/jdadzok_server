@@ -1,0 +1,39 @@
+model SurveyResponse {
+  id          String   @id @default(uuid())
+  surveyId    String
+  userId      String
+  submittedAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  survey  Survey         @relation(fields: [surveyId], references: [id])
+  answers SurveyAnswer[]
+}
+
+model SurveyAnswer {
+  id         String  @id @default(uuid())
+  responseId String
+  questionId String
+  answerText String?
+  rate       Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  response        SurveyResponse       @relation(fields: [responseId], references: [id])
+  question        SurveyQuestions      @relation(fields: [questionId], references: [id])
+  selectedOptions SurveyAnswerOption[]
+}
+
+model SurveyAnswerOption {
+  id       String @id @default(uuid())
+  answerId String
+  optionId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  answer SurveyAnswer   @relation(fields: [answerId], references: [id])
+  option QuestionOption @relation(fields: [optionId], references: [id])
+}

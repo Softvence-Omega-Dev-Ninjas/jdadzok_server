@@ -1,0 +1,42 @@
+model SurveyQuestions {
+  id               String  @id @default(uuid())
+  surveyTemplateId String?
+  surveyId         String?
+
+  order           Int
+  question        String
+  description     String?
+  isRequired      Boolean            @default(false)
+  captureLocation Boolean            @default(false)
+  type            SurveyQuestionType
+  multiSelect     Boolean            @default(false)
+  rangeStart      Int?
+  rangeEnd        Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  template SurveyTemplate? @relation(fields: [surveyTemplateId], references: [id])
+  survey   Survey?         @relation(fields: [surveyId], references: [id])
+
+  options QuestionOption[]
+  answers SurveyAnswer[]
+}
+
+enum SurveyQuestionType {
+  SELECT
+  OPEN_ENDED
+  RANGE
+}
+
+model QuestionOption {
+  id         String @id @default(uuid())
+  questionId String
+  text       String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  question SurveyQuestions      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  options  SurveyAnswerOption[]
+}

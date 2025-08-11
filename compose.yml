@@ -1,0 +1,75 @@
+services:
+  server:
+    container_name: jesus-server-api
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/jesus_db
+
+      JWT_SECRET: asdfkamskfmasklfmaksmfaskfmaksfaopsfmpaomsfpaf
+      JWT_EXPIRES_IN: 90d
+
+      BASE_URL: https://api.lgcglobalcontractingltd.com/js
+      PORT: 5005
+
+      MAIL_USER: jaranzov0107@gmail.com
+      MAIL_PASS: auxd gcmn apfk cibl
+
+      SUPER_ADMIN_EMAIL: 'jesus.vlsco@gmail.com'
+      SUPER_ADMIN_PASS: 'superadmin'
+      SUPER_ADMIN_PHONE: 9999999999999
+      SUPER_ADMIN_EMPLOYEE_ID: 100000
+
+      ADMIN_EMAIL: 'arafatmannan9@gmail.com'
+      ADMIN_PASS: 'admin1234'
+      ADMIN_PHONE: 9999999999991
+      ADMIN_EMPLOYEE_ID: 100001
+
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      CLOUDINARY_CLOUD_NAME: dajbvml9v
+      CLOUDINARY_API_KEY: 446326388615888
+      CLOUDINARY_API_SECRET: h-2JuLgUmuCN-crXiY-JKdcPyxE
+
+      TWILIO_ACCOUNT_SID: ACd694ffdbf32281b95c8cbf5adc844719
+      TWILIO_AUTH_TOKEN: 5b67c3ea84847077b634b8e975e251f4
+      TWILIO_PHONE_NUMBER: +12543554726
+    ports:
+      - 5005:5005
+    depends_on:
+      - db
+      - redis
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        npm run start:prod
+      "
+
+  db:
+    image: postgres:16
+    container_name: jesus_db
+    restart: always
+    # user: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jesus_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - '5400:5432'
+
+  redis:
+    image: redis
+    container_name: jesus_redis
+    restart: always
+    ports:
+      - '6382:6379'
+
+volumes:
+  db-data:

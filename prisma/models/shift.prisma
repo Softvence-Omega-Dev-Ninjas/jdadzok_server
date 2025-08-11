@@ -1,0 +1,69 @@
+// Default shift settings for each user for a project
+model DefaultShift {
+  id String @id @default(uuid())
+
+  shiftType     ShiftType @default(MORNING)
+  shiftDuration Int       @default(8)
+  startTime     DateTime
+  endTime       DateTime
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+// Daily log of shifts for each user
+model Shift {
+  id            String          @id @default(uuid())
+  date          DateTime
+  startTime     DateTime
+  endTime       DateTime
+  shiftTitle    String
+  allDay        Boolean
+  job           String
+  shiftStatus   ShiftStatus
+  users         User[]
+  location      String
+  note          String
+  shiftTask     Task[]
+  shiftActivity ShiftActivity[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model ShiftActivity {
+  id   String   @id @default(uuid())
+  date DateTime
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  shiftId String
+  shift   Shift  @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, taskId, shiftId]) // Optional: prevent duplicate entries per user-task-shift
+}
+
+enum ShiftType {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+enum ShiftStatus {
+  PUBLISHED
+  DRAFT
+}

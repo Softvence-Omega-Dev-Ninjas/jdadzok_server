@@ -1,0 +1,10 @@
+model Companies {
+  id        String   @id @default(uuid())
+  name      String
+  location  String
+  logo      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branches CompaniesBranch[]
+}
