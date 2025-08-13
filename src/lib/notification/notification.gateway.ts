@@ -1,11 +1,25 @@
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { Notification } from "@project/common/interface/events-payload";
+import { JWTPayload } from "@project/common/jwt/jwt.interface";
+import { Server, Socket } from 'socket.io';
+import { PrismaService } from "../prisma/prisma.service";
+
 @WebSocketGateway({
   cors: { origin: '*' },
   namespace: '/js/notification',
 })
 @Injectable()
 export class NotificationGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(NotificationGateway.name);
   private readonly clients = new Map<string, Set<Socket>>();
 
@@ -13,7 +27,7 @@ export class NotificationGateway
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   @WebSocketServer()
   server: Server;
@@ -38,7 +52,6 @@ export class NotificationGateway
         select: {
           id: true,
           email: true,
-          notificationToggle: true, // relation in DB
         },
       });
 
@@ -47,7 +60,6 @@ export class NotificationGateway
       const payloadForSocketClient = {
         sub: user.id,
         email: user.email,
-        notificationToggle: user.notificationToggle,
       };
 
       client.data.user = payloadForSocketClient;
@@ -91,7 +103,7 @@ export class NotificationGateway
     return this.clients.get(userId) || new Set();
   }
 
-  // Notify single user (respecting notification toggle)
+  // Notify single user 
   public async notifySingleUser(
     userId: string,
     event: string,
@@ -103,10 +115,9 @@ export class NotificationGateway
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { notificationToggle: true },
-    });
 
-    if (!user?.notificationToggle?.[event]) return; // respect toggle
+    });
+    if (!user) return;
 
     clients.forEach((client) => client.emit(event, data));
     this.logger.log(`Notification sent to user ${userId} via event ${event}`);
@@ -128,17 +139,8 @@ export class NotificationGateway
     });
   }
 
-  // Optional chat event emitter
-  public async sendChatMessage(conversationId: string, message: any) {
-    const participants = await this.prisma.conversation.findUnique({
-      where: { id: conversationId },
-      select: { participants: { select: { id: true } } },
-    });
-
-    participants?.participants.forEach((user) => {
-      this.getClientsForUser(user.id).forEach((client) => {
-        client.emit('chatMessage', message);
-      });
-    });
+  public getDelay(publishAt: Date): number {
+    const delay = publishAt.getTime() - Date.now();
+    return delay > 0 ? delay : 0;
   }
 }

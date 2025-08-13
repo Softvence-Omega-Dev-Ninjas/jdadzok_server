@@ -10,7 +10,12 @@ import { JwtAuthGuard, RolesGuard } from './jwt.guard';
 import { RequestWithUser } from './jwt.interface';
 
 export const ROLES_KEY = 'roles';
+export const IS_PUBLIC_KEY = 'isPublic';
 export const Roles = (...roles: UserEnum[]) => SetMetadata(ROLES_KEY, roles);
+
+export function MakePublic() {
+  return SetMetadata(IS_PUBLIC_KEY, true);
+}
 
 export const GetUser = createParamDecorator(
   (key: string | undefined, ctx: ExecutionContext) => {
@@ -37,6 +42,6 @@ export function ValidateAdmin() {
   return ValidateAuth(UserEnum.ADMIN, UserEnum.SUPER_ADMIN);
 }
 
-export function ValidateEmployee() {
-  return ValidateAuth(UserEnum.EMPLOYEE, UserEnum.SUPER_ADMIN);
+export function ValidateUser() {
+  return ValidateAuth(UserEnum.USER, UserEnum.SUPER_ADMIN);
 }

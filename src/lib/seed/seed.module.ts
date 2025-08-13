@@ -1,10 +1,10 @@
 import { Global, Module } from '@nestjs/common';
-import { AdminService } from './services/admin.service';
+import { FileService } from './services/file.service';
 import { SuperAdminService } from './services/super-admin.service';
 
 @Global()
 @Module({
   imports: [],
-  providers: [AdminService, SuperAdminService],
+  providers: [FileService, SuperAdminService],
 })
-export class SeedModule {}
+export class SeedModule { }

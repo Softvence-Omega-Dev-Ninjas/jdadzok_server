@@ -6,18 +6,22 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import { PrismaService } from '@project/lib/prisma/prisma.service';
 import { UserEnum } from '../enum/user.enum';
 import { ROLES_KEY } from './jwt.decorator';
 import { RequestWithUser } from './jwt.interface';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
+export class JwtAuthGuard extends AuthGuard('jwt') { }
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private prisma: PrismaService,
+  ) { }
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<UserEnum[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
@@ -36,6 +40,15 @@ export class RolesGuard implements CanActivate {
 
     if (!hasRole) {
       throw new ForbiddenException('Insufficient role');
+    }
+
+    // * check if user exists in database
+    const userExists = await this.prisma.user.findUnique({
+      where: { email: user.email },
+    });
+
+    if (!userExists) {
+      throw new ForbiddenException('User not found');
     }
 
     return true;

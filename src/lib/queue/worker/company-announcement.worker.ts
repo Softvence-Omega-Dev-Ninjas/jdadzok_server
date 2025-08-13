@@ -51,7 +51,7 @@ export class CompanyAnnouncementWorker implements OnModuleInit {
           recipients.map((r) => r.id),
           EVENT_TYPES.COMPANY_ANNOUNCEMENT_CREATE,
           {
-            type: EVENT_TYPES.COMPANY_ANNOUNCEMENT_CREATE,
+            type: 'ANNOUNCEMENT',
             title,
             message,
             createdAt: new Date(),

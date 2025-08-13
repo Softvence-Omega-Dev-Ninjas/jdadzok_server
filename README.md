@@ -4,24 +4,24 @@
 ### ✅ 1. Run **PostgreSQL** Manually:
 
 ```bash
-docker run --name local-postgres \
+docker run --name jdadzok_db \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=jdadzok_db \
-  -p 5433:5432 \
+  -p 5435:5432 \
   -v pgdata:/var/lib/postgresql/data \
   -d postgres:16
 ```
 
-- Access via: `postgresql://postgres:postgres@localhost:5433/jesus_db`
+- Access via: `postgresql://postgres:postgres@localhost:5435/jdadzok_db`
 
 ---
 
 ### ✅ 2. Run **Redis** Manually:
 
 ```bash
-docker run --name local-redis \
-  -p 6382:6379 \
+docker run --name jdadzok-redis \
+  -p 6385:6379 \
   -d redis
 ```
 

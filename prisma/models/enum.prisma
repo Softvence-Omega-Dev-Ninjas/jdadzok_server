@@ -2,6 +2,14 @@ enum Role {
   USER
   MODERATOR
   ADMIN
+  SUPER_ADMIN
+}
+
+enum AuthProvider {
+  GOOGLE
+  APPLE
+  EMAIL
+  FACEBOOK
 }
 
 enum CapLevel {

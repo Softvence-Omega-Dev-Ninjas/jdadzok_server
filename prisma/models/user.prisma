@@ -6,7 +6,7 @@ model User {
   id            String      @id @default(cuid())
   email         String      @unique
   passwordHash  String?
-  authProvider  String      // google, apple, email
+  authProvider  AuthProvider      @default(EMAIL)
   role          Role        @default(USER)
   capLevel      CapLevel    @default(GREEN)
   profile       Profile?

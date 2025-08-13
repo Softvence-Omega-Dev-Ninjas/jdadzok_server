@@ -1,5 +1,4 @@
-import { FileType } from '@prisma/client';
-import { IsString, IsNumber, IsEnum } from 'class-validator';
+import { IsString, IsNumber } from 'class-validator';
 
 export class CreateFileDto {
   @IsString()
@@ -14,8 +13,8 @@ export class CreateFileDto {
   @IsString()
   url: string;
 
-  @IsEnum([FileType.docs, FileType.image, FileType.link])
-  fileType: FileType;
+  @IsString()
+  fileType: string;
 
   @IsString()
   mimeType: string;
