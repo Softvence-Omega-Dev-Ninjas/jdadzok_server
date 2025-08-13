@@ -1,0 +1,23 @@
+// -----------------------------------
+// MODERATION & SECURITY
+// -----------------------------------
+
+model Report {
+  id         String          @id @default(cuid())
+  reporterId String
+  reporter   User            @relation("reportsMade", fields: [reporterId], references: [id])
+  targetType ReportTargetType
+  targetId   String
+  reason     String
+  status     ReportStatus    @default(PENDING)
+  createdAt  DateTime        @default(now())
+}
+
+model Ban {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  reason    String
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,69 @@
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum CapLevel {
+  GREEN
+  YELLOW
+  RED
+  BLACK
+  OSTRICH_FEATHER
+}
+
+enum MediaType {
+  TEXT
+  IMAGE
+  VIDEO
+}
+
+enum PostVisibility {
+  PUBLIC
+  FOLLOWERS
+  PRIVATE
+}
+
+enum VolunteerStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  DELIVERED
+  CANCELED
+}
+
+enum PaymentMethod {
+  STRIPE
+  PAYPAL
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  SHARE
+  MENTION
+  EARNINGS
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+  USER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+}

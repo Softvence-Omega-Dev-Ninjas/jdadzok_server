@@ -1,0 +1,61 @@
+// -----------------------------------
+// CHAT SYSTEM
+// -----------------------------------
+
+enum ChatType {
+  DIRECT
+  GROUP
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+model Chat {
+  id          String       @id @default(cuid())
+  type        ChatType     @default(DIRECT)
+  name        String?      // only for groups
+  createdById String
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  participants ChatParticipant[]
+  messages     Message[]
+  createdAt   DateTime     @default(now())
+}
+
+model ChatParticipant {
+  id        String   @id @default(cuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  joinedAt  DateTime @default(now())
+
+  @@unique([chatId, userId])
+}
+
+model Message {
+  id          String         @id @default(cuid())
+  chatId      String
+  chat        Chat           @relation(fields: [chatId], references: [id])
+  senderId    String
+  sender      User           @relation(fields: [senderId], references: [id])
+  content     String?
+  mediaUrl    String?
+  mediaType   MediaType?     // TEXT, IMAGE, VIDEO (already in your enums)
+  status      MessageStatus  @default(SENT)
+  readBy      MessageRead[]
+  createdAt   DateTime       @default(now())
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  readAt    DateTime @default(now())
+
+  @@unique([messageId, userId])
+}

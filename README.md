@@ -7,7 +7,7 @@
 docker run --name local-postgres \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=jesus_db \
+  -e POSTGRES_DB=jdadzok_db \
   -p 5433:5432 \
   -v pgdata:/var/lib/postgresql/data \
   -d postgres:16

@@ -1,0 +1,34 @@
+// -----------------------------------
+// MONETIZATION
+// -----------------------------------
+
+model AdRevenueShare {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  month  Int
+  year   Int
+  amount Float
+}
+
+model Subscription {
+  id          String   @id @default(cuid())
+  subscriberId String
+  subscriber   User     @relation("userSubscriptions", fields: [subscriberId], references: [id])
+  creatorId    String
+  creator      User     @relation("creatorSubscriptions", fields: [creatorId], references: [id])
+  status       String
+  createdAt    DateTime @default(now())
+
+  @@unique([subscriberId, creatorId])
+}
+
+model Payout {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+  amount    Float
+  method    PaymentMethod
+  status    String
+  createdAt DateTime       @default(now())
+}

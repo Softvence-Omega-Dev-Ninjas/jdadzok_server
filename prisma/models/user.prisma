@@ -1,0 +1,75 @@
+// -----------------------------------
+// USER & PROFILE
+// -----------------------------------
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  passwordHash  String?
+  authProvider  String      // google, apple, email
+  role          Role        @default(USER)
+  capLevel      CapLevel    @default(GREEN)
+  profile       Profile?
+  followers     Follow[]    @relation("followers")
+  following     Follow[]    @relation("following")
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  shares        Share[]
+  volunteerApps VolunteerApplication[]
+  products      Product[]
+  orders        Order[]     @relation("orders")
+  subscriptionsCreated Subscription[] @relation("creatorSubscriptions")
+  subscriptionsSubscribed Subscription[] @relation("userSubscriptions")
+  payouts       Payout[]
+  notifications Notification[]
+  reports       Report[]    @relation("reportsMade")
+  bans          Ban[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+
+  adRevenueShare AdRevenueShare[]
+
+  volunteerProject VolunteerProject[]
+
+  fromEndorsement Endorsement[] @relation("endorser")
+
+  toEndorsement Endorsement[] @relation("endorsee")
+
+  messageRead MessageRead[]
+
+  message Message[]
+
+  chatParticipant ChatParticipant[]
+
+  chat Chat[]
+}
+
+model Profile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  name           String
+  username       String   @unique
+  bio            String?
+  avatarUrl      String?
+  location       String?
+  followersCount Int      @default(0)
+  followingCount Int      @default(0)
+}
+
+// -----------------------------------
+// FOLLOW RELATION
+// -----------------------------------
+
+model Follow {
+  id          String @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User   @relation("followers", fields: [followerId], references: [id])
+  following   User   @relation("following", fields: [followingId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}

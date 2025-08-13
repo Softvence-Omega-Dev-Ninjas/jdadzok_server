@@ -1,4 +1,4 @@
-import { UserEnum } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
@@ -16,7 +16,7 @@ export class UserResponseDto {
   employeeID: number;
 
   @Expose()
-  role: UserEnum;
+  role: Role;
 
   @Expose()
   isLogin: boolean;
