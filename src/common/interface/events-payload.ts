@@ -1,5 +1,4 @@
-import { AnnouncementMeta } from "./events-meta";
-
+import { AnnouncementMeta } from './events-meta';
 
 export interface Notification {
   type: string;
@@ -23,4 +22,3 @@ export interface AnnouncementEvent extends BaseEvent<AnnouncementMeta> {
   };
   action: 'CREATE' | 'UPDATE' | 'DELETE';
 }
-

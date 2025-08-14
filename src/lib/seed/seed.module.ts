@@ -7,4 +7,4 @@ import { SuperAdminService } from './services/super-admin.service';
   imports: [],
   providers: [FileService, SuperAdminService],
 })
-export class SeedModule { }
+export class SeedModule {}

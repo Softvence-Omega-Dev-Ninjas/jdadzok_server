@@ -20,4 +20,4 @@ import { UtilsModule } from './utils/utils.module';
   exports: [],
   providers: [],
 })
-export class LibModule { }
+export class LibModule {}

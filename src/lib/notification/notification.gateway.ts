@@ -1,6 +1,6 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { JwtService } from "@nestjs/jwt";
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -8,10 +8,10 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Notification } from "@project/common/interface/events-payload";
-import { JWTPayload } from "@project/common/jwt/jwt.interface";
+import { Notification } from '@project/common/interface/events-payload';
+import { JWTPayload } from '@project/common/jwt/jwt.interface';
 import { Server, Socket } from 'socket.io';
-import { PrismaService } from "../prisma/prisma.service";
+import { PrismaService } from '../prisma/prisma.service';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -19,7 +19,8 @@ import { PrismaService } from "../prisma/prisma.service";
 })
 @Injectable()
 export class NotificationGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   private readonly logger = new Logger(NotificationGateway.name);
   private readonly clients = new Map<string, Set<Socket>>();
 
@@ -27,13 +28,13 @@ export class NotificationGateway
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
   @WebSocketServer()
   server: Server;
 
   afterInit(server: Server) {
-    this.logger.log('Socket.IO server initialized');
+    this.logger.log('Socket.IO server initialized', server);
   }
 
   async handleConnection(client: Socket) {
@@ -103,7 +104,7 @@ export class NotificationGateway
     return this.clients.get(userId) || new Set();
   }
 
-  // Notify single user 
+  // Notify single user
   public async notifySingleUser(
     userId: string,
     event: string,
@@ -115,7 +116,6 @@ export class NotificationGateway
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-
     });
     if (!user) return;
 

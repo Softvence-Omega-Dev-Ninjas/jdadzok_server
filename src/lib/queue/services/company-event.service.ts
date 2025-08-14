@@ -15,7 +15,7 @@ export class CompanyEventService {
     @InjectQueue(QueueName.ANNOUNCEMENT)
     private readonly notificationQueue: Queue,
     private readonly gateway: NotificationGateway,
-  ) { }
+  ) {}
 
   /**
    * Handles announcement creation events.

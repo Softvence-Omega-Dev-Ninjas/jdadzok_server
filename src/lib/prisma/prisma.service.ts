@@ -12,9 +12,7 @@ export class PrismaService
 
   constructor() {
     super({
-      log: [
-        { emit: 'event', level: 'error' },
-      ],
+      log: [{ emit: 'event', level: 'error' }],
     });
   }
 

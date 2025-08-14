@@ -6,17 +6,8 @@ import { CompanyAnnouncementWorker } from './worker/company-announcement.worker'
 
 @Global()
 @Module({
-  imports: [
-    BullModule.registerQueue(
-      { name: QueueName.ANNOUNCEMENT },
-    ),
-  ],
-  providers: [
-    CompanyAnnouncementWorker,
-
-    CompanyEventService,
-
-  ],
+  imports: [BullModule.registerQueue({ name: QueueName.ANNOUNCEMENT })],
+  providers: [CompanyAnnouncementWorker, CompanyEventService],
   exports: [BullModule],
 })
-export class QueueModule { }
+export class QueueModule {}
