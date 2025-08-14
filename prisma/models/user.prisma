@@ -3,60 +3,68 @@
 // -----------------------------------
 
 model User {
-  id            String      @id @default(cuid())
-  email         String      @unique
-  passwordHash  String?
-  authProvider  AuthProvider      @default(EMAIL)
-  role          Role        @default(USER)
-  capLevel      CapLevel    @default(GREEN)
-  profile       Profile?
-  followers     Follow[]    @relation("followers")
-  following     Follow[]    @relation("following")
-  posts         Post[]
-  comments      Comment[]
-  likes         Like[]
-  shares        Share[]
-  volunteerApps VolunteerApplication[]
-  products      Product[]
-  orders        Order[]     @relation("orders")
-  subscriptionsCreated Subscription[] @relation("creatorSubscriptions")
+  id           String       @id @default(uuid())
+  email        String       @unique
+  passwordHash String?
+  authProvider AuthProvider @default(EMAIL)
+  role         Role         @default(USER)
+  capLevel     CapLevel     @default(GREEN)
+
+  profile Profile?
+
+  followers Follow[] @relation("followers")
+  following Follow[] @relation("following")
+
+  orders Order[] @relation("orders")
+
+  reports Report[] @relation("reportsMade")
+
+  subscriptionsCreated    Subscription[] @relation("creatorSubscriptions")
   subscriptionsSubscribed Subscription[] @relation("userSubscriptions")
-  payouts       Payout[]
-  notifications Notification[]
-  reports       Report[]    @relation("reportsMade")
-  bans          Ban[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-
-  adRevenueShare AdRevenueShare[]
-
-  volunteerProject VolunteerProject[]
 
   fromEndorsement Endorsement[] @relation("endorser")
+  toEndorsement   Endorsement[] @relation("endorsee")
 
-  toEndorsement Endorsement[] @relation("endorsee")
+  posts            Post[]
+  comments         Comment[]
+  likes            Like[]
+  shares           Share[]
+  volunteerApps    VolunteerApplication[]
+  products         Product[]
+  messageRead      MessageRead[]
+  message          Message[]
+  chatParticipant  ChatParticipant[]
+  chat             Chat[]
+  payouts          Payout[]
+  notifications    Notification[]
+  bans             Ban[]
+  adRevenueShare   AdRevenueShare[]
+  volunteerProject VolunteerProject[]
 
-  messageRead MessageRead[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  message Message[]
-
-  chatParticipant ChatParticipant[]
-
-  chat Chat[]
+  @@map("users")
 }
 
 model Profile {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id])
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
   name           String
-  username       String   @unique
+  username       String  @unique
   bio            String?
   avatarUrl      String?
   location       String?
-  followersCount Int      @default(0)
-  followingCount Int      @default(0)
+  followersCount Int     @default(0)
+  followingCount Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profiles")
 }
 
 // -----------------------------------
@@ -64,12 +72,15 @@ model Profile {
 // -----------------------------------
 
 model Follow {
-  id          String @id @default(cuid())
-  followerId  String
+  id String @id @default(uuid())
+
+  followerId String
+  follower   User   @relation("followers", fields: [followerId], references: [id])
+
   followingId String
-  follower    User   @relation("followers", fields: [followerId], references: [id])
   following   User   @relation("following", fields: [followingId], references: [id])
-  createdAt   DateTime @default(now())
+
+  createdAt DateTime @default(now())
 
   @@unique([followerId, followingId])
 }

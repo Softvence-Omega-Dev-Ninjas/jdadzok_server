@@ -26,8 +26,6 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  app.setGlobalPrefix('ts');
-
   // ✅ Swagger config with Bearer Auth
   const config = new DocumentBuilder()
     .setTitle('Spectra Synq')
@@ -37,7 +35,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('ts/docs', app, document);
+  SwaggerModule.setup('docs', app, document);
 
   const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? '5000', 10);
   await app.listen(port);

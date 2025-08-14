@@ -75,3 +75,26 @@ enum ReportStatus {
   PENDING
   REVIEWED
 }
+
+enum ChatType {
+  DIRECT
+  GROUP
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+enum PayOutStatus {
+  PENDING
+  PAID
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  CANCELED
+}

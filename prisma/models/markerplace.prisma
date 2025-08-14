@@ -3,23 +3,35 @@
 // -----------------------------------
 
 model Product {
-  id           String   @id @default(cuid())
-  sellerId     String
-  seller       User     @relation(fields: [sellerId], references: [id])
-  title        String
-  description  String
-  price        Float
+  id String @id @default(uuid())
+
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id])
+
+  title          String
+  description    String
+  price          Float
   digitalFileUrl String?
-  orders       Order[]
-  createdAt    DateTime @default(now())
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  buyerId   String
-  buyer     User        @relation("orders", fields: [buyerId], references: [id])
+  id String @id @default(uuid())
+
+  buyerId String
+  buyer   User   @relation("orders", fields: [buyerId], references: [id])
+
   productId String
-  product   Product     @relation(fields: [productId], references: [id])
-  status    OrderStatus @default(PENDING)
-  createdAt DateTime    @default(now())
+  product   Product @relation(fields: [productId], references: [id])
+
+  status OrderStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders")
 }
