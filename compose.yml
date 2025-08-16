@@ -38,10 +38,6 @@ services:
         npx prisma migrate deploy &&
         npm run start:prod
       "
-    develop:
-      watch:
-        - action: rebuild
-          path: .
 
   db:
     image: postgres:17
