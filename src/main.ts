@@ -1,8 +1,10 @@
+import { extendZodWithOpenApi } from '@anatine/zod-openapi';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import 'reflect-metadata';
+import z from 'zod';
 import { AppModule } from './app.module';
 import { ENVEnum } from './common/enum/env.enum';
 import { AllExceptionsFilter } from './common/filter/http-exception.filter';
@@ -27,6 +29,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   // ✅ Swagger config with Bearer Auth
+  extendZodWithOpenApi(z)
   const config = new DocumentBuilder()
     .setTitle('Spectra Synq')
     .setDescription('Spectra Synq API description')

@@ -1,4 +1,6 @@
-import { Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, UsePipes } from "@nestjs/common";
+import { ZodValidationPipe } from "@project/common/pipes/zod-validation.pipe";
+import { CreatePostDto, createPostSchema } from './dto/post.create';
 
 @Controller("posts")
 export class PostController {
@@ -6,7 +8,10 @@ export class PostController {
     }
 
     @Post()
-    async store() { }
+    @UsePipes(new ZodValidationPipe(createPostSchema))
+    async store(@Body() body: CreatePostDto) {
+        return body
+    }
 
     @Get()
     async index() { }
