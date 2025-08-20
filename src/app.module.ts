@@ -58,10 +58,9 @@ import { MainModule } from './main/main.module';
         },
       }),
     }),
+    LibModule,
 
     MainModule,
-
-    LibModule,
   ],
   controllers: [AppController],
   providers: [JwtStrategy],
