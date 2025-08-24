@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Post, Query, UsePipes } from "@nestjs/common";
-import { ZodValidationPipe } from "@project/common/pipes/zod-validation.pipe";
+import { Body, Controller, Get, Post, Query } from "@nestjs/common";
 import { successResponse } from "@project/common/utils/response.util";
-import { CreatePostDto, createPostSchema } from "./dto/post.dto";
-import { PostQueryDataTransferObject } from "./dto/query.dto";
+import { CreatePostDto } from "./dto/post.dto";
+import { PostQueryDto } from "./dto/posts.query.dto";
 import { PostService } from "./posts.service";
 
 @Controller("posts")
@@ -11,7 +10,6 @@ export class PostController {
     }
 
     @Post()
-    @UsePipes(new ZodValidationPipe(createPostSchema))
     async store(
         // @GetUser("user_id") userId: string,
         @Body() body: CreatePostDto) {
@@ -25,13 +23,12 @@ export class PostController {
         }
     }
     @Get()
-    // @UsePipes(new ValidationPipe({ transform: true }))
-    async index(@Query() query?: PostQueryDataTransferObject) {
-        console.log('row data', query)
+    async index(@Query() query?: PostQueryDto) {
+        console.log("merged query", query);
 
         try {
-            // const posts = await this.service.index(obj);
-            return "hello"
+            const posts = await this.service.index(query)
+            return posts
         } catch (err) {
             console.log('error', err)
             return err

@@ -1,3 +1,4 @@
+import slug from 'slugify';
 import { ZodError, ZodSchema } from "zod";
 
 export function parseQueryParams<T, U>(
@@ -46,3 +47,16 @@ function parseValue(value: any): any {
     }
     return value;
 }
+
+export function capitalize(str: string) {
+    if (str.length === 0) {
+        return "";
+    }
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+export const slugify = (textContent: string, replacement: "-" | "_" = "-") => slug(textContent, {
+    trim: true,
+    lower: true,
+    strict: true,
+    replacement,
+});

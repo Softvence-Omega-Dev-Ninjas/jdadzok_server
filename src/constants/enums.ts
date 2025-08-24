@@ -1,39 +1,55 @@
+export const role = ['USER', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'] as const;
+export type Role = (typeof role)[number];
 
-export const Role = ['USER', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'] as const;
+export const authProvider = ['GOOGLE', 'APPLE', 'EMAIL', 'FACEBOOK'] as const;
+export type AuthProvider = (typeof authProvider)[number];
 
-export const AuthProvider = ['GOOGLE', 'APPLE', 'EMAIL', 'FACEBOOK'] as const;
+export const capLevel = ['GREEN', 'YELLOW', 'RED', 'BLACK', 'OSTRICH_FEATHER'] as const;
+export type CapLevel = (typeof capLevel)[number];
 
-export const CapLevel = ['GREEN', 'YELLOW', 'RED', 'BLACK', 'OSTRICH_FEATHER'] as const;
+export const mediaType = ['TEXT', 'IMAGE', 'VIDEO'] as const;
+export type MediaType = (typeof mediaType)[number];
 
-export const MediaType = ['TEXT', 'IMAGE', 'VIDEO'] as const;
+export const postVisibility = ['PUBLIC', 'FOLLOWERS', 'PRIVATE'] as const;
+export type PostVisibility = (typeof postVisibility)[number];
 
-export const PostVisibility = ['PUBLIC', 'FOLLOWERS', 'PRIVATE'] as const;
+export const volunteerStatus = ['OPEN', 'IN_PROGRESS', 'COMPLETED'] as const;
+export type VolunteerStatus = (typeof volunteerStatus)[number];
 
-export const VolunteerStatus = ['OPEN', 'IN_PROGRESS', 'COMPLETED'] as const;
+export const applicationStatus = ['PENDING', 'ACCEPTED', 'REJECTED'] as const;
+export type ApplicationStatus = (typeof applicationStatus)[number];
 
-export const ApplicationStatus = ['PENDING', 'ACCEPTED', 'REJECTED'] as const;
+export const orderStatus = ['PENDING', 'PAID', 'DELIVERED', 'CANCELED'] as const;
+export type OrderStatus = (typeof orderStatus)[number];
 
-export const OrderStatus = ['PENDING', 'PAID', 'DELIVERED', 'CANCELED'] as const;
+export const paymentMethod = ['STRIPE', 'PAYPAL'] as const;
+export type PaymentMethod = (typeof paymentMethod)[number];
 
-export const PaymentMethod = ['STRIPE', 'PAYPAL'] as const;
+export const notificationType = ['LIKE', 'COMMENT', 'FOLLOW', 'SHARE', 'MENTION', 'EARNINGS'] as const;
+export type NotificationType = (typeof notificationType)[number];
 
-export const NotificationType = ['LIKE', 'COMMENT', 'FOLLOW', 'SHARE', 'MENTION', 'EARNINGS'] as const;
+export const reportTargetType = ['POST', 'COMMENT', 'USER'] as const;
+export type ReportTargetType = (typeof reportTargetType)[number];
 
-export const ReportTargetType = ['POST', 'COMMENT', 'USER'] as const;
+export const reportStatus = ['PENDING', 'REVIEWED'] as const;
+export type ReportStatus = (typeof reportStatus)[number];
 
-export const ReportStatus = ['PENDING', 'REVIEWED'] as const;
+export const chatType = ['DIRECT', 'GROUP'] as const;
+export type ChatType = (typeof chatType)[number];
 
-export const ChatType = ['DIRECT', 'GROUP'] as const;
+export const messageStatus = ['SENT', 'DELIVERED', 'READ'] as const;
+export type MessageStatus = (typeof messageStatus)[number];
 
-export const MessageStatus = ['SENT', 'DELIVERED', 'READ'] as const;
+export const payOutStatus = ['PENDING', 'PAID'] as const;
+export type PayOutStatus = (typeof payOutStatus)[number];
 
-export const PayOutStatus = ['PENDING', 'PAID'] as const;
+export const subscriptionStatus = ['PENDING', 'ACTIVE', 'INACTIVE', 'CANCELED'] as const;
+export type SubscriptionStatus = (typeof subscriptionStatus)[number];
 
-export const SubscriptionStatus = ['PENDING', 'ACTIVE', 'INACTIVE', 'CANCELED'] as const;
-
-export const Feelings = [
+export const feelings = [
     'HAPPY', 'SAD', 'ANGRY', 'AMAZED', 'AMUSED', 'SCARED', 'PROUD', 'TIRED', 'CONFUSED',
     'RELAXED', 'EXCITED', 'WORRIED', 'LOVED', 'GRATEFUL', 'BLESSED', 'HUNGRY', 'HOPEFUL',
     'LONELY', 'SILLY', 'THANKFUL', 'AWESOME', 'BORED', 'COOL', 'DETERMINED', 'IN_LOVE',
     'INSPIRED', 'MOTIVATED', 'SICK', 'SLEEPY', 'STRESSED', 'STRONG', 'FUNNY', 'MEH'
 ] as const;
+export type Feelings = (typeof feelings)[number];

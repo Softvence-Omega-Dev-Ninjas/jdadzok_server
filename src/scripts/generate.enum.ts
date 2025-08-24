@@ -1,33 +1,52 @@
-import { ApplicationStatus, AuthProvider, CapLevel, ChatType, Feelings, MediaType, MessageStatus, NotificationType, OrderStatus, PaymentMethod, PayOutStatus, PostVisibility, ReportStatus, ReportTargetType, Role, SubscriptionStatus, VolunteerStatus } from '@project/constants';
+import {
+    applicationStatus,
+    authProvider,
+    capLevel,
+    chatType,
+    feelings,
+    mediaType,
+    messageStatus,
+    notificationType,
+    orderStatus,
+    paymentMethod,
+    payOutStatus,
+    postVisibility,
+    reportStatus,
+    reportTargetType,
+    role,
+    subscriptionStatus,
+    volunteerStatus
+} from '@project/constants';
+import { capitalize } from '@project/utils';
 import fs from 'fs';
 import path from 'path';
 
 const enums: Record<string, readonly string[]> = {
-    Role,
-    AuthProvider,
-    CapLevel,
-    MediaType,
-    PostVisibility,
-    VolunteerStatus,
-    ApplicationStatus,
-    OrderStatus,
-    PaymentMethod,
-    NotificationType,
-    ReportTargetType,
-    ReportStatus,
-    ChatType,
-    MessageStatus,
-    PayOutStatus,
-    SubscriptionStatus,
-    Feelings
+    role,
+    authProvider,
+    capLevel,
+    mediaType,
+    postVisibility,
+    volunteerStatus,
+    applicationStatus,
+    orderStatus,
+    paymentMethod,
+    notificationType,
+    reportTargetType,
+    reportStatus,
+    chatType,
+    messageStatus,
+    payOutStatus,
+    subscriptionStatus,
+    feelings
 };
 
 function generateEnumBlock<V>(name: string, values: readonly V[]) {
-    return `enum ${name} {\n  ${values.join('\n  ')}\n}`;
+    return `enum ${capitalize(name)} {\n  ${values.join('\n  ')}\n}`;
 }
 
 function generateAllEnumBlocks() {
-    return Object.entries(enums).map(([name, values]) => generateEnumBlock(name, values)).join('\n\n');
+    return Object.entries(enums).map(([name, values]) => generateEnumBlock(capitalize(name), values)).join('\n\n');
 }
 
 function injectEnumsIntoSchema(schemaPath: string) {

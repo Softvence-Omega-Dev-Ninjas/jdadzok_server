@@ -1,11 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { QueryDto } from "@project/services/dto/query.dto";
 import queryBuilderService from "@project/services/query-builder.service";
-import { Merge } from 'type-fest';
 import { CreatePostDto } from "./dto/post.dto";
-import { PostQueryDto } from "./dto/post.query.dto";
+import { PostQueryDto } from "./dto/posts.query.dto";
 
 @Injectable()
 export class PostRepository {
@@ -14,7 +12,7 @@ export class PostRepository {
     async store(input: CreatePostDto) {
         return await this.prisma.post.create({
             data: {
-                text: "This is a brand new post 🚀",
+                text: input.text,
                 author: {
                     connect: {
                         id: input.author_id,
@@ -33,14 +31,31 @@ export class PostRepository {
             }
         })
     }
-    async findAll(options?: Merge<PostQueryDto, QueryDto>) {
+    async findAll(options?: PostQueryDto) {
         const safeOptions = {
-            page: options?.page ?? 1,
-            limit: options?.limit ?? 10,
+            include: {
+                metadata: options?.metadata ?? false,
+                author: options?.author ?? false,
+                category: options?.category ?? false
+            },
+            orderBy: {
+                [options?.sortBy ?? "createdAt"]: "asc"
+            },
             ...options
         }
-
-        const query = queryBuilderService.buildQuery<Prisma.PostWhereInput, Prisma.PostInclude, PostQueryDto>(safeOptions)
-        return await this.prisma.post.findMany({ ...query })
+        const query = queryBuilderService.buildQuery<Prisma.PostWhereInput, Prisma.PostInclude, PostQueryDto>(safeOptions, (search) => ({
+            OR: [
+                {
+                    text: {
+                        contains: search,
+                        mode: "insensitive",
+                    }
+                }
+            ]
+        }))
+        return await this.prisma.post.findMany({
+            ...query,
+            skip: 0
+        })
     }
 }

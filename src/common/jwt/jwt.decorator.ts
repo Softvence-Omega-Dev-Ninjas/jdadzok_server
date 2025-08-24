@@ -26,7 +26,7 @@ export const GetUser = createParamDecorator(
   },
 );
 
-export function ValidateAuth<R extends typeof Role[number]>(...roles: R[]) {
+export function ValidateAuth<R extends Role>(...roles: R[]) {
   const decorators = [UseGuards(JwtAuthGuard, RolesGuard)];
   if (roles.length > 0) {
     decorators.push(Roles(...roles));

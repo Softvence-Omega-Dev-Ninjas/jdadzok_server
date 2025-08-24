@@ -12,7 +12,7 @@ export interface JWTPayload {
 }
 
 export interface UserTokenPayload {
-  roles: typeof Role[number][];
+  roles: Role[];
   email: string;
   userId: string;
   [key: string]: unknown;
