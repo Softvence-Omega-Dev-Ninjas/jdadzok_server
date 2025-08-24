@@ -1,5 +1,5 @@
+import { Role } from '@project/constants';
 import { Request } from 'express';
-import { UserEnum } from '../enum/user.enum';
 
 export interface RequestWithUser extends Request {
   user?: UserTokenPayload;
@@ -12,7 +12,7 @@ export interface JWTPayload {
 }
 
 export interface UserTokenPayload {
-  roles: UserEnum[];
+  roles: typeof Role[number][];
   email: string;
   userId: string;
   [key: string]: unknown;

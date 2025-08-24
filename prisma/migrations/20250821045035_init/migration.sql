@@ -46,6 +46,9 @@ CREATE TYPE "public"."PayOutStatus" AS ENUM ('PENDING', 'PAID');
 -- CreateEnum
 CREATE TYPE "public"."SubscriptionStatus" AS ENUM ('PENDING', 'ACTIVE', 'INACTIVE', 'CANCELED');
 
+-- CreateEnum
+CREATE TYPE "public"."Feelings" AS ENUM ('HAPPY', 'SAD', 'ANGRY', 'AMAZED', 'AMUSED', 'SCARED', 'PROUD', 'TIRED', 'CONFUSED', 'RELAXED', 'EXCITED', 'WORRIED', 'LOVED', 'GRATEFUL', 'BLESSED', 'HUNGRY', 'HOPEFUL', 'LONELY', 'SILLY', 'THANKFUL', 'AWESOME', 'BORED', 'COOL', 'DETERMINED', 'IN_LOVE', 'INSPIRED', 'MOTIVATED', 'SICK', 'SLEEPY', 'STRESSED', 'STRONG', 'FUNNY', 'MEH');
+
 -- CreateTable
 CREATE TABLE "public"."chats" (
     "id" TEXT NOT NULL,
@@ -114,8 +117,9 @@ CREATE TABLE "public"."posts" (
     "categoryId" TEXT,
     "text" TEXT,
     "mediaUrl" TEXT,
-    "mediaType" "public"."MediaType" NOT NULL,
+    "mediaType" "public"."MediaType" NOT NULL DEFAULT 'TEXT',
     "visibility" "public"."PostVisibility" NOT NULL DEFAULT 'PUBLIC',
+    "metadataId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -156,6 +160,39 @@ CREATE TABLE "public"."shares" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "shares_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."PostMetadata" (
+    "id" TEXT NOT NULL,
+    "feelings" "public"."Feelings" NOT NULL DEFAULT 'HAPPY',
+    "check_in_id" TEXT,
+    "gif_id" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PostMetadata_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."Location" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "coordinates" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Location_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."Gif" (
+    "id" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Gif_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -422,6 +459,9 @@ ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_authorId_fkey" FOREIGN KEY ("
 ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_metadataId_fkey" FOREIGN KEY ("metadataId") REFERENCES "public"."PostMetadata"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -444,6 +484,12 @@ ALTER TABLE "public"."shares" ADD CONSTRAINT "shares_userId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "public"."shares" ADD CONSTRAINT "shares_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."PostMetadata" ADD CONSTRAINT "PostMetadata_check_in_id_fkey" FOREIGN KEY ("check_in_id") REFERENCES "public"."Location"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."PostMetadata" ADD CONSTRAINT "PostMetadata_gif_id_fkey" FOREIGN KEY ("gif_id") REFERENCES "public"."Gif"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Product" ADD CONSTRAINT "Product_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

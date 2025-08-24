@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     environment:
       NODE_ENV: production
-      DATABASE_URL: 'postgresql://postgres:postgres@db:5432/jdadzok_db'
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/jdadzok_db"
 
       JWT_SECRET: asdfkamskfmasklfmaksmfaskfmaksfaopsfmpaomsfpaf
       JWT_EXPIRES_IN: 90d
@@ -15,11 +15,11 @@ services:
       BASE_URL: https://api.lgcglobalcontractingltd.com/js
       PORT: 5055
 
-      MAIL_USER: 'arafatmannan2019@gmail.com'
-      MAIL_PASS: 'eurp zvyi gnoy enag'
+      MAIL_USER: "arafatmannan2019@gmail.com"
+      MAIL_PASS: "eurp zvyi gnoy enag"
 
-      SUPER_ADMIN_EMAIL: 'superadmin@gmail.com'
-      SUPER_ADMIN_PASS: 'superadmin'
+      SUPER_ADMIN_EMAIL: "superadmin@gmail.com"
+      SUPER_ADMIN_PASS: "superadmin"
 
       REDIS_URL: redis://redis:6379
       REDIS_HOST: redis
@@ -51,14 +51,15 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
-      - '5400:5432'
+      - "5400:5432"
 
   redis:
     image: redis
     container_name: jdadzok_redis
     restart: always
+    # user: postgres
     ports:
-      - '6385:6379'
+      - "6385:6379"
     volumes:
       - redis-data:/data
 

@@ -9,7 +9,7 @@
     "nest:m": "npx nest g resource",
     "start": "nest start",
     "build": "nest build",
-    "start:dev": "nest start --watch",
+    "dev": "nest start --watch",
     "start:prod": "node dist/main",
     "start:debug": "nest start --debug --watch",
     "lint": "eslint . --ext .ts",
@@ -27,7 +27,8 @@
     "prisma:studio": "npx prisma studio",
     "prisma:validate": "npx prisma validate",
     "prisma:format": "npx prisma format",
-    "postinstall": "npx prisma generate"
+    "postinstall": "npx prisma generate",
+    "g:enum": "tsx src/scripts/generate.enum.ts"
   },
   "prisma": {
     "schema": "./prisma"
@@ -68,6 +69,7 @@
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.1",
     "twilio": "^5.8.0",
+    "type-fest": "^4.41.0",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
     "ws": "^8.18.3",
@@ -101,6 +103,7 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.4",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   }
