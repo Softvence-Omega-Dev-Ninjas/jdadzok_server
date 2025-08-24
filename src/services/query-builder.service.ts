@@ -1,6 +1,6 @@
 import { ModelIncludeInput, ModelWhereInput } from "./@types";
 
-export class QueryBuilderService {
+class QueryBuilderService {
     public buildQuery<WhereInput extends ModelWhereInput, IncludeInput extends ModelIncludeInput,
         ModelDto>(queryDto: ModelDto, whereBuilder?: (search: string) => WhereInput) {
         const { page, limit, search, sortBy, order, include: includes, orderBy: dtoOrderBy } = queryDto as any;

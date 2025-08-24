@@ -12,14 +12,22 @@ import { ROLES_KEY } from './jwt.decorator';
 import { RequestWithUser } from './jwt.interface';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  canActivate(context: ExecutionContext) {
+    // Add your custom authentication logic here
+    console.log("JWT Auth Guard activated");
+    console.log("context: ", context.switchToHttp().getRequest<RequestWithUser>().user);
+    // for example, call super.logIn(request) to establish a session.
+    return super.canActivate(context);
+  }
+}
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private prisma: PrismaService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<UserEnum[]>(
