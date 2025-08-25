@@ -36,6 +36,7 @@
   "dependencies": {
     "@anatine/zod-nestjs": "^2.0.12",
     "@anatine/zod-openapi": "^2.2.8",
+    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/bullmq": "^11.0.2",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
@@ -58,6 +59,7 @@
     "class-validator": "^0.14.2",
     "cloudinary": "^2.7.0",
     "dayjs": "^1.11.13",
+    "dev-unique-id": "^1.1.5",
     "firebase-admin": "^13.4.0",
     "google-auth-library": "^9.15.1",
     "mime-types": "^3.0.1",

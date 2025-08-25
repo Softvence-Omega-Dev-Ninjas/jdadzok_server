@@ -11,7 +11,9 @@ import { TUser } from '@project/@types';
 import { GetUser, MakePublic } from '@project/common/jwt/jwt.decorator';
 import { successResponse } from '@project/common/utils/response.util';
 import { AuthService } from './auth.service';
+import { ForgetPasswordDto } from './dto/forget.dto';
 import { LoginDto } from './dto/login.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth';
 
 @Controller('auth')
@@ -43,33 +45,39 @@ export class AuthController {
         }
     }
 
-    //   @MakePublic()
-    //   @Post('forget-password')
-    //   async forgetPassword(@Body() payload: any) {
-    //     const result = await this.authService.forgetPassword(payload);
-    //     return successResponse(result, 'Email sent successfully!');
-    //   }
+    @MakePublic()
+    @Post('forget-password')
+    async forgetPassword(@Body() body: ForgetPasswordDto) {
+        try {
+            const result = await this.authService.forgetPassword(body);
+            return successResponse(result, 'Password reset email sent successfully! Please check your mail.');
+        } catch (err) {
+            return err
+        }
 
-    //   @MakePublic()
-    //   @Post('reset-password')
-    //   async resetPassword(@Body() payload: any) {
-    //     const result = await this.authService.resetPassword(payload);
-    //     return successResponse(result, 'Password was reset successfully!');
-    //   }
+    }
 
-    //   @ApiSecurity('accessToken')
-    //   @Patch('change-password')
-    //   async changePassword(@Req() req: any, @Body() payload: any) {
-    //     const result = await this.authService.changePassword(req.user, payload);
-    //     return successResponse(result, 'Password updated successfully!');
-    //   }
+    @MakePublic()
+    @Post('resent-code')
+    async resentCode(@Body() body: ForgetPasswordDto) {
+        try {
+            const result = await this.authService.forgetPassword(body);
+            return successResponse(result, 'Resend code email sent successfully! Please check your mail.');
+        } catch (err) {
+            return err
+        }
+    }
 
-    //   @MakePublic()
-    //   @Post('verify-otp')
-    //   async verifyOtp(@Body() payload: any) {
-    //     const result = await this.authService.verifyOtp(payload);
-    //     return successResponse(result, 'OTP verified successfully!');
-    //   }
+    @MakePublic()
+    @Post('reset-password')
+    async resetPassword(@Body() payload: ResetPasswordDto) {
+        try {
+            const result = await this.authService.resetPassword(payload);
+            return successResponse(result, 'Password was reset successfully!');
+        } catch (err) {
+            return err
+        }
+    }
 
     //   @ApiSecurity('accessToken')
     //   @Delete()

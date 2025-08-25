@@ -16,4 +16,11 @@ export class UserRepository {
             where: { email }
         })
     }
+
+    async update(id: string, data: Partial<CreateUserDto>) {
+        return await this.prisma.user.update({
+            where: { id },
+            data
+        });
+    }
 }

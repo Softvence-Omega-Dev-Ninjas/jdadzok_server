@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ENVEnum } from '@project/common/enum/env.enum';
+import { MAIL_EXPIRE_TIME } from '@project/constants';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
@@ -12,8 +13,8 @@ export class MailService {
       service: 'gmail',
 
       auth: {
-        user: this.configService.get<string>(ENVEnum.MAIL_USER),
-        pass: this.configService.get<string>(ENVEnum.MAIL_PASS),
+        user: this.configService.getOrThrow<string>(ENVEnum.MAIL_USER),
+        pass: this.configService.getOrThrow<string>(ENVEnum.MAIL_PASS),
       },
     });
   }
@@ -33,7 +34,7 @@ export class MailService {
       `,
     };
 
-    return this.transporter.sendMail(mailOptions);
+    return await this.transporter.sendMail(mailOptions);
   }
 
   async sendEmail(
@@ -48,6 +49,25 @@ export class MailService {
       html: message,
     };
 
-    return this.transporter.sendMail(mailOptions);
+    return await this.transporter.sendMail(mailOptions);
+  }
+
+  async forgetPasswordMail(
+    email: string,
+    code: string,
+  ): Promise<nodemailer.SentMessageInfo> {
+    const mailOptions = {
+      from: `"No Reply" <${this.configService.get<string>(ENVEnum.MAIL_USER)}>`,
+      to: email,
+      subject: 'Forgot Password',
+      html: `
+        <h3>Reset Your Password</h3>
+        <p>Please use the code below to reset your password:</p>
+        <p>Your reset code is <b>${code}</b></p>
+        <p style="color: red">This code will expire within ${MAIL_EXPIRE_TIME} minutes</p>
+      `,
+    };
+
+    return await this.transporter.sendMail(mailOptions);
   }
 }

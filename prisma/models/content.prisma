@@ -27,7 +27,7 @@ model Post {
 
   text       String
   mediaUrl   String?
-  mediaType  MediaType @default(TEXT)
+  mediaType  MediaType      @default(TEXT)
   visibility PostVisibility @default(PUBLIC)
 
   comments Comment[]
@@ -35,8 +35,7 @@ model Post {
   shares   Share[]
 
   metadataId String?
-  metadata PostMetadata? @relation(fields: [metadataId], references: [id])
-
+  metadata   PostMetadata? @relation(fields: [metadataId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

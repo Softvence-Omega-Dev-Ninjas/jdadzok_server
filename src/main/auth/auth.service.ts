@@ -3,14 +3,19 @@ import {
     Injectable,
     NotFoundException
 } from '@nestjs/common';
+import { MAIL_EXPIRE_TIME } from '@project/constants';
+import { MailService } from '@project/lib/mail/mail.service';
 import { UtilsService } from '@project/lib/utils/utils.service';
 import { JwtServices } from '@project/services/jwt.service';
+import { uniqueID } from 'dev-unique-id';
 import { UserRepository } from '../users/users.repository';
+import { ForgetPasswordDto } from './dto/forget.dto';
 import { LoginDto } from './dto/login.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly userRepository: UserRepository, private readonly utilsService: UtilsService, private readonly jwtService: JwtServices) { }
+    constructor(private readonly userRepository: UserRepository, private readonly utilsService: UtilsService, private readonly jwtService: JwtServices, private readonly mailService: MailService) { }
 
 
     async login(input: LoginDto) {
@@ -33,6 +38,31 @@ export class AuthService {
             },
         };
     }
+    async forgetPassword(input: ForgetPasswordDto) {
+        const user = await this.userRepository.findByEmail(input.email);
+        if (!user) throw new NotFoundException('User not found');
+        const expireDate = new Date();
+        // expire time will be only 5 minutes
+        expireDate.setMinutes(expireDate.getMinutes() + MAIL_EXPIRE_TIME); // expire time is 5 minutes
+
+        const token = uniqueID({ length: 6, alphabet: true });
+        console.log(token)
+
+        //TODO: send token via email
+        const sendMail = await this.mailService.forgetPasswordMail(user.email, token);
+        if (!sendMail) throw new ForbiddenException('Error sending email, Please try again later');
+    }
+
+    async resetPassword(input: ResetPasswordDto) {
+        const user = await this.userRepository.findByEmail(input.email);
+        if (!user) throw new NotFoundException('User not found');
+
+        const hash = await this.utilsService.hash(input.password);
+
+        // update the user password with that hash password
+        return await this.userRepository.update(user.id, { passwordHash: hash });
+    }
+
     async logout(email: string) {
         const user = await this.userRepository.findByEmail(email);
         if (!user) throw new NotFoundException('User not found');

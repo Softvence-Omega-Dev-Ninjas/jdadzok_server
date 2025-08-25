@@ -100,6 +100,16 @@ CREATE TABLE "public"."message_reads" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."Choice" (
+    "id" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "Choice_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."categories" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -115,7 +125,7 @@ CREATE TABLE "public"."posts" (
     "id" TEXT NOT NULL,
     "authorId" TEXT NOT NULL,
     "categoryId" TEXT,
-    "text" TEXT,
+    "text" TEXT NOT NULL,
     "mediaUrl" TEXT,
     "mediaType" "public"."MediaType" NOT NULL DEFAULT 'TEXT',
     "visibility" "public"."PostVisibility" NOT NULL DEFAULT 'PUBLIC',
@@ -402,6 +412,9 @@ CREATE UNIQUE INDEX "chat_participants_chatId_userId_key" ON "public"."chat_part
 CREATE UNIQUE INDEX "message_reads_messageId_userId_key" ON "public"."message_reads"("messageId", "userId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Choice_slug_key" ON "public"."Choice"("slug");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "categories_slug_key" ON "public"."categories"("slug");
 
 -- CreateIndex
@@ -451,6 +464,9 @@ ALTER TABLE "public"."message_reads" ADD CONSTRAINT "message_reads_messageId_fke
 
 -- AddForeignKey
 ALTER TABLE "public"."message_reads" ADD CONSTRAINT "message_reads_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Choice" ADD CONSTRAINT "Choice_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

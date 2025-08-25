@@ -59,4 +59,6 @@ export const slugify = (textContent: string, replacement: "-" | "_" = "-") => sl
     lower: true,
     strict: true,
     replacement,
+    // remove all spacial characters except for replacement character
+    remove: /[^\w\s-]|_/g
 });

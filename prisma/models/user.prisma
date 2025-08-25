@@ -40,6 +40,8 @@ model User {
   bans             Ban[]
   adRevenueShare   AdRevenueShare[]
   volunteerProject VolunteerProject[]
+  // a user choice based on that choice array we have to display their feed page
+  Choice           Choice[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
