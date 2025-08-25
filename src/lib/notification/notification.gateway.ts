@@ -1,21 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
   WebSocketGateway,
   WebSocketServer,
-} from '@nestjs/websockets';
-import { Notification } from '@project/common/interface/events-payload';
-import { JWTPayload } from '@project/common/jwt/jwt.interface';
-import { Server, Socket } from 'socket.io';
-import { PrismaService } from '../prisma/prisma.service';
+} from "@nestjs/websockets";
+import { Notification } from "@project/common/interface/events-payload";
+import { JWTPayload } from "@project/common/jwt/jwt.interface";
+import { Server, Socket } from "socket.io";
+import { PrismaService } from "../prisma/prisma.service";
 
 @WebSocketGateway({
-  cors: { origin: '*' },
-  namespace: '/js/notification',
+  cors: { origin: "*" },
+  namespace: "/js/notification",
 })
 @Injectable()
 export class NotificationGateway
@@ -34,7 +34,7 @@ export class NotificationGateway
   server: Server;
 
   afterInit(server: Server) {
-    this.logger.log('Socket.IO server initialized', server);
+    this.logger.log("Socket.IO server initialized", server);
   }
 
   async handleConnection(client: Socket) {
@@ -43,7 +43,7 @@ export class NotificationGateway
       if (!token) return client.disconnect(true);
 
       const payload = this.jwtService.verify<JWTPayload>(token, {
-        secret: this.configService.getOrThrow('JWT_SECRET'),
+        secret: this.configService.getOrThrow("JWT_SECRET"),
       });
 
       if (!payload.sub) return client.disconnect(true);
@@ -82,8 +82,8 @@ export class NotificationGateway
     const authHeader =
       client.handshake.headers.authorization || client.handshake.auth?.token;
     if (!authHeader) return null;
-    return authHeader.startsWith('Bearer ')
-      ? authHeader.split(' ')[1]
+    return authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
       : authHeader;
   }
 

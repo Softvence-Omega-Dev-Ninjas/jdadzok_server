@@ -6,16 +6,16 @@ import { CategoryQueryDto } from "./dto/category.query.dto";
 
 @Injectable()
 export class CategoryService {
-    constructor(private readonly repository: CategoryRepository) { }
+  constructor(private readonly repository: CategoryRepository) {}
 
-    async create(input: CreateCategoryDto) {
-        // generate slug from the name
-        const slug = slugify(input.name)
-        // TODO: check category already exist or not 
+  async create(input: CreateCategoryDto) {
+    // generate slug from the name
+    const slug = slugify(input.name);
+    // TODO: check category already exist or not
 
-        return await this.repository.store({ ...input, slug });
-    }
-    async index(options?: CategoryQueryDto) {
-        return await this.repository.findAll(options);
-    }
+    return await this.repository.store({ ...input, slug });
+  }
+  async index(options?: CategoryQueryDto) {
+    return await this.repository.findAll(options);
+  }
 }

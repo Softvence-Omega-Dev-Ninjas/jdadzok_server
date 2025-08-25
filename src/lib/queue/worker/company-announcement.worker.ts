@@ -1,12 +1,12 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ENVEnum } from '@project/common/enum/env.enum';
-import { EVENT_TYPES } from '@project/common/interface/events-name';
-import { AnnouncementEvent } from '@project/common/interface/events-payload';
-import { QueueName } from '@project/common/interface/queue-name';
-import { MailService } from '@project/lib/mail/mail.service';
-import { NotificationGateway } from '@project/lib/notification/notification.gateway';
-import { Worker } from 'bullmq';
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ENVEnum } from "@project/common/enum/env.enum";
+import { EVENT_TYPES } from "@project/common/interface/events-name";
+import { AnnouncementEvent } from "@project/common/interface/events-payload";
+import { QueueName } from "@project/common/interface/queue-name";
+import { MailService } from "@project/lib/mail/mail.service";
+import { NotificationGateway } from "@project/lib/notification/notification.gateway";
+import { Worker } from "bullmq";
 
 @Injectable()
 export class CompanyAnnouncementWorker implements OnModuleInit {
@@ -51,7 +51,7 @@ export class CompanyAnnouncementWorker implements OnModuleInit {
           recipients.map((r) => r.id),
           EVENT_TYPES.COMPANY_ANNOUNCEMENT_CREATE,
           {
-            type: 'ANNOUNCEMENT',
+            type: "ANNOUNCEMENT",
             title,
             message,
             createdAt: new Date(),

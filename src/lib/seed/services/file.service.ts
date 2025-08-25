@@ -1,14 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
+import { Injectable, Logger } from "@nestjs/common";
+import * as fs from "fs";
+import * as path from "path";
 
 @Injectable()
 export class FileService {
   private readonly logger = new Logger(FileService.name);
 
   async onModuleInit() {
-    this.logger.log('FileService initialized and directories checked.');
-    this.ensureDirectoriesExist(['uploads', 'temp']);
+    this.logger.log("FileService initialized and directories checked.");
+    this.ensureDirectoriesExist(["uploads", "temp"]);
   }
 
   private ensureDirectoriesExist(folders: string[]) {

@@ -3,5 +3,5 @@ import { PostMetadataRepository } from "./post.metadata.repository";
 
 @Injectable()
 export class PostMetadataService {
-    constructor(private readonly repository: PostMetadataRepository) { }
+  constructor(private readonly repository: PostMetadataRepository) {}
 }

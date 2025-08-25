@@ -1,4 +1,4 @@
-import { AnnouncementMeta } from './events-meta';
+import { AnnouncementMeta } from "./events-meta";
 
 export interface Notification {
   type: string;
@@ -20,5 +20,5 @@ export interface AnnouncementEvent extends BaseEvent<AnnouncementMeta> {
     recipients: { email: string; id: string }[];
     sendEmail: boolean;
   };
-  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  action: "CREATE" | "UPDATE" | "DELETE";
 }

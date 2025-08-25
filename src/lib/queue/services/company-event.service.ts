@@ -1,13 +1,13 @@
-import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
+import { InjectQueue } from "@nestjs/bullmq";
+import { Injectable } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
 import {
   EVENT_TYPES,
   EventPayloadMap,
-} from '@project/common/interface/events-name';
-import { QueueName } from '@project/common/interface/queue-name';
-import { NotificationGateway } from '@project/lib/notification/notification.gateway';
-import { Queue } from 'bullmq';
+} from "@project/common/interface/events-name";
+import { QueueName } from "@project/common/interface/queue-name";
+import { NotificationGateway } from "@project/lib/notification/notification.gateway";
+import { Queue } from "bullmq";
 
 @Injectable()
 export class CompanyEventService {

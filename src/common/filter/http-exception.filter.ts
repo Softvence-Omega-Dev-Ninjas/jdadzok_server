@@ -4,9 +4,9 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
-} from '@nestjs/common';
-import { Response } from 'express';
-import { errorResponse } from '../utils/response.util';
+} from "@nestjs/common";
+import { Response } from "express";
+import { errorResponse } from "../utils/response.util";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -22,17 +22,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = exception.getStatus();
       const res = exception.getResponse();
 
-      if (typeof res === 'string') {
+      if (typeof res === "string") {
         message = res;
-      } else if (typeof res === 'object' && res !== null && 'message' in res) {
+      } else if (typeof res === "object" && res !== null && "message" in res) {
         message = res?.message as string;
         errorData = res;
       } else {
-        message = 'An error occurred';
+        message = "An error occurred";
       }
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
+      message = "Internal server error";
     }
 
     const errorPayload = errorResponse(errorData, message);

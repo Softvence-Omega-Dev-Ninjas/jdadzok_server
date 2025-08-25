@@ -5,10 +5,12 @@ import { parseChoiceInput } from "./utils";
 
 @Injectable()
 export class ChoicesService {
-    constructor(private readonly repository: ChoicesRepository) { }
+  constructor(private readonly repository: ChoicesRepository) {}
 
-    async create(userId: string, input: CreateChoiceDto[]) {
-        const choices = await this.repository.createMany(parseChoiceInput(userId, input));
-        return choices
-    }
+  async create(userId: string, input: CreateChoiceDto[]) {
+    const choices = await this.repository.createMany(
+      parseChoiceInput(userId, input),
+    );
+    return choices;
+  }
 }

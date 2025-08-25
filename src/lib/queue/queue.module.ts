@@ -1,8 +1,8 @@
-import { BullModule } from '@nestjs/bullmq';
-import { Global, Module } from '@nestjs/common';
-import { QueueName } from '@project/common/interface/queue-name';
-import { CompanyEventService } from './services/company-event.service';
-import { CompanyAnnouncementWorker } from './worker/company-announcement.worker';
+import { BullModule } from "@nestjs/bullmq";
+import { Global, Module } from "@nestjs/common";
+import { QueueName } from "@project/common/interface/queue-name";
+import { CompanyEventService } from "./services/company-event.service";
+import { CompanyAnnouncementWorker } from "./worker/company-announcement.worker";
 
 @Global()
 @Module({

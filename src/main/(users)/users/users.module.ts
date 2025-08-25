@@ -6,8 +6,8 @@ import { UserRepository } from "./users.repository";
 import { UserService } from "./users.service";
 
 @Module({
-    controllers: [UserController],
-    providers: [JwtService, UserRepository, UserService, JwtServices],
-    exports: [UserRepository, UserService]
+  controllers: [UserController],
+  providers: [JwtService, UserRepository, UserService, JwtServices],
+  exports: [UserRepository, UserService],
 })
-export class UserModule { }
+export class UserModule {}

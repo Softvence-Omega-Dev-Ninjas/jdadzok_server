@@ -8,25 +8,24 @@ import { ChoicesService } from "./choices.service";
 import { CreateChoiceDto } from "./dto/choices.create.dto";
 import { choicesBodyOptions } from "./example";
 
-
 @ApiBearerAuth()
 @Controller("choices")
 export class ChoicesController {
-    constructor(private readonly service: ChoicesService) { }
+  constructor(private readonly service: ChoicesService) {}
 
-    @UseGuards(JwtAuthGuard)
-    @Post()
-    @ApiBody(choicesBodyOptions)
-    async store(@GetUser() user: TUser, @Body() body: CreateChoiceDto[]) {
-        try {
-            const choices = await this.service.create(user.userId, body);
-            return successResponse(choices, "User choices accepted")
-        } catch (err) {
-            return err
-        }
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  @ApiBody(choicesBodyOptions)
+  async store(@GetUser() user: TUser, @Body() body: CreateChoiceDto[]) {
+    try {
+      const choices = await this.service.create(user.userId, body);
+      return successResponse(choices, "User choices accepted");
+    } catch (err) {
+      return err;
     }
+  }
 
-    @UseGuards(JwtAuthGuard)
-    @Get()
-    async index() { }
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async index() {}
 }

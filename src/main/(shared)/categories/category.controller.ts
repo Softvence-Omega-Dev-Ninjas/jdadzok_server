@@ -5,30 +5,27 @@ import { CategoryQueryDto } from "./dto/category.query.dto";
 
 @Controller("categories")
 export class CategoryController {
-    constructor(private readonly service: CategoryService) {
+  constructor(private readonly service: CategoryService) {}
+
+  @Post()
+  async store(
+    // @GetUser("user_id") userId: string,
+    @Body() body: CreateCategoryDto,
+  ) {
+    try {
+      const category = await this.service.create(body);
+
+      return category;
+    } catch (err) {
+      return err;
     }
-
-    @Post()
-    async store(
-        // @GetUser("user_id") userId: string,
-        @Body() body: CreateCategoryDto) {
-
-        try {
-            const category = await this.service.create(body);
-
-            return category
-        } catch (err) {
-            return err
-        }
+  }
+  @Get()
+  async index(@Query() query?: CategoryQueryDto) {
+    try {
+      return query;
+    } catch (err) {
+      return err;
     }
-    @Get()
-    async index(@Query() query?: CategoryQueryDto) {
-        console.log("merged query", query);
-
-        try {
-            return "hello"
-        } catch (err) {
-            return err
-        }
-    }
+  }
 }

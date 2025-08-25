@@ -1,7 +1,7 @@
-import { AnnouncementEvent } from './events-payload';
+import { AnnouncementEvent } from "./events-payload";
 
 export const EVENT_TYPES = {
-  COMPANY_ANNOUNCEMENT_CREATE: 'company-announcement.create',
+  COMPANY_ANNOUNCEMENT_CREATE: "company-announcement.create",
 } as const;
 
 export type EventPayloadMap = {
