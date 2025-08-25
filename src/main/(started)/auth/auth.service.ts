@@ -1,3 +1,4 @@
+import { UserRepository } from '@module/(users)/users/users.repository';
 import {
     ForbiddenException,
     Injectable,
@@ -8,7 +9,6 @@ import { MailService } from '@project/lib/mail/mail.service';
 import { UtilsService } from '@project/lib/utils/utils.service';
 import { JwtServices } from '@project/services/jwt.service';
 import { uniqueID } from 'dev-unique-id';
-import { UserRepository } from '../users/users.repository';
 import { ForgetPasswordDto } from './dto/forget.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';

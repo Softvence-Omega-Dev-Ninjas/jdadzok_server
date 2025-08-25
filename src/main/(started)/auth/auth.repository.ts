@@ -1,6 +1,6 @@
+import { UserRepository } from "@module/(users)/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { UtilsService } from "@project/lib/utils/utils.service";
-import { UserRepository } from "../users/users.repository";
 
 @Injectable()
 export class AuthRepository {

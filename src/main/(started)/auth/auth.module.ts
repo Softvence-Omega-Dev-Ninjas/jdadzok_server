@@ -1,8 +1,8 @@
+import { UserRepository } from '@module/(users)/users/users.repository';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { JwtServices } from '@project/services/jwt.service';
-import { UserRepository } from '../users/users.repository';
 import { AuthController } from './auth.controller';
 import { AuthRepository } from './auth.repository';
 import { AuthService } from './auth.service';

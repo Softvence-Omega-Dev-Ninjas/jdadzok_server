@@ -1,7 +1,7 @@
+import { GetUser } from "@common/jwt/jwt.decorator";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
-import { GetUser } from "@project/common/jwt/jwt.decorator";
 import { successResponse } from "@project/common/utils/response.util";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth";
 import { CreatePostDto } from "./dto/post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
 import { PostService } from "./posts.service";

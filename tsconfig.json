@@ -13,7 +13,10 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "@project/*": ["src/*"]
+      "@project/*": ["src/*"],
+      "@module/*": ["src/main/*"],
+      "@common/*": ["src/common/*"],
+      "@config/*": ["src/config/*"]
     },
     "incremental": true,
     "skipLibCheck": true,

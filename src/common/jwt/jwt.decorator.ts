@@ -1,3 +1,5 @@
+import { JwtAuthGuard } from '@module/(started)/auth/guards/jwt-auth';
+import { RolesGuard } from '@module/(started)/auth/guards/role.guard';
 import {
   applyDecorators,
   createParamDecorator,
@@ -6,8 +8,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Role } from "@project/constants";
-import { JwtAuthGuard } from '@project/main/auth/guards/jwt-auth';
-import { RolesGuard } from '@project/main/auth/guards/role.guard';
 import { RequestWithUser } from './jwt.interface';
 
 export const ROLES_KEY = 'roles'
