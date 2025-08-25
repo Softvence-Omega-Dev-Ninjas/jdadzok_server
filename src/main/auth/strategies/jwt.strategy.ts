@@ -9,7 +9,6 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(config: ConfigService) {
         const jwtSecret = config.getOrThrow<string>(ENVEnum.JWT_SECRET);
-        console.log('JWT Secret from ConfigService:', jwtSecret);
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             secretOrKey: jwtSecret,
@@ -18,8 +17,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     validate(payload: JWTPayload) {
-        console.log('Token is valid. Payload:', payload);
-
         // send user from the db
         return { userId: payload.sub, email: payload.email, roles: payload.roles };
     }

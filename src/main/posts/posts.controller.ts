@@ -34,7 +34,6 @@ export class PostController {
             const posts = await this.service.index(query)
             return posts
         } catch (err) {
-            console.log('error', err)
             return err
         }
     }

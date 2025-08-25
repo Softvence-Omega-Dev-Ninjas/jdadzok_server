@@ -28,7 +28,6 @@ export class CategoryController {
         try {
             return "hello"
         } catch (err) {
-            console.log('error', err)
             return err
         }
     }

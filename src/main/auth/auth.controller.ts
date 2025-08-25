@@ -2,13 +2,13 @@ import {
     Body,
     Controller,
     Post,
-    Req,
     UseGuards,
     UsePipes,
     ValidationPipe
 } from '@nestjs/common';
-import { MakePublic } from '@project/common/jwt/jwt.decorator';
-import { RequestWithUser } from '@project/common/jwt/jwt.interface';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { TUser } from '@project/@types';
+import { GetUser, MakePublic } from '@project/common/jwt/jwt.decorator';
 import { successResponse } from '@project/common/utils/response.util';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -31,11 +31,12 @@ export class AuthController {
     }
 
     @Post('logout')
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    logout(@Req() req: RequestWithUser) {
+    async logout(@GetUser() user: TUser) {
 
-        console.log(req.user)
         try {
+            await this.authService.logout(user.email);
             return successResponse(null, 'Logout successful!');
         } catch (err) {
             return err

@@ -23,4 +23,6 @@ export class JwtServices {
             secret: this.configService.getOrThrow<string>(ENVEnum.JWT_SECRET)
         })
     }
+
+
 } 
