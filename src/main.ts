@@ -34,8 +34,8 @@ async function bootstrap() {
   // ✅ Swagger config with Bearer Auth
   extendZodWithOpenApi(z)
   const config = new DocumentBuilder()
-    .setTitle('Spectra Synq')
-    .setDescription('Spectra Synq API description')
+    .setTitle('Jdadzok')
+    .setDescription('Jdadzok API description')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

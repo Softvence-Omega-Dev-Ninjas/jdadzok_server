@@ -6,11 +6,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Role } from "@project/constants";
-import { JwtAuthGuard, RolesGuard } from './jwt.guard';
+import { JwtAuthGuard } from '@project/main/auth/guards/jwt-auth';
+import { RolesGuard } from '@project/main/auth/guards/role.guard';
 import { RequestWithUser } from './jwt.interface';
 
-export const ROLES_KEY = 'roles';
-export const IS_PUBLIC_KEY = 'isPublic';
+export const ROLES_KEY = 'roles'
+export const IS_PUBLIC_KEY = 'isPublic'
+export const IS_LOCAL_KEY = 'isLocal'
 export const Roles = <R>(...roles: R[]) => SetMetadata(ROLES_KEY, roles);
 
 export function MakePublic() {

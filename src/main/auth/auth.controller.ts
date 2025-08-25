@@ -2,13 +2,17 @@ import {
     Body,
     Controller,
     Post,
+    Req,
+    UseGuards,
     UsePipes,
     ValidationPipe
 } from '@nestjs/common';
 import { MakePublic } from '@project/common/jwt/jwt.decorator';
+import { RequestWithUser } from '@project/common/jwt/jwt.interface';
 import { successResponse } from '@project/common/utils/response.util';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from './guards/jwt-auth';
 
 @Controller('auth')
 export class AuthController {
@@ -16,7 +20,7 @@ export class AuthController {
 
     @MakePublic()
     @Post('login')
-    @UsePipes(new ValidationPipe())
+    @UsePipes(ValidationPipe)
     async login(@Body() loginAuthDto: LoginDto) {
         try {
             const result = await this.authService.login(loginAuthDto);
@@ -26,12 +30,17 @@ export class AuthController {
         }
     }
 
-    //   @MakePublic()
-    //   @Post('register')
-    //   async register(@Body() payload: any) {
-    //     const result = await this.authService.register(payload);
-    //     return successResponse(result, 'Registration successfull!');
-    //   }
+    @Post('logout')
+    @UseGuards(JwtAuthGuard)
+    logout(@Req() req: RequestWithUser) {
+
+        console.log(req.user)
+        try {
+            return successResponse(null, 'Logout successful!');
+        } catch (err) {
+            return err
+        }
+    }
 
     //   @MakePublic()
     //   @Post('forget-password')

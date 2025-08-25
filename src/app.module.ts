@@ -3,12 +3,10 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { ENVEnum } from './common/enum/env.enum';
-import { JwtStrategy } from './common/jwt/jwt.strategy';
 import { LibModule } from './lib/lib.module';
 import { NotificationModule } from './lib/notification/notification.module';
 import { MainModule } from './main/main.module';
@@ -18,15 +16,11 @@ import { MainModule } from './main/main.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-
     CacheModule.register({
       isGlobal: true,
     }),
-
     EventEmitterModule.forRoot(),
-
     ScheduleModule.forRoot(),
-
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -42,26 +36,12 @@ import { MainModule } from './main/main.module';
         };
       },
     }),
-
     NotificationModule,
-
     PassportModule,
-
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (config: ConfigService) => ({
-        secret: await config.getOrThrow(ENVEnum.JWT_SECRET),
-        signOptions: {
-          expiresIn: await config.getOrThrow(ENVEnum.JWT_EXPIRES_IN),
-        },
-      }),
-    }),
     LibModule,
     MainModule,
   ],
   controllers: [AppController],
-  providers: [JwtStrategy],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

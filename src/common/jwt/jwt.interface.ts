@@ -5,7 +5,7 @@ export interface RequestWithUser extends Request {
   user?: UserTokenPayload;
 }
 
-export interface JWTPayload {
+export type JWTPayload = {
   sub: string;
   email: string;
   roles: string;

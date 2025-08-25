@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { GetUser } from "@project/common/jwt/jwt.decorator";
-import { JwtAuthGuard } from "@project/common/jwt/jwt.guard";
 import { successResponse } from "@project/common/utils/response.util";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth";
 import { CreatePostDto } from "./dto/post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
 import { PostService } from "./posts.service";
@@ -12,7 +12,7 @@ export class PostController {
     }
 
     @Post()
-    @UseGuards(new JwtAuthGuard())
+    @UseGuards(JwtAuthGuard)
     async store(
         @GetUser("user_id") userId: string,
         @Body() body: CreatePostDto) {

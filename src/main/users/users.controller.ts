@@ -10,12 +10,13 @@ export class UserController {
 
     @MakePublic()
     @Post('register')
-    @UsePipes(new ValidationPipe())
+    @UsePipes(ValidationPipe)
     async register(@Body() body: CreateUserDto) {
         try {
             const result = await this.service.register(body);
             return successResponse(result, 'Registration successfull!');
         } catch (err) {
+            console.log(err)
             return err
         }
     }
