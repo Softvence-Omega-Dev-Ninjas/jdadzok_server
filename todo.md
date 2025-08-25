@@ -5,5 +5,6 @@
 
 # 25/08/25
 
-- []
-- []
+- [ ] Creating a new post with all nesessary information
+- [ ] Image post creation
+- [ ] Video post creation
