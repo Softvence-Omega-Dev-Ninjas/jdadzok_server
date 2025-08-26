@@ -1,4 +1,4 @@
-import { Role } from "@project/constants";
+import { Role } from "@constants/enums";
 
 export type TUser = {
   userId: string;

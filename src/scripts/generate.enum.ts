@@ -16,7 +16,7 @@ import {
   role,
   subscriptionStatus,
   volunteerStatus,
-} from "@project/constants";
+} from "@constants/enums";
 import { capitalize } from "@project/utils";
 import fs from "fs";
 import path from "path";

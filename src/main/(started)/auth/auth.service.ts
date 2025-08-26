@@ -4,11 +4,13 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { MAIL_EXPIRE_TIME } from "@project/constants";
+import { RedisService } from "@project/common/redis/redis.service";
+import { RESET_TOKEN_EXPIRES_IN } from "@project/constants";
 import { MailService } from "@project/lib/mail/mail.service";
 import { UtilsService } from "@project/lib/utils/utils.service";
 import { JwtServices } from "@project/services/jwt.service";
 import { uniqueID } from "dev-unique-id";
+import { AuthRedisData } from "../@types";
 import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
@@ -20,7 +22,8 @@ export class AuthService {
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
     private readonly mailService: MailService,
-  ) {}
+    private readonly redisService: RedisService
+  ) { }
 
   async login(input: LoginDto) {
     const user = await this.userRepository.findByEmail(input.email);
@@ -52,12 +55,22 @@ export class AuthService {
   async forgetPassword(input: ForgetPasswordDto) {
     const user = await this.userRepository.findByEmail(input.email);
     if (!user) throw new NotFoundException("User not found");
+
+    const isTokenInRedis = await this.redisService.get<AuthRedisData>("RESET_PASSWORD_TOKEN")
+    if (isTokenInRedis && isTokenInRedis.email === user.email) throw new ForbiddenException("You can request new token after some time");
+
     const expireDate = new Date();
-    // expire time will be only 5 minutes
-    expireDate.setMinutes(expireDate.getMinutes() + MAIL_EXPIRE_TIME); // expire time is 5 minutes
+    expireDate.setMinutes(expireDate.getMinutes() + RESET_TOKEN_EXPIRES_IN); // expire time is 5 minutes
 
     const token = uniqueID({ length: 6, alphabet: true });
-    //TODO: send token via email
+    // store token, expireDate, email, and user id to the redis for tracking
+    await this.redisService.set("RESET_PASSWORD_TOKEN", {
+      token,
+      expireDate,
+      email: user.email,
+      userId: user.id,
+    }, "1m");
+
     const sendMail = await this.mailService.forgetPasswordMail(
       user.email,
       token,
@@ -71,6 +84,11 @@ export class AuthService {
   async resetPassword(input: ResetPasswordDto) {
     const user = await this.userRepository.findByEmail(input.email);
     if (!user) throw new NotFoundException("User not found");
+
+    // check token is already expired or not
+    const redisData = await this.redisService.get<AuthRedisData>("RESET_PASSWORD_TOKEN");
+    if (!redisData) throw new ForbiddenException("Invalid or expired token");
+    if (redisData.expireDate < new Date()) throw new ForbiddenException("Invalid or expired token");
 
     const hash = await this.utilsService.hash(input.password);
 

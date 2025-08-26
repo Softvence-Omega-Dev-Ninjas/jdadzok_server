@@ -1,5 +1,5 @@
+import { feelings, Feelings } from "@constants/enums";
 import { ApiProperty } from "@nestjs/swagger";
-import { feelings, Feelings } from "@project/constants";
 import {
   IsArray,
   IsNotEmpty,

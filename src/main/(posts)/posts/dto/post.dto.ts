@@ -1,10 +1,10 @@
-import { ApiProperty } from "@nestjs/swagger";
 import {
   MediaType,
   mediaType,
   PostVisibility,
   postVisibility,
-} from "@project/constants";
+} from "@constants/enums";
+import { ApiProperty } from "@nestjs/swagger";
 import {
   IsEnum,
   IsNotEmpty,

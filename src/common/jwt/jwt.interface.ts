@@ -1,4 +1,4 @@
-import { Role } from "@project/constants";
+import { Role } from "@constants/enums";
 import { Request } from "express";
 
 export interface RequestWithUser extends Request {

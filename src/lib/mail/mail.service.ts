@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ENVEnum } from "@project/common/enum/env.enum";
-import { MAIL_EXPIRE_TIME } from "@project/constants";
+import { RESET_TOKEN_EXPIRES_IN } from "@project/constants";
 import * as nodemailer from "nodemailer";
 
 @Injectable()
@@ -64,7 +64,7 @@ export class MailService {
         <h3>Reset Your Password</h3>
         <p>Please use the code below to reset your password:</p>
         <p>Your reset code is <b>${code}</b></p>
-        <p style="color: red">This code will expire within ${MAIL_EXPIRE_TIME} minutes</p>
+        <p style="color: red">This code will expire within ${RESET_TOKEN_EXPIRES_IN / 1000 / 60} minutes</p>
       `,
     };
 
