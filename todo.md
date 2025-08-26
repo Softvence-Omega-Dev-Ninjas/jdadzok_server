@@ -5,7 +5,7 @@
 
 # 25/08/25
 
-- [ ] Store reset token to the redis to maintain expire date
+- [x] Store reset token to the redis to maintain expire date
 - [ ] Creating a new post with all nesessary information
 - [ ] Image post creation
 - [ ] Video post creation

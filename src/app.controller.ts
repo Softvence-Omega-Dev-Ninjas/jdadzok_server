@@ -1,13 +1,9 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller } from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { RedisService } from "./common/redis/redis.service";
 
 @ApiTags("App")
 @Controller()
 export class AppController {
-  constructor(private redisService: RedisService) { }
-
-  @Get()
   @ApiOkResponse({
     description: "Returns service health status",
     schema: {
@@ -18,24 +14,9 @@ export class AppController {
     },
   })
   async getHealth() {
-    try {
-
-      const get1 = await this.redisService.get("USER_SESSION");
-      console.log('last1', get1)
-      await this.redisService.set("USER_SESSION", {
-        name: "sabbir",
-        username: "sabbir123"
-      }, "30s")
-      console.log('set')
-      const get = await this.redisService.get("USER_SESSION");
-      console.log('last', get)
-      return {
-        status: "ok",
-        timestamp: new Date().toISOString(),
-      };
-
-    } catch (err) {
-      console.log(err)
-    }
+    return {
+      status: "ok",
+      timestamp: new Date().toISOString(),
+    };
   }
 }

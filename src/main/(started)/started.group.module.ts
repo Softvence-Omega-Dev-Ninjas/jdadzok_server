@@ -8,4 +8,4 @@ import { ChoicesModule } from "./choices/choices.module";
   providers: [],
   exports: [],
 })
-export class StartedGroupModule { }
+export class StartedGroupModule {}

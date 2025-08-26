@@ -21,11 +21,11 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
     AuthService,
     UserRepository,
     AuthRepository,
-    JwtServices,
     RedisService,
+    JwtServices,
     JwtService,
     JwtStrategy,
   ],
   exports: [AuthRepository, JwtModule, JwtStrategy],
 })
-export class AuthModule { }
+export class AuthModule {}

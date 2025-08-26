@@ -14,11 +14,12 @@ import { AuthService } from "./auth.service";
 import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { VerifyTokenDto } from "./dto/verify-token.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth";
 
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @MakePublic()
   @Post("login")
@@ -67,6 +68,17 @@ export class AuthController {
         result,
         "Resend code email sent successfully! Please check your mail.",
       );
+    } catch (err) {
+      return err;
+    }
+  }
+
+  @MakePublic()
+  @Post("verify-token")
+  async verifyToken(@Body() body: VerifyTokenDto) {
+    try {
+      const result = await this.authService.verify(body);
+      return successResponse(result, "Token verified successfully!");
     } catch (err) {
       return err;
     }

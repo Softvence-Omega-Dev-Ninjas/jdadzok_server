@@ -28,7 +28,7 @@ import { MainModule } from "./main/main.module";
   providers: [RedisService],
   controllers: [AppController],
 })
-export class AppModule { }
+export class AppModule {}
 // export class AppModule implements NestModule {
 //   // configure(consumer: MiddlewareConsumer) {
 //   //   consumer.apply(LoggerMiddleware).forRoutes('*');

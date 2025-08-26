@@ -1,6 +1,7 @@
 export type AuthRedisData = {
-    token: string;
-    expireDate: Date;
-    email: string;
-    userId: string;
-}
+  token: number;
+  expireDate: Date;
+  email: string;
+  attempt: number;
+  userId: string;
+};

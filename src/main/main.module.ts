@@ -1,10 +1,11 @@
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { PostsGroupModule } from "./(posts)/posts.group.module";
 import { SharedGroupModule } from "./(shared)/shared.group.module";
 import { StartedGroupModule } from "./(started)/started.group.module";
 import { UserGroupModule } from "./(users)/users.group.module";
 
+@Global()
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -16,4 +17,4 @@ import { UserGroupModule } from "./(users)/users.group.module";
   controllers: [],
   providers: [],
 })
-export class MainModule { }
+export class MainModule {}
