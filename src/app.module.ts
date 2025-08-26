@@ -4,6 +4,7 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { PassportModule } from "@nestjs/passport";
 import { ScheduleModule } from "@nestjs/schedule";
 import { AppController } from "./app.controller";
+import { RedisModule } from "./common/redis/redis.module";
 import { LibModule } from "./lib/lib.module";
 import { NotificationModule } from "./lib/notification/notification.module";
 import { MainModule } from "./main/main.module";
@@ -14,6 +15,7 @@ import { MainModule } from "./main/main.module";
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    RedisModule,
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     NotificationModule,

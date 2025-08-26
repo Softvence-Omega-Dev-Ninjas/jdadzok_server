@@ -1,21 +1,20 @@
+import { ENVEnum } from "@common/enum/env.enum";
+import { createKeyv } from '@keyv/redis';
 import { CacheModuleAsyncOptions } from "@nestjs/cache-manager";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { ENVEnum } from "@project/common/enum/env.enum";
-import { CacheableMemory, createKeyv } from 'cacheable';
-import { Keyv } from 'keyv';
+import { Cacheable } from 'cacheable';
 
-
+export const CACHE_INSTANCE = 'CACHE_INSTANCE'
 export const RedisConfig: CacheModuleAsyncOptions = {
     isGlobal: true,
     imports: [ConfigModule],
+    useFactory: async (configService: ConfigService) => {
+        const redisHost = configService.getOrThrow(ENVEnum.REDIS_HOST);
+        const redisPort = configService.getOrThrow(ENVEnum.REDIS_PORT);
+        const redisUrl = `redis://${redisHost}:${redisPort}`;
 
-    useFactory: async (configService: ConfigService) => ({
-        stores: [
-            new Keyv({
-                store: new CacheableMemory({ ttl: 60000, lruSize: 5000 })
-            }),
-            createKeyv(configService.getOrThrow(ENVEnum.REDIS_URL)),
-        ]
-    }),
-    inject: [ConfigService],
+        const secondary = createKeyv(redisUrl);
+        return new Cacheable({ secondary, ttl: '4h' });
+    },
+    inject: [ConfigService]
 }

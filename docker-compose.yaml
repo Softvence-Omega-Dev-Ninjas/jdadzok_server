@@ -23,11 +23,11 @@ services:
       SUPER_ADMIN_EMAIL: "superadmin@gmail.com"
       SUPER_ADMIN_PASS: "superadmin"
 
-      REDIS_URL: redis://redisUser:radisPassword@redis:6379
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_USER: redisUser
-      REDIS_PASS: radisPassword
+      REDIS_URL: redis://redis:6379
+      # REDIS_HOST: localhost
+      # REDIS_PORT: 6379
+      # REDIS_USER: redisUser
+      # REDIS_PASS: radisPassword
 
       TWILIO_ACCOUNT_SID: ACd694ffdbf32281b95c8cbf5adc844719
       TWILIO_AUTH_TOKEN: 5b67c3ea84847077b634b8e975e251f4
@@ -61,7 +61,7 @@ services:
       - "5432:5432"
 
   redis:
-    image: redis:7-alpine
+    image: redis
     container_name: jdadzok_redis
     restart: always
     profiles:

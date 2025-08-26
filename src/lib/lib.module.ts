@@ -12,7 +12,6 @@ import { UtilsModule } from "./utils/utils.module";
     PrismaModule,
     MailModule,
     UtilsModule,
-    // QueueModule,
     FileModule,
     NotificationModule,
   ],

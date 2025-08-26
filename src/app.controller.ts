@@ -21,10 +21,10 @@ export class AppController {
 
     const get1 = await this.redisService.get("USER_SESSION");
     console.log('last1', get1)
-    await this.redisService.set("USER_SESSION", JSON.stringify({
+    await this.redisService.set("USER_SESSION", {
       name: "sabbir",
       username: "sabbir123"
-    }), "30s")
+    }, "30s")
     console.log('set')
     const get = await this.redisService.get("USER_SESSION");
     console.log('last', get)

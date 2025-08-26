@@ -22,9 +22,9 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
     UserRepository,
     AuthRepository,
     JwtServices,
+    RedisService,
     JwtService,
     JwtStrategy,
-    RedisService
   ],
   exports: [AuthRepository, JwtModule, JwtStrategy],
 })
