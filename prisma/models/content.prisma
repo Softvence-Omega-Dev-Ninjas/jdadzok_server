@@ -25,14 +25,17 @@ model Post {
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
 
-  text       String?
+  text       String
   mediaUrl   String?
-  mediaType  MediaType
+  mediaType  MediaType      @default(TEXT)
   visibility PostVisibility @default(PUBLIC)
 
   comments Comment[]
   likes    Like[]
   shares   Share[]
+
+  metadataId String?
+  metadata   PostMetadata? @relation(fields: [metadataId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -95,4 +98,39 @@ model Share {
 
   @@unique([userId, postId])
   @@map("shares")
+}
+
+model PostMetadata {
+  id String @id @default(uuid())
+
+  feelings    Feelings  @default(HAPPY)
+  check_in    Location? @relation(fields: [check_in_id], references: [id], onDelete: Cascade)
+  check_in_id String?
+
+  gif    Gif?    @relation(fields: [gif_id], references: [id])
+  gif_id String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Posts     Post[]
+}
+
+model Location {
+  id          String  @id @default(uuid())
+  name        String
+  coordinates String?
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  PostMetadata PostMetadata[]
+}
+
+model Gif {
+  id String @id @default(uuid())
+
+  url String
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  PostMetadata PostMetadata[]
 }

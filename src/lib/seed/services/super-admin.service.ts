@@ -1,10 +1,10 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ENVEnum } from '@project/common/enum/env.enum';
-import { UserEnum } from '@project/common/enum/user.enum';
-import { PrismaService } from '@project/lib/prisma/prisma.service';
-import { UtilsService } from '@project/lib/utils/utils.service';
-import chalk from 'chalk';
+import { Injectable, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ENVEnum } from "@project/common/enum/env.enum";
+import { UserEnum } from "@project/common/enum/user.enum";
+import { PrismaService } from "@project/lib/prisma/prisma.service";
+import { UtilsService } from "@project/lib/utils/utils.service";
+import chalk from "chalk";
 
 @Injectable()
 export class SuperAdminService implements OnModuleInit {
@@ -36,7 +36,7 @@ export class SuperAdminService implements OnModuleInit {
         data: {
           email: superAdminEmail,
           passwordHash: await this.utils.hash(superAdminPass),
-          authProvider: 'EMAIL',
+          authProvider: "EMAIL",
           role: UserEnum.SUPER_ADMIN,
         },
       });

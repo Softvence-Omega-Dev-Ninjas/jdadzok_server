@@ -3,16 +3,12 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { AuthGuard } from '@nestjs/passport';
-import { PrismaService } from '@project/lib/prisma/prisma.service';
-import { UserEnum } from '../enum/user.enum';
-import { ROLES_KEY } from './jwt.decorator';
-import { RequestWithUser } from './jwt.interface';
-
-@Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { PrismaService } from "@project/lib/prisma/prisma.service";
+import { UserEnum } from "../enum/user.enum";
+import { ROLES_KEY } from "./jwt.decorator";
+import { RequestWithUser } from "./jwt.interface";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -33,13 +29,13 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     if (!user?.roles) {
-      throw new ForbiddenException('User roles not found');
+      throw new ForbiddenException("User roles not found");
     }
 
     const hasRole = requiredRoles.some((role) => user.roles!.includes(role));
 
     if (!hasRole) {
-      throw new ForbiddenException('Insufficient role');
+      throw new ForbiddenException("Insufficient role");
     }
 
     // * check if user exists in database
@@ -48,7 +44,7 @@ export class RolesGuard implements CanActivate {
     });
 
     if (!userExists) {
-      throw new ForbiddenException('User not found');
+      throw new ForbiddenException("User not found");
     }
 
     return true;

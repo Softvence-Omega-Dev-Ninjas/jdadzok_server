@@ -1,5 +1,5 @@
-import { Role } from '@prisma/client';
-import { Exclude, Expose } from 'class-transformer';
+import { Role } from "@prisma/client";
+import { Exclude, Expose } from "class-transformer";
 
 @Exclude()
 export class UserResponseDto {

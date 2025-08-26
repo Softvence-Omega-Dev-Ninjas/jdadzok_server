@@ -1,3 +1,3 @@
 export enum QueueName {
-  ANNOUNCEMENT = 'announcement',
+  ANNOUNCEMENT = "announcement",
 }

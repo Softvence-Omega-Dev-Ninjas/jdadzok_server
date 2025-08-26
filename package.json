@@ -1,6 +1,6 @@
 {
   "name": "jesus-vlsco",
-  "version": "0.0.1",
+  "version": "0.1.2",
   "description": "This is backend for jesus-vlsco",
   "author": "Team VLSCO",
   "private": true,
@@ -9,7 +9,7 @@
     "nest:m": "npx nest g resource",
     "start": "nest start",
     "build": "nest build",
-    "start:dev": "nest start --watch",
+    "dev": "nest start --watch",
     "start:prod": "node dist/main",
     "start:debug": "nest start --debug --watch",
     "lint": "eslint . --ext .ts",
@@ -27,12 +27,17 @@
     "prisma:studio": "npx prisma studio",
     "prisma:validate": "npx prisma validate",
     "prisma:format": "npx prisma format",
-    "postinstall": "npx prisma generate"
+    "postinstall": "npx prisma generate",
+    "g:enum": "tsx src/scripts/generate.enum.ts"
   },
   "prisma": {
     "schema": "./prisma"
   },
   "dependencies": {
+    "@anatine/zod-nestjs": "^2.0.12",
+    "@anatine/zod-openapi": "^2.2.8",
+    "@keyv/redis": "^5.1.1",
+    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/bullmq": "^11.0.2",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
@@ -47,27 +52,37 @@
     "@nestjs/schedule": "^6.0.0",
     "@nestjs/websockets": "^11.1.6",
     "@prisma/client": "^6.11.1",
+    "argon2": "^0.44.0",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.58.0",
+    "cache-manager": "^7.1.1",
+    "cacheable": "^1.10.4",
     "chalk": "^5.4.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cloudinary": "^2.7.0",
     "dayjs": "^1.11.13",
+    "dev-unique-id": "^1.1.5",
     "firebase-admin": "^13.4.0",
     "google-auth-library": "^9.15.1",
+    "keyv": "^5.5.0",
     "mime-types": "^3.0.1",
     "multer": "^2.0.1",
     "nodemailer": "^7.0.3",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "prisma": "^6.11.1",
+    "redis": "^5.8.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "slugify": "^1.6.6",
     "socket.io": "^4.8.1",
     "twilio": "^5.8.0",
+    "type-fest": "^4.41.0",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -97,6 +112,7 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.4",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   }

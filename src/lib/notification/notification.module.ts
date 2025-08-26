@@ -1,6 +1,6 @@
-import { Global, Module } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { NotificationGateway } from './notification.gateway';
+import { Global, Module } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { NotificationGateway } from "./notification.gateway";
 
 @Global()
 @Module({
