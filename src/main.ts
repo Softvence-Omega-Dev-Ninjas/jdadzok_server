@@ -8,6 +8,7 @@ import z from "zod";
 import { AppModule } from "./app.module";
 import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
+// import { GlobalExceptionFilter } from "./common/filter/http-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +31,7 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new AllExceptionsFilter());
+  // app.useGlobalFilters(new GlobalExceptionFilter());
 
   // ✅ Swagger config with Bearer Auth
   extendZodWithOpenApi(z);

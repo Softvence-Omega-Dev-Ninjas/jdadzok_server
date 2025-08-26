@@ -344,8 +344,10 @@ CREATE TABLE "public"."profiles" (
     "userId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "username" TEXT NOT NULL,
+    "title" TEXT,
     "bio" TEXT,
     "avatarUrl" TEXT,
+    "coverUrl" TEXT,
     "location" TEXT,
     "followersCount" INTEGER NOT NULL DEFAULT 0,
     "followingCount" INTEGER NOT NULL DEFAULT 0,
@@ -353,6 +355,20 @@ CREATE TABLE "public"."profiles" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "profiles_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."about" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "location" TEXT,
+    "dateOfBirth" TIMESTAMP(3),
+    "work" TEXT,
+    "website" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "about_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -440,6 +456,9 @@ CREATE UNIQUE INDEX "profiles_userId_key" ON "public"."profiles"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "profiles_username_key" ON "public"."profiles"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "about_userId_key" ON "public"."about"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Follow_followerId_followingId_key" ON "public"."Follow"("followerId", "followingId");
@@ -539,6 +558,9 @@ ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_userId_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "public"."profiles" ADD CONSTRAINT "profiles_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."about" ADD CONSTRAINT "about_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Follow" ADD CONSTRAINT "Follow_followerId_fkey" FOREIGN KEY ("followerId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
