@@ -1,10 +1,10 @@
+import { RedisService } from "@common/redis/redis.service";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import {
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { RedisService } from "@project/common/redis/redis.service";
 import { TTL } from "@project/constants/ttl.constants";
 import { MailService } from "@project/lib/mail/mail.service";
 import { UtilsService } from "@project/lib/utils/utils.service";

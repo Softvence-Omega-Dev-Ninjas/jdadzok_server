@@ -30,12 +30,13 @@ model Post {
   mediaType  MediaType      @default(TEXT)
   visibility PostVisibility @default(PUBLIC)
 
-  comments Comment[]
-  likes    Like[]
-  shares   Share[]
+  comments     Comment[]
+  likes        Like[]
+  shares       Share[]
+  postTagUsers PostTagUser[]
 
-  metadataId String?
   metadata   PostMetadata? @relation(fields: [metadataId], references: [id])
+  metadataId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,8 +50,8 @@ model Comment {
   postId String
   post   Post   @relation(fields: [postId], references: [id])
 
-  parentCommentId String?
   parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  parentCommentId String?
   replies         Comment[] @relation("CommentReplies")
 
   authorId String
@@ -103,12 +104,12 @@ model Share {
 model PostMetadata {
   id String @id @default(uuid())
 
-  feelings    Feelings  @default(HAPPY)
-  check_in    Location? @relation(fields: [check_in_id], references: [id], onDelete: Cascade)
-  check_in_id String?
+  feelings  Feelings  @default(HAPPY)
+  checkIn   Location? @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+  checkInId String?
 
-  gif    Gif?    @relation(fields: [gif_id], references: [id])
-  gif_id String?
+  gif   Gif?    @relation(fields: [gifId], references: [id])
+  gifId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

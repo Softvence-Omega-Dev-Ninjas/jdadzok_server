@@ -1,83 +1,60 @@
 import { feelings, Feelings } from "@constants/enums";
-import { ApiProperty } from "@nestjs/swagger";
 import {
-  IsArray,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUrl,
-  IsUUID,
-} from "class-validator";
-// -----------------------------------
-// POST METADATA DTO
-// -----------------------------------
-export class CreatePostMetadataDto {
+  ApiHideProperty,
+  ApiProperty,
+  IntersectionType,
+  PartialType,
+} from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsEnum, IsOptional, IsUUID, ValidateNested } from "class-validator";
+import { CreateGifDto } from "../../gif/dto/create.gif.dto";
+import { CreateLocationDto } from "../../locations/dto/create.location.dto";
+
+class CreatePostMetadata {
   @ApiProperty({
     enum: feelings,
-    example: ["HAPPY", "INSPIRED"],
-    description: "Feelings associated with the post",
-    isArray: true,
+    example: "HAPPY",
+    description: "Feeling associated with the post",
     required: false,
   })
   @IsOptional()
-  @IsArray({
-    context: feelings,
-  })
-  feelings?: Feelings[];
+  @IsEnum(feelings)
+  feelings?: Feelings;
 
   @ApiProperty({
-    example: "checkin-uuid-here",
-    description: "Optional check-in location ID",
+    description: "Check-in location for the post",
+    type: CreateLocationDto,
+    required: false,
   })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateLocationDto)
+  checkIn?: CreateLocationDto;
+
+  @ApiHideProperty()
   @IsOptional()
   @IsUUID()
-  check_in_id?: string;
+  checkInId?: string;
 
   @ApiProperty({
-    example: "gif-uuid-here",
-    description: "Optional gif ID",
-    type: String,
-    format: "uuid",
+    description: "GIF attached to the post",
+    type: CreateGifDto,
     required: false,
   })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateGifDto)
+  gif?: CreateGifDto;
+
+  @ApiHideProperty()
   @IsOptional()
   @IsUUID()
-  gif_id?: string;
+  gifId?: string;
 }
 
-// -----------------------------------
-// LOCATION DTO
-// -----------------------------------
-export class CreateLocationDto {
-  @ApiProperty({
-    example: "Central Park",
-    description: "Name of the location",
-    type: String,
-  })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({
-    example: "40.785091,-73.968285",
-    description: "Coordinates of the location (latitude,longitude)",
-    type: String,
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  coordinates?: string;
-}
-
-// -----------------------------------
-// GIF DTO
-// -----------------------------------
-export class CreateGifDto {
-  @ApiProperty({
-    example: "https://example.com/gif.gif",
-    description: "URL of the GIF",
-    type: String,
-  })
-  @IsUrl()
-  url: string;
-}
+export class CreatePostMetadataDto extends IntersectionType(
+  CreatePostMetadata,
+) {}
+export class UpdatePostMetadataDto extends PartialType(
+  IntersectionType(CreatePostMetadata),
+) {}
