@@ -1,8 +1,8 @@
 {
-  "name": "jesus-vlsco",
-  "version": "0.1.2",
-  "description": "This is backend for jesus-vlsco",
-  "author": "Team VLSCO",
+  "name": "jdadzok",
+  "version": "0.1.3",
+  "description": "This is backend for jdadzok",
+  "author": "Vision 360",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
