@@ -34,7 +34,7 @@ jobs:
         run: |
           docker compose --profile prod build
           docker tag jdadzok-server-api ${{ secrets.DOCKER_USERNAME }}/${{ env.package_name }}:${{ env.package_version }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.package_name  }}:${{ env.package_version }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.package_name }}:${{ env.package_version }}
 
       - name: Push Docker Image 🚀
         run: |
