@@ -3,7 +3,6 @@
 // import { orderStatus } from '@project/constants';
 // import { IsEnum, IsOptional, IsString } from 'class-validator';
 
-
 // export class OrderQueryDto {
 
 //     @ApiPropertyOptional({
@@ -84,4 +83,3 @@
 //     // @IsString()
 //     // sortOrder?: 'asc' | 'desc' = 'desc';
 // }
-

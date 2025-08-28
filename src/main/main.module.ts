@@ -1,4 +1,3 @@
-
 import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { MarketplacesGroupModule } from "./(marketplace)/marketplace.group.module";
@@ -15,9 +14,9 @@ import { UserGroupModule } from "./(users)/users.group.module";
     PostsGroupModule,
     UserGroupModule,
     SharedGroupModule,
-    MarketplacesGroupModule
+    MarketplacesGroupModule,
   ],
   controllers: [],
   providers: [],
 })
-export class MainModule { }
+export class MainModule {}

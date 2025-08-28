@@ -44,6 +44,4 @@
 //         return handleRequest(() => this.service.remove(id), "Order deleted successfully");
 //     }
 
-
-
 // }

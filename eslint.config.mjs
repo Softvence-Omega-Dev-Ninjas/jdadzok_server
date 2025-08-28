@@ -22,7 +22,7 @@ export default defineConfig([
         { allow: ["warn", "error", "info", "group", "groupEnd"] },
       ],
       "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-      '@typescript-eslint/no-explicit-any': 'off',
+      "@typescript-eslint/no-explicit-any": "off",
       "no-unused-expressions": "error",
     },
   },

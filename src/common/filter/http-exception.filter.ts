@@ -3,16 +3,14 @@ import {
   Catch,
   ExceptionFilter,
   HttpException,
-  HttpStatus
+  HttpStatus,
 } from "@nestjs/common";
 import { Response } from "express";
 import { errorResponse } from "../utils/response.util";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-
   catch(exception: unknown, host: ArgumentsHost) {
-
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
@@ -42,7 +40,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json(errorPayload);
   }
 }
-
 
 // import {
 //   ArgumentsHost,

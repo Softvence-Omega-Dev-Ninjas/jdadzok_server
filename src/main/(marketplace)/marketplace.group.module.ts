@@ -3,9 +3,9 @@ import { FavouritelistModule } from "./favouritelist/favouritelist.module";
 import { ProductModule } from "./product/product.module";
 
 @Module({
-    imports: [ProductModule, FavouritelistModule],
-    controllers: [],
-    providers: [],
-    exports: [],
+  imports: [ProductModule, FavouritelistModule],
+  controllers: [],
+  providers: [],
+  exports: [],
 })
-export class MarketplacesGroupModule { }
+export class MarketplacesGroupModule {}
