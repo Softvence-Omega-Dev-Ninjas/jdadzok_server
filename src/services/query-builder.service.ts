@@ -1,4 +1,14 @@
-import { Include, IncludeConfig, ModelIncludeInput, ModelWhereInput, OrderBy, QueryConfig, QueryDto, Select, Where } from "./@types";
+import {
+  Include,
+  IncludeConfig,
+  ModelIncludeInput,
+  ModelWhereInput,
+  OrderBy,
+  QueryConfig,
+  QueryDto,
+  Select,
+  Where,
+} from "./@types";
 
 /**
  * @deprecated this build is now deprecated
@@ -42,21 +52,23 @@ class QueryBuilderService {
 }
 export default new QueryBuilderService();
 
-class AdvanceQueryBuilder {
+export class AdvanceQueryBuilder {
   /**
    * Recursively processes and validates select configuration
    */
-  private processSelect<T>(select: Select<T> | undefined): Select<T> | undefined {
-    if (!select || typeof select !== 'object') {
+  private processSelect<T>(
+    select: Select<T> | undefined,
+  ): Select<T> | undefined {
+    if (!select || typeof select !== "object") {
       return select;
     }
 
     const processed = {} as Select<T>;
 
     for (const [key, value] of Object.entries(select)) {
-      if (typeof value === 'boolean') {
+      if (typeof value === "boolean") {
         (processed as any)[key] = value;
-      } else if (typeof value === 'object' && value !== null) {
+      } else if (typeof value === "object" && value !== null) {
         (processed as any)[key] = this.processSelect(value);
       }
     }
@@ -67,17 +79,19 @@ class AdvanceQueryBuilder {
   /**
    * Recursively processes include configuration with full type safety
    */
-  private processInclude<T>(include: Include<T> | undefined): Include<T> | undefined {
-    if (!include || typeof include !== 'object') {
+  private processInclude<T>(
+    include: Include<T> | undefined,
+  ): Include<T> | undefined {
+    if (!include || typeof include !== "object") {
       return include;
     }
 
     if (Array.isArray(include)) {
       // Handle array format: ['relation1', 'relation2']
       return include.reduce((acc, item) => {
-        if (typeof item === 'string') {
+        if (typeof item === "string") {
           (acc as any)[item] = true;
-        } else if (typeof item === 'object') {
+        } else if (typeof item === "object") {
           Object.assign(acc, this.processInclude(item));
         }
         return acc;
@@ -87,9 +101,9 @@ class AdvanceQueryBuilder {
     const processed = {} as Include<T>;
 
     for (const [key, value] of Object.entries(include)) {
-      if (typeof value === 'boolean') {
+      if (typeof value === "boolean") {
         (processed as any)[key] = value;
-      } else if (typeof value === 'object' && value !== null) {
+      } else if (typeof value === "object" && value !== null) {
         (processed as any)[key] = this.processIncludeConfig(value);
       }
     }
@@ -138,20 +152,20 @@ class AdvanceQueryBuilder {
    * Processes where conditions with type safety
    */
   private processWhere<T>(where: Where<T> | undefined): Where<T> | undefined {
-    if (!where || typeof where !== 'object') {
+    if (!where || typeof where !== "object") {
       return where;
     }
 
     const processed = {} as Where<T>;
 
     for (const [key, value] of Object.entries(where)) {
-      if (key === 'AND' || key === 'OR') {
+      if (key === "AND" || key === "OR") {
         (processed as any)[key] = Array.isArray(value)
-          ? value.map(condition => this.processWhere(condition))
+          ? value.map((condition) => this.processWhere(condition))
           : this.processWhere(value);
-      } else if (key === 'NOT') {
+      } else if (key === "NOT") {
         (processed as any)[key] = this.processWhere(value as any);
-      } else if (typeof value === 'object' && value !== null) {
+      } else if (typeof value === "object" && value !== null) {
         // Handle nested where conditions
         (processed as any)[key] = this.processWhereOperators(value);
       } else {
@@ -166,7 +180,7 @@ class AdvanceQueryBuilder {
    * Processes where operators (equals, in, contains, etc.)
    */
   private processWhereOperators(operators: any): any {
-    if (!operators || typeof operators !== 'object') {
+    if (!operators || typeof operators !== "object") {
       return operators;
     }
 
@@ -174,15 +188,16 @@ class AdvanceQueryBuilder {
 
     for (const [operator, value] of Object.entries(operators)) {
       switch (operator) {
-        case 'some':
-        case 'every':
-        case 'none':
+        case "some":
+        case "every":
+        case "none":
           processed[operator] = this.processWhere(value as any);
           break;
-        case 'not':
-          processed[operator] = typeof value === 'object' && value !== null
-            ? this.processWhereOperators(value)
-            : value;
+        case "not":
+          processed[operator] =
+            typeof value === "object" && value !== null
+              ? this.processWhereOperators(value)
+              : value;
           break;
         default:
           processed[operator] = value;
@@ -195,25 +210,27 @@ class AdvanceQueryBuilder {
   /**
    * Processes orderBy configuration
    */
-  private processOrderBy<T>(orderBy: OrderBy<T> | OrderBy<T>[] | undefined): OrderBy<T> | OrderBy<T>[] | undefined {
+  private processOrderBy<T>(
+    orderBy: OrderBy<T> | OrderBy<T>[] | undefined,
+  ): OrderBy<T> | OrderBy<T>[] | undefined {
     if (!orderBy) {
       return orderBy;
     }
 
     if (Array.isArray(orderBy)) {
-      return orderBy.map(order => this.processOrderBy(order) as OrderBy<T>);
+      return orderBy.map((order) => this.processOrderBy(order) as OrderBy<T>);
     }
 
-    if (typeof orderBy !== 'object') {
+    if (typeof orderBy !== "object") {
       return orderBy;
     }
 
     const processed = {} as OrderBy<T>;
 
     for (const [key, value] of Object.entries(orderBy)) {
-      if (typeof value === 'string' && (value === 'asc' || value === 'desc')) {
+      if (typeof value === "string" && (value === "asc" || value === "desc")) {
         (processed as any)[key] = value;
-      } else if (typeof value === 'object' && value !== null) {
+      } else if (typeof value === "object" && value !== null) {
         (processed as any)[key] = this.processOrderBy(value);
       }
     }
@@ -227,11 +244,11 @@ class AdvanceQueryBuilder {
   private validateQuery<T>(config: QueryConfig<T>): boolean {
     // Add custom validation logic here
     if (config.take !== undefined && config.take < 0) {
-      throw new Error('take must be non-negative');
+      throw new Error("take must be non-negative");
     }
 
     if (config.skip !== undefined && config.skip < 0) {
-      throw new Error('skip must be non-negative');
+      throw new Error("skip must be non-negative");
     }
 
     return true;
@@ -242,7 +259,7 @@ class AdvanceQueryBuilder {
    */
   public buildQuery<T>(
     queryDto: QueryDto<T>,
-    whereBuilder?: (search: string, existingWhere?: Where<T>) => Where<T>
+    whereBuilder?: (search: string, existingWhere?: Where<T>) => Where<T>,
   ): QueryConfig<T> {
     const {
       page,
@@ -266,9 +283,7 @@ class AdvanceQueryBuilder {
     let where: Where<T> | undefined = this.processWhere(dtoWhere);
     if (search && whereBuilder) {
       const searchWhere = whereBuilder(search, where);
-      where = where
-        ? { AND: [where, searchWhere] } as Where<T>
-        : searchWhere;
+      where = where ? ({ AND: [where, searchWhere] } as Where<T>) : searchWhere;
     }
 
     // Build orderBy clause
@@ -297,7 +312,7 @@ class AdvanceQueryBuilder {
 
     // Remove undefined values
     const cleanConfig = Object.fromEntries(
-      Object.entries(config).filter(([, value]) => value !== undefined)
+      Object.entries(config).filter(([, value]) => value !== undefined),
     ) as QueryConfig<T>;
 
     this.validateQuery(cleanConfig);
@@ -315,7 +330,9 @@ class AdvanceQueryBuilder {
   /**
    * Helper to merge multiple queries
    */
-  public mergeQueries<T>(...queries: Partial<QueryConfig<T>>[]): QueryConfig<T> {
+  public mergeQueries<T>(
+    ...queries: Partial<QueryConfig<T>>[]
+  ): QueryConfig<T> {
     const merged: QueryConfig<T> = {};
 
     for (const query of queries) {
@@ -327,7 +344,7 @@ class AdvanceQueryBuilder {
       }
       if (query.where) {
         merged.where = merged.where
-          ? { AND: [merged.where, query.where] } as Where<T>
+          ? ({ AND: [merged.where, query.where] } as Where<T>)
           : query.where;
       }
       if (query.orderBy) {
@@ -371,7 +388,7 @@ class WhereBuilder<T> {
 
   contains<K extends keyof T>(
     field: K,
-    value: T[K] extends string ? string : never
+    value: T[K] extends string ? string : never,
   ): this {
     (this.conditions as any)[field] = { contains: value };
     return this;
@@ -379,7 +396,7 @@ class WhereBuilder<T> {
 
   startsWith<K extends keyof T>(
     field: K,
-    value: T[K] extends string ? string : never
+    value: T[K] extends string ? string : never,
   ): this {
     (this.conditions as any)[field] = { startsWith: value };
     return this;
@@ -432,7 +449,6 @@ class WhereBuilder<T> {
     return this.conditions;
   }
 }
-
 
 export { WhereBuilder };
 // export default new AdvanceQueryBuilder();

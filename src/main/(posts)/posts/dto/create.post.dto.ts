@@ -4,6 +4,7 @@ import {
   PostVisibility,
   postVisibility,
 } from "@constants/enums";
+import { CreatePostMetadataDto } from "@module/(posts)/post-metadata/dto/post.metadata.dto";
 import {
   ApiHideProperty,
   ApiProperty,
@@ -21,15 +22,12 @@ import {
   IsUUID,
   ValidateNested,
 } from "class-validator";
-import { CreatePostMetadataDto } from "../../post-metadata/dto/post.metadata.dto";
 
 class CreatePost {
   @ApiHideProperty()
   @IsUUID()
   @IsOptional()
   authorId?: string;
-
-  // TODO: need to be remove category form user model
 
   @ApiHideProperty()
   @IsOptional()
@@ -57,7 +55,7 @@ class CreatePost {
 
   @ApiProperty({
     enum: mediaType,
-    example: "IMAGE",
+    example: "TEXT",
     description: "Type of media attached to the post",
     required: false,
   })
@@ -89,14 +87,11 @@ class CreatePost {
   @IsUUID("all", { each: true })
   taggedUserIds?: string[];
 
-  // Option 1: Accept existing metadata ID
-
   @ApiHideProperty()
   @IsOptional()
   @IsUUID()
   metadataId?: string;
 
-  // Option 2: Accept nested metadata for creation
   @ApiProperty({
     description: "Metadata to create with the post",
     type: CreatePostMetadataDto,

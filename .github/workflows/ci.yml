@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - sabbir
   pull_request:
     branches:
       - main
+      - sabbir
 
 jobs:
   ci:
