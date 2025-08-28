@@ -1,41 +1,8 @@
+// -----------------------------------
+// USER & PROFILE
+// -----------------------------------
+
 model User {
-<<<<<<< HEAD
-  id                      String                 @id @default(uuid())
-  email                   String                 @unique
-  passwordHash            String?
-  authProvider            AuthProvider           @default(EMAIL)
-  role                    Role                   @default(USER)
-  capLevel                CapLevel               @default(GREEN)
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
-  Choice                  Choice[]
-  followers               Follow[]               @relation("followers")
-  following               Follow[]               @relation("following")
-  notifications           Notification[]
-  products                Product[]
-  Wishlist                Wishlist[]
-  About                   About?
-  adRevenueShare          AdRevenueShare[]
-  bans                    Ban[]
-  chatParticipant         ChatParticipant[]
-  chat                    Chat[]
-  comments                Comment[]
-  fromEndorsement         Endorsement[]          @relation("endorser")
-  toEndorsement           Endorsement[]          @relation("endorsee")
-  likes                   Like[]
-  messageRead             MessageRead[]
-  message                 Message[]
-  orders                  Order[]                @relation("orders")
-  payouts                 Payout[]
-  posts                   Post[]
-  profile                 Profile?
-  reports                 Report[]               @relation("reportsMade")
-  shares                  Share[]
-  subscriptionsCreated    Subscription[]         @relation("creatorSubscriptions")
-  subscriptionsSubscribed Subscription[]         @relation("userSubscriptions")
-  volunteerApps           VolunteerApplication[]
-  volunteerProject        VolunteerProject[]
-=======
   id           String       @id @default(uuid())
   email        String       @unique
   passwordHash String?
@@ -76,54 +43,66 @@ model User {
   taggedPosts      PostTagUser[]
   // a user choice based on that choice array we have to display their feed page
   Choice           Choice[]
-
+  wishlist  Wishlist[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
->>>>>>> 371be163398edab0c82a8992570ae87fd176dada
 
   @@map("users")
 }
 
 model Profile {
-  id             String   @id @default(uuid())
-  userId         String   @unique
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
   name           String
-  username       String   @unique
+  username       String  @unique
   title          String?
   bio            String?
   avatarUrl      String?
   coverUrl       String?
   location       String?
-  followersCount Int      @default(0)
-  followingCount Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  user           User     @relation(fields: [userId], references: [id])
+  followersCount Int     @default(0)
+  followingCount Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("profiles")
 }
 
 model About {
-  id          String    @id @default(uuid())
-  userId      String    @unique
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
   location    String?
   dateOfBirth DateTime?
   work        String?
   website     String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  user        User      @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("about")
 }
 
+// -----------------------------------
+// FOLLOW RELATION
+// -----------------------------------
+
 model Follow {
-  id          String   @id @default(uuid())
-  followerId  String
+  id String @id @default(uuid())
+
+  followerId String
+  follower   User   @relation("followers", fields: [followerId], references: [id])
+
   followingId String
-  createdAt   DateTime @default(now())
-  follower    User     @relation("followers", fields: [followerId], references: [id])
-  following   User     @relation("following", fields: [followingId], references: [id])
+  following   User   @relation("following", fields: [followingId], references: [id])
+
+  createdAt DateTime @default(now())
 
   @@unique([followerId, followingId])
 }

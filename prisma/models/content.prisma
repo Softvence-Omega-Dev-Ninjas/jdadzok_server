@@ -7,7 +7,6 @@ model Post {
   mediaType  MediaType      @default(TEXT)
   visibility PostVisibility @default(PUBLIC)
 
-
   comments     Comment[]
   likes        Like[]
   shares       Share[]
@@ -18,81 +17,8 @@ model Post {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
 
   @@map("posts")
-}
-
-model Comment {
-  id String @id @default(uuid())
-
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-
-  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
-  parentCommentId String?
-  replies         Comment[] @relation("CommentReplies")
-  post            Post      @relation(fields: [postId], references: [id])
-  likes           Like[]
-
-  @@map("comments")
-}
-
-model Like {
-  id        String   @id @default(uuid())
-  userId    String
-  postId    String?
-  commentId String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  comment   Comment? @relation(fields: [commentId], references: [id])
-  post      Post?    @relation(fields: [postId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@unique([userId, postId, commentId])
-  @@map("likes")
-}
-
-model Share {
-  id        String   @id @default(uuid())
-  userId    String
-  postId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  post      Post     @relation(fields: [postId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@unique([userId, postId])
-  @@map("shares")
-}
-
-model PostMetadata {
-  id String @id @default(uuid())
-
-  feelings  Feelings  @default(HAPPY)
-  checkIn   Location? @relation(fields: [checkInId], references: [id], onDelete: Cascade)
-  checkInId String?
-
-  gif   Gif?    @relation(fields: [gifId], references: [id])
-  gifId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Posts     Post[]
-}
-
-model Location {
-  id           String         @id @default(uuid())
-  name         String
-  coordinates  String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  PostMetadata PostMetadata[]
-}
-
-model Gif {
-  id           String         @id @default(uuid())
-  url          String
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  PostMetadata PostMetadata[]
 }

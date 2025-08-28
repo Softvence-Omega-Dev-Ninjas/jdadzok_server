@@ -11,12 +11,12 @@ import { UserGroupModule } from "./(users)/users.group.module";
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     StartedGroupModule,
-    PostsGroupModule,
     UserGroupModule,
     SharedGroupModule,
+    PostsGroupModule,
     MarketplacesGroupModule,
   ],
   controllers: [],
   providers: [],
 })
-export class MainModule {}
+export class MainModule { }

@@ -1,18 +1,12 @@
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
-import { IsEmail, IsNumber, IsStrongPassword } from "class-validator";
+import { IsStrongPassword, IsUUID } from "class-validator";
 
 class ResetPassword {
   @ApiProperty({
-    example: "user@example.com",
+    example: "user_uuid",
   })
-  @IsEmail()
-  email: string;
-
-  @ApiProperty({
-    example: 123456,
-  })
-  @IsNumber()
-  token: number;
+  @IsUUID()
+  userId: string;
 
   @ApiProperty({
     example: "pass123",

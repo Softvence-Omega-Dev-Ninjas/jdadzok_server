@@ -1,51 +1,45 @@
+// -----------------------------------
+// MARKETPLACE
+// -----------------------------------
+
 model Product {
-  id             String     @id @default(uuid())
-  sellerId       String
+  id String @id @default(uuid())
+
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id])
+
   title          String
   description    String
   price          Float
   digitalFileUrl String?
+  wishlist       Wishlist[]
+  orders         Order[]
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
-  isVisible      Boolean    @default(true)
-  location       String
-  availability   Int
-  seller         User       @relation(fields: [sellerId], references: [id])
-  categoryId     String
-  category       Category   @relation(fields: [categoryId], references: [id])
-  Wishlist       Wishlist[]
-  orders         Order[]
 }
 
 model Order {
-  id        String      @id @default(uuid())
-  buyerId   String
+  id String @id @default(uuid())
+
+  buyerId String
+  buyer   User   @relation("orders", fields: [buyerId], references: [id])
+
   productId String
-  status    OrderStatus @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  buyer     User        @relation("orders", fields: [buyerId], references: [id])
-  product   Product     @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  status OrderStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("orders")
 }
 
 model Wishlist {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   productId String
+  product   Product  @relation(fields: [productId], references: [id])
   userId    String
-  product   Product @relation(fields: [productId], references: [id])
-  user      User    @relation(fields: [userId], references: [id])
-}
-
-model Category {
-  id        String    @id @default(uuid())
-  name      String
-  slug      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  posts     Post[]
-  Product   Product[]
-
-  @@map("categories")
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }

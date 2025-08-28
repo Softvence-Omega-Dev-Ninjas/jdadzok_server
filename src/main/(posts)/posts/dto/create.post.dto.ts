@@ -29,11 +29,6 @@ class CreatePost {
   @IsOptional()
   authorId?: string;
 
-  @ApiHideProperty()
-  @IsOptional()
-  @IsUUID()
-  categoryId?: string;
-
   @ApiProperty({
     example: "This is my first post!",
     description: "Main text content of the post",
