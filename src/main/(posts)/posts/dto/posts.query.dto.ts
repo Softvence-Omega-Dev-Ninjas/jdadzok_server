@@ -10,10 +10,6 @@ class PostQueryDataTransferObject {
   @ApiProperty({ default: false, required: false })
   @IsBoolean()
   author?: boolean;
-
-  @ApiProperty({ default: false, required: false })
-  @IsBoolean()
-  category?: boolean;
 }
 
 export class PostQueryDto extends PartialType(

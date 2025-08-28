@@ -65,7 +65,7 @@ export class AuthService {
       throw new ForbiddenException("You can request new token after some time");
 
     const expireDate = new Date();
-    expireDate.setMinutes(expireDate.getMinutes() + TTL["1m"]); // expire time is 1 minutes
+    expireDate.setMinutes(expireDate.getMinutes() + TTL["5m"]); // expire time is 1 minutes
 
     const token = uniqueID({ length: 6, alphabet: true });
     // store token, expireDate, email, and user id to the redis for tracking
@@ -90,25 +90,15 @@ export class AuthService {
       throw new ForbiddenException(
         "Error sending email, Please try again later",
       );
-  }
-
-  async resetPassword(input: ResetPasswordDto) {
-    const user = await this.userRepository.findByEmail(input.email);
-    if (!user) throw new NotFoundException("User not found");
-
-    // check token is already expired or not
-    const redisData = await this.redisService.get<AuthRedisData>(
-      "RESET_PASSWORD_TOKEN",
-      user.id,
-    );
-    if (!redisData || redisData.expireDate < new Date())
-      throw new ForbiddenException("Invalid or expired token");
-
-    // check the generated token and the user input token is same or not
-    const hash = await this.utilsService.hash(input.password);
-
-    // update the user password with that hash password
-    return await this.userRepository.update(user.id, { passwordHash: hash });
+    const obj = {
+      token,
+      expireDate,
+      email: user.email,
+      attempt: 0,
+      userId: user.id,
+      message: "Please pass userId to veryfy token",
+    };
+    return obj;
   }
 
   async verify(input: VerifyTokenDto) {
@@ -132,6 +122,24 @@ export class AuthService {
     return "Token verify successfully";
   }
 
+  async resetPassword(input: ResetPasswordDto) {
+    const user = await this.userRepository.findById(input.userId);
+    if (!user) throw new NotFoundException("User not found");
+
+    // check token is already expired or not
+    const redisData = await this.redisService.get<AuthRedisData>(
+      "RESET_PASSWORD_TOKEN",
+      user.id,
+    );
+    if (!redisData || redisData.expireDate < new Date())
+      throw new ForbiddenException("Invalid or expired token");
+
+    // check the generated token and the user input token is same or not
+    const hash = await this.utilsService.hash(input.password);
+
+    // update the user password with that hash password
+    return await this.userRepository.update(user.id, { passwordHash: hash });
+  }
   async logout(email: string) {
     const user = await this.userRepository.findByEmail(email);
     if (!user) throw new NotFoundException("User not found");

@@ -9,7 +9,7 @@ export class CreateComment {
     format: "uuid",
   })
   @IsUUID()
-  post_id: string;
+  postId: string;
 
   @ApiProperty({
     example: "b85f1c7e-2d36-4d5f-95d1-abcdef123456",
@@ -20,7 +20,7 @@ export class CreateComment {
   })
   @IsOptional()
   @IsUUID()
-  parent_comment_id?: string;
+  parentCommentId?: string;
 
   @ApiProperty({
     example: "8f1b2c3d-4e5f-6789-abcd-1234567890ef",
@@ -29,7 +29,7 @@ export class CreateComment {
     format: "uuid",
   })
   @IsUUID()
-  author_id: string;
+  authorId: string;
 
   @ApiProperty({
     example: "This is a comment",

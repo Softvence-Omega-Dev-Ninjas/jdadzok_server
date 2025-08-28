@@ -11,6 +11,8 @@ export default defineConfig([
     "logs/*",
     "prisma/*",
     "generated/*",
+    "scripts.sh",
+    "*.sh",
   ]),
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
