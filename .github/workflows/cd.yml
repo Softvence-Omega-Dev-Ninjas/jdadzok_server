@@ -9,7 +9,6 @@ on:
     branches:
       - sabbir
       - main
-
 jobs:
   build-and-push:
     name: Build & Push Docker Image 🏗️
@@ -34,7 +33,7 @@ jobs:
 
       - name: Push Docker Image 🚀
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.package_name }}:${{env.package_version}}
+          docker compose --profile prod push
           echo "✅ Docker image with version v${package_version} pushed!"
 
   # Deploy to VPS 🖥️
