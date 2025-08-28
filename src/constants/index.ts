@@ -1,3 +1,2 @@
 /** it's means 5 minute only */
-export const MAIL_EXPIRE_TIME = 5 as const;
-export * from "./enums";
+export const RESET_TOKEN_EXPIRES_IN = 1 * 60 * 1000; // 1 minutes

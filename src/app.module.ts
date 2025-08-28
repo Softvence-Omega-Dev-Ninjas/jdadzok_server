@@ -1,12 +1,12 @@
-import { BullModule } from "@nestjs/bullmq";
 import { CacheModule } from "@nestjs/cache-manager";
 import { Module } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ConfigModule } from "@nestjs/config";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { PassportModule } from "@nestjs/passport";
 import { ScheduleModule } from "@nestjs/schedule";
 import { AppController } from "./app.controller";
-import { ENVEnum } from "./common/enum/env.enum";
+import { RedisService } from "./common/redis/redis.service";
+import { RedisConfig } from "./configs/redis.config";
 import { LibModule } from "./lib/lib.module";
 import { NotificationModule } from "./lib/notification/notification.module";
 import { MainModule } from "./main/main.module";
@@ -16,31 +16,16 @@ import { MainModule } from "./main/main.module";
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    CacheModule.register({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
+    CacheModule.registerAsync(RedisConfig),
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
-    BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        const host = configService.getOrThrow<string>(ENVEnum.REDIS_HOST);
-        const port = configService.getOrThrow<string>(ENVEnum.REDIS_PORT);
-
-        return {
-          connection: {
-            host,
-            port: parseInt(port, 10),
-          },
-        };
-      },
-    }),
     NotificationModule,
     PassportModule,
     LibModule,
     MainModule,
   ],
+  providers: [RedisService],
   controllers: [AppController],
 })
 export class AppModule {}

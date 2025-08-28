@@ -39,7 +39,7 @@ export class UserService {
 
     return {
       accessToken,
-      user: { createdUser },
+      user: createdUser,
     };
   }
 }

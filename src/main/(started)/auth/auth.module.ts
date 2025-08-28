@@ -2,6 +2,7 @@ import { UserRepository } from "@module/(users)/users/users.repository";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { JwtModule, JwtService } from "@nestjs/jwt";
+import { RedisService } from "@project/common/redis/redis.service";
 import { JwtServices } from "@project/services/jwt.service";
 import { AuthController } from "./auth.controller";
 import { AuthRepository } from "./auth.repository";
@@ -20,6 +21,7 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
     AuthService,
     UserRepository,
     AuthRepository,
+    RedisService,
     JwtServices,
     JwtService,
     JwtStrategy,

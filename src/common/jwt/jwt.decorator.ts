@@ -1,13 +1,14 @@
+import { Role } from "@constants/enums";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { RolesGuard } from "@module/(started)/auth/guards/role.guard";
 import {
   applyDecorators,
   createParamDecorator,
   ExecutionContext,
+  NotFoundException,
   SetMetadata,
   UseGuards,
 } from "@nestjs/common";
-import { Role } from "@project/constants";
 import { RequestWithUser } from "./jwt.interface";
 
 export const ROLES_KEY = "roles";
@@ -23,6 +24,8 @@ export const GetUser = createParamDecorator(
   (key: string | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
+
+    if (!user) throw new NotFoundException("Request User not found!");
 
     return key ? user?.[key] : user;
   },

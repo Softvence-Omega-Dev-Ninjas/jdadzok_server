@@ -17,17 +17,11 @@ export class CategoryRepository {
     });
   }
   async findAll(options?: CategoryQueryDto) {
-    const safeOptions = {
-      page: options?.page ?? 1,
-      limit: options?.limit ?? 10,
-      ...options,
-    };
-
     const query = queryBuilderService.buildQuery<
       Prisma.PostWhereInput,
       Prisma.PostInclude,
       CategoryQueryDto
-    >(safeOptions);
+    >({ ...options });
     return await this.prisma.post.findMany({ ...query });
   }
 }

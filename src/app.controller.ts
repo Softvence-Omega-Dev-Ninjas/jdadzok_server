@@ -4,9 +4,6 @@ import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 @ApiTags("App")
 @Controller()
 export class AppController {
-  constructor() {}
-
-  @Get()
   @ApiOkResponse({
     description: "Returns service health status",
     schema: {
@@ -16,7 +13,8 @@ export class AppController {
       },
     },
   })
-  getHealth(): { status: string; timestamp: string } {
+  @Get()
+  async getHealth() {
     return {
       status: "ok",
       timestamp: new Date().toISOString(),

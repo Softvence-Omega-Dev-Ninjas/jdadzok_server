@@ -5,6 +5,8 @@
 
 # 25/08/25
 
-- [ ] Creating a new post with all nesessary information
+- [x] Store reset token to the redis to maintain expire date
+- [x] Creating a new post with all nesessary information
+  - [ ] Still file upload is only left (once client bought aws then i'll do this)
 - [ ] Image post creation
 - [ ] Video post creation
