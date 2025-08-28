@@ -1,4 +1,4 @@
-import { Controller } from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags("App")
@@ -13,6 +13,7 @@ export class AppController {
       },
     },
   })
+  @Get()
   async getHealth() {
     return {
       status: "ok",
