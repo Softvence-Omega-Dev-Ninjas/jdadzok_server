@@ -1,135 +1,93 @@
-// -----------------------------------
-// CONTENT
-// -----------------------------------
-
-model Category {
-  id String @id @default(uuid())
-
-  name String
-  slug String @unique
-
-  posts Post[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("categories")
-}
-
 model Post {
-  id String @id @default(uuid())
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
+  id         String         @id @default(uuid())
+  authorId   String
   categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id])
-
   text       String
   mediaUrl   String?
   mediaType  MediaType      @default(TEXT)
   visibility PostVisibility @default(PUBLIC)
-
-  comments Comment[]
-  likes    Like[]
-  shares   Share[]
-
   metadataId String?
-  metadata   PostMetadata? @relation(fields: [metadataId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  comments   Comment[]
+  likes      Like[]
+  author     User           @relation(fields: [authorId], references: [id])
+  categories Category?      @relation(fields: [categoryId], references: [id])
+  metadata   PostMetadata?  @relation(fields: [metadataId], references: [id])
+  shares     Share[]
 
   @@map("posts")
 }
 
 model Comment {
-  id String @id @default(uuid())
-
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-
+  id              String    @id @default(uuid())
+  postId          String
   parentCommentId String?
+  authorId        String
+  text            String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  author          User      @relation(fields: [authorId], references: [id])
   parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
   replies         Comment[] @relation("CommentReplies")
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  text  String
-  likes Like[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  post            Post      @relation(fields: [postId], references: [id])
+  likes           Like[]
 
   @@map("comments")
 }
 
 model Like {
-  id String @id @default(uuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
+  id        String   @id @default(uuid())
+  userId    String
   postId    String?
-  post      Post?   @relation(fields: [postId], references: [id])
   commentId String?
-
-  comment Comment? @relation(fields: [commentId], references: [id])
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  post      Post?    @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, postId, commentId])
   @@map("likes")
 }
 
 model Share {
-  id String @id @default(uuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, postId])
   @@map("shares")
 }
 
 model PostMetadata {
-  id String @id @default(uuid())
-
+  id          String    @id @default(uuid())
   feelings    Feelings  @default(HAPPY)
-  check_in    Location? @relation(fields: [check_in_id], references: [id], onDelete: Cascade)
   check_in_id String?
-
-  gif    Gif?    @relation(fields: [gif_id], references: [id])
-  gif_id String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Posts     Post[]
+  gif_id      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  check_in    Location? @relation(fields: [check_in_id], references: [id], onDelete: Cascade)
+  gif         Gif?      @relation(fields: [gif_id], references: [id])
+  Posts       Post[]
 }
 
 model Location {
-  id          String  @id @default(uuid())
-  name        String
-  coordinates String?
-
+  id           String         @id @default(uuid())
+  name         String
+  coordinates  String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   PostMetadata PostMetadata[]
 }
 
 model Gif {
-  id String @id @default(uuid())
-
-  url String
-
+  id           String         @id @default(uuid())
+  url          String
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   PostMetadata PostMetadata[]

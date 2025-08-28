@@ -1,5 +1,6 @@
+import { Optional } from "@nestjs/common";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
 
 export class CreateProductDto {
     @ApiProperty({
@@ -47,6 +48,26 @@ export class CreateProductDto {
     @IsOptional()
     @IsUrl()
     digitalFileUrl?: string;
+
+    @ApiProperty({ example: 'category-uuid', description: 'Category ID', required: false })
+    @IsUUID()
+    categoryId: string;
+
+    @ApiProperty({ example: true, description: 'Is product visible' })
+    @IsOptional()
+    @IsBoolean()
+    isVisible?: boolean;
+
+    @ApiProperty({ example: 10, description: 'Available stock quantity' })
+    @IsNotEmpty()
+    @IsNumber()
+    availability: number;
+
+    @ApiProperty({ example: 'Dhaka, Bangladesh', description: 'Product location' })
+    @IsNotEmpty()
+    @IsString()
+    location: string;
+
 }
 
 
@@ -100,4 +121,36 @@ export class updateProductDto {
     @IsOptional()
     @IsUrl()
     digitalFileUrl?: string;
+
+    @ApiProperty({ example: 'category-uuid', description: 'Category ID', required: false })
+    @IsOptional()
+    @IsUUID()
+    categoryId?: string;
+
+    @ApiProperty({ example: true, description: 'Is product visible' })
+    @IsOptional()
+    @IsBoolean()
+    isVisible?: boolean;
+
+    @ApiProperty({ example: 10, description: 'Available stock quantity' })
+    @Optional()
+    @IsNotEmpty()
+    @IsNumber()
+    availability: number;
+
+    @ApiProperty({ example: 'Dhaka, Bangladesh', description: 'Product location' })
+    @IsOptional()
+    @IsNotEmpty()
+    @IsString()
+    location: string;
+}
+
+export class OfferDto {
+    @ApiProperty({
+        example: 0,
+        description: "Discount of this Product",
+        type: Number,
+    })
+    @IsNumber()
+    discount: number;
 }

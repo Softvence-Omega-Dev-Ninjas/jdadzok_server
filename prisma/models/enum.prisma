@@ -1,5 +1,3 @@
-// ENUMS_START
-
 enum Role {
   USER
   MODERATOR
@@ -136,5 +134,3 @@ enum Feelings {
   FUNNY
   MEH
 }
-
-// ENUMS_END

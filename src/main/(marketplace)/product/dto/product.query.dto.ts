@@ -25,12 +25,4 @@ export class ProductQueryDto {
     @IsOptional()
     @IsNumber()
     maxPrice?: number;
-
-    @ApiPropertyOptional({
-        example: 'electronics',
-        description: 'Category name to filter products',
-    })
-    @IsOptional()
-    @IsString()
-    category?: string;
 }

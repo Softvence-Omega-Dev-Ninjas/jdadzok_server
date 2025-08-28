@@ -5,7 +5,7 @@ import { CategoryQueryDto } from "./dto/category.query.dto";
 
 @Controller("categories")
 export class CategoryController {
-  constructor(private readonly service: CategoryService) {}
+  constructor(private readonly service: CategoryService) { }
 
   @Post()
   async store(

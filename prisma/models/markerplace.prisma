@@ -1,37 +1,51 @@
-// -----------------------------------
-// MARKETPLACE
-// -----------------------------------
-
 model Product {
-  id String @id @default(uuid())
-
-  sellerId String
-  seller   User   @relation(fields: [sellerId], references: [id])
-
+  id             String     @id @default(uuid())
+  sellerId       String
   title          String
   description    String
   price          Float
   digitalFileUrl String?
-
-  orders Order[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  isVisible      Boolean    @default(true)
+  location       String
+  availability   Int
+  seller         User       @relation(fields: [sellerId], references: [id])
+  categoryId     String
+  category       Category   @relation(fields: [categoryId], references: [id])
+  Wishlist       Wishlist[]
+  orders         Order[]
 }
 
 model Order {
-  id String @id @default(uuid())
-
-  buyerId String
-  buyer   User   @relation("orders", fields: [buyerId], references: [id])
-
+  id        String      @id @default(uuid())
+  buyerId   String
   productId String
-  product   Product @relation(fields: [productId], references: [id])
-
-  status OrderStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  buyer     User        @relation("orders", fields: [buyerId], references: [id])
+  product   Product     @relation(fields: [productId], references: [id])
 
   @@map("orders")
+}
+
+model Wishlist {
+  id        String  @id @default(uuid())
+  productId String
+  userId    String
+  product   Product @relation(fields: [productId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  posts     Post[]
+  Product   Product[]
+
+  @@map("categories")
 }

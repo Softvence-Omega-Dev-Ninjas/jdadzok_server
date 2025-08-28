@@ -1,43 +1,43 @@
 services:
-  server:
-    container_name: jdadzok-server-api
-    restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/jdadzok_db"
+  # server:
+  #   container_name: jdadzok-server-api
+  #   restart: always
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     NODE_ENV: production
+  #     DATABASE_URL: "postgresql://postgres:postgres@db:5432/jdadzok_db"
 
-      JWT_SECRET: asdfkamskfmasklfmaksmfaskfmaksfaopsfmpaomsfpaf
-      JWT_EXPIRES_IN: 90d
+  #     JWT_SECRET: asdfkamskfmasklfmaksmfaskfmaksfaopsfmpaomsfpaf
+  #     JWT_EXPIRES_IN: 90d
 
-      BASE_URL: https://api.lgcglobalcontractingltd.com/js
-      PORT: 5055
+  #     BASE_URL: https://api.lgcglobalcontractingltd.com/js
+  #     PORT: 5055
 
-      MAIL_USER: "arafatmannan2019@gmail.com"
-      MAIL_PASS: "eurp zvyi gnoy enag"
+  #     MAIL_USER: "arafatmannan2019@gmail.com"
+  #     MAIL_PASS: "eurp zvyi gnoy enag"
 
-      SUPER_ADMIN_EMAIL: "superadmin@gmail.com"
-      SUPER_ADMIN_PASS: "superadmin"
+  #     SUPER_ADMIN_EMAIL: "superadmin@gmail.com"
+  #     SUPER_ADMIN_PASS: "superadmin"
 
-      REDIS_URL: redis://redis:6379
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+  #     REDIS_URL: redis://redis:6379
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: 6379
 
-      TWILIO_ACCOUNT_SID: ACd694ffdbf32281b95c8cbf5adc844719
-      TWILIO_AUTH_TOKEN: 5b67c3ea84847077b634b8e975e251f4
-      TWILIO_PHONE_NUMBER: +12543554726
-    ports:
-      - 5055:5055
-    depends_on:
-      - db
-      - redis
-    command: >
-      sh -c "
-        npx prisma migrate deploy &&
-        npm run start:prod
-      "
+  #     TWILIO_ACCOUNT_SID: ACd694ffdbf32281b95c8cbf5adc844719
+  #     TWILIO_AUTH_TOKEN: 5b67c3ea84847077b634b8e975e251f4
+  #     TWILIO_PHONE_NUMBER: +12543554726
+  #   ports:
+  #     - 5055:5055
+  #   depends_on:
+  #     - db
+  #     - redis
+  #   command: >
+  #     sh -c "
+  #       npx prisma migrate deploy &&
+  #       npm run start:prod
+  #     "
 
   db:
     image: postgres:17
