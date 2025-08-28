@@ -1,10 +1,10 @@
 name: 🚀 CD Pipeline
 
 on:
-  workflow_run:
-    workflows: ["CI Pipeline"]
-    types:
-      - completed
+  # workflow_run:
+  #   workflows: ["CI Pipeline"]
+  #   types:
+  #     - completed
   push:
     branches:
       - sabbir
@@ -30,8 +30,6 @@ jobs:
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
 
-      # The `docker compose build` command will now correctly build and tag the image
-      # as `jdadzok-server-api:0.1.4` based on the `docker-compose.yaml` file.
       - name: Build Docker Image 🔨
         run: docker compose --profile prod build
 
