@@ -3,6 +3,7 @@ version: "3.8"
 services:
   server:
     container_name: jdadzok-server-api
+    image: devlopersabbir/${PACKAGE_NAME}:${PACKAGE_VERSION}
     restart: always
     build:
       context: .

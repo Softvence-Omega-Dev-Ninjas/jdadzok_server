@@ -22,6 +22,10 @@ jobs:
       - name: Log in to Docker Hub 🔑
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
+      - name: check the log of all checkout files
+        run: |
+          ls -a
+
       - name: Extract Package Name & Version 📦
         id: package
         run: |
@@ -34,12 +38,11 @@ jobs:
         run: |
           docker compose --profile prod build
           docker tag jdadzok-server-api ${{ secrets.DOCKER_USERNAME }}/${{ env.package_name }}:${{ env.package_version }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.package_name }}:${{ env.package_version }}
 
       - name: Push Docker Image 🚀
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.package_name }}:${{ env.package_version }}
-          echo "✅ Docker image pushed successfully!"
+          echo "✅ Docker image with version v${package_version} pushed!"
 
   # Deploy to VPS 🖥️
   deploy:
