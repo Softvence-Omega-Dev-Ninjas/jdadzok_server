@@ -37,7 +37,8 @@ jobs:
       - name: Build Docker Image 🔨
         run: |
           docker compose --profile prod build
-          docker tag jdadzok-server-api ${{ secrets.DOCKER_USERNAME }}/${{ env.package_name }}:${{ env.package_version }}
+          # docker tag jdadzok-server-api ${{ secrets.DOCKER_USERNAME }}/${{ env.package_name }}:${{ env.package_version }}
+          docker tag jdadzok-server-api:${{ env.package_version }} jdadzok-server-api:latest
 
       - name: Push Docker Image 🚀
         run: |
