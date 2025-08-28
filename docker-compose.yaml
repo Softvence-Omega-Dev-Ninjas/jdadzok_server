@@ -1,6 +1,10 @@
+version: "3.8"
+
 services:
   server:
     container_name: jdadzok-server-api
+    # image: jdadzok-server-api:${PACKAGE_VERSION}
+    image: devlopersabbir/jdadzok:${PACKAGE_VERSION}
     restart: always
     build:
       context: .
@@ -8,32 +12,28 @@ services:
     profiles:
       - prod
     environment:
-      NODE_ENV: production
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/jdadzok_db"
+      NODE_ENV: ${NODE_ENV}
+      DATABASE_URL: ${DATABASE_URL}
 
-      JWT_SECRET: asdfkamskfmasklfmaksmfaskfmaksfaopsfmpaomsfpaf
-      JWT_EXPIRES_IN: 90d
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
 
-      BASE_URL: https://api.lgcglobalcontractingltd.com/js
+      BASE_URL: ${BASE_URL}
       PORT: 5055
 
-      MAIL_USER: "arafatmannan2019@gmail.com"
-      MAIL_PASS: "eurp zvyi gnoy enag"
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS}
 
-      SUPER_ADMIN_EMAIL: "superadmin@gmail.com"
-      SUPER_ADMIN_PASS: "superadmin"
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL}
+      SUPER_ADMIN_PASS: ${SUPER_ADMIN_PASS}
 
-      REDIS_URL: redis://redis:6379
-      # REDIS_HOST: localhost
-      # REDIS_PORT: 6379
-      # REDIS_USER: redisUser
-      # REDIS_PASS: radisPassword
+      REDIS_URL: ${REDIS_URL}
 
-      TWILIO_ACCOUNT_SID: ACd694ffdbf32281b95c8cbf5adc844719
-      TWILIO_AUTH_TOKEN: 5b67c3ea84847077b634b8e975e251f4
-      TWILIO_PHONE_NUMBER: +12543554726
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
     ports:
-      - 5055:5055
+      - "5055:5055"
     depends_on:
       - db
       - redis
@@ -50,7 +50,6 @@ services:
     profiles:
       - dev
       - prod
-
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -67,13 +66,10 @@ services:
     profiles:
       - dev
       - prod
-
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
-      # - ./users.acl:/usr/local/etc/redis/users.acl
-    # command: redis-server --aclfile /usr/local/etc/redis/users.acl
 
 volumes:
   db-data:

@@ -5,6 +5,7 @@ import {
   applyDecorators,
   createParamDecorator,
   ExecutionContext,
+  NotFoundException,
   SetMetadata,
   UseGuards,
 } from "@nestjs/common";
@@ -23,6 +24,8 @@ export const GetUser = createParamDecorator(
   (key: string | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
+
+    if (!user) throw new NotFoundException("Request User not found!");
 
     return key ? user?.[key] : user;
   },

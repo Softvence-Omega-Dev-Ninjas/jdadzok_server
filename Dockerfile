@@ -27,4 +27,4 @@ RUN npm run build
 EXPOSE 5055
 
 # Run the application.
-CMD ["npm", "run", "start:dev"]
+CMD ["npm", "run", "start:prod"]

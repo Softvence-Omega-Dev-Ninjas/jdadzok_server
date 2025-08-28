@@ -176,8 +176,8 @@ CREATE TABLE "public"."shares" (
 CREATE TABLE "public"."PostMetadata" (
     "id" TEXT NOT NULL,
     "feelings" "public"."Feelings" NOT NULL DEFAULT 'HAPPY',
-    "check_in_id" TEXT,
-    "gif_id" TEXT,
+    "checkInId" TEXT,
+    "gifId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -325,6 +325,17 @@ CREATE TABLE "public"."Notification" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."PostTagUser" (
+    "id" TEXT NOT NULL,
+    "postId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PostTagUser_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -344,8 +355,10 @@ CREATE TABLE "public"."profiles" (
     "userId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "username" TEXT NOT NULL,
+    "title" TEXT,
     "bio" TEXT,
     "avatarUrl" TEXT,
+    "coverUrl" TEXT,
     "location" TEXT,
     "followersCount" INTEGER NOT NULL DEFAULT 0,
     "followingCount" INTEGER NOT NULL DEFAULT 0,
@@ -353,6 +366,20 @@ CREATE TABLE "public"."profiles" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "profiles_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."about" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "location" TEXT,
+    "dateOfBirth" TIMESTAMP(3),
+    "work" TEXT,
+    "website" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "about_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -433,6 +460,9 @@ CREATE UNIQUE INDEX "subscription_subscriberId_creatorId_key" ON "public"."subsc
 CREATE UNIQUE INDEX "Notification_userId_type_entityId_key" ON "public"."Notification"("userId", "type", "entityId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "PostTagUser_postId_userId_key" ON "public"."PostTagUser"("postId", "userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
 
 -- CreateIndex
@@ -440,6 +470,9 @@ CREATE UNIQUE INDEX "profiles_userId_key" ON "public"."profiles"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "profiles_username_key" ON "public"."profiles"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "about_userId_key" ON "public"."about"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Follow_followerId_followingId_key" ON "public"."Follow"("followerId", "followingId");
@@ -502,10 +535,10 @@ ALTER TABLE "public"."shares" ADD CONSTRAINT "shares_userId_fkey" FOREIGN KEY ("
 ALTER TABLE "public"."shares" ADD CONSTRAINT "shares_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."PostMetadata" ADD CONSTRAINT "PostMetadata_check_in_id_fkey" FOREIGN KEY ("check_in_id") REFERENCES "public"."Location"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."PostMetadata" ADD CONSTRAINT "PostMetadata_checkInId_fkey" FOREIGN KEY ("checkInId") REFERENCES "public"."Location"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."PostMetadata" ADD CONSTRAINT "PostMetadata_gif_id_fkey" FOREIGN KEY ("gif_id") REFERENCES "public"."Gif"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."PostMetadata" ADD CONSTRAINT "PostMetadata_gifId_fkey" FOREIGN KEY ("gifId") REFERENCES "public"."Gif"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Product" ADD CONSTRAINT "Product_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -538,7 +571,16 @@ ALTER TABLE "public"."payout" ADD CONSTRAINT "payout_userId_fkey" FOREIGN KEY ("
 ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."PostTagUser" ADD CONSTRAINT "PostTagUser_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."PostTagUser" ADD CONSTRAINT "PostTagUser_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."profiles" ADD CONSTRAINT "profiles_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."about" ADD CONSTRAINT "about_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Follow" ADD CONSTRAINT "Follow_followerId_fkey" FOREIGN KEY ("followerId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
