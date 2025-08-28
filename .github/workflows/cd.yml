@@ -11,20 +11,16 @@ on:
       - main
 
 jobs:
+  jobs:
   build-and-push:
     name: Build & Push Docker Image 🏗️
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code 📥
         uses: actions/checkout@v4
 
       - name: Log in to Docker Hub 🔑
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: check the log of all checkout files
-        run: |
-          ls -a
 
       - name: Extract Package Name & Version 📦
         id: package
@@ -34,10 +30,10 @@ jobs:
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
 
+      # The `docker compose build` command will now correctly build and tag the image
+      # as `jdadzok-server-api:0.1.4` based on the `docker-compose.yaml` file.
       - name: Build Docker Image 🔨
-        run: |
-          docker compose --profile prod build
-          docker tag jdadzok-server-api ${{secrets.DOCKER_USERNAME}}/${{env.package_name}}:${{env.package_version}}
+        run: docker compose --profile prod build
 
       - name: Push Docker Image 🚀
         run: |
