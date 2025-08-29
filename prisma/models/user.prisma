@@ -23,31 +23,31 @@ model User {
   fromEndorsement Endorsement[] @relation("endorser")
   toEndorsement   Endorsement[] @relation("endorsee")
 
-  posts            Post[]
-  comments         Comment[]
-  likes            Like[]
-  shares           Share[]
-  volunteerApps    VolunteerApplication[]
-  products         Product[]
-  messageRead      MessageRead[]
-  message          Message[]
-  chatParticipant  ChatParticipant[]
-  chat             Chat[]
-  payouts          Payout[]
-  notifications    Notification[]
-  bans             Ban[]
-  adRevenueShare   AdRevenueShare[]
-  volunteerProject VolunteerProject[]
+  posts                 Post[]
+  comments              Comment[]
+  likes                 Like[]
+  shares                Share[]
+  volunteerApps         VolunteerApplication[]
+  products              Product[]
+  messageRead           MessageRead[]
+  message               Message[]
+  chatParticipant       ChatParticipant[]
+  chat                  Chat[]
+  payouts               Payout[]
+  notifications         Notification[]
+  bans                  Ban[]
+  adRevenueShare        AdRevenueShare[]
+  volunteerProject      VolunteerProject[]
   // TODO: need to be remove it
-  taggedPosts      PostTagUser[]
+  taggedPosts           PostTagUser[]
   // a user choice based on that choice array we have to display their feed page
-  Choice           Choice[]
-
+  Choice                Choice[]
   Communities           Communities[]
   CommunitiesMembership CommunitiesMembership[]
   NGOFollower           NGOFollower[]
   Ngo                   Ngo[]
   SharedAbout           SharedAbout?
+  wishlist              Wishlist[]
 
   @@map("users")
 }

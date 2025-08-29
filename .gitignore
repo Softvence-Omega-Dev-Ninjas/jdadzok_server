@@ -2,6 +2,9 @@
 /dist
 /node_modules
 /build
+package-lock.json
+pnpm-lock.yaml
+pnpm-lock.yml
 
 # Logs
 logs
@@ -68,5 +71,11 @@ pnpm-lock.yaml
 .env
 
 
+package-lock.json
+pnpm-lock.yml
 .env.keys
 pnpm-lock.yaml
+
+prisma/migrations
+*/migrations
+./prisma/migrations

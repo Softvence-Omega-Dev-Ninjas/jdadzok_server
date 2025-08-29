@@ -1,8 +1,8 @@
 model Post {
-  id String @id @default(uuid())
+  id         String         @id @default(uuid())
 
   authorId String
-  author   User   @relation(fields: [authorId], references: [id])
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   text       String
   mediaUrl   String?
