@@ -1,7 +1,9 @@
 model Post {
   id         String         @id @default(uuid())
-  authorId   String
-  categoryId String?
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
   text       String
   mediaUrl   String?
   mediaType  MediaType      @default(TEXT)
