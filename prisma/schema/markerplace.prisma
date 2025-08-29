@@ -15,14 +15,14 @@ model Product {
   description    String
   price          Float
   location       String
-  availability Int
+  availability   Int
   digitalFileUrl String?
-  
-  wishlist       Wishlist[]
-  orders         Order[]
-  
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+
+  wishlist Wishlist[]
+  orders   Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Order {

@@ -23,6 +23,7 @@
     "prisma": "npx prisma",
     "prisma:pull": "npx prisma db pull",
     "prisma:push": "npx prisma db push",
+    "prisma:script": "tsx src/scripts/build-schema.ts",
     "prisma:generate": "npx prisma generate",
     "prisma:reset": "npx prisma migrate reset",
     "prisma:migrate": "npx prisma migrate dev",

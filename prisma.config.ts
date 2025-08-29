@@ -1,14 +1,13 @@
-import { config } from "dotenv";
+import "dotenv/config";
 import path from "path";
 import { defineConfig } from "prisma/config";
 
-config();
 export default defineConfig({
-  schema: path.join("prisma", "schema.prisma"),
+  schema: path.join("prisma", "schema"),
+
   migrations: {
     path: path.join("prisma", "migrations"),
-    // TODO: add here seed file
-    // seed: "tsx db/seed.ts"
+    seed: "ts-node --require tsconfig-paths/register prisma/seed.ts", // optional
   },
   views: {
     path: path.join("prisma", "views"),

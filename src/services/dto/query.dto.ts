@@ -1,6 +1,5 @@
+import { PostVisibility, postVisibility } from "@constants/enums";
 import { ApiProperty } from "@nestjs/swagger";
-import { PostVisibility } from "@prisma/client";
-import { postVisibility } from "@project/constants/enums";
 import { IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class QueryDto {
