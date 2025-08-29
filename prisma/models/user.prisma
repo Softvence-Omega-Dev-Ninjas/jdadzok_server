@@ -43,7 +43,7 @@ model User {
   taggedPosts      PostTagUser[]
   // a user choice based on that choice array we have to display their feed page
   Choice           Choice[]
-
+  wishlist  Wishlist[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

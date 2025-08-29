@@ -51,8 +51,8 @@ services:
       - dev
       - prod
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: rana
+      POSTGRES_PASSWORD: rana
       POSTGRES_DB: jdadzok_db
     volumes:
       - db-data:/var/lib/postgresql/data
