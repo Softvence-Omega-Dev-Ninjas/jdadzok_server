@@ -79,3 +79,4 @@ pnpm-lock.yaml
 prisma/migrations
 */migrations
 ./prisma/migrations
+.env
