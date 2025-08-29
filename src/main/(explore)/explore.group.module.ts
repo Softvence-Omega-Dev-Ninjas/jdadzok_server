@@ -3,9 +3,9 @@ import { CommunityModule } from "./communities/communities.module";
 import { NgoModule } from "./ngo/ngo.module";
 
 @Module({
-    imports: [CommunityModule, NgoModule],
-    controllers: [],
-    providers: [],
-    exports: []
+  imports: [CommunityModule, NgoModule],
+  controllers: [],
+  providers: [],
+  exports: [],
 })
-export class ExploreGroupModule { }
+export class ExploreGroupModule {}

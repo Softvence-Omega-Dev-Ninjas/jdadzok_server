@@ -107,13 +107,10 @@ export const feelings = [
 export type Feelings = (typeof feelings)[number];
 
 export const communityType = ["PUBLIC", "PRIVATE", "CUSTOM"] as const;
-export type CommunityType = (typeof communityType)[number]
+export type CommunityType = (typeof communityType)[number];
 
-export const communityRole = ["ADMIN", "MODERATOR", "MEMBER"] as const
-export type CommunityRole = (typeof communityRole)[number]
+export const communityRole = ["ADMIN", "MODERATOR", "MEMBER"] as const;
+export type CommunityRole = (typeof communityRole)[number];
 
-export const membershipStatus = [
-  "PENDING",
-  "APPROVED",
-  "BANNED"] as const
-export type MembershipStatus = (typeof membershipStatus)[number]
+export const membershipStatus = ["PENDING", "APPROVED", "BANNED"] as const;
+export type MembershipStatus = (typeof membershipStatus)[number];

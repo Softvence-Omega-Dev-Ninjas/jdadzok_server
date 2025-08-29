@@ -10,4 +10,4 @@ class CategoryQueryDataTransferObject {
 }
 export class CategoryQueryDto extends PartialType(
   IntersectionType(QueryDto, CategoryQueryDataTransferObject),
-) { }
+) {}

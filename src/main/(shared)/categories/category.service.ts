@@ -5,7 +5,7 @@ import { CreateCategoryDto } from "./dto/category.dto";
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly repository: CategoryRepository) { }
+  constructor(private readonly repository: CategoryRepository) {}
 
   async create(input: CreateCategoryDto) {
     // generate slug from the name

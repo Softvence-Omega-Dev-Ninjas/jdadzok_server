@@ -22,7 +22,7 @@ import { PostService } from "./posts.service";
 @ApiBearerAuth()
 @Controller("posts")
 export class PostController {
-  constructor(private readonly service: PostService) { }
+  constructor(private readonly service: PostService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)

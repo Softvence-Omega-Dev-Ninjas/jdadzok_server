@@ -69,3 +69,4 @@ pnpm-lock.yaml
 
 
 .env.keys
+pnpm-lock.yaml

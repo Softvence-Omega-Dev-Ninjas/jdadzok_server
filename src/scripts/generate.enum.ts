@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 
 const enums: Record<string, readonly string[]> = {
-  ...constantEnum
+  ...constantEnum,
 };
 
 function generateEnumBlock<V>(name: string, values: readonly V[]) {

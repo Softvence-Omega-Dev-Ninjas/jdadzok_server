@@ -6,7 +6,7 @@ import { CreateCategoryDto } from "./dto/category.dto";
 @ApiBearerAuth()
 @Controller("categories")
 export class CategoryController {
-  constructor(private readonly service: CategoryService) { }
+  constructor(private readonly service: CategoryService) {}
 
   @Post()
   async store(
