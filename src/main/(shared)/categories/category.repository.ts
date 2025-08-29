@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
-import queryBuilderService from "@project/services/query-builder.service";
 import { CreateCategoryDto } from "./dto/category.dto";
-import { CategoryQueryDto } from "./dto/category.query.dto";
 
 @Injectable()
 export class CategoryRepository {
@@ -16,12 +13,7 @@ export class CategoryRepository {
       },
     });
   }
-  async findAll(options?: CategoryQueryDto) {
-    const query = queryBuilderService.buildQuery<
-      Prisma.PostWhereInput,
-      Prisma.PostInclude,
-      CategoryQueryDto
-    >({ ...options });
-    return await this.prisma.post.findMany({ ...query });
+  async findAll() {
+    return await this.prisma.category.findMany();
   }
 }

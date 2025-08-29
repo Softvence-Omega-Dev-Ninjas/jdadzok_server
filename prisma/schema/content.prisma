@@ -1,5 +1,5 @@
 model Post {
-  id         String         @id @default(uuid())
+  id String @id @default(uuid())
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -17,8 +17,12 @@ model Post {
   metadata   PostMetadata? @relation(fields: [metadataId], references: [id])
   metadataId String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  Communities   Communities? @relation(fields: [communitiesId], references: [id])
+  communitiesId String?
+  Ngo           Ngo?         @relation(fields: [ngoId], references: [id])
+  ngoId         String?
 
   @@map("posts")
 }

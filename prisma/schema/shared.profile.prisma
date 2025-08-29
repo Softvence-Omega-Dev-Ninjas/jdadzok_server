@@ -1,0 +1,18 @@
+model SharedProfile {
+  id String @id @default(uuid())
+
+  name      String
+  username  String  @unique
+  title     String?
+  bio       String?
+  avatarUrl String?
+  coverUrl  String?
+  location  String?
+  // followersCount Int     @default(0)
+  // followingCount Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sharedProfile")
+}
