@@ -1,0 +1,17 @@
+model Communities {
+  id String @id @default(uuid())
+
+  foundationDate DateTime
+  communityType  CommunityType
+
+  // relations
+  owner   User                    @relation(fields: [ownerId], references: [id])
+  ownerId String
+  members CommunitiesMembership[]
+  posts   Post[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("communities")
+}

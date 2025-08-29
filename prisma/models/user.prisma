@@ -1,9 +1,8 @@
-// -----------------------------------
-// USER & PROFILE
-// -----------------------------------
-
 model User {
-  id           String       @id @default(uuid())
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   email        String       @unique
   passwordHash String?
   authProvider AuthProvider @default(EMAIL)
@@ -44,65 +43,11 @@ model User {
   // a user choice based on that choice array we have to display their feed page
   Choice           Choice[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  Communities           Communities[]
+  CommunitiesMembership CommunitiesMembership[]
+  NGOFollower           NGOFollower[]
+  Ngo                   Ngo[]
+  SharedAbout           SharedAbout?
 
   @@map("users")
-}
-
-model Profile {
-  id String @id @default(uuid())
-
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-
-  name           String
-  username       String  @unique
-  title          String?
-  bio            String?
-  avatarUrl      String?
-  coverUrl       String?
-  location       String?
-  followersCount Int     @default(0)
-  followingCount Int     @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("profiles")
-}
-
-model About {
-  id String @id @default(uuid())
-
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-
-  location    String?
-  dateOfBirth DateTime?
-  work        String?
-  website     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("about")
-}
-
-// -----------------------------------
-// FOLLOW RELATION
-// -----------------------------------
-
-model Follow {
-  id String @id @default(uuid())
-
-  followerId String
-  follower   User   @relation("followers", fields: [followerId], references: [id])
-
-  followingId String
-  following   User   @relation("following", fields: [followingId], references: [id])
-
-  createdAt DateTime @default(now())
-
-  @@unique([followerId, followingId])
 }

@@ -1,44 +1,10 @@
-import {
-  applicationStatus,
-  authProvider,
-  capLevel,
-  chatType,
-  feelings,
-  mediaType,
-  messageStatus,
-  notificationType,
-  orderStatus,
-  paymentMethod,
-  payOutStatus,
-  postVisibility,
-  reportStatus,
-  reportTargetType,
-  role,
-  subscriptionStatus,
-  volunteerStatus,
-} from "@constants/enums";
+import * as constantEnum from "@constants/enums";
 import { capitalize } from "@project/utils";
 import fs from "fs";
 import path from "path";
 
 const enums: Record<string, readonly string[]> = {
-  role,
-  authProvider,
-  capLevel,
-  mediaType,
-  postVisibility,
-  volunteerStatus,
-  applicationStatus,
-  orderStatus,
-  paymentMethod,
-  notificationType,
-  reportTargetType,
-  reportStatus,
-  chatType,
-  messageStatus,
-  payOutStatus,
-  subscriptionStatus,
-  feelings,
+  ...constantEnum
 };
 
 function generateEnumBlock<V>(name: string, values: readonly V[]) {

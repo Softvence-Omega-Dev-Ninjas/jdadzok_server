@@ -26,5 +26,6 @@ RUN npm run build
 # Expose the port that the application listens on.
 EXPOSE 5055
 
+
 # Run the application.
-CMD ["npm", "run", "start:prod"]
+CMD ["npm" "run", "start:prod"]

@@ -2,23 +2,6 @@
 // MONETIZATION
 // -----------------------------------
 
-model AdRevenueShare {
-  id String @id @default(uuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  month  Int
-  year   Int
-  amount Float
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, month, year])
-  @@map("adRevenueShare")
-}
-
 model Subscription {
   id String @id @default(uuid())
 
@@ -35,20 +18,4 @@ model Subscription {
 
   @@unique([subscriberId, creatorId])
   @@map("subscription")
-}
-
-model Payout {
-  id String @id @default(uuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  amount Float
-  method PaymentMethod
-  status PayOutStatus  @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("payout")
 }

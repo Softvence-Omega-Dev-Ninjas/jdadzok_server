@@ -1,11 +1,12 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Post } from "@nestjs/common";
+import { ApiBearerAuth } from "@nestjs/swagger";
 import { CategoryService } from "./category.service";
 import { CreateCategoryDto } from "./dto/category.dto";
-import { CategoryQueryDto } from "./dto/category.query.dto";
 
+@ApiBearerAuth()
 @Controller("categories")
 export class CategoryController {
-  constructor(private readonly service: CategoryService) {}
+  constructor(private readonly service: CategoryService) { }
 
   @Post()
   async store(
@@ -21,9 +22,9 @@ export class CategoryController {
     }
   }
   @Get()
-  async index(@Query() query?: CategoryQueryDto) {
+  async index() {
     try {
-      return query;
+      return await this.service.index();
     } catch (err) {
       return err;
     }

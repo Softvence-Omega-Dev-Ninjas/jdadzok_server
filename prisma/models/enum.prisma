@@ -1,10 +1,9 @@
 // ENUMS_START
 
-enum Role {
-  USER
-  MODERATOR
-  ADMIN
-  SUPER_ADMIN
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 enum AuthProvider {
@@ -22,83 +21,21 @@ enum CapLevel {
   OSTRICH_FEATHER
 }
 
-enum MediaType {
-  TEXT
-  IMAGE
-  VIDEO
-}
-
-enum PostVisibility {
-  PUBLIC
-  FOLLOWERS
-  PRIVATE
-}
-
-enum VolunteerStatus {
-  OPEN
-  IN_PROGRESS
-  COMPLETED
-}
-
-enum ApplicationStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-}
-
-enum OrderStatus {
-  PENDING
-  PAID
-  DELIVERED
-  CANCELED
-}
-
-enum PaymentMethod {
-  STRIPE
-  PAYPAL
-}
-
-enum NotificationType {
-  LIKE
-  COMMENT
-  FOLLOW
-  SHARE
-  MENTION
-  EARNINGS
-}
-
-enum ReportTargetType {
-  POST
-  COMMENT
-  USER
-}
-
-enum ReportStatus {
-  PENDING
-  REVIEWED
-}
-
 enum ChatType {
   DIRECT
   GROUP
 }
 
-enum MessageStatus {
-  SENT
-  DELIVERED
-  READ
+enum CommunityRole {
+  ADMIN
+  MODERATOR
+  MEMBER
 }
 
-enum PayOutStatus {
-  PENDING
-  PAID
-}
-
-enum SubscriptionStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  CANCELED
+enum CommunityType {
+  PUBLIC
+  PRIVATE
+  CUSTOM
 }
 
 enum Feelings {
@@ -135,6 +72,87 @@ enum Feelings {
   STRONG
   FUNNY
   MEH
+}
+
+enum MediaType {
+  TEXT
+  IMAGE
+  VIDEO
+}
+
+enum MembershipStatus {
+  PENDING
+  APPROVED
+  BANNED
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  SHARE
+  MENTION
+  EARNINGS
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  DELIVERED
+  CANCELED
+}
+
+enum PayOutStatus {
+  PENDING
+  PAID
+}
+
+enum PaymentMethod {
+  STRIPE
+  PAYPAL
+}
+
+enum PostVisibility {
+  PUBLIC
+  FOLLOWERS
+  PRIVATE
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+  USER
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  CANCELED
+}
+
+enum VolunteerStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
 }
 
 // ENUMS_END

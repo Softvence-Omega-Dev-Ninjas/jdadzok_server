@@ -36,11 +36,14 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # dotenv environment variable files
-# .env
+.env
+/.env
+./.env
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
+.env
 
 # temp directory
 .temp
@@ -61,3 +64,8 @@ logs
 data
 .pnpm-store
 pnpm-lock.yaml
+.env
+.env
+
+
+.env.keys

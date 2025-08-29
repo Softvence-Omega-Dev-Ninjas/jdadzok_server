@@ -12,5 +12,6 @@ logs
 .env.production.local
 .pnpm-store
 Dockerfile
-docker-compose.yml
+docker-compose.yaml
 generated
+.env.keys

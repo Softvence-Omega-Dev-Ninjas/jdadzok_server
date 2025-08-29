@@ -12,6 +12,7 @@ services:
     profiles:
       - prod
     environment:
+      DOTENV_PRIVATE_KEY_PRODUCTION: 7dc8439331d763bfdcc72ae65f6512f42bea26ffc7b41fe9267263da50cc1686
       NODE_ENV: ${NODE_ENV}
       DATABASE_URL: ${DATABASE_URL}
 
