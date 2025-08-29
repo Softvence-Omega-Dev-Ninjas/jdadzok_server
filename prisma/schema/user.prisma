@@ -1,0 +1,53 @@
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email        String       @unique
+  passwordHash String?
+  authProvider AuthProvider @default(EMAIL)
+  role         Role         @default(USER)
+  capLevel     CapLevel     @default(GREEN)
+
+  profile Profile?
+  About   About?
+
+  followers Follow[] @relation("followers")
+  following Follow[] @relation("following")
+  orders    Order[]  @relation("orders")
+  reports   Report[] @relation("reportsMade")
+
+  subscriptionsCreated    Subscription[] @relation("creatorSubscriptions")
+  subscriptionsSubscribed Subscription[] @relation("userSubscriptions")
+
+  fromEndorsement Endorsement[] @relation("endorser")
+  toEndorsement   Endorsement[] @relation("endorsee")
+
+  posts                 Post[]
+  comments              Comment[]
+  likes                 Like[]
+  shares                Share[]
+  volunteerApps         VolunteerApplication[]
+  products              Product[]
+  messageRead           MessageRead[]
+  message               Message[]
+  chatParticipant       ChatParticipant[]
+  chat                  Chat[]
+  payouts               Payout[]
+  notifications         Notification[]
+  bans                  Ban[]
+  adRevenueShare        AdRevenueShare[]
+  volunteerProject      VolunteerProject[]
+  // TODO: need to be remove it
+  taggedPosts           PostTagUser[]
+  // a user choice based on that choice array we have to display their feed page
+  Choice                Choice[]
+  Communities           Communities[]
+  CommunitiesMembership CommunitiesMembership[]
+  NGOFollower           NGOFollower[]
+  Ngo                   Ngo[]
+  SharedAbout           SharedAbout?
+  wishlist              Wishlist[]
+
+  @@map("users")
+}

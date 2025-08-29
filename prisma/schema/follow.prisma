@@ -1,0 +1,13 @@
+model Follow {
+  id String @id @default(uuid())
+
+  followerId String
+  follower   User   @relation("followers", fields: [followerId], references: [id])
+
+  followingId String
+  following   User   @relation("following", fields: [followingId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
