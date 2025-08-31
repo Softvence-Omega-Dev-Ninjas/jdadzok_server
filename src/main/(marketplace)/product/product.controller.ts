@@ -7,22 +7,29 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from "@nestjs/common";
-import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { GetUser } from "@project/common/jwt/jwt.decorator";
 import { handleRequest } from "@project/common/utils/handle.request.util";
+import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { CreateProductDto, OfferDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
 import { ProductService } from "./product.service";
-
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller("products")
 export class ProductController {
   constructor(private readonly service: ProductService) {}
 
   @Post("/")
   @ApiOperation({ summary: "Create new product" })
-  async create(@Body() dto: CreateProductDto) {
+  async create(
+    @Body() dto: CreateProductDto,
+    @GetUser("userId") userId: string,
+  ) {
     return handleRequest(
-      () => this.service.create(dto),
+      () => this.service.create(userId, dto),
       "Product created successfully",
     );
   }
@@ -72,4 +79,10 @@ export class ProductController {
       "Product updated successfully",
     );
   }
+
+  // Todo--------
+  // # Marketplaces
+  // ### update (marketplace to message page)
+  // ### added product report (if insure to the frontend developer)
+  // ### copyLink implement frontend devoloper
 }
