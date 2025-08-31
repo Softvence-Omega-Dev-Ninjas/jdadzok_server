@@ -9,6 +9,7 @@ import { TTL } from "@project/constants/ttl.constants";
 import { MailService } from "@project/lib/mail/mail.service";
 import { UtilsService } from "@project/lib/utils/utils.service";
 import { JwtServices } from "@project/services/jwt.service";
+import { omit } from "@project/utils";
 import { uniqueID } from "dev-unique-id";
 import { AuthRedisData } from "../@types";
 import { ForgetPasswordDto } from "./dto/forget.dto";
@@ -24,7 +25,7 @@ export class AuthService {
     private readonly jwtService: JwtServices,
     private readonly mailService: MailService,
     private readonly redisService: RedisService,
-  ) {}
+  ) { }
 
   async login(input: LoginDto) {
     const user = await this.userRepository.findByEmail(input.email);
@@ -48,9 +49,7 @@ export class AuthService {
 
     return {
       accessToken,
-      user: {
-        user,
-      },
+      user: omit(user, ["passwordHash"]),
     };
   }
   async forgetPassword(input: ForgetPasswordDto) {

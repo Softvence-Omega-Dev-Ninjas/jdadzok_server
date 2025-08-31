@@ -12,3 +12,7 @@ export type HelperTx = Omit<
   PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
   "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
 >;
+export type PaginatedResult<T> = {
+  data: T[];
+  nextCursor?: string;
+}

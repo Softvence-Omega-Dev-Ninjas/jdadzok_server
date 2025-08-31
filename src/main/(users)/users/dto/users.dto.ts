@@ -1,4 +1,5 @@
 import {
+  ApiHideProperty,
   ApiProperty,
   ApiPropertyOptional,
   IntersectionType,
@@ -33,6 +34,7 @@ class UserCreate {
   @IsEnum(AuthProvider)
   authProvider?: AuthProvider;
 
+  @ApiHideProperty()
   @ApiPropertyOptional({
     enum: Role,
     description: "User role",
@@ -42,6 +44,7 @@ class UserCreate {
   @IsEnum(Role)
   role?: Role;
 
+  @ApiHideProperty()
   @ApiPropertyOptional({
     enum: CapLevel,
     description: "User capability level",
@@ -164,9 +167,9 @@ class UpdateProfile {
   location?: string;
 }
 
-export class CreateUserDto extends IntersectionType(UserCreate) {}
-export class UpdateUserDto extends PartialType(IntersectionType(UserUpdate)) {}
-export class CreateProfileDto extends IntersectionType(CreateUserProfile) {}
+export class CreateUserDto extends IntersectionType(UserCreate) { }
+export class UpdateUserDto extends PartialType(IntersectionType(UserUpdate)) { }
+export class CreateProfileDto extends IntersectionType(CreateUserProfile) { }
 export class UpdateProfileDto extends PartialType(
   IntersectionType(UpdateProfile),
-) {}
+) { }

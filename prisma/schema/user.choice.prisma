@@ -1,0 +1,11 @@
+model UserChoice {
+  createdAt DateTime @default(now())
+
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  choice   Choice @relation(fields: [choiceId], references: [id], onDelete: Cascade)
+  choiceId String
+
+  @@id([userId, choiceId])
+  @@map("user_choices")
+}

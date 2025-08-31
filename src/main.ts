@@ -27,6 +27,7 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
+      forbidNonWhitelisted: true,
     }),
   );
 
@@ -43,7 +44,11 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("docs", app, document);
+  SwaggerModule.setup("docs", app, document, {
+    swaggerOptions: {
+      persistAuthorization: true
+    }
+  });
 
   const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5000", 10);
   await app.listen(port);
