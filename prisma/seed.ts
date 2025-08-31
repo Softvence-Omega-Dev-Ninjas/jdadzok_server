@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 const user = () => ({
   email: faker.person.fullName(),
-})
+});
 
 async function main() {
   dotenv.config();
