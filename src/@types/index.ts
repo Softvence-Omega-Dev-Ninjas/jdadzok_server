@@ -15,4 +15,4 @@ export type HelperTx = Omit<
 export type PaginatedResult<T> = {
   data: T[];
   nextCursor?: string;
-}
+};

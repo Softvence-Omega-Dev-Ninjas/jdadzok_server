@@ -1,4 +1,4 @@
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class CapLevelRepository { }
+export class CapLevelRepository {}

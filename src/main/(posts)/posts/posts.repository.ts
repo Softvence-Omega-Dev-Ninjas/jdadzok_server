@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { HelperTx } from "@project/@types";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { UserRepository } from "@project/main/(users)/users/users.repository";
@@ -22,8 +26,7 @@ export class PostRepository {
     private readonly gifRepo: GifRepository,
     private readonly metadataRepo: PostMetadataRepository,
     private readonly userRepo: UserRepository,
-
-  ) { }
+  ) {}
 
   private readonly defaultInclude = {
     metadata: {
@@ -74,18 +77,18 @@ export class PostRepository {
       take: limit + 1,
       ...(options?.cursor ? { skip: 1, cursor: { id: options.cursor } } : {}),
       orderBy: {
-        createdAt: "desc"
+        createdAt: "desc",
       },
       include: {
         metadata: options?.metadata ?? false,
-        author: options?.metadata ?? false
-      }
+        author: options?.metadata ?? false,
+      },
     });
 
     let nextCursor: string | undefined = undefined;
     if (posts.length > limit) {
-      const nextItem = posts.pop()
-      nextCursor = nextItem?.id
+      const nextItem = posts.pop();
+      nextCursor = nextItem?.id;
     }
 
     return {
@@ -93,15 +96,20 @@ export class PostRepository {
       metadata: {
         nextCursor,
         limit,
-        length: posts.length
-      }
-    }
+        length: posts.length,
+      },
+    };
   }
 
   async findById(id: string) {
     return this.prisma.post.findUnique({
       where: { id },
-      include: this.defaultInclude,
+      include: {
+        ...this.defaultInclude,
+        comments: true,
+        likes: true,
+        postTagUsers: true,
+      },
     });
   }
 
@@ -263,10 +271,12 @@ export class PostRepository {
     const tags = await Promise.all(
       taggedUserIds.map(async (userId) => {
         const exist = await this.userRepo.findById(userId);
-        if (!exist) throw new NotFoundException("User id not found with the tagged user");
+        if (!exist)
+          throw new NotFoundException("User id not found with the tagged user");
 
         // creator can't make tager user itself
-        if (taggedUserIds.includes(input.authorId!)) throw new ConflictException("You can not tag yourself");
+        if (taggedUserIds.includes(input.authorId!))
+          throw new ConflictException("You can not tag yourself");
 
         await tx.post.create({
           data: {
@@ -306,7 +316,8 @@ export class PostRepository {
         await this.cleanupGif(tx, metadata.gifId, metadata.id);
       }
 
-      if (metadataId) await tx.postMetadata.delete({ where: { id: metadataId } });
+      if (metadataId)
+        await tx.postMetadata.delete({ where: { id: metadataId } });
     } catch (error) {
       console.warn("Failed to cleanup metadata:", error);
     }
@@ -343,7 +354,13 @@ export class PostRepository {
     }
   }
 
-  async findRecentPosts({ authorIds, limit }: { authorIds?: string[], limit: number }) {
+  async findRecentPosts({
+    authorIds,
+    limit,
+  }: {
+    authorIds?: string[];
+    limit: number;
+  }) {
     return this.prisma.post.findMany({
       where: {
         visibility: "PUBLIC",
@@ -353,18 +370,17 @@ export class PostRepository {
         author: {
           include: {
             userChoice: {
-              include: { choice: true, user: true }
-            }
+              include: { choice: true, user: true },
+            },
           },
         },
         likes: true,
         shares: true,
       },
       orderBy: {
-        createdAt: "desc"
+        createdAt: "desc",
       },
-      take: limit
+      take: limit,
     });
   }
-
 }

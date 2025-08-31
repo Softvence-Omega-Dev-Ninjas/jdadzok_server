@@ -9,20 +9,20 @@ export const choicesBodyOptions: ApiBodyOptions = {
     example1: {
       value: [
         {
-          text: "Life Hacks"
+          text: "Life Hacks",
         },
         {
-          text: "Productivity"
+          text: "Productivity",
         },
       ],
     },
     example2: {
       value: [
         {
-          text: "Science & Education"
+          text: "Science & Education",
         },
         {
-          text: "Productivity"
+          text: "Productivity",
         },
       ],
     },

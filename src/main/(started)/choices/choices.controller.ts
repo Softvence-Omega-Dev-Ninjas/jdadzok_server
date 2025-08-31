@@ -1,5 +1,13 @@
 import { GetUser } from "@common/jwt/jwt.decorator";
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiBody } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth";
@@ -10,7 +18,7 @@ import { choicesBodyOptions } from "./example";
 @ApiBearerAuth()
 @Controller("choices")
 export class ChoicesController {
-  constructor(private readonly choicesService: ChoicesService) { }
+  constructor(private readonly choicesService: ChoicesService) {}
 
   @ApiBody(choicesBodyOptions)
   @Post()
@@ -19,19 +27,17 @@ export class ChoicesController {
     try {
       return this.choicesService.assignChoices(user.userId, dtos);
     } catch (err) {
-      return err
+      return err;
     }
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async getUserChoices(
-    @GetUser() user: TUser,
-  ) {
+  async getUserChoices(@GetUser() user: TUser) {
     try {
       return this.choicesService.getUserChoices(user.userId);
     } catch (err) {
-      return err
+      return err;
     }
   }
 
@@ -40,12 +46,9 @@ export class ChoicesController {
   async removeChoice(@GetUser() user: TUser, @Param("slug") slug: string) {
     try {
       await this.choicesService.removeChoice(user.userId, slug);
-      return "Choice delete success"
-
-    }
-    catch (err) {
-
-      return err
+      return "Choice delete success";
+    } catch (err) {
+      return err;
     }
   }
 }

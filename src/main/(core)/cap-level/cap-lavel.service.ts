@@ -3,11 +3,8 @@ import { CapLevelRepository } from "./cap-lavel.repository";
 
 @Injectable()
 export class CapLevelService {
-    constructor(private readonly repository: CapLevelRepository) { }
+  constructor(private readonly repository: CapLevelRepository) {}
 
-    async create() {
-
-    }
-    async index() {
-    }
+  async create() {}
+  async index() {}
 }

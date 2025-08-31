@@ -46,8 +46,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("docs", app, document, {
     swaggerOptions: {
-      persistAuthorization: true
-    }
+      persistAuthorization: true,
+    },
   });
 
   const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5000", 10);

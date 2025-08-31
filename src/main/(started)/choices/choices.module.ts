@@ -10,4 +10,4 @@ import { ChoicesService } from "./choices.service";
   providers: [ChoicesRepository, ChoicesService],
   exports: [ChoicesRepository],
 })
-export class ChoicesModule { }
+export class ChoicesModule {}

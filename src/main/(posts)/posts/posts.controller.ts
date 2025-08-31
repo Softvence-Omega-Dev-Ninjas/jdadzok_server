@@ -23,7 +23,7 @@ import { PostService } from "./posts.service";
 @ApiBearerAuth()
 @Controller("posts")
 export class PostController {
-  constructor(private readonly service: PostService) { }
+  constructor(private readonly service: PostService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -40,9 +40,8 @@ export class PostController {
   @ApiOperation({ summary: "Get all posts" })
   @UsePipes(PostQueryDto)
   async index(@Query() query: PostQueryDto) {
-    console.log(query)
     const posts = await this.service.index(query);
-    return posts
+    return posts;
   }
 
   @Put(":id")
@@ -54,11 +53,10 @@ export class PostController {
     @Body() body: UpdatePostDto,
   ) {
     try {
-
       const updatedPost = await this.service.update(id, body, user.userId);
       return successResponse(updatedPost, "Post updated successfully");
     } catch (err) {
-      return err
+      return err;
     }
   }
 

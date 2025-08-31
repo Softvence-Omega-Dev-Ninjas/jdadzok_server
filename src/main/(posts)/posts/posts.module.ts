@@ -18,8 +18,8 @@ import { PostService } from "./posts.service";
     LocationRepository,
     GifRepository,
     PostMetadataRepository,
-    UserRepository
+    UserRepository,
   ],
   exports: [PostRepository],
 })
-export class PostModule { }
+export class PostModule {}

@@ -9,4 +9,4 @@ import { UserChoicesModule } from "./user-choice/user.choice.module";
   providers: [],
   exports: [],
 })
-export class StartedGroupModule { }
+export class StartedGroupModule {}

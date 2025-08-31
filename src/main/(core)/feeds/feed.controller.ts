@@ -8,18 +8,16 @@ import { FeedService } from "./feed.service";
 @ApiBearerAuth()
 @Controller("feeds")
 export class FeedController {
-    constructor(private readonly feedService: FeedService) { }
+  constructor(private readonly feedService: FeedService) {}
 
-    @Get()
-    @UseGuards(JwtAuthGuard)
-    async getFeed(@GetUser() user: TUser) {
-        try {
-            const posts = await this.feedService.generateUserFeed(user.userId);
-            return posts;
-        }
-        catch (err) {
-            return err
-        }
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async getFeed(@GetUser() user: TUser) {
+    try {
+      const posts = await this.feedService.generateUserFeed(user.userId);
+      return posts;
+    } catch (err) {
+      return err;
     }
-
+  }
 }

@@ -22,4 +22,4 @@ class CreateChoice {
   @IsUUID()
   userId?: string;
 }
-export class CreateChoiceDto extends IntersectionType(CreateChoice) { }
+export class CreateChoiceDto extends IntersectionType(CreateChoice) {}

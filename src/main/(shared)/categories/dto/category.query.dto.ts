@@ -7,5 +7,6 @@ class CategoryQueryDataTransferObject {
   })
   name: string;
 }
-export class CategoryQueryDto extends
-  IntersectionType(CategoryQueryDataTransferObject) { }
+export class CategoryQueryDto extends IntersectionType(
+  CategoryQueryDataTransferObject,
+) {}

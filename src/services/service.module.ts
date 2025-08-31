@@ -6,4 +6,4 @@ import { JwtServices } from "./jwt.service";
   providers: [JwtServices, SimpleBaseQueryDto],
   exports: [JwtServices, SimpleBaseQueryDto],
 })
-export class ServiceModule { }
+export class ServiceModule {}

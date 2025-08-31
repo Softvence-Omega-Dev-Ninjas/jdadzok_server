@@ -6,12 +6,23 @@ import { LikeRepository } from "./like.repository";
 export class LikeService {
   constructor(private readonly likeRepository: LikeRepository) {}
 
-  async likePost(dto: CreateLikeDto) {
-    return await this.likeRepository.createLike(dto);
-  }
+  async likePost(userId: string, dto: CreateLikeDto) {
+    // check if already liked or not
+    const exist = await this.likeRepository.alreadyLiked(
+      userId,
+      dto.postId,
+      dto?.commentId,
+    );
+    // if already liked then we have have to dislike that
+    if (exist)
+      return await this.likeRepository.removeLike(
+        userId,
+        dto.postId,
+        dto?.commentId,
+      );
 
-  async unlikePost(userId: string, postId?: string, commentId?: string) {
-    return await this.likeRepository.removeLike(userId, postId, commentId);
+    // if not then create like
+    return await this.likeRepository.like({ ...dto, userId });
   }
 
   async getPostLikes(postId: string) {

@@ -25,9 +25,8 @@ export const GetUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
-    if (!user
-      || !user.userId
-    ) throw new NotFoundException("Request User not found!");
+    if (!user || !user.userId)
+      throw new NotFoundException("Request User not found!");
 
     return key ? user?.[key] : user;
   },

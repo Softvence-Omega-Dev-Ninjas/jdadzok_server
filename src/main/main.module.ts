@@ -16,9 +16,9 @@ import { UserGroupModule } from "./(users)/users.group.module";
     SharedGroupModule,
     PostsGroupModule,
     MarketplacesGroupModule,
-    CoreGroupModule
+    CoreGroupModule,
   ],
   controllers: [],
   providers: [],
 })
-export class MainModule { }
+export class MainModule {}
