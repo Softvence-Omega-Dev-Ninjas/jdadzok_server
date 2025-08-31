@@ -5,19 +5,20 @@ import { ProductQueryDto } from "./dto/product.query.dto";
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
   // create product new product
-  async create(dto: CreateProductDto) {
+  async create(userId: string, dto: CreateProductDto) {
     try {
       return await this.prisma.product.create({
         data: {
-          sellerId: dto.sellerId,
+          sellerId: userId,
           description: dto.description,
           price: dto.price,
           title: dto.title,
           categoryId: dto.categoryId,
           location: dto.location,
           availability: dto.availability,
+
         },
         include: {
           seller: true,
@@ -100,4 +101,9 @@ export class ProductService {
     const finalPrice = product.price - discountAmount;
     return finalPrice.toFixed(2);
   }
+
+
+
+
+
 }

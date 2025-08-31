@@ -13,13 +13,11 @@ import {
 export class CreateProductDto {
   @ApiProperty({
     example: "3543c671-a22e-415d-9a0e-2c1c51a27d32",
-    description: "Unique identifier of the seller (UUID)",
-    type: String,
-    format: "uuid",
+    description: "Category ID",
+    required: false,
   })
   @IsUUID()
-  @IsNotEmpty()
-  sellerId: string;
+  categoryId: string;
 
   @ApiProperty({
     example: "Wireless Bluetooth Headphones",
@@ -56,14 +54,6 @@ export class CreateProductDto {
   @IsOptional()
   @IsUrl()
   digitalFileUrl?: string;
-
-  @ApiProperty({
-    example: "category-uuid",
-    description: "Category ID",
-    required: false,
-  })
-  @IsUUID()
-  categoryId: string;
 
   @ApiProperty({ example: true, description: "Is product visible" })
   @IsOptional()

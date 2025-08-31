@@ -13,6 +13,7 @@ model Product {
 
   title          String
   description    String
+  isVisible      Boolean? @default(true)
   price          Float
   location       String
   availability   Int
