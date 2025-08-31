@@ -1,20 +1,22 @@
 import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
-import { QueryDto } from "@project/services/dto/query.dto";
-import { IsBoolean } from "class-validator";
+import { PaginationDto } from "@project/global/dto/pagination";
+import { Transform } from "class-transformer";
+import { IsBoolean, IsOptional } from "class-validator";
 
 class PostQueryDataTransferObject {
-  @ApiProperty({ default: false, required: false })
+  @ApiProperty({ required: false, default: false, type: Boolean })
   @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === "true" || value === true)
   metadata?: boolean;
 
-  @ApiProperty({ default: false, required: false })
+  @ApiProperty({ required: false, default: false, type: Boolean })
   @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === "true" || value === true)
   author?: boolean;
 }
 
 export class PostQueryDto extends PartialType(
-  IntersectionType(QueryDto, PostQueryDataTransferObject),
+  IntersectionType(PaginationDto, PostQueryDataTransferObject),
 ) {}
-// export class PostQueryDto extends PartialType(
-//   IntersectionType(PostQueryDataTransferObject),
-// ) { }
