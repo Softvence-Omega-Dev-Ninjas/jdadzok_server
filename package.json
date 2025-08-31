@@ -24,14 +24,14 @@
     "prisma:pull": "npx prisma db pull",
     "prisma:push": "npx prisma db push",
     "prisma:script": "tsx src/scripts/build-schema.ts",
-    "prisma:generate": "npx prisma generate",
+    "g:enum": "tsx src/scripts/generate.enum.ts",
+    "prisma:generate": "npm run g:enum && npx prisma generate",
     "prisma:reset": "npx prisma migrate reset",
     "prisma:migrate": "npx prisma migrate dev",
     "prisma:studio": "npx prisma studio",
     "prisma:validate": "npx prisma validate",
     "prisma:format": "npx prisma format",
     "postinstall": "npx prisma generate",
-    "g:enum": "tsx src/scripts/generate.enum.ts",
     "prod": "bash ./scripts.sh"
   },
   "dependencies": {

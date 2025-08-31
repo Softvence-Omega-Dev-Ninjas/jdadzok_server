@@ -1,29 +1,31 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CommunityType, communityType } from '@project/constants/enums';
-import { IsDateString, IsEnum, IsUUID } from 'class-validator';
-
+import { Type } from 'class-transformer';
+import { IsEnum, IsString, ValidateNested } from 'class-validator';
+import { CreateSharedProfileDto } from './shared.profile.dto';
 
 export class CreateCommunityDto {
     @ApiProperty({
         description: 'The foundation date of the community',
-        example: '2025-08-29T10:30:00.000Z',
+        example: '30-08-2025',
     })
 
-    @IsDateString()
-    foundationDate: Date;
+    @IsString()
+    foundationDate: string;
 
     @ApiProperty({
         description: 'The type of community',
         enum: communityType,
-        example: communityType,
+        example: 'PUBLIC',
     })
     @IsEnum(communityType)
     communityType: CommunityType;
 
-    @ApiProperty({
-        description: 'The ID of the owner (User ID)',
-        example: '550e8400-e29b-41d4-a716-446655440000',
-    })
-    @IsUUID()
-    ownerId: string;
+    @ApiProperty({ type: CreateSharedProfileDto })
+    @ValidateNested()
+    @Type(() => CreateSharedProfileDto)
+    sharedProfile: CreateSharedProfileDto;
 }
+
+// update community dto
+export class UpdateCommunityDto extends PartialType(CreateCommunityDto) { }

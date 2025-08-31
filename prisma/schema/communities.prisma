@@ -1,14 +1,17 @@
 model Communities {
   id String @id @default(uuid())
 
-  foundationDate DateTime
+  foundationDate String
   communityType  CommunityType
-
   // relations
-  owner   User                    @relation(fields: [ownerId], references: [id])
-  ownerId String
-  members CommunitiesMembership[]
-  posts   Post[]
+  owner          User                    @relation(fields: [ownerId], references: [id])
+  ownerId        String
+  members        CommunitiesMembership[]
+  posts          Post[]
+
+  //  added new reletions in shared profile. 
+  sharedProfileId String?        @unique
+  sharedProfile   SharedProfile? @relation(fields: [sharedProfileId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

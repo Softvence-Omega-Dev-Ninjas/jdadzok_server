@@ -7,9 +7,9 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y openssl
 
-# Copy package files AND prisma schema folder
+# copy package.json file and everything to the ./
 COPY package*.json ./
-COPY prisma ./prisma
+COPY . ./
 
 # Install Node.js dependencies
 RUN npm install --ignore-scripts
@@ -18,7 +18,7 @@ RUN npm install --ignore-scripts
 RUN npx prisma generate
 
 # Copy the rest of the source code
-COPY . ./
+RUN ls -a
 
 # Build the app (NestJS -> dist/)
 RUN npm run build

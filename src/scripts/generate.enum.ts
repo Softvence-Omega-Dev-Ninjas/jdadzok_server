@@ -36,9 +36,9 @@ function injectEnumsIntoSchema(schemaPath: string) {
 }
 
 // Run it
-const schemaPath = path.join(process.cwd(), "prisma", "models", "enum.prisma");
+const schemaPath = path.join(process.cwd(), "prisma", "schema", "enum.prisma");
 if (!fs.existsSync(schemaPath)) {
-  console.error("❌ enum.prisma not found at prisma/models/enum.prisma");
+  console.error("❌ enum.prisma not found at prisma/schema/enum.prisma");
   process.exit(1);
 }
 

@@ -23,6 +23,7 @@ export class ProductController {
   constructor(private readonly service: ProductService) { }
 
   @Post("/")
+
   @ApiOperation({ summary: "Create new product" })
   async create(@Body() dto: CreateProductDto, @GetUser("userId") userId: string) {
     return handleRequest(
