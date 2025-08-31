@@ -8,4 +8,4 @@ import { ProductModule } from "./product/product.module";
   providers: [],
   exports: [],
 })
-export class MarketplacesGroupModule { }
+export class MarketplacesGroupModule {}

@@ -3,6 +3,5 @@ import { PrismaService } from "@project/lib/prisma/prisma.service";
 
 @Injectable()
 export class NgoService {
-    constructor(private readonly prisma: PrismaService) { }
-
+  constructor(private readonly prisma: PrismaService) {}
 }

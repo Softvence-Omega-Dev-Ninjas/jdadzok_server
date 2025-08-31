@@ -6,14 +6,16 @@ import { CreateCommunityDto } from "./dto/communities.dto";
 
 @Controller("communities")
 export class CommunitiesController {
-    constructor(private readonly service: CommunitiesService) { }
+  constructor(private readonly service: CommunitiesService) {}
 
-    @Post()
-    async createCommunity(@GetUser("userId") userId: string, @Body() dto: CreateCommunityDto) {
-        return handleRequest(
-            () => this.service.createCommunity(userId, dto),
-            "Community created successfully",
-        );
-    }
-
+  @Post()
+  async createCommunity(
+    @GetUser("userId") userId: string,
+    @Body() dto: CreateCommunityDto,
+  ) {
+    return handleRequest(
+      () => this.service.createCommunity(userId, dto),
+      "Community created successfully",
+    );
+  }
 }
