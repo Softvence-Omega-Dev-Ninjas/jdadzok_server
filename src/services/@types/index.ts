@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { BaseQueryDto } from "../dto/query.dto";
 
 export type ModelWhereInput = {
   [key: string]: any;
@@ -106,14 +107,6 @@ export type QueryConfig<T> = {
 };
 
 /** DTO types for input */
-export interface BaseQueryDto {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sortBy?: string;
-  order?: OrderDirection;
-}
-
 export type QueryDto<T> = BaseQueryDto & {
   select?: Select<T>;
   include?: Include<T>;

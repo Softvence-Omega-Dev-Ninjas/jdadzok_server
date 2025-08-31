@@ -1,14 +1,5 @@
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
 import { GetUser } from "@project/common/jwt/jwt.decorator";
@@ -20,27 +11,12 @@ import { LikeService } from "./like.service";
 export class LikeController {
   constructor(private readonly likeService: LikeService) {}
 
-  @ApiOperation({ summary: "Like a post or comment" })
+  @ApiOperation({ summary: "Like / dislike a post or comment" })
   @Post()
   @UseGuards(JwtAuthGuard)
-  async like(@Body() dto: CreateLikeDto) {
+  async like(@GetUser() user: TUser, @Body() dto: CreateLikeDto) {
     try {
-      return await this.likeService.likePost(dto);
-    } catch (err) {
-      return err;
-    }
-  }
-
-  @ApiOperation({ summary: "Unlike a post or comment" })
-  @Delete(":id")
-  @UseGuards(JwtAuthGuard)
-  async unlike(
-    @GetUser() user: TUser,
-    @Query("post_id") postId?: string,
-    @Query("comment_id") commentId?: string,
-  ) {
-    try {
-      return await this.likeService.unlikePost(user.userId, postId, commentId);
+      return await this.likeService.likePost(user.userId, dto);
     } catch (err) {
       return err;
     }

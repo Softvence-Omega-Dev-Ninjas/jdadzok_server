@@ -2,7 +2,7 @@ model SharedAbout {
   id String @id @default(uuid())
 
   userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   location    String?
   dateOfBirth DateTime?
@@ -12,5 +12,5 @@ model SharedAbout {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("sharedBaout")
+  @@map("sharedabout")
 }

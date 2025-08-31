@@ -451,4 +451,3 @@ class WhereBuilder<T> {
 }
 
 export { WhereBuilder };
-// export default new AdvanceQueryBuilder();
