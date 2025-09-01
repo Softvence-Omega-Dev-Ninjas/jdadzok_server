@@ -22,34 +22,33 @@ jobs:
       - name: Log in to Docker Hub 🔑
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # Step 3: Extract Package Name & Version from package.json
       - name: Extract Package Name & Version 📦
         id: package
         run: |
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
 
-      # Step 4: Set up environment variables from GitHub secrets
-      - name: Set up environment variables 🔧
+      - name: Create .env file 📄
         run: |
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> $GITHUB_ENV
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
-          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> $GITHUB_ENV
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> $GITHUB_ENV
-          echo "PORT=5055" >> $GITHUB_ENV  # Static, can be changed if needed
-          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> $GITHUB_ENV
-          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> $GITHUB_ENV
-          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> $GITHUB_ENV
-          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> $GITHUB_ENV
-          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> $GITHUB_ENV
-          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> $GITHUB_ENV
-          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> $GITHUB_ENV
-          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
+          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
+          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
+          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
+          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
+          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
+          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
+          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
+          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
 
-      # Step 5: Build Docker Image
+      - name: Log .env ☺️
+        run: ls -a
+
       - name: Build Docker Image 🔨
         run: docker compose --profile prod build
 
@@ -58,6 +57,10 @@ jobs:
         run: |
           docker compose --profile prod push
           echo "✅ Docker image with version v${{ env.package_version }} pushed!"
+
+      - name: Clean up .env 🧹
+        if: always()
+        run: rm -f .env
 
   # deploy:
   #   name: Deploy to VPS 🌐
