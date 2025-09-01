@@ -15,3 +15,4 @@ Dockerfile
 docker-compose.yaml
 generated
 .env.keys
+.env

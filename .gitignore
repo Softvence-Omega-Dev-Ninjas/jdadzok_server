@@ -39,9 +39,6 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # dotenv environment variable files
-.env
-/.env
-./.env
 .env.development.local
 .env.test.local
 .env.production.local
@@ -66,17 +63,3 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 logs
 data
 .pnpm-store
-pnpm-lock.yaml
-.env
-.env
-
-
-package-lock.json
-pnpm-lock.yml
-.env.keys
-pnpm-lock.yaml
-
-# prisma/migrations
-# */migrations
-# ./prisma/migrations
-.env
