@@ -18,9 +18,21 @@
 - tag 
 - and others
 
+<!-- community -->
 # 1/09/2025 Todo 
 - update community
-- single community get
-- fix some error of marketplaces 
-- handle 
+- get single community
+- somes change schemas (communities, communitiesMember ans shared profile)
+- createMember module,controller and service 
+- create addMember/followers api
+
+<!-- community -->
+# 2/09/2025 Todo
+- create deleteMember/Followers api
+- Following 
+- like 
+- post 
+- comment
+- share
+
 

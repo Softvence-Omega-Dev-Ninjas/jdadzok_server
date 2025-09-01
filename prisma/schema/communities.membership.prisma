@@ -7,6 +7,7 @@ model CommunitiesMembership {
   community   Communities @relation(fields: [communityId], references: [id])
   communityId String
 
+
   role CommunityRole
 
   createdAt DateTime @default(now())

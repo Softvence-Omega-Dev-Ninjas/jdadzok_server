@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { CreateCommunityDto } from "./dto/communities.dto";
+import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
 import { CommunityQueryDto } from "./dto/community.query";
 
 @Injectable()
 export class CommunitiesService {
-  constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     // create new community......
     async createCommunity(userId: string, dto: CreateCommunityDto) {
@@ -43,10 +43,13 @@ export class CommunitiesService {
                         About: dto.sharedProfile.About
                     }
                 }
+            },
+            include: {
+                sharedProfile: true,
+                members: true,
             }
         })
     }
-
     // find All data....
     async findAll(query?: CommunityQueryDto) {
         const community = await this.prisma.communities.findMany({
@@ -69,12 +72,20 @@ export class CommunitiesService {
             },
             orderBy: { createdAt: "desc" },
             include: {
-                sharedProfile: true
+                sharedProfile: true,
+                members: true,
             }
         })
         return community
     }
-
+    // find one community
+    async findOne(communityId: string) {
+        const community = await this.prisma.communities.findUnique({ where: { id: communityId }, include: { sharedProfile: true, members: true } })
+        if (!community) {
+            throw new NotFoundException("Community Not Found");
+        }
+        return community;
+    }
     // Delete community
     async deleteCommunity(userId: string, communityId: string) {
         const isExistCommunity = await this.prisma.communities.findFirst({
@@ -91,12 +102,44 @@ export class CommunitiesService {
             where: { id: communityId }
         })
     }
-
     // update community 
-    // async updateCommunity(userId: string, dto: UpdateCommunityDto) {
+    async updateCommunity(userId: string, communityid: string, dto: UpdateCommunityDto) {
+        const isExistCommunity = await this.prisma.communities.findUnique({ where: { id: communityid } })
+        if (!isExistCommunity) {
+            throw new NotFoundException("Community is Not Found.")
+        }
+        const user = await this.prisma.communities.findFirst({ where: { ownerId: userId } })
+        if (!user) {
+            throw new NotFoundException("Unauthorized Access.")
+        }
 
-    // }
-
+        return this.prisma.communities.update({
+            where: { id: communityid },
+            data: {
+                communityType: dto.communityType,
+                foundationDate: dto.foundationDate,
+                sharedProfile: dto.sharedProfile
+                    ? {
+                        create: {
+                            title: dto.sharedProfile.title,
+                            bio: dto.sharedProfile.bio,
+                            avatarUrl: dto.sharedProfile.avatarUrl,
+                            coverUrl: dto.sharedProfile.coverUrl,
+                            location: dto.sharedProfile.location,
+                            followersCount: dto.sharedProfile.followersCount,
+                            followingCount: dto.sharedProfile.followingCount,
+                            fieldOfWork: dto.sharedProfile.fieldOfWork,
+                            About: dto.sharedProfile.About
+                        }
+                    }
+                    : undefined,
+            },
+            include: {
+                sharedProfile: true,
+                members: true,
+            }
+        })
+    }
 }
 
 

@@ -25,11 +25,11 @@ export class CreateSharedProfileDto {
     @IsString()
     location?: string;
 
-    @ApiProperty({ description: 'Number of followers', example: 120 })
+    @ApiProperty({ description: 'Number of followers', example: 0 })
     @IsInt()
     followersCount: number;
 
-    @ApiProperty({ description: 'Number of following', example: 80 })
+    @ApiProperty({ description: 'Number of following', example: 0 })
     @IsInt()
     followingCount: number;
 

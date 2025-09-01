@@ -5,11 +5,12 @@ model Communities {
   communityType  CommunityType
   // relations
   owner          User                    @relation(fields: [ownerId], references: [id])
-  ownerId        String
+  ownerId        String 
+
   members        CommunitiesMembership[]
   posts          Post[]
 
-  //  added new reletions in shared profile. 
+  //  added new reletions in shared profile. by rana  
   sharedProfileId String?        @unique
   sharedProfile   SharedProfile? @relation(fields: [sharedProfileId], references: [id], onDelete: Cascade)
 
