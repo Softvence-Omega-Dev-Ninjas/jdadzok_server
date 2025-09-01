@@ -28,4 +28,4 @@ EXPOSE 5055
 
 
 # Run the application.
-CMD ["npm" "run", "start:prod"]
+CMD ["npm", "run", "start:prod"]
