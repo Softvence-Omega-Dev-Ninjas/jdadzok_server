@@ -8,4 +8,4 @@ import { NgoService } from "./ngo.service";
   providers: [NgoService],
   exports: [],
 })
-export class NgoModule { }
+export class NgoModule {}

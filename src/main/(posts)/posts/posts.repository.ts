@@ -1,8 +1,12 @@
-import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { HelperTx } from "@project/@types";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
-import queryBuilderService from "@project/services/query-builder.service";
+import { UserRepository } from "@project/main/(users)/users/users.repository";
+import { AdvanceQueryBuilder } from "@project/services/query-builder.service";
 import { GifRepository } from "../gif/gif.repository";
 import { LocationRepository } from "../locations/locations.repository";
 import { CreatePostMetadataDto } from "../post-metadata/dto/post.metadata.dto";
@@ -13,12 +17,15 @@ import { PostQueryDto } from "./dto/posts.query.dto";
 
 @Injectable()
 export class PostRepository {
+  private readonly queryBuilder = new AdvanceQueryBuilder();
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly tagsRepo: PostTagsRepository,
     private readonly locationRepo: LocationRepository,
     private readonly gifRepo: GifRepository,
     private readonly metadataRepo: PostMetadataRepository,
+    private readonly userRepo: UserRepository,
   ) {}
 
   private readonly defaultInclude = {
@@ -65,45 +72,44 @@ export class PostRepository {
   }
 
   async findAll(options?: PostQueryDto) {
-    const safeOptions = {
-      include: {
-        metadata: options?.metadata ?? true,
-        author: options?.author ?? false,
-        category: options?.category ?? false,
-      },
+    const limit = options?.limit ?? 10;
+    const posts = await this.prisma.post.findMany({
+      take: limit + 1,
+      ...(options?.cursor ? { skip: 1, cursor: { id: options.cursor } } : {}),
       orderBy: {
-        [options?.sortBy ?? "createdAt"]: options?.sortOrder ?? "desc",
+        createdAt: "desc",
       },
-      ...options,
-    };
-
-    const query = queryBuilderService.buildQuery<
-      Prisma.PostWhereInput,
-      Prisma.PostInclude,
-      PostQueryDto
-    >(safeOptions, (search) => ({
-      OR: [
-        {
-          text: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
-      ],
-    }));
-
-    return this.prisma.post.findMany({
-      ...query,
-      skip: safeOptions.skip ?? 0,
-      take: safeOptions.take ?? 20,
-      include: { ...this.defaultInclude },
+      include: {
+        metadata: options?.metadata ?? false,
+        author: options?.metadata ?? false,
+      },
     });
+
+    let nextCursor: string | undefined = undefined;
+    if (posts.length > limit) {
+      const nextItem = posts.pop();
+      nextCursor = nextItem?.id;
+    }
+
+    return {
+      data: posts,
+      metadata: {
+        nextCursor,
+        limit,
+        length: posts.length,
+      },
+    };
   }
 
   async findById(id: string) {
     return this.prisma.post.findUnique({
       where: { id },
-      include: this.defaultInclude,
+      include: {
+        ...this.defaultInclude,
+        comments: true,
+        likes: true,
+        postTagUsers: true,
+      },
     });
   }
 
@@ -182,7 +188,7 @@ export class PostRepository {
       if (!existingMetadata) {
         // This is an edge case, but it's good practice to handle it.
         // If the metadata ID is invalid, create new metadata instead.
-        return this.createMetadata(tx, metadataDto);
+        return await this.createMetadata(tx, metadataDto);
       }
 
       let newLocationId = existingMetadata.checkInId;
@@ -225,7 +231,7 @@ export class PostRepository {
       return updatedMetadata.id;
     } else {
       // create new metadata since none existed before
-      return this.createMetadata(tx, metadataDto);
+      return await this.createMetadata(tx, metadataDto);
     }
   }
 
@@ -264,6 +270,14 @@ export class PostRepository {
   ): Promise<void> {
     const tags = await Promise.all(
       taggedUserIds.map(async (userId) => {
+        const exist = await this.userRepo.findById(userId);
+        if (!exist)
+          throw new NotFoundException("User id not found with the tagged user");
+
+        // creator can't make tager user itself
+        if (taggedUserIds.includes(input.authorId!))
+          throw new ConflictException("You can not tag yourself");
+
         await tx.post.create({
           data: {
             ...input,
@@ -302,7 +316,8 @@ export class PostRepository {
         await this.cleanupGif(tx, metadata.gifId, metadata.id);
       }
 
-      await tx.postMetadata.delete({ where: { id: metadataId } });
+      if (metadataId)
+        await tx.postMetadata.delete({ where: { id: metadataId } });
     } catch (error) {
       console.warn("Failed to cleanup metadata:", error);
     }
@@ -337,5 +352,35 @@ export class PostRepository {
     if (count === 0) {
       await tx.gif.delete({ where: { id: gifId } });
     }
+  }
+
+  async findRecentPosts({
+    authorIds,
+    limit,
+  }: {
+    authorIds?: string[];
+    limit: number;
+  }) {
+    return this.prisma.post.findMany({
+      where: {
+        visibility: "PUBLIC",
+        ...(authorIds ? { authorId: { in: authorIds } } : {}),
+      },
+      include: {
+        author: {
+          include: {
+            userChoice: {
+              include: { choice: true, user: true },
+            },
+          },
+        },
+        likes: true,
+        shares: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: limit,
+    });
   }
 }

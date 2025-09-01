@@ -20,6 +20,6 @@ class CreateChoice {
   })
   @IsOptional()
   @IsUUID()
-  user_id?: string;
+  userId?: string;
 }
 export class CreateChoiceDto extends IntersectionType(CreateChoice) {}

@@ -12,6 +12,7 @@ import {
   Put,
   Query,
   UseGuards,
+  UsePipes,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
@@ -37,9 +38,10 @@ export class PostController {
 
   @Get()
   @ApiOperation({ summary: "Get all posts" })
-  async index(@Query() query?: PostQueryDto) {
+  @UsePipes(PostQueryDto)
+  async index(@Query() query: PostQueryDto) {
     const posts = await this.service.index(query);
-    return successResponse(posts, "Posts retrieved successfully");
+    return posts;
   }
 
   @Put(":id")
@@ -50,8 +52,12 @@ export class PostController {
     @GetUser() user: TUser,
     @Body() body: UpdatePostDto,
   ) {
-    const updatedPost = await this.service.update(id, body, user.userId);
-    return successResponse(updatedPost, "Post updated successfully");
+    try {
+      const updatedPost = await this.service.update(id, body, user.userId);
+      return successResponse(updatedPost, "Post updated successfully");
+    } catch (err) {
+      return err;
+    }
   }
 
   @Delete(":id")

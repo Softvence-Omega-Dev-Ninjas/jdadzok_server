@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
+import { CreateCommunityDto } from "./dto/communities.dto";
 import { CommunityQueryDto } from "./dto/community.query";
 
 @Injectable()
 export class CommunitiesService {
-    constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
     // create new community......
     async createCommunity(userId: string, dto: CreateCommunityDto) {
@@ -93,9 +93,9 @@ export class CommunitiesService {
     }
 
     // update community 
-    async updateCommunity(userId: string, dto: UpdateCommunityDto) {
+    // async updateCommunity(userId: string, dto: UpdateCommunityDto) {
 
-    }
+    // }
 
 }
 

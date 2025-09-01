@@ -20,12 +20,15 @@ import { ProductService } from "./product.service";
 @UseGuards(JwtAuthGuard)
 @Controller("products")
 export class ProductController {
-  constructor(private readonly service: ProductService) { }
+  constructor(private readonly service: ProductService) {}
 
   @Post("/")
 
   @ApiOperation({ summary: "Create new product" })
-  async create(@Body() dto: CreateProductDto, @GetUser("userId") userId: string) {
+  async create(
+    @Body() dto: CreateProductDto,
+    @GetUser("userId") userId: string,
+  ) {
     return handleRequest(
       () => this.service.create(userId, dto),
       "Product created successfully",
@@ -79,9 +82,8 @@ export class ProductController {
   }
 
   // Todo--------
-  // # Marketplaces 
-  // ### update (marketplace to message page) 
+  // # Marketplaces
+  // ### update (marketplace to message page)
   // ### added product report (if insure to the frontend developer)
-  // ### copyLink implement frontend devoloper 
-
+  // ### copyLink implement frontend devoloper
 }

@@ -10,23 +10,19 @@ export const choicesBodyOptions: ApiBodyOptions = {
       value: [
         {
           text: "Life Hacks",
-          slug: "life-hacks", // this is optional
         },
         {
-          name: "Productivity",
-          slug: "productivity", // this is optional
+          text: "Productivity",
         },
       ],
     },
     example2: {
       value: [
         {
-          name: "Science & Education",
-          slug: "science-education",
+          text: "Science & Education",
         },
         {
-          name: "Productivity",
-          slug: "productivity",
+          text: "Productivity",
         },
       ],
     },

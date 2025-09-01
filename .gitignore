@@ -76,7 +76,7 @@ pnpm-lock.yml
 .env.keys
 pnpm-lock.yaml
 
-prisma/migrations
-*/migrations
-./prisma/migrations
+# prisma/migrations
+# */migrations
+# ./prisma/migrations
 .env

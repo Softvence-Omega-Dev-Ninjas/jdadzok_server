@@ -4,7 +4,7 @@ import { CreateCategoryDto } from "./dto/category.dto";
 
 @Injectable()
 export class CategoryRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async store(input: Required<CreateCategoryDto>) {
     return await this.prisma.category.create({

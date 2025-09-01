@@ -1,5 +1,4 @@
-import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
-import { QueryDto } from "@project/services/dto/query.dto";
+import { ApiProperty, IntersectionType } from "@nestjs/swagger";
 
 class CategoryQueryDataTransferObject {
   @ApiProperty({
@@ -8,6 +7,6 @@ class CategoryQueryDataTransferObject {
   })
   name: string;
 }
-export class CategoryQueryDto extends PartialType(
-  IntersectionType(QueryDto, CategoryQueryDataTransferObject),
+export class CategoryQueryDto extends IntersectionType(
+  CategoryQueryDataTransferObject,
 ) {}

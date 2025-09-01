@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { successResponse } from "@project/common/utils/response.util";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateLikeDto } from "./dto/creaete.like.dto";
 
@@ -6,23 +7,41 @@ import { CreateLikeDto } from "./dto/creaete.like.dto";
 export class LikeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createLike(data: CreateLikeDto) {
-    return this.prisma.like.create({
-      data: {
-        ...data,
-        userId: data.userId!,
-      },
-    });
-  }
-
-  async removeLike(userId: string, postId?: string, commentId?: string) {
-    return await this.prisma.like.deleteMany({
+  async alreadyLiked(userId: string, postId?: string, commentId?: string) {
+    return await this.prisma.like.findFirst({
       where: {
         userId,
         postId,
         commentId,
       },
     });
+  }
+  async like(data: CreateLikeDto) {
+    const like = await this.prisma.like.create({
+      data: {
+        ...data,
+        userId: data.userId!,
+      },
+    });
+
+    return successResponse(
+      like,
+      data.commentId ? "Comment liked" : "Post liked",
+    );
+  }
+
+  async removeLike(userId: string, postId: string, commentId?: string) {
+    const like = await this.prisma.like.deleteMany({
+      where: {
+        userId,
+        postId,
+        commentId,
+      },
+    });
+    return successResponse(
+      like,
+      commentId ? "Comment dislikes" : "Post dislike",
+    );
   }
 
   async getLikesForPost(postId: string) {

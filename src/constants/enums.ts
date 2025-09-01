@@ -5,6 +5,7 @@ export const authProvider = ["GOOGLE", "APPLE", "EMAIL", "FACEBOOK"] as const;
 export type AuthProvider = (typeof authProvider)[number];
 
 export const capLevel = [
+  "NONE",
   "GREEN",
   "YELLOW",
   "RED",

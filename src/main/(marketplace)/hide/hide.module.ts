@@ -4,7 +4,7 @@ import { HideController } from "./hide.controller";
 import { HideService } from "./hide.service";
 
 @Module({
-    controllers: [HideController],
-    providers: [HideService, PrismaService],
+  controllers: [HideController],
+  providers: [HideService, PrismaService],
 })
-export class HideModule { }
+export class HideModule {}

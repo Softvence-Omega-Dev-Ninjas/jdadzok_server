@@ -8,6 +8,7 @@ import { IsOptional, IsUUID } from "class-validator";
 export class CreateLike {
   @ApiHideProperty()
   @IsUUID()
+  @IsOptional()
   userId?: string;
 
   @ApiProperty({
@@ -15,7 +16,6 @@ export class CreateLike {
     type: String,
     format: "uuid",
   })
-  @IsOptional()
   @IsUUID()
   postId: string;
 

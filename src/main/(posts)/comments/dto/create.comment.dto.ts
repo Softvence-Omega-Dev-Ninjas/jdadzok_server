@@ -1,4 +1,8 @@
-import { ApiProperty, IntersectionType } from "@nestjs/swagger";
+import {
+  ApiHideProperty,
+  ApiProperty,
+  IntersectionType,
+} from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreateComment {
@@ -22,12 +26,14 @@ export class CreateComment {
   @IsUUID()
   parentCommentId?: string;
 
+  @ApiHideProperty()
   @ApiProperty({
     example: "8f1b2c3d-4e5f-6789-abcd-1234567890ef",
     description: "Author ID of the comment",
     type: String,
     format: "uuid",
   })
+  @IsOptional()
   @IsUUID()
   authorId: string;
 
