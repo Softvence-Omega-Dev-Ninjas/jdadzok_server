@@ -8,8 +8,8 @@ import { UtilsModule } from "./utils/utils.module";
 
 @Module({
   imports: [
-    SeedModule,
     PrismaModule,
+    SeedModule,
     MailModule,
     UtilsModule,
     FileModule,

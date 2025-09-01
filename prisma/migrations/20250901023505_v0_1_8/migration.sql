@@ -5,7 +5,7 @@ CREATE TYPE "public"."ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECT
 CREATE TYPE "public"."AuthProvider" AS ENUM ('GOOGLE', 'APPLE', 'EMAIL', 'FACEBOOK');
 
 -- CreateEnum
-CREATE TYPE "public"."CapLevel" AS ENUM ('GREEN', 'YELLOW', 'RED', 'BLACK', 'OSTRICH_FEATHER');
+CREATE TYPE "public"."CapLevel" AS ENUM ('NONE', 'GREEN', 'YELLOW', 'RED', 'BLACK', 'OSTRICH_FEATHER');
 
 -- CreateEnum
 CREATE TYPE "public"."ChatType" AS ENUM ('DIRECT', 'GROUP');
@@ -147,13 +147,14 @@ CREATE TABLE "public"."message_reads" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."Choice" (
+CREATE TABLE "public"."choices" (
     "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "text" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
 
-    CONSTRAINT "Choice_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "choices_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -191,23 +192,6 @@ CREATE TABLE "public"."communities" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "communities_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "public"."posts" (
-    "id" TEXT NOT NULL,
-    "authorId" TEXT NOT NULL,
-    "text" TEXT NOT NULL,
-    "mediaUrl" TEXT,
-    "mediaType" "public"."MediaType" NOT NULL DEFAULT 'TEXT',
-    "visibility" "public"."PostVisibility" NOT NULL DEFAULT 'PUBLIC',
-    "metadataId" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "communitiesId" TEXT,
-    "ngoId" TEXT,
-
-    CONSTRAINT "posts_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -409,6 +393,23 @@ CREATE TABLE "public"."Gif" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."posts" (
+    "id" TEXT NOT NULL,
+    "authorId" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "mediaUrl" TEXT,
+    "mediaType" "public"."MediaType" NOT NULL DEFAULT 'TEXT',
+    "visibility" "public"."PostVisibility" NOT NULL DEFAULT 'PUBLIC',
+    "metadataId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "communitiesId" TEXT,
+    "ngoId" TEXT,
+
+    CONSTRAINT "posts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."profiles" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -439,7 +440,7 @@ CREATE TABLE "public"."shares" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."sharedBaout" (
+CREATE TABLE "public"."sharedabout" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "location" TEXT,
@@ -449,7 +450,7 @@ CREATE TABLE "public"."sharedBaout" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "sharedBaout_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "sharedabout_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -462,6 +463,8 @@ CREATE TABLE "public"."sharedProfile" (
     "avatarUrl" TEXT,
     "coverUrl" TEXT,
     "location" TEXT,
+    "followersCount" INTEGER NOT NULL DEFAULT 0,
+    "followingCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -477,6 +480,15 @@ CREATE TABLE "public"."PostTagUser" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "PostTagUser_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."user_choices" (
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+    "choiceId" TEXT NOT NULL,
+
+    CONSTRAINT "user_choices_pkey" PRIMARY KEY ("userId","choiceId")
 );
 
 -- CreateTable
@@ -549,7 +561,7 @@ CREATE UNIQUE INDEX "chat_participants_chatId_userId_key" ON "public"."chat_part
 CREATE UNIQUE INDEX "message_reads_messageId_userId_key" ON "public"."message_reads"("messageId", "userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Choice_slug_key" ON "public"."Choice"("slug");
+CREATE UNIQUE INDEX "choices_slug_key" ON "public"."choices"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Follow_followerId_followingId_key" ON "public"."Follow"("followerId", "followingId");
@@ -573,7 +585,7 @@ CREATE UNIQUE INDEX "profiles_username_key" ON "public"."profiles"("username");
 CREATE UNIQUE INDEX "shares_userId_postId_key" ON "public"."shares"("userId", "postId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "sharedBaout_userId_key" ON "public"."sharedBaout"("userId");
+CREATE UNIQUE INDEX "sharedabout_userId_key" ON "public"."sharedabout"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "sharedProfile_username_key" ON "public"."sharedProfile"("username");
@@ -612,9 +624,6 @@ ALTER TABLE "public"."message_reads" ADD CONSTRAINT "message_reads_messageId_fke
 ALTER TABLE "public"."message_reads" ADD CONSTRAINT "message_reads_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Choice" ADD CONSTRAINT "Choice_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -631,18 +640,6 @@ ALTER TABLE "public"."communityMembership" ADD CONSTRAINT "communityMembership_c
 
 -- AddForeignKey
 ALTER TABLE "public"."communities" ADD CONSTRAINT "communities_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_metadataId_fkey" FOREIGN KEY ("metadataId") REFERENCES "public"."PostMetadata"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_communitiesId_fkey" FOREIGN KEY ("communitiesId") REFERENCES "public"."communities"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_ngoId_fkey" FOREIGN KEY ("ngoId") REFERENCES "public"."ngo"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Follow" ADD CONSTRAINT "Follow_followerId_fkey" FOREIGN KEY ("followerId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -711,6 +708,18 @@ ALTER TABLE "public"."PostMetadata" ADD CONSTRAINT "PostMetadata_checkInId_fkey"
 ALTER TABLE "public"."PostMetadata" ADD CONSTRAINT "PostMetadata_gifId_fkey" FOREIGN KEY ("gifId") REFERENCES "public"."Gif"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_metadataId_fkey" FOREIGN KEY ("metadataId") REFERENCES "public"."PostMetadata"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_communitiesId_fkey" FOREIGN KEY ("communitiesId") REFERENCES "public"."communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_ngoId_fkey" FOREIGN KEY ("ngoId") REFERENCES "public"."ngo"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."profiles" ADD CONSTRAINT "profiles_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -720,13 +729,19 @@ ALTER TABLE "public"."shares" ADD CONSTRAINT "shares_userId_fkey" FOREIGN KEY ("
 ALTER TABLE "public"."shares" ADD CONSTRAINT "shares_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."sharedBaout" ADD CONSTRAINT "sharedBaout_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."sharedabout" ADD CONSTRAINT "sharedabout_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."PostTagUser" ADD CONSTRAINT "PostTagUser_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."PostTagUser" ADD CONSTRAINT "PostTagUser_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."user_choices" ADD CONSTRAINT "user_choices_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."user_choices" ADD CONSTRAINT "user_choices_choiceId_fkey" FOREIGN KEY ("choiceId") REFERENCES "public"."choices"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."volunteer_projects" ADD CONSTRAINT "volunteer_projects_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
