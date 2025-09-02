@@ -167,9 +167,9 @@ class UpdateProfile {
   location?: string;
 }
 
-export class CreateUserDto extends IntersectionType(UserCreate) { }
-export class UpdateUserDto extends PartialType(IntersectionType(UserUpdate)) { }
-export class CreateProfileDto extends IntersectionType(CreateUserProfile) { }
+export class CreateUserDto extends IntersectionType(UserCreate) {}
+export class UpdateUserDto extends PartialType(IntersectionType(UserUpdate)) {}
+export class CreateProfileDto extends IntersectionType(CreateUserProfile) {}
 export class UpdateProfileDto extends PartialType(
   IntersectionType(UpdateProfile),
-) { }
+) {}

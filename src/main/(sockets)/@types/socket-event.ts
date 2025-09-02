@@ -8,9 +8,9 @@ export type BaseSocketEvent = {
 };
 
 // marge mulitple event maps into single one
-export type MargeEvents<T extends Record<string, any>[]> = T extends [
-  infer F,
-  ...infer R,
-]
-  ? F & MargeEvents<Extract<R, Record<string, any>[]>>
-  : {};
+// export type MargeEvents<T extends Record<string, any>[]> = T extends [
+//   infer F,
+//   ...infer R,
+// ]
+//   ? F & MargeEvents<Extract<R, Record<string, any>[]>>
+//   : {};

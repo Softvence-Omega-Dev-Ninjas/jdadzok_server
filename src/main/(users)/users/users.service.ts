@@ -10,7 +10,7 @@ export class UserService {
     private readonly repository: UserRepository,
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
-  ) { }
+  ) {}
 
   async register(@Body() body: CreateUserDto) {
     // check if user already exit or not

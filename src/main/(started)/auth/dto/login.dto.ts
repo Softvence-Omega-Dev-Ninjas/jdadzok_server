@@ -13,4 +13,4 @@ class Login {
   password?: string;
 }
 
-export class LoginDto extends IntersectionType(Login) { }
+export class LoginDto extends IntersectionType(Login) {}

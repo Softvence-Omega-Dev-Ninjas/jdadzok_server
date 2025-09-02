@@ -6,6 +6,6 @@ import { OnSocketEvent } from "@project/main/(sockets)/decorators";
 export class NotificationGateway {
   @OnSocketEvent("notification:new")
   async handleNotificaiton(payload: SocketPayload<{ message: string }>) {
-    // console.log("New notification:", payload[]);
+    console.info("New notification:", payload);
   }
 }

@@ -8,4 +8,4 @@ import { PostCategoryService } from "./post-category.service";
   providers: [PostCategoryRepository, PostCategoryService],
   exports: [PostCategoryRepository],
 })
-export class CategoryModule { }
+export class CategoryModule {}

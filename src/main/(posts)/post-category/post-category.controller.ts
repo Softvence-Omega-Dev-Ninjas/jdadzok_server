@@ -6,7 +6,7 @@ import { PostCategoryService } from "./post-category.service";
 @ApiBearerAuth()
 @Controller("posts-categories")
 export class PostCategoryController {
-  constructor(private readonly service: PostCategoryService) { }
+  constructor(private readonly service: PostCategoryService) {}
 
   @Post()
   async store(

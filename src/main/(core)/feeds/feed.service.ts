@@ -9,20 +9,17 @@ export class FeedService {
     private readonly choiceRepository: ChoicesRepository,
     private readonly userRepository: UserRepository,
     private readonly postRepository: PostRepository,
-  ) { }
+  ) {}
 
-  async generateUserFeed(userId: string) {
+  async generateUserFeed() {
     // const userChoices = await this.choiceRepository.findAll(userId);
     // const choiceSlugs = userChoices.map((c) => c.slug);
-
     // const following = await this.userRepository.getFollowingIds(userId);
-
     // // Fetch recent posts from authors who share similar interests
     // const posts = await this.postRepository.findRecentPosts({
     //   authorIds: following,
     //   limit: 100,
     // });
-
     // const scoredPosts =
     //   posts &&
     //   posts.map((post) => ({
@@ -37,10 +34,8 @@ export class FeedService {
     //       following,
     //     ),
     //   }));
-
     // // Sort by score descending
     // scoredPosts.sort((a, b) => b.score - a.score);
-
     // return scoredPosts.map((p) => p.post);
   }
 }

@@ -5,7 +5,7 @@ import { CreateUserDto } from "./dto/users.dto";
 
 @Injectable()
 export class UserRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async store(input: CreateUserDto) {
     // make sure role is admin, and cap level none when they create their account

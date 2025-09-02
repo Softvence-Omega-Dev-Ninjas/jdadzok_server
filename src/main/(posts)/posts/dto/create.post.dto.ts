@@ -108,5 +108,5 @@ class CreatePost {
   postFrom?: PostForm;
 }
 
-export class CreatePostDto extends IntersectionType(CreatePost) { }
-export class UpdatePostDto extends PartialType(IntersectionType(CreatePost)) { }
+export class CreatePostDto extends IntersectionType(CreatePost) {}
+export class UpdatePostDto extends PartialType(IntersectionType(CreatePost)) {}

@@ -13,7 +13,7 @@ export class SocketExplorer implements OnModuleInit {
 
   onModuleInit() {
     const provider = this.moduleRef;
-    console.log("providers: ", provider);
+    console.info("providers: ", provider);
     // for (const [, instance] of Object.entries(provider)) {
     //     const prototype = Object.getPrototypeOf(instance);
     //     if (!prototype) continue;

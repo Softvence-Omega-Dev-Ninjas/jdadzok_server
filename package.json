@@ -30,7 +30,7 @@
     "prisma:format": "npx prisma format",
     "postinstall": "npx prisma generate",
     "prod": "bash ./scripts.sh",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@anatine/zod-nestjs": "^2.0.12",

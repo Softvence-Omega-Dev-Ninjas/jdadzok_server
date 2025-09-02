@@ -7,4 +7,4 @@ import { NotificationModule } from "@project/lib/notification/notification.modul
   providers: [],
   exports: [],
 })
-export class SharedGroupModule { }
+export class SharedGroupModule {}
