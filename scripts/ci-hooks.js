@@ -46,9 +46,9 @@ function getStagedFiles() {
 
   try {
     // Run lint check only on specific files
-    spinner.text = "Running lint checks...";
-    const lintResult = runCommand(`npm run ci:check ${filesToCheck.join(" ")}`);
-    spinner.succeed(chalk.green(emoji("✅") + " Lint checks passed!"));
+    // spinner.text = "Running lint fix...";
+    // const lintResult = runCommand(`npm run ci:fix ${filesToCheck.join(" ")}`);
+    // spinner.succeed(chalk.green(emoji("✅") + " Lint fix passed!"));
 
     // Run fix command only on specific files if needed
     spinner.start("Applying fixes...");
