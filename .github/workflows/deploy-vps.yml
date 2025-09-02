@@ -1,0 +1,57 @@
+name: Deploy to VPS
+
+on:
+  workflow_call:
+    inputs:
+      package_name:
+        required: true
+        type: string
+      package_version:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_NAME: ${{ inputs.package_name }}
+      PACKAGE_VERSION: ${{ inputs.package_version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write SSH Key
+        run: |
+          echo "${{ secrets.SABBIR_VPS_KEY }}" > cicdpipe.pem
+          chmod 600 cicdpipe.pem
+
+      - name: Setup .env
+        uses: ./.github/actions/setup-env
+        with:
+          package_version: ${{ env.PACKAGE_VERSION }}
+
+      - name: Copy .env to VPS
+        run: scp -i cicdpipe.pem -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/workspace/${{ env.PACKAGE_NAME }}/.env
+
+      - name: Create Directory and Copy Compose File
+        run: |
+          ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/workspace/${{ env.PACKAGE_NAME }}"
+          echo 'folder created'
+          ls -a
+          scp -i cicdpipe.pem -o StrictHostKeyChecking=no docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/workspace/${{ env.PACKAGE_NAME }}/docker-compose.yaml
+          echo 'file created'
+
+      - name: Deploy on VPS
+        run: |
+          ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
+            cd ~/workspace/${{ env.PACKAGE_NAME }}
+            ls -a
+            docker compose pull
+            docker compose --profile prod down
+            docker compose --profile prod up -d
+            docker system prune -f
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: rm -f .env cicdpipe.pem
