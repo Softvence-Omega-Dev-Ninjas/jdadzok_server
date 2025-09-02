@@ -53,7 +53,7 @@ function getStagedFiles() {
     // Run fix command only on specific files if needed
     spinner.start("Applying fixes...");
     const fixResult = runCommand(`npm run ci:fix ${filesToCheck.join(" ")}`);
-    spinner.succeed(chalk.green(emoji("⚙️") + " Fixes applied successfully!"));
+    spinner.success(chalk.green(emoji("⚙️") + " Fixes applied successfully!"));
 
     // Output results
     console.log(
