@@ -102,7 +102,7 @@ jobs:
 
       - name: Copy .env to VPS 📦
         run: |
-          scp -i cicdpipe.pem -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/workspace/${{ env.PACKAGE_NAME }}/.env
+          scp -i cicdpipe.pem -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/.env
 
       - name: Write SSH Key 🔐
         run: |
@@ -113,12 +113,12 @@ jobs:
         env:
           IMAGE_NAME: ${{ env.package_name }}
         run: |
-          ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/workspace/${IMAGE_NAME}"
+          ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/"
 
           echo 'Directory created'
           pwd
 
-          scp -i cicdpipe.pem -o StrictHostKeyChecking=no docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/workspace/${IMAGE_NAME}/docker-compose.yaml
+          scp -i cicdpipe.pem -o StrictHostKeyChecking=no docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
 
       - name: Deploy on VPS 🚀
         env:
@@ -126,7 +126,7 @@ jobs:
         run: |
           ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
 
-          cd ~/workspace/${IMAGE_NAME}
+          cd ~/${IMAGE_NAME}
           ls -a
 
           docker compose pull
