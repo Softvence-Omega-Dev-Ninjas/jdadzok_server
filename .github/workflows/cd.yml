@@ -78,26 +78,26 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create .env file 📄
-          run: |
-            echo "PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}" > .env
-            echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-            echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
-            echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-            echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
-            echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
-            echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
-            echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
-            echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-            echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
-            echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
-            echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
+        run: |
+          echo "PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}" > .env
+          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
+          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
+          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
+          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
+          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
+          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
+          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
+          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
 
       - name: Copy .env to VPS 📦
         run: |
           scp -i cicdpipe.pem -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/workspace/${{ env.PACKAGE_NAME }}/.env
-      
+
       - name: Write SSH Key 🔐
         run: |
           echo "${{ secrets.SABBIR_VPS_KEY }}" > cicdpipe.pem
@@ -108,7 +108,7 @@ jobs:
           IMAGE_NAME: ${{ env.package_name }}
         run: |
           ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/workspace/${IMAGE_NAME}"
-          
+
           echo 'Directory created'
           pwd
 
@@ -132,4 +132,3 @@ jobs:
       - name: Clean up 🔚
         run: |
           rm -f cicdpipe.pem .env
-
