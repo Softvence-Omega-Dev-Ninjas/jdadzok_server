@@ -32,7 +32,14 @@
     "prisma:validate": "npx prisma validate",
     "prisma:format": "npx prisma format",
     "postinstall": "npx prisma generate",
-    "prod": "bash ./scripts.sh"
+    "prod": "bash ./scripts.sh",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@anatine/zod-nestjs": "^2.0.12",
@@ -114,6 +121,8 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
     "prettier": "^3.4.2",
     "prisma": "^6.15.0",
     "source-map-support": "^0.5.21",
