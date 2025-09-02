@@ -5,7 +5,8 @@ import chalk from "chalk";
 @Injectable()
 export class PrismaService
   extends PrismaClient<Prisma.PrismaClientOptions, "query" | "error">
-  implements OnModuleInit, OnModuleDestroy {
+  implements OnModuleInit, OnModuleDestroy
+{
   // * Expose Prisma utils (enums, filters, etc.)
   readonly utils = Prisma;
 

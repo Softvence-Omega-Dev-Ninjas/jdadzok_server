@@ -8,4 +8,4 @@ import { CategoryModule } from "./categories/category.module";
   providers: [],
   exports: [],
 })
-export class SharedGroupModule { }
+export class SharedGroupModule {}

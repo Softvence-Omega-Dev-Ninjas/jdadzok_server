@@ -1,1 +1,1 @@
-export * from './socket.decorator';
+export * from "./socket.decorator";

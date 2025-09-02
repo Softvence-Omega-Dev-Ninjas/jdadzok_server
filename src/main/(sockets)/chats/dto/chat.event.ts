@@ -1,7 +1,7 @@
 export type ChatEvents = {
-    "chat:message": {
-        roomId: string
-        senderId: string
-        content: string
-    }
-}
+  "chat:message": {
+    roomId: string;
+    senderId: string;
+    content: string;
+  };
+};

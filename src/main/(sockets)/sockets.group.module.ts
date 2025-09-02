@@ -4,9 +4,9 @@ import { SharedSocketModule } from "./shared/shared.socket.module";
 
 @Global()
 @Module({
-    imports: [SharedSocketModule],
-    controllers: [],
-    providers: [RedisService],
-    exports: []
+  imports: [SharedSocketModule],
+  controllers: [],
+  providers: [RedisService],
+  exports: [],
 })
-export class SocketsGroupModule { }
+export class SocketsGroupModule {}

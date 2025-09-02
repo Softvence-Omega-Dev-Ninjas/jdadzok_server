@@ -1,3 +1,1 @@
-export const origin = [
-    "*"
-] 
+export const origin = ["*"];
