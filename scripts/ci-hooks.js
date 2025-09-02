@@ -1,9 +1,8 @@
-import { chalkStderr as chalk } from "chalk";
-import emoji from "node-emoji";
-import execSync from "node:child_process";
-import { spinners } from "ora";
+const { chalkStderr: chalk } = require("chalk");
+const { emojify: emoji } = require("node-emoji");
+const { execSync } = require("node:child_process");
+const { default: yoctoSpinner } = require("yocto-spinner");
 
-// Helper function to run a shell command and return the output
 function runCommand(command) {
   try {
     return execSync(command, { encoding: "utf-8" });
@@ -13,20 +12,21 @@ function runCommand(command) {
   }
 }
 
-// Get the list of files that have been added or modified
 function getStagedFiles() {
   const result = runCommand("git diff --cached --name-only");
   return result.split("\n").filter((file) => file); // Remove empty lines
 }
 
-// Main function that runs the checks and fixes only on modified files
-async function run() {
-  const spinner = spinners("Running CI checks on modified files...").start();
+(async () => {
+  const spinner = yoctoSpinner({
+    text: "Running CI checks on modified files...",
+  }).start();
 
   const stagedFiles = getStagedFiles();
 
   if (stagedFiles.length === 0) {
-    console.log(chalk.yellow(emoji.get("⚠️") + " No staged files to check."));
+    console.log(chalk.yellow(emoji("⚠️") + " No staged files to check."));
+    spinner.stop();
     return;
   }
 
@@ -38,42 +38,36 @@ async function run() {
 
   if (filesToCheck.length === 0) {
     console.log(
-      chalk.yellow(emoji.get("⚠️") + " No JavaScript/TypeScript files staged."),
+      chalk.yellow(emoji("⚠️") + " No JavaScript/TypeScript files staged."),
     );
+    spinner.stop();
     return;
   }
 
   try {
     // Run lint check only on specific files
     spinner.text = "Running lint checks...";
-    const lintResult = runCommand(
-      `npm run ci:check -- ${filesToCheck.join(" ")}`,
-    );
-    spinner.succeed(chalk.green(emoji.get("✅") + " Lint checks passed!"));
+    const lintResult = runCommand(`npm run ci:check ${filesToCheck.join(" ")}`);
+    spinner.succeed(chalk.green(emoji("✅") + " Lint checks passed!"));
 
     // Run fix command only on specific files if needed
     spinner.start("Applying fixes...");
-    const fixResult = runCommand(`npm run ci:fix -- ${filesToCheck.join(" ")}`);
-    spinner.succeed(
-      chalk.green(emoji.get("⚙️") + " Fixes applied successfully!"),
-    );
+    const fixResult = runCommand(`npm run ci:fix ${filesToCheck.join(" ")}`);
+    spinner.succeed(chalk.green(emoji("⚙️") + " Fixes applied successfully!"));
 
     // Output results
     console.log(
-      chalk.blue(emoji.get("💻") + " Lint check output:\n") +
+      chalk.blue(emoji("💻") + " Lint check output:\n") +
         chalk.gray(lintResult),
     );
     console.log(
-      chalk.blue(emoji.get("🔧") + " Fix output:\n") + chalk.gray(fixResult),
+      chalk.blue(emoji("🔧") + " Fix output:\n") + chalk.gray(fixResult),
     );
     console.log(
-      chalk.cyan(emoji.get("🚀") + " All checks passed and fixes applied!"),
+      chalk.cyan(emoji("🚀") + " All checks passed and fixes applied!"),
     );
   } catch (error) {
-    spinner.fail(chalk.red(emoji.get("❌") + " An error occurred."));
+    spinner.error(chalk.red(emoji("❌") + " An error occurred."));
     console.error(chalk.red(error));
   }
-}
-
-// Run the main function
-run();
+})();

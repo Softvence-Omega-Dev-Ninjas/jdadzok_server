@@ -1,4 +1,5 @@
 ```ts
+// no it is useless
 async getFeedByUserChoices(userId: string) {
   const userChoices = await this.repository.findAll(userId);
   const choiceSlugs = userChoices.map(choice => choice.slug);
@@ -6,4 +7,5 @@ async getFeedByUserChoices(userId: string) {
   const posts = await this.repository.findFeedPosts(choiceSlugs);
   return posts;
 }
+
 ```
