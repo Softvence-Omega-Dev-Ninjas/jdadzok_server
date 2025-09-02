@@ -10,7 +10,7 @@ export class UserService {
     private readonly repository: UserRepository,
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
-  ) {}
+  ) { }
 
   async register(@Body() body: CreateUserDto) {
     // check if user already exit or not
@@ -20,15 +20,15 @@ export class UserService {
 
     // has password if provider is email
     if (body.authProvider === "EMAIL") {
-      if (!body.passwordHash)
+      if (!body.passowrd)
         throw new ConflictException(
           "Password is required for email registration",
         );
 
-      body.passwordHash = await this.utilsService.hash(body.passwordHash);
+      body.passowrd = await this.utilsService.hash(body.passowrd);
     }
     // if they select any other provider, we will not store password
-    if (body.authProvider !== "EMAIL") delete body.passwordHash;
+    if (body.authProvider !== "EMAIL") delete body.passowrd;
     const createdUser = await this.repository.store(body);
 
     const accessToken = await this.jwtService.signAsync({

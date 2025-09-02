@@ -14,7 +14,7 @@ export class ChoicesRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userChoiceRepository: UserChoiceRepository,
-  ) {}
+  ) { }
 
   /**
    * Find a choice by its slug
@@ -72,7 +72,7 @@ export class ChoicesRepository {
   async findAll(userId: CreateChoiceDto["userId"]) {
     return await this.prisma.choice.findMany({
       where: {
-        userChoice: {
+        userChoices: {
           some: { userId },
         },
       },

@@ -6,6 +6,12 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "nest:m": "npx nest g resource",
+    "start": "nest start",
+    "build": "nest build",
+    "dev": "npx prisma migrate deploy && nest start --watch",
+    "start:prod": "npx prisma migrate deploy && node dist/main",
+    "start:debug": "nest start --debug --watch",
     "format": "prettier --ignore-path .gitignore --check \"**/*.+(js|ts|json)\"",
     "format:fix": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
     "lint": "eslint . --ext .ts,.js,.jsx,.tsx",
@@ -15,9 +21,16 @@
     "prisma": "npx prisma",
     "prisma:pull": "npx prisma db pull",
     "prisma:push": "npx prisma db push",
-    "prisma:script": "tsx src/scripts/build-schema.ts",
+    "generate:enum": "tsx src/scripts/generate.enum.ts",
+    "prisma:generate": "npm run generate:enum && npx prisma generate",
+    "prisma:reset": "npx prisma migrate reset",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:studio": "npx prisma studio",
+    "prisma:validate": "npx prisma validate",
+    "prisma:format": "npx prisma format",
     "postinstall": "npx prisma generate",
-    "prepare": "husky"
+    "prod": "bash ./scripts.sh",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@anatine/zod-nestjs": "^2.0.12",

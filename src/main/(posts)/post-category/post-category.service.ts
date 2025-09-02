@@ -1,0 +1,20 @@
+import { Injectable } from "@nestjs/common";
+import { slugify } from "@project/utils";
+import { CreatePostCategoryDto } from "./dto/category.dto";
+import { PostCategoryRepository } from "./post-category.repository";
+
+@Injectable()
+export class PostCategoryService {
+  constructor(private readonly repository: PostCategoryRepository) { }
+
+  async create(input: CreatePostCategoryDto) {
+    // generate slug from the name
+    const slug = slugify(input.name);
+    // TODO: check category already exist or not
+
+    return await this.repository.store({ ...input, slug });
+  }
+  async index() {
+    return await this.repository.findAll();
+  }
+}

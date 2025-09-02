@@ -25,7 +25,7 @@ export class AuthService {
     private readonly jwtService: JwtServices,
     private readonly mailService: MailService,
     private readonly redisService: RedisService,
-  ) {}
+  ) { }
 
   async login(input: LoginDto) {
     const user = await this.userRepository.findByEmail(input.email);
@@ -33,10 +33,10 @@ export class AuthService {
       throw new NotFoundException("User not found, Please sign up first");
 
     // compoare password if auth provider is email
-    if (user.authProvider === "EMAIL" && user.passwordHash) {
+    if (user.authProvider === "EMAIL" && user.password) {
       const isMatch = await this.utilsService.compare(
-        user.passwordHash,
-        input.passwordHash!,
+        user.password,
+        input.password!,
       );
       if (!isMatch) throw new ForbiddenException("Email or Password Invalid!");
     }
@@ -49,7 +49,7 @@ export class AuthService {
 
     return {
       accessToken,
-      user: omit(user, ["passwordHash"]),
+      user: omit(user, ["password"]),
     };
   }
   async forgetPassword(input: ForgetPasswordDto) {
@@ -137,7 +137,7 @@ export class AuthService {
     const hash = await this.utilsService.hash(input.password);
 
     // update the user password with that hash password
-    return await this.userRepository.update(user.id, { passwordHash: hash });
+    return await this.userRepository.update(user.id, { passowrd: hash });
   }
   async logout(email: string) {
     const user = await this.userRepository.findByEmail(email);

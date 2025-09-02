@@ -5,14 +5,14 @@ import { CreateUserDto } from "./dto/users.dto";
 
 @Injectable()
 export class UserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async store(input: CreateUserDto) {
     // make sure role is admin, and cap level none when they create their account
     const user = await this.prisma.user.create({
       data: { ...input, role: "USER", capLevel: "NONE" },
     });
-    return omit(user, ["passwordHash"]);
+    return omit(user, ["password"]);
   }
   async findByEmail(email: string) {
     return await this.prisma.user.findUnique({

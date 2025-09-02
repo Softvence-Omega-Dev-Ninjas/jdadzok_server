@@ -115,3 +115,15 @@ export type CommunityRole = (typeof communityRole)[number];
 
 export const membershipStatus = ["PENDING", "APPROVED", "BANNED"] as const;
 export type MembershipStatus = (typeof membershipStatus)[number];
+
+export const identityVerificationType = ["GOVERMENT_ID_OR_PASSPORT", "BUSINESS_CERTIFIED_OR_LICENSE"] as const;
+export type IdentityVerificationType = (typeof identityVerificationType)[number];
+
+export const postFrom = ["COMMUNITY", "NGO", "REGULAR_PROFILE"] as const
+export type PostForm = (typeof postFrom)[number];
+
+export const verificationStatus = ["PENDING", "APPROVED", "REJECTED"] as const;
+export type VerificationStatus = (typeof verificationStatus)[number];
+
+export const membershipTier = ["SILVER", "GOLD", "PLATINUM"] as const;
+export type MembershipTier = (typeof membershipTier)[number];

@@ -26,7 +26,7 @@ export class PostRepository {
     private readonly gifRepo: GifRepository,
     private readonly metadataRepo: PostMetadataRepository,
     private readonly userRepo: UserRepository,
-  ) {}
+  ) { }
 
   private readonly defaultInclude = {
     metadata: {
@@ -46,6 +46,15 @@ export class PostRepository {
         metadataId = await this.createMetadata(tx, metadata);
       }
 
+      switch (input.postFrom) {
+        case "NGO":
+        // here...
+
+        case "COMMUNITY":
+        // here...
+        case "REGULAR_PROFILE":
+        // here...
+      }
       const postForAuthor = await tx.post.create({
         data: {
           ...postData,
@@ -108,7 +117,7 @@ export class PostRepository {
         ...this.defaultInclude,
         comments: true,
         likes: true,
-        postTagUsers: true,
+        taggedUsers: true,
       },
     });
   }
@@ -369,9 +378,12 @@ export class PostRepository {
       include: {
         author: {
           include: {
-            userChoice: {
-              include: { choice: true, user: true },
-            },
+            userChoices: {
+              include: {
+                choice: true,
+                user: true
+              }
+            }
           },
         },
         likes: true,

@@ -1,5 +1,1 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-# Run the Node.js script
-node ./scripts/ci-hooks.js
+npx husky add .husky/pre-commit "node ./scripts/ci-hooks.js"

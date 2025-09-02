@@ -65,12 +65,12 @@ export class SuperAdminService implements OnModuleInit {
    * Create the Super Admin user.
    */
   private async createSuperAdminUser(): Promise<void> {
-    const passwordHash = await this.hashPassword(this.superAdminPass);
+    const password = await this.hashPassword(this.superAdminPass);
 
     await this.prisma.user.create({
       data: {
         email: this.superAdminEmail,
-        passwordHash,
+        password,
         authProvider: "EMAIL",
         role: UserEnum.SUPER_ADMIN,
       },
@@ -126,7 +126,7 @@ export class SuperAdminService implements OnModuleInit {
     const users = await Promise.all(
       Array.from({ length: count }, async () => ({
         email: faker.internet.email(),
-        passwordHash: await this.hashPassword("pass123"), // Hashing passwords
+        password: await this.hashPassword("pass123"), // Hashing passwords
         authProvider: faker.helpers.arrayElement(["EMAIL"] as const),
       })),
     );
