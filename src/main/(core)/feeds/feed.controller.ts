@@ -13,8 +13,9 @@ export class FeedController {
   @Get()
   @UseGuards(JwtAuthGuard)
   async getFeed(@GetUser() user: TUser) {
+    console.info(user.userId);
     try {
-      const posts = await this.feedService.generateUserFeed(user.userId);
+      const posts = await this.feedService.generateUserFeed();
       return posts;
     } catch (err) {
       return err;
