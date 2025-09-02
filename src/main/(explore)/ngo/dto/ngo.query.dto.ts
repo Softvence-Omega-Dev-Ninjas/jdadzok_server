@@ -1,9 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional, IsString } from "class-validator";
 
-export class CommunityQueryDto {
+export class NgoQueryDto {
   @ApiProperty({
-    description: "Title of the community",
+    description: "Title of the ngo",
     example: "Software Engineer",
     required: false,
   })
@@ -12,7 +12,7 @@ export class CommunityQueryDto {
   title: string;
 
   @ApiProperty({
-    description: "Biography of the community",
+    description: "Biography of the ngo",
     example: "Passionate developer and tech enthusiast.",
     required: false,
   })
@@ -21,7 +21,7 @@ export class CommunityQueryDto {
   bio: string;
 
   @ApiProperty({
-    description: "Location of the user",
+    description: "location",
     example: "New York, USA",
     required: false,
   })

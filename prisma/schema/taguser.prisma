@@ -1,13 +1,11 @@
 model PostTagUser {
-  id     String @id @default(uuid())
-  postId String
-  userId String
-
-  post Post @relation(fields: [postId], references: [id])
-  user User @relation(fields: [userId], references: [id])
-
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([postId, userId])
 }

@@ -1,21 +1,16 @@
 model Comment {
-  id String @id @default(uuid())
-
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-
-  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  id              String    @id @default(uuid())
+  postId          String
   parentCommentId String?
+  authorId        String
+  text            String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  author          User      @relation(fields: [authorId], references: [id])
+  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
   replies         Comment[] @relation("CommentReplies")
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  text  String
-  likes Like[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  post            Post      @relation(fields: [postId], references: [id])
+  likes           Like[]
 
   @@map("comments")
 }

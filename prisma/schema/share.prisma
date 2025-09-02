@@ -1,14 +1,11 @@
 model Share {
-  id String @id @default(uuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, postId])
   @@map("shares")

@@ -1,5 +1,3 @@
-// ENUMS_START
-
 enum ApplicationStatus {
   PENDING
   ACCEPTED
@@ -155,5 +153,3 @@ enum VolunteerStatus {
   IN_PROGRESS
   COMPLETED
 }
-
-// ENUMS_END

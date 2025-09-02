@@ -23,7 +23,6 @@ export class ProductController {
   constructor(private readonly service: ProductService) {}
 
   @Post("/")
-
   @ApiOperation({ summary: "Create new product" })
   async create(
     @Body() dto: CreateProductDto,
@@ -64,9 +63,9 @@ export class ProductController {
   @Delete(":id")
   @ApiOperation({ summary: "Delete a product by Id" })
   @ApiResponse({ status: 200, description: "Product deleted successfully" })
-  async remove(@Param("id") id: string) {
+  async remove(@Param("id") id: string, @GetUser("userId") userId: string) {
     return handleRequest(
-      () => this.service.remove(id),
+      () => this.service.remove(id, userId),
       "Product deleted successfully",
     );
   }

@@ -1,44 +1,31 @@
-// -----------------------------------
-// MARKETPLACE
-// -----------------------------------
-
 model Product {
-  id String @id @default(uuid())
-
-  sellerId String
-  seller   User   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
+  id             String     @id @default(uuid())
+  sellerId       String
+  categoryId     String
   title          String
   description    String
-  isVisible      Boolean? @default(true)
+  isVisible      Boolean?   @default(true)
   price          Float
   location       String
   availability   Int
   digitalFileUrl String?
-
-  wishlist Wishlist[]
-  orders   Order[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  category       Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  seller         User       @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  wishlist       Wishlist[]
+  orders         Order[]
 }
 
 model Order {
-  id String @id @default(uuid())
-
-  buyerId String
-  buyer   User   @relation("orders", fields: [buyerId], references: [id])
-
+  id        String      @id @default(uuid())
+  buyerId   String
   productId String
-  product   Product @relation(fields: [productId], references: [id])
-
-  status OrderStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  buyer     User        @relation("orders", fields: [buyerId], references: [id])
+  product   Product     @relation(fields: [productId], references: [id])
 
   @@map("orders")
 }
@@ -46,8 +33,8 @@ model Order {
 model Wishlist {
   id        String   @id @default(uuid())
   productId String
-  product   Product  @relation(fields: [productId], references: [id])
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }

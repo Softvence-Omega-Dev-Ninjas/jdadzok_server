@@ -9,20 +9,20 @@ import { CommunityMemberService } from "./community.member.service";
 @UseGuards(JwtAuthGuard)
 @Controller("communities/:communityId/members")
 export class CommunityMemberController {
-    constructor(private readonly service: CommunityMemberService) { }
+  constructor(private readonly service: CommunityMemberService) {}
 
-    @Post()
-    @ApiOperation({ summary: "Fallow this community." })
-    async addMember(@Param('communityId') communityId: string, @GetUser('userId') userId: string) {
-        return handleRequest(
-            () => this.service.addMember(communityId, userId),
-            "Added New Member/followers"
-        );
-    }
+  @Post()
+  @ApiOperation({ summary: "Fallow this community." })
+  async addMember(
+    @Param("communityId") communityId: string,
+    @GetUser("userId") userId: string,
+  ) {
+    return handleRequest(
+      () => this.service.addMember(communityId, userId),
+      "Added New Member/followers",
+    );
+  }
 
-    // @Delete()
-    // async
-
-
-
+  // @Delete()
+  // async
 }

@@ -1,28 +1,23 @@
 model Post {
-  id String @id @default(uuid())
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  text       String
-  mediaUrl   String?
-  mediaType  MediaType      @default(TEXT)
-  visibility PostVisibility @default(PUBLIC)
-
-  comments     Comment[]
-  likes        Like[]
-  shares       Share[]
-  postTagUsers PostTagUser[]
-
-  metadata   PostMetadata? @relation(fields: [metadataId], references: [id], onDelete: Cascade)
-  metadataId String?
-
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  Communities   Communities? @relation(fields: [communitiesId], references: [id], onDelete: Cascade)
+  id            String         @id @default(uuid())
+  authorId      String
+  text          String
+  mediaUrl      String?
+  mediaType     MediaType      @default(TEXT)
+  visibility    PostVisibility @default(PUBLIC)
+  metadataId    String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   communitiesId String?
-  Ngo           Ngo?         @relation(fields: [ngoId], references: [id], onDelete: Cascade)
   ngoId         String?
+  postTagUsers  PostTagUser[]
+  comments      Comment[]
+  likes         Like[]
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  Communities   Communities?   @relation(fields: [communitiesId], references: [id], onDelete: Cascade)
+  metadata      PostMetadata?  @relation(fields: [metadataId], references: [id], onDelete: Cascade)
+  Ngo           Ngo?           @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  shares        Share[]
 
   @@map("posts")
 }

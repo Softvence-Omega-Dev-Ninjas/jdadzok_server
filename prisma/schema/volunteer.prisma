@@ -1,60 +1,44 @@
-// -----------------------------------
-// VOLUNTEER HUB
-// -----------------------------------
-
 model VolunteerProject {
-  id String @id @default(uuid())
-
-  createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id])
-
+  id            String                 @id @default(uuid())
+  createdById   String
   title         String
   description   String
   location      String?
-  remoteAllowed Boolean         @default(false)
-  status        VolunteerStatus @default(OPEN)
-
-  applications VolunteerApplication[]
-  endorsements Endorsement[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  remoteAllowed Boolean                @default(false)
+  status        VolunteerStatus        @default(OPEN)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  endorsements  Endorsement[]
+  applications  VolunteerApplication[]
+  createdBy     User                   @relation(fields: [createdById], references: [id])
 
   @@map("volunteer_projects")
 }
 
 model VolunteerApplication {
-  id String @id @default(uuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
+  id        String            @id @default(uuid())
+  userId    String
   projectId String
-  project   VolunteerProject @relation(fields: [projectId], references: [id])
-
-  status ApplicationStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    ApplicationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  project   VolunteerProject  @relation(fields: [projectId], references: [id])
+  user      User              @relation(fields: [userId], references: [id])
 
   @@map("volunteer_applications")
 }
 
 model Endorsement {
-  id String @id @default(uuid())
-
+  id         String            @id @default(uuid())
   fromUserId String
-  fromUser   User   @relation("endorser", fields: [fromUserId], references: [id])
-
-  toUserId String
-  toUser   User   @relation("endorsee", fields: [toUserId], references: [id])
-
-  message   String
-  projectId String?
-  project   VolunteerProject? @relation(fields: [projectId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  toUserId   String
+  message    String
+  projectId  String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  fromUser   User              @relation("endorser", fields: [fromUserId], references: [id])
+  project    VolunteerProject? @relation(fields: [projectId], references: [id])
+  toUser     User              @relation("endorsee", fields: [toUserId], references: [id])
 
   @@map("endorsements")
 }

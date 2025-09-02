@@ -1,22 +1,18 @@
 model SharedProfile {
-  id             String  @id @default(uuid())
+  id             String       @id @default(uuid())
   title          String
   bio            String
   avatarUrl      String?
   coverUrl       String?
   location       String?
-  followersCount Int     @default(0)
-  followingCount Int     @default(0)
-
-  // added new attributes by rana
-  fieldOfWork String
-  About       String
-  community   Communities?
-
-  // comment by rana 
-
-  // createdAt DateTime @default(now())
-  // updatedAt DateTime @updatedAt
+  followersCount Int          @default(0)
+  followingCount Int          @default(0)
+  fieldOfWork    String
+  About          String?
+  likesCount     Int          @default(0)
+  details        String?
+  community      Communities?
+  ngo            Ngo?
 
   @@map("sharedProfile")
 }

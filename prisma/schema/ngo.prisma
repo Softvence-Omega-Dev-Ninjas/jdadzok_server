@@ -1,17 +1,16 @@
 model Ngo {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  foundationDate DateTime
-  ngoType        CommunityType
-
-  // relations
-  owner   User   @relation(fields: [ownerId], references: [id])
-  ownerId String
-
-  followers NGOFollower[]
-  posts     Post[]
+  id              String         @id @default(uuid())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  // change foundation type DateTime to String.
+  foundationDate  String
+  ngoType         CommunityType
+  ownerId         String
+  sharedProfileId String?        @unique
+  followers       NGOFollower[]
+  owner           User           @relation(fields: [ownerId], references: [id])
+  sharedProfile   SharedProfile? @relation(fields: [sharedProfileId], references: [id], onDelete: Cascade)
+  posts           Post[]
 
   @@map("ngo")
 }

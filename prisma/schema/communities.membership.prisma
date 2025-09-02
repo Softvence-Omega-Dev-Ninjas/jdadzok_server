@@ -1,17 +1,12 @@
 model CommunitiesMembership {
-  id String @id @default(uuid())
-
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-
-  community   Communities @relation(fields: [communityId], references: [id])
+  id          String        @id @default(uuid())
+  userId      String
   communityId String
-
-
-  role CommunityRole
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role        CommunityRole
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  community   Communities   @relation(fields: [communityId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
 
   @@map("communityMembership")
 }

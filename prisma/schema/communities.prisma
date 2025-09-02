@@ -1,21 +1,15 @@
 model Communities {
-  id String @id @default(uuid())
-
-  foundationDate String
-  communityType  CommunityType
-  // relations
-  owner          User                    @relation(fields: [ownerId], references: [id])
-  ownerId        String 
-
-  members        CommunitiesMembership[]
-  posts          Post[]
-
-  //  added new reletions in shared profile. by rana  
-  sharedProfileId String?        @unique
-  sharedProfile   SharedProfile? @relation(fields: [sharedProfileId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String                  @id @default(uuid())
+  foundationDate  String
+  communityType   CommunityType
+  ownerId         String
+  sharedProfileId String?                 @unique
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  owner           User                    @relation(fields: [ownerId], references: [id])
+  sharedProfile   SharedProfile?          @relation(fields: [sharedProfileId], references: [id], onDelete: Cascade)
+  members         CommunitiesMembership[]
+  posts           Post[]
 
   @@map("communities")
 }

@@ -8,4 +8,4 @@ import { CommunityMemberService } from "./community.member.service";
   providers: [CommunityMemberService],
   exports: [],
 })
-export class CommunityMemberModule { }
+export class CommunityMemberModule {}

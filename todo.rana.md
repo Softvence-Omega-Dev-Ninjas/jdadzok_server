@@ -26,13 +26,25 @@
 - createMember module,controller and service 
 - create addMember/followers api
 
-<!-- community -->
+<!-- Ngo -->
 # 2/09/2025 Todo
-- create deleteMember/Followers api
-- Following 
+- Work in NGO module
+- create ngo
+- get all ngo
+- find one ngo
+- delete ngo by id
+- update ngo
+- fix error marketPlaces update and delete part
+
+<!-- community and ngo -->
+## 3/09/2025
+- work in ngo and community
+- follower 
+- following
 - like 
-- post 
 - comment
 - share
+- check api 
+ 
 
 

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateProductDto, OfferDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
@@ -38,6 +42,7 @@ export class ProductService {
           gte: query?.minPrice,
           lte: query?.maxPrice,
         },
+        isVisible: true,
       },
       orderBy: { createdAt: "desc" },
       include: {
@@ -75,11 +80,17 @@ export class ProductService {
   // }
 
   // delete product...
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     const product = await this.prisma.product.findUnique({ where: { id } });
 
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+    const seller = await this.prisma.product.findFirst({
+      where: { sellerId: userId },
+    });
+    if (!seller) {
+      throw new BadRequestException("Invalid Seller.");
     }
     return this.prisma.product.delete({
       where: { id },
