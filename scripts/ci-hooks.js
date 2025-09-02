@@ -37,7 +37,10 @@ function getStagedFiles() {
   // Filter for JavaScript/TypeScript files or any other file types you'd like to check
   const filesToCheck = stagedFiles.filter(
     (file) =>
-      file.endsWith(".js") || file.endsWith(".ts") || file.endsWith(".jsx"),
+      file.endsWith(".js") ||
+      file.endsWith(".ts") ||
+      file.endsWith(".jsx") ||
+      file.endsWith(".tsx"),
   );
 
   if (filesToCheck.length === 0) {
