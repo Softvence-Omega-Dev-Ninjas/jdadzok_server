@@ -3,8 +3,10 @@ const { emojify: emoji } = require("node-emoji");
 const { execSync } = require("node:child_process");
 const { default: yoctoSpinner } = require("yocto-spinner");
 
+// Helper function to run shell commands and return the output
 function runCommand(command) {
   try {
+    console.log(chalk.blue(`Running command: ${command}`)); // Log command for debugging
     return execSync(command, { encoding: "utf-8" });
   } catch (error) {
     console.error(chalk.red(`Error while executing command: ${command}`));
@@ -12,11 +14,13 @@ function runCommand(command) {
   }
 }
 
+// Get the list of staged files that are added or modified
 function getStagedFiles() {
   const result = runCommand("git diff --cached --name-only");
   return result.split("\n").filter((file) => file); // Remove empty lines
 }
 
+// Main function that runs checks and fixes on modified files
 (async () => {
   const spinner = yoctoSpinner().start(
     "Running CI checks on modified files...",
@@ -30,7 +34,7 @@ function getStagedFiles() {
     return;
   }
 
-  // Filter for JavaScript/TypeScript files or other file types you'd like to check
+  // Filter for JavaScript/TypeScript files or any other file types you'd like to check
   const filesToCheck = stagedFiles.filter(
     (file) =>
       file.endsWith(".js") || file.endsWith(".ts") || file.endsWith(".jsx"),
@@ -47,12 +51,14 @@ function getStagedFiles() {
   try {
     // Run lint check only on specific files
     spinner.start("Running lint check...");
-    const lintResult = runCommand(`npm run ci:check ${filesToCheck.join(" ")}`);
+    const lintResult = runCommand(
+      `npm run ci:check -- ${filesToCheck.join(" ")}`,
+    );
     spinner.success(chalk.green(emoji("✅") + " Lint checks passed!"));
 
     // Run fix command only on specific files if needed
     spinner.start("Applying fixes...");
-    const fixResult = runCommand(`npm run ci:fix ${filesToCheck.join(" ")}`);
+    const fixResult = runCommand(`npm run ci:fix -- ${filesToCheck.join(" ")}`);
     spinner.success(chalk.green(emoji("⚙️") + " Fixes applied successfully!"));
 
     // Output results
