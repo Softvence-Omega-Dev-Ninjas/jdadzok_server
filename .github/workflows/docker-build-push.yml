@@ -1,39 +1,39 @@
-name: Docker Build & Push
+# name: Docker Build & Push
 
-on:
-  workflow_call:
+# on:
+#   workflow_call:
 
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+# jobs:
+#   build-and-push:
+#     runs-on: ubuntu-latest
 
-    outputs:
-      package_name: ${{ steps.package.outputs.package_name }}
-      package_version: ${{ steps.package.outputs.package_version }}
+#     outputs:
+#       package_name: ${{ steps.package.outputs.package_name }}
+#       package_version: ${{ steps.package.outputs.package_version }}
 
-    steps:
-      - uses: actions/checkout@v4
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+#       - name: Log in to Docker Hub
+#         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Extract Package Name & Version
-        id: package
-        run: |
-          echo "package_name=$(node -p "require('./package.json').name")" >> $GITHUB_OUTPUT
-          echo "package_version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+#       - name: Extract Package Name & Version
+#         id: package
+#         run: |
+#           echo "package_name=$(node -p "require('./package.json').name")" >> $GITHUB_OUTPUT
+#           echo "package_version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Setup .env
-        uses: ./.github/actions/setup-env
-        with:
-          package_version: ${{ steps.package.outputs.package_version }}
+#       - name: Setup .env
+#         uses: ./.github/actions/setup-env
+#         with:
+#           package_version: ${{ steps.package.outputs.package_version }}
 
-      - name: Build Docker Image
-        run: docker compose --profile prod build
+#       - name: Build Docker Image
+#         run: docker compose --profile prod build
 
-      - name: Push Docker Image
-        run: docker compose --profile prod push
+#       - name: Push Docker Image
+#         run: docker compose --profile prod push
 
-      - name: Cleanup
-        if: always()
-        run: rm -f .env
+#       - name: Cleanup
+#         if: always()
+#         run: rm -f .env

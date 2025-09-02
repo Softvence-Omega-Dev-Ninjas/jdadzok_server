@@ -10,14 +10,126 @@ on:
       - main
 
 jobs:
-  docker:
-    uses: ./.github/workflows/docker-build-push.yml
-    secrets: inherit
+  build-and-push:
+    name: Build & Push Docker Image 🏗️
+    runs-on: ubuntu-latest
+
+    outputs:
+      package_name: ${{ steps.package.outputs.package_name }}
+      package_version: ${{ steps.package.outputs.package_version }}
+
+    steps:
+      - name: Checkout Code 📥
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub 🔑
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Extract Package Name & Version 📦
+        id: package
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create .env file 📄
+        run: |
+          echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
+          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
+          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
+          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
+          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
+          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
+          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
+          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
+          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
+
+      - name: Log .env ☺️
+        run: cat .env
+
+      - name: Build Docker Image 🔨
+        run: docker compose --profile prod build
+
+      - name: Push Docker Image 🚀
+        run: |
+          docker compose --profile prod push
+          echo "✅ Docker image with version v${{ env.package_version }} pushed!"
+
+      - name: Clean up .env 🧹
+        if: always()
+        run: rm -f .env
 
   deploy:
-    needs: docker
-    uses: ./.github/workflows/deploy-vps.yml
-    with:
-      package_name: ${{ jobs.docker.outputs.package_name }}
-      package_version: ${{ jobs.docker.outputs.package_version }}
-    secrets: inherit
+    name: Deploy to the VPS 👨‍💻
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_NAME: ${{ needs.build-and-push.outputs.package_name }}
+      PACKAGE_VERSION: ${{ needs.build-and-push.outputs.package_version }}
+
+    steps:
+      - name: Checkout Code 📥
+        uses: actions/checkout@v4
+
+      - name: Create .env file 📄
+          run: |
+            echo "PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}" > .env
+            echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+            echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
+            echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
+            echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
+            echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
+            echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
+            echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+            echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
+            echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
+            echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
+
+      - name: Copy .env to VPS 📦
+        run: |
+          scp -i cicdpipe.pem -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/workspace/${{ env.PACKAGE_NAME }}/.env
+      
+      - name: Write SSH Key 🔐
+        run: |
+          echo "${{ secrets.SABBIR_VPS_KEY }}" > cicdpipe.pem
+          chmod 600 cicdpipe.pem
+
+      - name: Create Remote Directory and Copy Compose File 📁
+        env:
+          IMAGE_NAME: ${{ env.package_name }}
+        run: |
+          ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/workspace/${IMAGE_NAME}"
+          
+          echo 'Directory created'
+          pwd
+
+          scp -i cicdpipe.pem -o StrictHostKeyChecking=no docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/workspace/${IMAGE_NAME}/docker-compose.yaml
+
+      - name: Deploy on VPS 🚀
+        env:
+          IMAGE_NAME: ${{ env.package_name }}
+        run: |
+          ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
+
+          cd ~/workspace/${IMAGE_NAME}
+          ls -a
+
+          docker compose pull
+          docker compose --profile prod down
+          docker compose --profile prod up -d
+          docker system prune -f
+          EOF
+
+      - name: Clean up 🔚
+        run: |
+          rm -f cicdpipe.pem .env
+

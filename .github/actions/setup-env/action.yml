@@ -1,27 +1,27 @@
-name: Setup .env File
+# name: Setup .env File
 
-inputs:
-  package_version:
-    required: true
-    description: The version of the package
-runs:
-  using: "composite"
-  steps:
-    - name: Create .env file 🗃️
-      shell: bash
-      run: |
-        echo "PACKAGE_VERSION=${{ inputs.package_version }}" > .env
-        echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-        echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
-        echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-        echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
-        echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
-        echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
-        echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
-        echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-        echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
-        echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
-        echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
-      shell: bash
+# inputs:
+#   package_version:
+#     required: true
+#     description: The version of the package
+# runs:
+#   using: "composite"
+#   steps:
+#     - name: Create .env file 🗃️
+#       shell: bash
+#       run: |
+#         echo "PACKAGE_VERSION=${{ inputs.package_version }}" > .env
+#         echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+#         echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+#         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+#         echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+#         echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
+#         echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
+#         echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
+#         echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
+#         echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
+#         echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+#         echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
+#         echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
+#         echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
+#       shell: bash
