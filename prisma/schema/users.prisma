@@ -1,0 +1,93 @@
+model User {
+  id String @id @default(uuid())
+  
+  // Authentication fields
+  email        String       @unique
+  password     String?
+  authProvider AuthProvider @default(EMAIL)
+  
+  // User role and progression
+  role     Role     @default(USER)
+  capLevel CapLevel @default(NONE)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // ---- ONE-TO-ONE RELATIONSHIPS ----
+  profile Profile?
+  about   About?
+  metrics UserMetrics? @relation("UserMetrics")
+  
+  // ---- ONE-TO-MANY RELATIONSHIPS ----
+  posts    Post[]
+  comments Comment[]
+  likes    Like[]
+  shares   Share[]
+  
+  // Chat system
+  messages        Message[]
+  chatParticipant ChatParticipant[]
+  createdChats    Chat[]
+  messageReads    MessageRead[]
+  
+  // Marketplace
+  products Product[]
+  orders   Order[]   @relation("UserOrders")
+  wishlist Wishlist[]
+  
+  // Volunteer system
+  volunteerApps     VolunteerApplication[]
+  volunteerProjects VolunteerProject[]
+  
+  // Community/NGO ownership
+  ownedCommunities Community[]
+  ownedNgos        Ngo[]
+  
+  // Monetization
+  payouts                 Payout[]
+  adRevenueShares         AdRevenueShare[]
+  creatorSubscriptions    Subscription[] @relation("CreatorSubscriptions")
+  subscriberSubscriptions Subscription[] @relation("SubscriberSubscriptions")
+  
+  // Moderation
+  notifications      Notification[]
+  bans               Ban[]
+  reports            Report[]          @relation("ReportsMade")
+  reviewedReports    Report[]          @relation("ReportReviewer")
+  reviewedVerifications NgoVerification[] @relation("VerificationReviewer")
+  issuedBans         Ban[]             @relation("BanIssuer")
+  
+  // User choices
+  userChoices UserChoice[]
+  
+  // File uploads
+  uploadedFiles FileInstance[] @relation("UploadedFiles")
+  
+  // ---- MANY-TO-MANY RELATIONSHIPS ----
+  followers Follow[] @relation("UserFollowers")
+  following Follow[] @relation("UserFollowing")
+  
+  // Community interactions
+  communityMemberships CommunitiesMembership[]
+  likedCommunities     Community[] @relation("CommunityLikers")
+  
+  // NGO interactions
+  followedNgos Ngo[] @relation("NgoFollowers")
+  likedNgos    Ngo[] @relation("NgoLikers")
+  
+  // Post tags
+  taggedInPosts PostTagUser[]
+  
+  // Endorsements
+  givenEndorsements    Endorsement[] @relation("Endorser")
+  receivedEndorsements Endorsement[] @relation("Endorsee")
+
+  corporateContacts CorporateMembership[] @relation("CorporateContact")
+  
+  @@map("users")
+  @@index([email])
+  @@index([capLevel])
+  @@index([role])
+  @@index([createdAt])
+}

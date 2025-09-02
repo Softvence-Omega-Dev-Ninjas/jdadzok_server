@@ -1,0 +1,15 @@
+model UserChoice {
+  // User making the choice
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Choice selected
+  choiceId String
+  choice   Choice @relation(fields: [choiceId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  // Composite primary key
+  @@id([userId, choiceId])
+  @@map("user_choices")
+}

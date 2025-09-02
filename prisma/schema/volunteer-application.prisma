@@ -1,0 +1,26 @@
+model VolunteerApplication {
+  id String @id @default(uuid())
+  
+  // Applicant
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Project being applied to
+  projectId String
+  project   VolunteerProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Application details
+  status           ApplicationStatus @default(PENDING)
+  coverLetter      String?          @db.Text // Why they want to volunteer
+  availableStartDate DateTime?       // When they can start
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // User can only apply once per project
+  @@unique([userId, projectId])
+  @@map("volunteer_applications")
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+}

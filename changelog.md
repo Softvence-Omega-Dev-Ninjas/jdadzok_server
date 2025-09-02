@@ -16,3 +16,18 @@
 - (Post Comment) handle indevisual post comments with nested (non-tested)
 - (Community module)
 - (NGO module)
+
+## v0.1.9 🎉 **(Implementing socket)**
+
+- **🏗 Architecture Of Shared Socket Module**
+  1. **Global Socket Module**
+  - Provides a SocketService that can be injected anywhere.
+  - Configurable with Redis adapter for horizontal scaling.
+  - Typed event contracts for safety.
+  2. **Event Bus Pattern**
+  - Define a shared event map (SocketEvents) so all socket events are strongly typed.
+  - Chat, Notification, etc. modules will publish/subscribe via this bus.
+  3. **Prisma Integration**
+  - Use Prisma inside event handlers (e.g., when storing messages/notifications).
+
+- (Notificaiton Module)

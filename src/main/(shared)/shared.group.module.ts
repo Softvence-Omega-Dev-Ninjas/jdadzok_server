@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
-import { CategoryModule } from "./categories/category.module";
+import { NotificationModule } from "@project/lib/notification/notification.module";
 
 @Module({
-  imports: [CategoryModule],
+  imports: [NotificationModule],
   controllers: [],
   providers: [],
   exports: [],

@@ -46,6 +46,23 @@ export class PostRepository {
         metadataId = await this.createMetadata(tx, metadata);
       }
 
+      switch (input.postFrom) {
+        case "NGO":
+          // here...
+          console.info("ngo");
+          break;
+
+        case "COMMUNITY":
+          // here...
+          console.info("comm");
+          break;
+        case "REGULAR_PROFILE":
+          console.info("ngo");
+          break;
+        default:
+          // here...
+          console.info("if anything else ");
+      }
       const postForAuthor = await tx.post.create({
         data: {
           ...postData,
@@ -108,7 +125,7 @@ export class PostRepository {
         ...this.defaultInclude,
         comments: true,
         likes: true,
-        postTagUsers: true,
+        taggedUsers: true,
       },
     });
   }
@@ -369,8 +386,11 @@ export class PostRepository {
       include: {
         author: {
           include: {
-            userChoice: {
-              include: { choice: true, user: true },
+            userChoices: {
+              include: {
+                choice: true,
+                user: true,
+              },
             },
           },
         },

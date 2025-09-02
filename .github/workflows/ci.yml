@@ -2,39 +2,42 @@ name: CI Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - sabbir
   pull_request:
     branches:
       - main
-      - sabbir
 
 jobs:
-  ci:
-    name: 🧪 CI - Lint, Build, Format, Prisma
+  lint-test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 22
+      - run: npm install
+      - run: npm run lint
+      - run: npm run format
+      - run: npm run build
+      - run: npm run prisma:generate
 
-      - name: 📦 Install dependencies
-        run: npm install
+  build-test:
+    needs: lint-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-      - name: 🧹 Run Lint
-        run: npm run lint
+      - name: Extract Package Version
+        id: package
+        run: echo "package_version=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
 
-      - name: ✅ Format Check
-        run: npm run format
+      - name: Setup .env
+        uses: ./.github/actions/setup-env
+        with:
+          package_version: ${{ env.package_version }}
 
-      - name: 🏗 Build Project
-        run: npm run build
+      - name: Build Docker Image
+        run: docker compose --profile prod build
 
-      - name: 🔄 Generate Prisma Client
-        run: npm run prisma:generate
+      - name: Cleanup
+        if: always()
+        run: rm -f .env

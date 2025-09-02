@@ -1,6 +1,8 @@
 import {
   MediaType,
   mediaType,
+  PostForm,
+  postFrom,
   PostVisibility,
   postVisibility,
 } from "@constants/enums";
@@ -96,6 +98,14 @@ class CreatePost {
   @ValidateNested()
   @Type(() => CreatePostMetadataDto)
   metadata?: CreatePostMetadataDto;
+
+  @ApiProperty({
+    enum: postFrom,
+    example: "REGULAR_PROFILE",
+    description: "From where you are doing your post",
+    required: false,
+  })
+  postFrom?: PostForm;
 }
 
 export class CreatePostDto extends IntersectionType(CreatePost) {}

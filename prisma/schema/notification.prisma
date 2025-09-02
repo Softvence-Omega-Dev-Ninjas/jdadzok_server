@@ -1,19 +1,26 @@
-// -----------------------------------
-// NOTIFICATIONS
-// -----------------------------------
-
 model Notification {
   id String @id @default(uuid())
-
+  
+  // User receiving notification
   userId String
-  user   User   @relation(fields: [userId], references: [id])
-
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Notification details
   type     NotificationType
-  entityId String?
+  title    String           // Notification title
+  message  String           @db.Text // Notification message
+  entityId String?          // ID of related entity (post, comment, etc.)
   read     Boolean          @default(false)
-
+  
+  // Additional data as JSON
+  metadata Json? // Extra notification data
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([userId, type, entityId])
+  
+  @@map("notifications")
+  @@index([userId])
+  @@index([type])
+  @@index([read])
+  @@index([createdAt])
 }

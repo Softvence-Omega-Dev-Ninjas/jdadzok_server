@@ -17,12 +17,12 @@ export class PrismaService
   }
 
   async onModuleInit() {
-    console.info(chalk.bgGreen.white.bold("🚀 Prisma connected"));
     await this.$connect();
+    console.info(chalk.bgGreen.white.bold("🚀 Prisma connected"));
   }
 
   async onModuleDestroy() {
-    console.info(chalk.bgRed.white.bold("🚫 Prisma disconnected"));
     await this.$disconnect();
+    console.info(chalk.bgRed.white.bold("🚫 Prisma disconnected"));
   }
 }

@@ -75,6 +75,11 @@ enum Feelings {
   MEH
 }
 
+enum IdentityVerificationType {
+  GOVERMENT_ID_OR_PASSPORT
+  BUSINESS_CERTIFIED_OR_LICENSE
+}
+
 enum MediaType {
   TEXT
   IMAGE
@@ -85,6 +90,12 @@ enum MembershipStatus {
   PENDING
   APPROVED
   BANNED
+}
+
+enum MembershipTier {
+  SILVER
+  GOLD
+  PLATINUM
 }
 
 enum MessageStatus {
@@ -119,6 +130,12 @@ enum PaymentMethod {
   PAYPAL
 }
 
+enum PostFrom {
+  COMMUNITY
+  NGO
+  REGULAR_PROFILE
+}
+
 enum PostVisibility {
   PUBLIC
   FOLLOWERS
@@ -148,6 +165,12 @@ enum SubscriptionStatus {
   ACTIVE
   INACTIVE
   CANCELED
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum VolunteerStatus {

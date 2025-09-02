@@ -12,7 +12,7 @@ export class UserRepository {
     const user = await this.prisma.user.create({
       data: { ...input, role: "USER", capLevel: "NONE" },
     });
-    return omit(user, ["passwordHash"]);
+    return omit(user, ["password"]);
   }
   async findByEmail(email: string) {
     return await this.prisma.user.findUnique({
