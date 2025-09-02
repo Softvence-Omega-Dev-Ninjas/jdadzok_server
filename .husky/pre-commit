@@ -1,7 +1,5 @@
 #!/bin/sh
-git config --global core.autocrlf true
-
 . "$(dirname "$0")/_/husky.sh"
 
-# Run the custom Node.js script to handle dynamic file-based checks
+# Run the Node.js script
 node ./scripts/ci-hooks.js
