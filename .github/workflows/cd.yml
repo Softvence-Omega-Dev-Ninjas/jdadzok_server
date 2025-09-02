@@ -65,76 +65,70 @@ jobs:
         run: rm -f .env
 
   deploy:
-    name: Deploy to the VPS 👨‍💻
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    env:
-      PACKAGE_NAME: ${{ needs.build-and-push.outputs.package_name }}
-      PACKAGE_VERSION: ${{ needs.build-and-push.outputs.package_version }}
+  name: Deploy to the VPS 👨‍💻
+  needs: build-and-push
+  runs-on: ubuntu-latest
+  env:
+    PACKAGE_NAME: ${{ needs.build-and-push.outputs.package_name }}
+    PACKAGE_VERSION: ${{ needs.build-and-push.outputs.package_version }}
 
-    steps:
-      - name: Checkout Code 📥
-        uses: actions/checkout@v4
+  steps:
+    - name: Checkout Code 📥
+      uses: actions/checkout@v4
 
-      - name: Extract Package Name & Version 📦
-        id: package
-        run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
+    - name: Extract Package Name & Version 📦
+      id: package
+      run: |
+        PACKAGE_NAME=$(node -p "require('./package.json').name")
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
 
-      - name: Create .env file 📄
-        run: |
-          echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
-          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
-          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
-          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
-          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
-          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
-          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
+    # 🔐 Load SSH key into agent (no .pem file needed)
+    - name: Setup SSH agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SABBIR_VPS_KEY }}
 
-      - name: Copy .env to VPS 📦
-        run: |
-          scp -i cicdpipe.pem -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/.env
+    - name: Create .env file 📄
+      run: |
+        echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
+        echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+        echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+        echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
+        echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
+        echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
+        echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
+        echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
+        echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+        echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
+        echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
+        echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
 
-      - name: Write SSH Key 🔐
-        run: |
-          echo "${{ secrets.SABBIR_VPS_KEY }}" > cicdpipe.pem
-          chmod 600 cicdpipe.pem
+    - name: Copy .env to VPS 📦
+      run: |
+        scp -o StrictHostKeyChecking=no .env \
+          ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/.env
 
-      - name: Create Remote Directory and Copy Compose File 📁
-        env:
-          IMAGE_NAME: ${{ env.package_name }}
-        run: |
-          ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/"
+    - name: Create Remote Directory and Copy Compose File 📁
+      env:
+        IMAGE_NAME: ${{ env.package_name }}
+      run: |
+        ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/"
+        scp -o StrictHostKeyChecking=no \
+          docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
 
-          echo 'Directory created'
-          pwd
-
-          scp -i cicdpipe.pem -o StrictHostKeyChecking=no docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
-
-      - name: Deploy on VPS 🚀
-        env:
-          IMAGE_NAME: ${{ env.package_name }}
-        run: |
-          ssh -i cicdpipe.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
-
-          cd ~/${IMAGE_NAME}
-          ls -a
-
-          docker compose pull
-          docker compose --profile prod down
-          docker compose --profile prod up -d
-          docker system prune -f
-          EOF
-
-      - name: Clean up 🔚
-        run: |
-          rm -f cicdpipe.pem .env
+    - name: Deploy on VPS 🚀
+      env:
+        IMAGE_NAME: ${{ env.package_name }}
+      run: |
+        ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
+        cd ~/${IMAGE_NAME}
+        docker compose pull
+        docker compose --profile prod down
+        docker compose --profile prod up -d
+        docker system prune -f
+        EOF
