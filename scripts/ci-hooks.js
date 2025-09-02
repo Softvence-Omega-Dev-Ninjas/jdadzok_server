@@ -18,9 +18,9 @@ function getStagedFiles() {
 }
 
 (async () => {
-  const spinner = yoctoSpinner({
-    text: "Running CI checks on modified files...",
-  }).start();
+  const spinner = yoctoSpinner().start(
+    "Running CI checks on modified files...",
+  );
 
   const stagedFiles = getStagedFiles();
 
