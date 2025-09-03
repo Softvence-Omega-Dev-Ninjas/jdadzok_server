@@ -7,7 +7,8 @@ on:
       - completed
   push:
     branches:
-      - main
+      # - main
+      - vps
 
 jobs:
   build-and-push:
@@ -82,6 +83,7 @@ jobs:
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
+          echo "package_version=$PACKAGE_NAME" >> $GITHUB_ENV
 
       # 🔐 Load SSH key into agent (no .pem file needed)
       - name: Setup SSH agent
@@ -92,6 +94,7 @@ jobs:
       - name: Create .env file 📄
         run: |
           echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
+          echo "PACKAGE_NAME=${{ env.package_name }}" >> .env
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
@@ -117,7 +120,8 @@ jobs:
         run: |
           # for now i'm not creating any folder but in future we have to create folder with that bellow command
           ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/"
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/${{ env.package_name }}"
+
           scp -o StrictHostKeyChecking=no \
             docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
 
@@ -129,18 +133,23 @@ jobs:
           IMAGE_NAME: ${{ env.package_name }}
         run: |
           ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
           # make sure we have docker-compose cli
           mkdir -p ~/.docker/cli-plugins/
           curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
           chmod +x ~/.docker/cli-plugins/docker-compose
 
-          cd ~/${IMAGE_NAME}
+          ls -a
+
+          cd ~/
 
           ls -a
 
-          docker compose pull
-          docker compose --profile prod down
-          docker compose --profile prod up -d
-          docker system prune -f
+          sudo docker compose pull
+          sudo docker compose --profile prod down
+          sudo docker compose --profile prod up -d
+          sudo docker system prune -f
           EOF
