@@ -126,6 +126,14 @@ jobs:
 
           scp -o StrictHostKeyChecking=no \
             docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
+          scp -o StrictHostKeyChecking=no \
+            .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/.env
+
+          # put that all file into the folder
+          scp -o StrictHostKeyChecking=no \
+            docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{env.package_name}}/docker-compose.yaml
+          scp -o StrictHostKeyChecking=no \
+            .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{env.package_name}}/.env
 
       - name: Deploy on VPS 🚀
         env:
@@ -134,6 +142,22 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+
+          # for now i'm not creating any folder but in future we have to create folder with that bellow command
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/${{ env.package_name }}"
+
+          scp -o StrictHostKeyChecking=no \
+            docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
+          scp -o StrictHostKeyChecking=no \
+            .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/.env
+
+          # put that all file into the folder
+          scp -o StrictHostKeyChecking=no \
+            docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{env.package_name}}/docker-compose.yaml
+          scp -o StrictHostKeyChecking=no \
+            .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{env.package_name}}/.env
+
 
           # Install Docker Compose CLI to avoid errors
           mkdir -p ~/.docker/cli-plugins/
