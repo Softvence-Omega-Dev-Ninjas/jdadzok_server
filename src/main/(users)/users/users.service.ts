@@ -1,7 +1,11 @@
-import { Body, ConflictException, Injectable } from "@nestjs/common";
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { UtilsService } from "@project/lib/utils/utils.service";
 import { JwtServices } from "@project/services/jwt.service";
-import { CreateUserDto } from "./dto/users.dto";
+import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserRepository } from "./users.repository";
 
 @Injectable()
@@ -12,7 +16,7 @@ export class UserService {
     private readonly jwtService: JwtServices,
   ) {}
 
-  async register(@Body() body: CreateUserDto) {
+  async register(body: CreateUserDto) {
     // check if user already exit or not
     const user = await this.repository.findByEmail(body.email);
     if (user)
@@ -41,5 +45,25 @@ export class UserService {
       accessToken,
       user: createdUser,
     };
+  }
+
+  async updateUser(userId: string, input: UpdateUserDto) {
+    const user = await this.repository.findById(userId);
+    if (!user) throw new NotFoundException("User not found!"); // not required for all the time
+    // if update input has password then hash it
+    if (input.passowrd)
+      input.passowrd = await this.utilsService.hash(input.passowrd!);
+
+    return await this.repository.update(userId, input);
+  }
+  async deleteAcount(userId: string) {
+    const user = await this.repository.findById(userId);
+    if (!user) throw new NotFoundException("User not found!");
+
+    await this.repository.delete(userId);
+  }
+
+  async getMe(userId: string) {
+    return await this.repository.findById(userId);
   }
 }

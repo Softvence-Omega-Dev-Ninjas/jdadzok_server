@@ -13,6 +13,8 @@ import {
   IsString,
   MinLength,
 } from "class-validator";
+import { UpdateUserProfileMetricsDto } from "../../profile-metrics/dto/user.profile.metrics";
+import { UpdateUserProfileDto } from "../../user-profile/dto/user.profile.dto";
 
 class UserCreate {
   @ApiProperty({ description: "User email address", example: "user@user.com" })
@@ -55,121 +57,20 @@ class UserCreate {
   capLevel?: CapLevel;
 }
 
-class CreateUserProfile {
-  @ApiPropertyOptional({ description: "Profile name", example: "John Doe" })
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @ApiPropertyOptional({ description: "Profile username", example: "johndoe" })
-  @IsOptional()
-  @IsString()
-  username?: string;
-
-  @ApiPropertyOptional({ description: "Profile bio", example: "I love coding" })
-  @IsOptional()
-  @IsString()
-  bio?: string;
-
+class SelectUser {
   @ApiPropertyOptional({
-    description: "Profile avatar URL",
-    example: "https://example.com/avatar.png",
+    type: UpdateUserProfileDto,
   })
-  @IsOptional()
-  @IsString()
-  avatarUrl?: string;
-
+  profile?: UpdateUserProfileDto;
   @ApiPropertyOptional({
-    description: "Profile location",
-    example: "Dhaka, Bangladesh",
+    type: UpdateUserProfileMetricsDto,
   })
-  @IsOptional()
-  @IsString()
-  location?: string;
-}
-
-class UserUpdate {
-  @ApiPropertyOptional({
-    description: "User email address",
-    example: "user@example.com",
-  })
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @ApiPropertyOptional({
-    description: "Password hash",
-    example: "hashedpassword123",
-  })
-  @IsOptional()
-  @IsString()
-  @MinLength(6)
-  passwordHash?: string;
-
-  @ApiPropertyOptional({
-    enum: AuthProvider,
-    description: "Authentication provider",
-    example: AuthProvider.EMAIL,
-  })
-  @IsOptional()
-  @IsEnum(AuthProvider)
-  authProvider?: AuthProvider;
-
-  @ApiPropertyOptional({
-    enum: Role,
-    description: "User role",
-    example: Role.USER,
-  })
-  @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
-
-  @ApiPropertyOptional({
-    enum: CapLevel,
-    description: "User capability level",
-    example: CapLevel.GREEN,
-  })
-  @IsOptional()
-  @IsEnum(CapLevel)
-  capLevel?: CapLevel;
-}
-
-class UpdateProfile {
-  @ApiPropertyOptional({ description: "Profile name", example: "John Doe" })
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @ApiPropertyOptional({ description: "Profile username", example: "johndoe" })
-  @IsOptional()
-  @IsString()
-  username?: string;
-
-  @ApiPropertyOptional({ description: "Profile bio", example: "I love coding" })
-  @IsOptional()
-  @IsString()
-  bio?: string;
-
-  @ApiPropertyOptional({
-    description: "Profile avatar URL",
-    example: "https://example.com/avatar.png",
-  })
-  @IsOptional()
-  @IsString()
-  avatarUrl?: string;
-
-  @ApiPropertyOptional({
-    description: "Profile location",
-    example: "Dhaka, Bangladesh",
-  })
-  @IsOptional()
-  @IsString()
-  location?: string;
+  metrics?: UpdateUserProfileMetricsDto;
 }
 
 export class CreateUserDto extends IntersectionType(UserCreate) {}
-export class UpdateUserDto extends PartialType(IntersectionType(UserUpdate)) {}
-export class CreateProfileDto extends IntersectionType(CreateUserProfile) {}
-export class UpdateProfileDto extends PartialType(
-  IntersectionType(UpdateProfile),
+export class UpdateUserDto extends IntersectionType(PartialType(UserCreate)) {}
+export class SelectUserDto extends IntersectionType(
+  PartialType(CreateUserDto),
+  PartialType(SelectUser),
 ) {}

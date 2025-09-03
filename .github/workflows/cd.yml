@@ -125,7 +125,7 @@ jobs:
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/${{ env.package_name }}"
 
           scp -o StrictHostKeyChecking=no \
-            docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/Dockerfile
+            Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/Dockerfile
 
           scp -o StrictHostKeyChecking=no \
             docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
@@ -153,7 +153,7 @@ jobs:
           scp -o StrictHostKeyChecking=no \
             docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
           scp -o StrictHostKeyChecking=no \
-            docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/Dockerfile
+            Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/Dockerfile
           scp -o StrictHostKeyChecking=no \
             .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/.env
 
