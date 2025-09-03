@@ -115,10 +115,14 @@ jobs:
         env:
           IMAGE_NAME: ${{ env.package_name }}
         run: |
+          # for now i'm not creating any folder but in future we have to create folder with that bellow command
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/"
           scp -o StrictHostKeyChecking=no \
             docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
+
+      - name: Log in to Docker Hub 🔑
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Deploy on VPS 🚀
         env:
