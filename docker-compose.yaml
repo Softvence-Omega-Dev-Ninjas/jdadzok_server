@@ -1,13 +1,13 @@
 services:
   server:
+    profiles:
+      - prod
     container_name: ${PACKAGE_NAME}-api
     image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
     restart: always
     build:
       context: .
       dockerfile: Dockerfile
-    profiles:
-      - prod
     environment:
       NODE_ENV: ${NODE_ENV}
       DATABASE_URL: ${DATABASE_URL}
