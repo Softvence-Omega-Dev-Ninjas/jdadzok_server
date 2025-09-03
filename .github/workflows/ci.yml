@@ -50,10 +50,13 @@ jobs:
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
 
       - name: Create .env file 📄
         run: |
           echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
+          echo "PACKAGE_NAME=${{ env.package_name }}" >> .env
+          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
