@@ -7,11 +7,12 @@ import {
 import { Socket } from "socket.io";
 import { SocketAuthMiddleware } from "../../../services/middleware/socket-auth.middleware";
 import { ChatService } from "./chat.service";
+import { ChatEvents } from "./dto/chat.event";
 import { CreateMessageDto } from "./dto/create.message.dto";
 
 @WebSocketGateway({ namespace: "/chat", middleware: [SocketAuthMiddleware] })
 export class ChatGateway {
-  constructor(private chatService: ChatService) {}
+  constructor(private chatService: ChatService) { }
 
   @SubscribeMessage(ChatEvents.SEND_MESSAGE)
   async handleMessage(
