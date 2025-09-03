@@ -1,4 +1,5 @@
 import { GetUser } from "@common/jwt/jwt.decorator";
+import { successResponse } from "@common/utils/response.util";
 import {
   Body,
   Controller,
@@ -25,7 +26,8 @@ export class ChoicesController {
   @UseGuards(JwtAuthGuard)
   async assignChoices(@GetUser() user: TUser, @Body() dtos: CreateChoiceDto[]) {
     try {
-      return this.choicesService.assignChoices(user.userId, dtos);
+      const choice = await this.choicesService.assignChoices(user.userId, dtos);
+      return successResponse(choice, "Your choice accepted");
     } catch (err) {
       return err;
     }
