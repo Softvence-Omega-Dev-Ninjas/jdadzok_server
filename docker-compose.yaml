@@ -1,7 +1,7 @@
 services:
   server:
-    container_name: jdadzok-server-api
-    image: devlopersabbir/jdadzok:${PACKAGE_VERSION}
+    container_name: ${PACKAGE_NAME}-api
+    image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
     restart: always
     build:
       context: .

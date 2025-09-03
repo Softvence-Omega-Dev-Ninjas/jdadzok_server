@@ -32,11 +32,13 @@ jobs:
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
 
       - name: Create .env file 📄
         run: |
           echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
-          echo "PACKAGE_NAME=${{ env.package_name }}" >> .env
+          echo "PACKAGE_NAME=${{ env.package_version }}" >> .env
+          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
@@ -84,7 +86,7 @@ jobs:
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
-          echo "package_version=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
 
       # 🔐 Load SSH key into agent (no .pem file needed)
       - name: Setup SSH agent
@@ -95,7 +97,8 @@ jobs:
       - name: Create .env file 📄
         run: |
           echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
-          echo "PACKAGE_NAME=${{ env.package_name }}" >> .env
+          echo "PACKAGE_NAME=${{ env.package_version }}" >> .env
+          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
@@ -125,12 +128,10 @@ jobs:
           scp -o StrictHostKeyChecking=no \
             docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/docker-compose.yaml
 
-      - name: Log in to Docker Hub 🔑
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
       - name: Deploy on VPS 🚀
         env:
           IMAGE_NAME: ${{ env.package_name }}
+          IMAGE_VERSION: ${{ env.package_version }}
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
@@ -142,8 +143,15 @@ jobs:
 
           ls -a
 
+          docker logout
+
           # Log in to Docker Hub for private image
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+          sudo usermod -aG docker $USER
+          newgrp docker
+          docker info
+          docker info | grep Username
 
           cat ~/.env
 
