@@ -12,7 +12,7 @@ import { CreateMessageDto } from "./dto/create.message.dto";
 
 @WebSocketGateway({ namespace: "/chat", middleware: [SocketAuthMiddleware] })
 export class ChatGateway {
-  constructor(private chatService: ChatService) { }
+  constructor(private chatService: ChatService) {}
 
   @SubscribeMessage(ChatEvents.SEND_MESSAGE)
   async handleMessage(
