@@ -1,6 +1,6 @@
 {
-  "name": "jdadzok",
-  "version": "0.2.7",
+  "name": "jdadzok_server",
+  "version": "0.2.8",
   "description": "This is backend for jdadzok",
   "author": "Vision 360",
   "private": true,
