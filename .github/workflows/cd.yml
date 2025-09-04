@@ -95,113 +95,17 @@ jobs:
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_ENV
 
-      # - name: Setup SSH 🔑
-      #   run: |
-      #     mkdir -p ~/.ssh
-      #     echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/key
-      #     chmod 600 ~/.ssh/key
-      #     ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
-      # - name: Test SSH Connection
-      #   run: |
-      #     ssh -i ~/.ssh/key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH works!'"
-
-      # 🔐 Setup SSH connection - ROBUST METHOD
-      - name: Setup SSH Key and Connection 🔑
+      # 🔐 Setup SSH connection
+      - name: Setup SSH 🔑
         run: |
-          # Create SSH directory with proper permissions
           mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/key
+          chmod 600 ~/.ssh/key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-          # Write the private key to a temporary file
-          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key_raw
-
-          # Clean up the key - remove any Windows line endings and extra whitespace
-          tr -d '\r' < ~/.ssh/deploy_key_raw | sed '/^$/d' > ~/.ssh/deploy_key_clean
-
-          # Check if key has proper BEGIN/END markers
-          if ! grep -q "BEGIN.*PRIVATE KEY" ~/.ssh/deploy_key_clean; then
-            echo "❌ SSH key is missing proper headers!"
-            echo "Your key should start with '-----BEGIN RSA PRIVATE KEY-----' or '-----BEGIN OPENSSH PRIVATE KEY-----'"
-            echo ""
-            echo "🔧 SOLUTION: Generate a new SSH key with this command:"
-            echo "ssh-keygen -t rsa -b 4096 -m PEM -f ~/.ssh/vps_deploy_key -N ''"
-            echo ""
-            echo "Then copy the ENTIRE content including the BEGIN/END lines to your GitHub secret."
-            exit 1
-          fi
-
-          # Copy cleaned key to final location
-          cp ~/.ssh/deploy_key_clean ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-
-          # Try to get key info to validate format
-          echo "🔍 Validating SSH key..."
-          if ssh-keygen -l -f ~/.ssh/deploy_key 2>/dev/null; then
-            echo "✅ SSH key format is valid!"
-          else
-            echo "⚠️  Key format may be OpenSSH format, attempting conversion..."
-            
-            # Create backup
-            cp ~/.ssh/deploy_key ~/.ssh/deploy_key.backup
-            
-            # Try different conversion methods
-            if ssh-keygen -p -m PEM -f ~/.ssh/deploy_key -N "" -P "" 2>/dev/null; then
-              echo "✅ Successfully converted OpenSSH key to RSA PEM format"
-            elif ssh-keygen -p -m RFC4716 -f ~/.ssh/deploy_key -N "" -P "" 2>/dev/null; then
-              echo "✅ Successfully converted key to RFC4716 format"
-            else
-              echo "❌ All conversion attempts failed!"
-              echo ""
-              echo "🔧 SOLUTION REQUIRED:"
-              echo "1. On your local machine or server, run:"
-              echo "   ssh-keygen -t rsa -b 4096 -m PEM -f ~/.ssh/new_vps_key -N ''"
-              echo ""
-              echo "2. Copy the public key to your server:"
-              echo "   ssh-copy-id -i ~/.ssh/new_vps_key.pub user@your-server"
-              echo ""
-              echo "3. Copy the PRIVATE key content to GitHub secrets:"
-              echo "   cat ~/.ssh/new_vps_key"
-              echo ""
-              echo "4. Make sure to copy the ENTIRE key including:"
-              echo "   -----BEGIN RSA PRIVATE KEY-----"
-              echo "   [key content]"
-              echo "   -----END RSA PRIVATE KEY-----"
-              exit 1
-            fi
-          fi
-
-          # Validate the key works by checking it again
-          if ssh-keygen -l -f ~/.ssh/deploy_key >/dev/null 2>&1; then
-            echo "✅ Final key validation successful"
-          else
-            echo "❌ Final key validation failed"
-            exit 1
-          fi
-
-          # Add server to known hosts
-          echo "🔗 Adding server to known hosts..."
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
-
-          # Test SSH connection with the key
-          echo "🧪 Testing SSH connection..."
-          if ssh -i ~/.ssh/deploy_key -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o BatchMode=yes ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH test successful'" 2>/dev/null; then
-            echo "✅ SSH connection test passed!"
-          else
-            echo "❌ SSH connection test failed!"
-            echo ""
-            echo "🔧 Troubleshooting steps:"
-            echo "1. Verify VPS_HOST, VPS_USER, and VPS_SSH_PRIVATE_KEY secrets are correct"
-            echo "2. Ensure the public key is properly added to ~/.ssh/authorized_keys on the server"
-            echo "3. Check if SSH service is running on the server"
-            echo "4. Verify firewall allows SSH connections (port 22)"
-            exit 1
-          fi
-
-          # Clean up temporary files
-          rm -f ~/.ssh/deploy_key_raw ~/.ssh/deploy_key_clean ~/.ssh/deploy_key.backup
-
-          echo "🎉 SSH setup completed successfully!"
+      - name: Test SSH Connection
+        run: |
+          ssh -i ~/.ssh/key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH works!'"
 
       - name: Create .env file 📄
         run: |
