@@ -1,67 +1,52 @@
 services:
-  server:
-    profiles:
-      - prod
-    container_name: ${PACKAGE_NAME}-api
-    image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
-    restart: always
+  app:
+    profiles: ["prod"]
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      NODE_ENV: ${NODE_ENV}
-      DATABASE_URL: ${DATABASE_URL}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
-      BASE_URL: ${BASE_URL}
-      PORT: 5055
-      MAIL_USER: ${MAIL_USER}
-      MAIL_PASS: ${MAIL_PASS}
-      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL}
-      SUPER_ADMIN_PASS: ${SUPER_ADMIN_PASS}
-      REDIS_URL: ${REDIS_URL}
-      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
-      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
-      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+    image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
+    container_name: ${PACKAGE_NAME}_app_1
     ports:
       - "5055:5055"
-    depends_on:
-      - db
-      - redis
-    command: >
-      sh -c "
-        npx prisma migrate deploy &&
-        npm run start:prod
-      "
-
-  db:
-    image: postgres:17
-    container_name: jdadzok_db
-    restart: always
-    profiles:
-      - dev
-      - prod
     environment:
+      - NODE_ENV=${NODE_ENV}
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_URL=${REDIS_URL}
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5055/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres:
+    profiles: ["prod"]
+    image: postgres:15
+    container_name: ${PACKAGE_NAME}_postgres
+    environment:
+      POSTGRES_DB: ${PACKAGE_NAME}
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: jdadzok_db
-    volumes:
-      - db-data:/var/lib/postgresql/data
+      POSTGRES_PASSWORD: password123
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   redis:
-    image: redis
-    container_name: jdadzok_redis
-    restart: always
-    profiles:
-      - dev
-      - prod
+    profiles: ["prod"]
+    image: redis:7-alpine
+    container_name: ${PACKAGE_NAME}_redis
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
+      - redis_data:/data
+    restart: unless-stopped
 
 volumes:
-  db-data:
-  redis-data:
+  postgres_data:
+  redis_data:
