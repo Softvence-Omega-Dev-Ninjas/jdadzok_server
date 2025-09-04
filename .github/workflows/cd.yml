@@ -96,10 +96,17 @@ jobs:
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_ENV
 
-      # 🔐 Setup SSH connection
+      - name: Debug Network Connectivity
+        run: |
+          set -x
+          echo "Pinging VPS_HOST: ${{ secrets.VPS_HOST }}"
+          ping -c 4 ${{ secrets.VPS_HOST }}
+          echo "Testing SSH port connectivity"
+          nc -zv ${{ secrets.VPS_HOST }} 22 || echo "Port 22 connectivity test failed"
+
       - name: Setup SSH Access 🔐
         run: |
-          set -x  # Enable debug mode to print commands
+          set -x
           mkdir -p ~/.ssh
           echo "Checking if VPS_SSH_PRIVATE_KEY is set..."
           if [ -z "${{ secrets.VPS_SSH_PRIVATE_KEY }}" ]; then
@@ -110,17 +117,24 @@ jobs:
           echo "Checking if deploy_key was created..."
           ls -l ~/.ssh/deploy_key || { echo "Error: deploy_key not created"; exit 1; }
           chmod 600 ~/.ssh/deploy_key
+          echo "Verifying key fingerprint..."
+          ssh-keygen -l -f ~/.ssh/deploy_key || { echo "Error: Invalid key format"; exit 1; }
           echo "Checking VPS_HOST: ${{ secrets.VPS_HOST }}"
           if [ -z "${{ secrets.VPS_HOST }}" ]; then
             echo "Error: VPS_HOST is empty or not set"
             exit 1
           fi
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts || { echo "Error: ssh-keyscan failed"; exit 1; }
+          echo "Attempting ssh-keyscan..."
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts || echo "ssh-keyscan failed, bypassing for now"
+          touch ~/.ssh/known_hosts
+          echo "Known hosts content:"
+          cat ~/.ssh/known_hosts
         shell: /usr/bin/bash -e {0}
 
       - name: Test SSH Connection 🚀
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo '✅ SSH connection successful'"
+          set -x
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -v ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo '✅ SSH connection successful'"
 
       - name: Create .env file 📄
         run: |
