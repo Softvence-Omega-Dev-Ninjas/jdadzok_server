@@ -39,6 +39,7 @@ jobs:
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Create .env file 📄
@@ -96,16 +97,30 @@ jobs:
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_ENV
 
       # 🔐 Setup SSH connection
-      - name: Setup SSH 🔐
+      - name: Setup SSH Access 🔐
         run: |
+          set -x  # Enable debug mode to print commands
           mkdir -p ~/.ssh
+          echo "Checking if VPS_SSH_PRIVATE_KEY is set..."
+          if [ -z "${{ secrets.VPS_SSH_PRIVATE_KEY }}" ]; then
+            echo "Error: VPS_SSH_PRIVATE_KEY is empty or not set"
+            exit 1
+          fi
           echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          echo "Checking if deploy_key was created..."
+          ls -l ~/.ssh/deploy_key || { echo "Error: deploy_key not created"; exit 1; }
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          echo "Checking VPS_HOST: ${{ secrets.VPS_HOST }}"
+          if [ -z "${{ secrets.VPS_HOST }}" ]; then
+            echo "Error: VPS_HOST is empty or not set"
+            exit 1
+          fi
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts || { echo "Error: ssh-keyscan failed"; exit 1; }
+        shell: /usr/bin/bash -e {0}
 
-      - name: Test SSH Connection
+      - name: Test SSH Connection 🚀
         run: |
-          ssh -i ~/.ssh/key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH works!'"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo '✅ SSH connection successful'"
 
       - name: Create .env file 📄
         run: |
