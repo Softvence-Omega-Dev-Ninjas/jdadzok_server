@@ -96,11 +96,11 @@ jobs:
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_ENV
 
       # 🔐 Setup SSH connection
-      - name: Setup SSH 🔑
+      - name: Setup SSH 🔐
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/key
-          chmod 600 ~/.ssh/key
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Test SSH Connection
