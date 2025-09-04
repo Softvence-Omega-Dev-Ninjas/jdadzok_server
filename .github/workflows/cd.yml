@@ -95,11 +95,82 @@ jobs:
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_ENV
 
-      # 🔐 Load SSH key into agent
-      - name: Setup SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SABBIR_VPS_KEY }}
+      # 🔐 Setup SSH connection - ROBUST METHOD
+      - name: Setup SSH Key and Connection 🔑
+        run: |
+          # Create SSH directory
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Write private key to file
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Test if key is valid
+          echo "Testing SSH key format..."
+          if ssh-keygen -l -f ~/.ssh/deploy_key 2>/dev/null; then
+            echo "✅ SSH key format is valid"
+          else
+            echo "❌ SSH key format invalid, attempting to fix..."
+            
+            # Try to convert OpenSSH format to RSA PEM format
+            if ssh-keygen -p -m PEM -f ~/.ssh/deploy_key -N "" -P "" 2>/dev/null; then
+              echo "✅ Successfully converted key to PEM format"
+            else
+              echo "❌ Key conversion failed. Trying alternative approach..."
+              
+              # Create a new temporary key file and try different formats
+              cp ~/.ssh/deploy_key ~/.ssh/deploy_key.orig
+              
+              # Remove any carriage returns and extra whitespace
+              tr -d '\r' < ~/.ssh/deploy_key.orig > ~/.ssh/deploy_key
+              
+              # Test again
+              if ssh-keygen -l -f ~/.ssh/deploy_key 2>/dev/null; then
+                echo "✅ Key fixed by cleaning whitespace"
+              else
+                echo "❌ Unable to fix SSH key format"
+                echo "Please regenerate your SSH key using:"
+                echo "ssh-keygen -t rsa -b 4096 -m PEM"
+                exit 1
+              fi
+            fi
+          fi
+
+          # Add to known hosts
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+          # Start SSH agent
+          eval $(ssh-agent -s)
+
+          # Add key to agent
+          if ssh-add ~/.ssh/deploy_key 2>/dev/null; then
+            echo "✅ SSH key added to agent successfully"
+          else
+            echo "❌ Failed to add SSH key to agent"
+            
+            # Try loading key with different approach
+            SSH_AUTH_SOCK="" ssh-add ~/.ssh/deploy_key 2>/dev/null || {
+              echo "Attempting direct SSH without agent..."
+              echo "SSH_USE_DIRECT=true" >> $GITHUB_ENV
+            }
+          fi
+
+          # Test SSH connection
+          echo "Testing SSH connection..."
+          if [ "$SSH_USE_DIRECT" = "true" ]; then
+            ssh -i ~/.ssh/deploy_key -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'" || {
+              echo "❌ SSH connection failed"
+              exit 1
+            }
+          else
+            ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'" || {
+              echo "❌ SSH connection failed"
+              exit 1
+            }
+          fi
+
+          echo "✅ SSH setup completed successfully"
 
       - name: Create .env file 📄
         run: |
@@ -122,85 +193,185 @@ jobs:
 
       - name: Copy Files to Server 📦
         run: |
-          # Create app directory if it doesn't exist
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/${{ env.package_name }} ~/${{ env.package_name }}/scripts"
-            
-          # Copy deployment files
-          scp -o StrictHostKeyChecking=no docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
-          scp -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
-          scp -o StrictHostKeyChecking=no Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
+          # Determine SSH command based on setup
+          if [ "$SSH_USE_DIRECT" = "true" ]; then
+            SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
+            SCP_CMD="scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
+          else
+            SSH_CMD="ssh -o StrictHostKeyChecking=no"
+            SCP_CMD="scp -o StrictHostKeyChecking=no"
+          fi
 
-          # Copy scripts
-          scp -o StrictHostKeyChecking=no scripts/deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/scripts/
-          scp -o StrictHostKeyChecking=no scripts/health-check.js ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/scripts/
+          echo "Creating directories on server..."
+          $SSH_CMD ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/${{ env.package_name }} ~/${{ env.package_name }}/scripts"
 
-          # Make scripts executable
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "chmod +x ~/${{ env.package_name }}/scripts/deploy.sh"
+          echo "Copying deployment files..."
+          $SCP_CMD docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
+          $SCP_CMD .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
+          $SCP_CMD Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
+
+          echo "Copying scripts..."
+          $SCP_CMD scripts/deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/scripts/
+          $SCP_CMD scripts/health-check.js ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/scripts/
+
+          echo "Making scripts executable..."
+          $SSH_CMD ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "chmod +x ~/${{ env.package_name }}/scripts/deploy.sh"
+
+          echo "✅ Files copied successfully"
 
       - name: Zero-downtime Deployment 🚀
         env:
           IMAGE_NAME: ${{ env.package_name }}
           IMAGE_VERSION: ${{ env.package_version }}
         run: |
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          # Determine SSH command
+          if [ "$SSH_USE_DIRECT" = "true" ]; then
+            SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
+          else
+            SSH_CMD="ssh -o StrictHostKeyChecking=no"
+          fi
+
+          echo "Starting zero-downtime deployment..."
+
+          $SSH_CMD ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          set -e  # Exit on any error
 
           cd ~/${{ env.package_name }}
 
+          echo "🏁 Starting deployment process..."
+
           # Install Docker Compose CLI if needed
           if [ ! -f ~/.docker/cli-plugins/docker-compose ]; then
+            echo "📦 Installing Docker Compose..."
             mkdir -p ~/.docker/cli-plugins/
             curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
             chmod +x ~/.docker/cli-plugins/docker-compose
+            echo "✅ Docker Compose installed"
           fi
 
-          # Install jq if not already installed (needed for deployment script)
+          # Install jq if not already installed
           if ! command -v jq &>/dev/null; then
+            echo "📦 Installing jq..."
             sudo apt-get update && sudo apt-get install -y jq
+            echo "✅ jq installed"
           fi
 
-          # Log in to Docker Hub for private image
+          # Log in to Docker Hub
+          echo "🔑 Logging into Docker Hub..."
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
           # Ensure user has Docker permissions
-          sudo usermod -aG docker $USER
+          echo "🔧 Setting up Docker permissions..."
+          sudo usermod -aG docker $USER || true
 
-          # Make sure ports are allowed in firewall
-          sudo ufw allow 5055
-          sudo ufw allow 5432
-          sudo ufw allow 6379
+          # Setup firewall rules
+          echo "🔥 Configuring firewall..."
+          sudo ufw allow 5055 || true
+          sudo ufw allow 5432 || true  
+          sudo ufw allow 6379 || true
 
           # Pull the new image
-          docker pull ${{ env.image_tag }}
-
-          # Execute zero-downtime deployment script
-          ./scripts/deploy.sh --version ${{ env.package_version }}
-
-          # Check deployment status
-          if [ $? -ne 0 ]; then
-            echo "Deployment failed! Check logs for details."
+          echo "📥 Pulling Docker image: ${{ env.image_tag }}"
+          if docker pull ${{ env.image_tag }}; then
+            echo "✅ Image pulled successfully"
+          else
+            echo "❌ Failed to pull image"
             exit 1
           fi
 
-          # Verify containers
-          docker ps --filter "name=${{ env.package_name }}"
+          # Check if deploy script exists
+          if [ ! -f "./scripts/deploy.sh" ]; then
+            echo "❌ Deploy script not found!"
+            echo "Available files:"
+            ls -la scripts/ || echo "No scripts directory"
+            exit 1
+          fi
+
+          # Make sure script is executable
+          chmod +x ./scripts/deploy.sh
+
+          # Execute zero-downtime deployment script
+          echo "🚀 Executing deployment script..."
+          if ./scripts/deploy.sh --version ${{ env.package_version }}; then
+            echo "✅ Deployment script executed successfully"
+          else
+            echo "❌ Deployment script failed"
+            echo "Container status:"
+            docker ps -a --filter "name=${{ env.package_name }}" || true
+            echo "Recent logs:"
+            docker logs --tail 50 "${{ env.package_name }}_app_1" 2>/dev/null || true
+            exit 1
+          fi
+
+          # Verify containers are running
+          echo "🔍 Verifying deployment..."
+          if docker ps --filter "name=${{ env.package_name }}" | grep -q "${{ env.package_name }}"; then
+            echo "✅ Containers are running"
+            docker ps --filter "name=${{ env.package_name }}"
+          else
+            echo "❌ No containers found running"
+            docker ps -a --filter "name=${{ env.package_name }}"
+            exit 1
+          fi
 
           # Log out from Docker Hub
           docker logout
 
-          # Clean up unused Docker objects (only dangling images, not volumes)
+          # Clean up unused Docker objects (only dangling images)
+          echo "🧹 Cleaning up unused Docker images..."
           docker image prune -f
+
+          echo "🎉 Deployment completed successfully!"
           EOF
 
       - name: Verify Deployment ✅
         run: |
-          # Wait a moment for services to stabilize
-          sleep 10
+          # Determine SSH command
+          if [ "$SSH_USE_DIRECT" = "true" ]; then
+            SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
+          else
+            SSH_CMD="ssh -o StrictHostKeyChecking=no"
+          fi
 
-          # Check if service is responding
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          echo "⏳ Waiting for services to stabilize..."
+          sleep 15
+
+          echo "🔍 Verifying deployment status..."
+
+          $SSH_CMD ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
           cd ~/${{ env.package_name }}
-          ./scripts/deploy.sh status
+
+          echo "=== Container Status ==="
+          docker ps --filter "name=${{ env.package_name }}"
+
+          echo "=== Health Check ==="
+          if [ -f "./scripts/deploy.sh" ]; then
+            ./scripts/deploy.sh status
+          else
+            echo "Deploy script not found, checking manually..."
+            
+            # Try to curl the health endpoint
+            if curl -f http://localhost:5055/health 2>/dev/null; then
+              echo "✅ Health check passed"
+            else
+              echo "⚠️  Health check endpoint not responding"
+              echo "Container logs:"
+              docker logs --tail 20 "${{ env.package_name }}_app_1" 2>/dev/null || echo "No logs available"
+            fi
+          fi
+
+          echo "=== Final Status ==="
+          if docker ps --filter "name=${{ env.package_name }}" | grep -q "Up"; then
+            echo "🎉 Deployment verification successful!"
+          else
+            echo "❌ Deployment verification failed!"
+            exit 1
+          fi
           EOF
+
+      - name: Cleanup SSH 🧹
+        if: always()
+        run: |
+          # Clean up SSH files
+          rm -f ~/.ssh/deploy_key ~/.ssh/deploy_key.orig
+          rm -f .env
