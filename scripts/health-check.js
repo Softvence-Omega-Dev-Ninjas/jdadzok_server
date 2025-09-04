@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const http = require("http");
 const { URL } = require("url");
 
