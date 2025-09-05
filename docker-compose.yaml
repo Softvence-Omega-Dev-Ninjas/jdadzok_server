@@ -1,33 +1,25 @@
 services:
   server:
-    container_name: jdadzok-server-api
-    # image: jdadzok-server-api:${PACKAGE_VERSION}
-    image: devlopersabbir/jdadzok:${PACKAGE_VERSION}
+    profiles:
+      - prod
+    container_name: ${PACKAGE_NAME}-api
+    image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
     restart: always
     build:
       context: .
       dockerfile: Dockerfile
-    profiles:
-      - prod
     environment:
-      DOTENV_PRIVATE_KEY_PRODUCTION: 7dc8439331d763bfdcc72ae65f6512f42bea26ffc7b41fe9267263da50cc1686
       NODE_ENV: ${NODE_ENV}
       DATABASE_URL: ${DATABASE_URL}
-
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
-
       BASE_URL: ${BASE_URL}
       PORT: 5055
-
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
-
       SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL}
       SUPER_ADMIN_PASS: ${SUPER_ADMIN_PASS}
-
       REDIS_URL: ${REDIS_URL}
-
       TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
       TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}

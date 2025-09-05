@@ -1,10 +1,20 @@
 model Choice {
-  id         String       @id @default(uuid())
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  text       String
-  slug       String       @unique
-  userChoice UserChoice[]
-
+  id String @id @default(uuid())
+  
+  text String @unique // Choice text (e.g., "Entertainment & Pop Culture")
+  slug String @unique // URL-friendly version
+  
+  // Category this choice belongs to
+  category    String? // e.g., "interests", "skills", "causes"
+  description String? @db.Text
+  
+  // Users who selected this choice
+  userChoices UserChoice[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
   @@map("choices")
+  @@index([slug])
+  @@index([category])
 }

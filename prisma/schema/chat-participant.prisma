@@ -1,0 +1,23 @@
+model ChatParticipant {
+  id String @id @default(uuid())
+  
+  // Chat this participant belongs to
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  
+  // User participating in chat
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  joinedAt DateTime @default(now())
+  leftAt   DateTime? // When user left (null if still active)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // User can only participate once per chat
+  @@unique([chatId, userId])
+  @@map("chat_participants")
+  @@index([chatId])
+  @@index([userId])
+}

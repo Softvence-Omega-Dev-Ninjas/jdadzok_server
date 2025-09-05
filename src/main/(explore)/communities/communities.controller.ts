@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
@@ -15,12 +14,12 @@ import { handleRequest } from "@project/common/utils/handle.request.util";
 import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { CommunitiesService } from "./communities.service";
 import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
-import { CommunityQueryDto } from "./dto/community.query";
+
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("communities")
 export class CommunitiesController {
-  constructor(private readonly service: CommunitiesService) {}
+  constructor(private readonly service: CommunitiesService) { }
 
   @Post("/")
   @ApiOperation({ summary: "Create new community" })
@@ -37,12 +36,13 @@ export class CommunitiesController {
   // find all data...
   @Get("/")
   @ApiOperation({ summary: "Get All community" })
-  async findAll(@Query() query?: CommunityQueryDto) {
+  async findAll() {
     return handleRequest(
-      () => this.service.findAll(query),
+      () => this.service.findAll(),
       "Get All Community",
     );
   }
+
   //get single community by ID
 
   @Get(":communityId")
@@ -66,6 +66,7 @@ export class CommunitiesController {
       "Community Delete Successfull",
     );
   }
+
   // update community...
   @Patch(":communityId")
   @ApiOperation({ summary: "Edit Commuity" })
@@ -79,4 +80,25 @@ export class CommunitiesController {
       "Community Edit Successfull",
     );
   }
+
+
+  // user----community followers.
+
+  @Post(':communityId/follow')
+  userFollowCommunity(@GetUser('userId') userId: string, @Param('communityId') communityId: string) {
+    return handleRequest(
+      () => this.service.userFollowCommunity(userId, communityId),
+      "User Following a Community Successfull",
+    );
+  }
+
+  
+@Delete(':communityId/unFollow')
+userUnfollowCommunity(@GetUser('userId') userId: string, @Param('communityId') communityId: string) {
+  return handleRequest(
+      () => this.service.userUnfollowCommunity(userId, communityId),
+      "User Following a Community Successfull",
+    );
+}
+
 }

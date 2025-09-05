@@ -10,7 +10,7 @@ class Login {
   @IsOptional()
   @IsString()
   @MinLength(6)
-  passwordHash?: string;
+  password?: string;
 }
 
 export class LoginDto extends IntersectionType(Login) {}

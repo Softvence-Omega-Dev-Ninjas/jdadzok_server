@@ -13,6 +13,7 @@ export default defineConfig([
     "generated/*",
     "scripts.sh",
     "*.sh",
+    "scripts/*",
   ]),
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],

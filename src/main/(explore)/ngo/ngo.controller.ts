@@ -15,7 +15,8 @@ import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { GetUser } from "@project/common/jwt/jwt.decorator";
 import { CreateNgoDto, UpdateNgoDto } from "./dto/ngo.dto";
 import { handleRequest } from "@project/common/utils/handle.request.util";
-import { NgoQueryDto } from "./dto/ngo.query.dto";
+
+
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("ngos")
@@ -37,8 +38,8 @@ export class NgoController {
   // find all ngo...
   @Get("")
   @ApiOperation({ summary: "Get All community" })
-  async findAll(@Query() query?: NgoQueryDto) {
-    return handleRequest(() => this.service.findAll(query), "Get All Ngo");
+  async findAll() {
+    return handleRequest(() => this.service.findAll(), "Get All Ngo");
   }
 
   //    delete Ngo...

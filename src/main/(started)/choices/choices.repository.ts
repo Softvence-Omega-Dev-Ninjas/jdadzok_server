@@ -72,7 +72,7 @@ export class ChoicesRepository {
   async findAll(userId: CreateChoiceDto["userId"]) {
     return await this.prisma.choice.findMany({
       where: {
-        userChoice: {
+        userChoices: {
           some: { userId },
         },
       },

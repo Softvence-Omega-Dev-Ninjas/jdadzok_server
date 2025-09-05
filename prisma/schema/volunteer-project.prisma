@@ -1,0 +1,33 @@
+model VolunteerProject {
+  id String @id @default(uuid())
+  
+  // Project creator (usually NGO or organization)
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  
+  // Project details
+  title         String
+  description   String        @db.Text
+  location      String?       // Project location
+  remoteAllowed Boolean       @default(false) // Can be done remotely
+  status        VolunteerStatus @default(OPEN)
+  
+  // Requirements
+  requiredSkills String? @db.Text // Skills needed
+  timeCommitment String? // Expected time commitment
+  duration       String? // Project duration
+  
+  // Applications for this project
+  applications VolunteerApplication[]
+  
+  // Endorsements related to this project
+  endorsements Endorsement[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("volunteer_projects")
+  @@index([createdById])
+  @@index([status])
+  @@index([remoteAllowed])
+}

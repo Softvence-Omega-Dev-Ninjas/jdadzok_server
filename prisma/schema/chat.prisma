@@ -1,40 +1,22 @@
+
 model Chat {
-  id           String            @id @default(uuid())
-  type         ChatType          @default(DIRECT)
-  name         String?
-  createdById  String
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  id String @id @default(uuid())
+  
+  type ChatType @default(DIRECT) // Direct message or group chat
+  name String? // Group chat name (null for direct messages)
+  
+  // Chat creator
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  
+  // Chat participants and messages
   participants ChatParticipant[]
-  createdBy    User              @relation(fields: [createdById], references: [id])
   messages     Message[]
-
-  @@map("chats")
-}
-
-model ChatParticipant {
-  id        String   @id @default(uuid())
-  chatId    String
-  userId    String
-  joinedAt  DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  chat      Chat     @relation(fields: [chatId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@unique([chatId, userId])
-  @@map("chat_participants")
-}
-
-model MessageRead {
-  id        String   @id @default(uuid())
-  messageId String
-  userId    String
-  readAt    DateTime @default(now())
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  message   Message  @relation(fields: [messageId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@unique([messageId, userId])
-  @@map("message_reads")
+  
+  @@map("chats")
+  @@index([createdById])
+  @@index([type])
 }

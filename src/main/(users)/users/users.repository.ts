@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { omit } from "@project/utils";
-import { CreateUserDto } from "./dto/users.dto";
+import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 
 @Injectable()
 export class UserRepository {
@@ -12,7 +12,7 @@ export class UserRepository {
     const user = await this.prisma.user.create({
       data: { ...input, role: "USER", capLevel: "NONE" },
     });
-    return omit(user, ["passwordHash"]);
+    return omit(user, ["password"]);
   }
   async findByEmail(email: string) {
     return await this.prisma.user.findUnique({
@@ -22,29 +22,26 @@ export class UserRepository {
   async findById(id: string) {
     return await this.prisma.user.findUnique({
       where: { id },
+      include: {
+        profile: true,
+        about: true,
+      },
     });
   }
 
-  async update(id: string, data: Partial<CreateUserDto>) {
-    return await this.prisma.user.update({
+  async update(id: string, data: Partial<UpdateUserDto>) {
+    await this.prisma.user.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+      },
     });
   }
-
-  async getFollowingIds(userId: string) {
-    const user = await this.prisma.user.findUnique({
+  async delete(userId: string) {
+    return await this.prisma.user.delete({
       where: {
         id: userId,
       },
-      select: {
-        following: {
-          select: {
-            id: true,
-          },
-        },
-      },
     });
-    return user?.following.map((u) => u.id) ?? [];
   }
 }

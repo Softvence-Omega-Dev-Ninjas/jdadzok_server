@@ -9,18 +9,18 @@ import { NgoQueryDto } from "./dto/ngo.query.dto";
 
 @Injectable()
 export class NgoService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // create new ngo......
   async createNgo(userId: string, dto: CreateNgoDto) {
     const ngo = await this.prisma.ngo.findFirst({
       where: {
         ownerId: userId,
-        sharedProfile: {
+        profile: {
           is: {
-            title: dto.sharedProfile.title,
-          },
-        },
+            title: dto.profile?.title
+          }
+        }
       },
     });
     if (ngo) {
@@ -34,49 +34,32 @@ export class NgoService {
         },
         ngoType: dto.ngoType,
         foundationDate: dto.foundationDate,
-        sharedProfile: {
+        about: {
           create: {
-            title: dto.sharedProfile.title,
-            bio: dto.sharedProfile.bio,
-            avatarUrl: dto.sharedProfile.avatarUrl,
-            coverUrl: dto.sharedProfile.coverUrl,
-            location: dto.sharedProfile.location,
-            fieldOfWork: dto.sharedProfile.fieldOfWork,
-            About: dto.sharedProfile.About,
-            details: dto.sharedProfile.details,
-          },
+            ...dto.about
+          }
         },
+        profile: {
+          create: dto.profile
+        }
       },
       include: {
-        sharedProfile: true,
+        profile: true,
+        about: true
       },
     });
   }
   // find ngo data....
-  async findAll(query?: NgoQueryDto) {
+  async findAll() {
     const ngo = await this.prisma.ngo.findMany({
-      where: {
-        sharedProfile: {
-          is: {
-            title: query?.title
-              ? { contains: query.title, mode: "insensitive" }
-              : undefined,
-            bio: query?.bio
-              ? { contains: query.bio, mode: "insensitive" }
-              : undefined,
-            location: query?.location
-              ? { contains: query.location, mode: "insensitive" }
-              : undefined,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
       include: {
-        sharedProfile: true,
-      },
+        about: true,
+        profile: true
+      }
     });
     return ngo;
   }
+
   // delete ngo....
   async deleteNgo(userId: string, ngoId: string) {
     const isExistCommunity = await this.prisma.ngo.findFirst({
@@ -113,25 +96,20 @@ export class NgoService {
       where: { id: ngoId },
       data: {
         ngoType: dto.ngoType,
-        foundationDate: dto.foundationDate,
-        sharedProfile: dto.sharedProfile
-          ? {
-              create: {
-                title: dto.sharedProfile.title,
-                bio: dto.sharedProfile.bio,
-                avatarUrl: dto.sharedProfile.avatarUrl,
-                coverUrl: dto.sharedProfile.coverUrl,
-                location: dto.sharedProfile.location,
-                fieldOfWork: dto.sharedProfile.fieldOfWork,
-                About: dto.sharedProfile.About,
-                details: dto.sharedProfile.details,
-              },
-            }
-          : undefined,
+        about:{
+          update:{
+            ...dto.about
+          },
+        },
+        profile:{
+          update:{
+            ...dto.profile
+          }
+        }
       },
-      include: {
-        sharedProfile: true,
-      },
+      include:{profile: true,
+        about:true
+      }
     });
   }
 
@@ -139,7 +117,10 @@ export class NgoService {
   async findOne(ngoId: string) {
     const ngo = await this.prisma.ngo.findUnique({
       where: { id: ngoId },
-      include: { sharedProfile: true },
+      include: {
+        profile: true,
+        about: true
+      },
     });
     if (!ngo) {
       throw new NotFoundException("Ngo Not Found");

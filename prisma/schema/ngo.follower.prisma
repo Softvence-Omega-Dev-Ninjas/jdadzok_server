@@ -1,9 +1,0 @@
-model NGOFollower {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String
-  ngoId     String
-  ngo       Ngo      @relation(fields: [ngoId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-}
