@@ -25,7 +25,7 @@ class UserCreate {
   @IsOptional()
   @IsString()
   @MinLength(6)
-  passowrd?: string;
+  password?: string;
 
   @ApiPropertyOptional({
     enum: AuthProvider,

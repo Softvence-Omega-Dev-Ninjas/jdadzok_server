@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
-import { CommentController } from "@project/main/(posts)/comments/comment.controller";
+
+import { CommunitiesController } from "./communities.controller";
 import { CommunitiesService } from "./communities.service";
 
 @Module({
   imports: [],
-  controllers: [CommentController],
+  controllers: [CommunitiesController],
   providers: [CommunitiesService],
   exports: [],
 })

@@ -24,15 +24,15 @@ export class UserService {
 
     // has password if provider is email
     if (body.authProvider === "EMAIL") {
-      if (!body.passowrd)
+      if (!body.password)
         throw new ConflictException(
           "Password is required for email registration",
         );
 
-      body.passowrd = await this.utilsService.hash(body.passowrd);
+      body.password = await this.utilsService.hash(body.password);
     }
     // if they select any other provider, we will not store password
-    if (body.authProvider !== "EMAIL") delete body.passowrd;
+    if (body.authProvider !== "EMAIL") delete body.password;
     const createdUser = await this.repository.store(body);
 
     const accessToken = await this.jwtService.signAsync({
@@ -51,8 +51,8 @@ export class UserService {
     const user = await this.repository.findById(userId);
     if (!user) throw new NotFoundException("User not found!"); // not required for all the time
     // if update input has password then hash it
-    if (input.passowrd)
-      input.passowrd = await this.utilsService.hash(input.passowrd!);
+    if (input.password)
+      input.password = await this.utilsService.hash(input.password!);
 
     return await this.repository.update(userId, input);
   }
