@@ -26,7 +26,6 @@ export class UserController {
       const result = await this.service.register(body);
       return successResponse(result, "Registration successfull!");
     } catch (err) {
-      console.log(err)
       return err;
     }
   }

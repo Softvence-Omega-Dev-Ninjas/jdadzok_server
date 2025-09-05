@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from "@nestjs/common";
 import { NgoService } from "./ngo.service";
@@ -15,7 +14,6 @@ import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { GetUser } from "@project/common/jwt/jwt.decorator";
 import { CreateNgoDto, UpdateNgoDto } from "./dto/ngo.dto";
 import { handleRequest } from "@project/common/utils/handle.request.util";
-
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

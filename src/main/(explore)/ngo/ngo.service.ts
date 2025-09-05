@@ -5,11 +5,9 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateNgoDto, UpdateNgoDto } from "./dto/ngo.dto";
-import { NgoQueryDto } from "./dto/ngo.query.dto";
-
 @Injectable()
 export class NgoService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   // create new ngo......
   async createNgo(userId: string, dto: CreateNgoDto) {
@@ -18,9 +16,9 @@ export class NgoService {
         ownerId: userId,
         profile: {
           is: {
-            title: dto.profile?.title
-          }
-        }
+            title: dto.profile?.title,
+          },
+        },
       },
     });
     if (ngo) {
@@ -36,16 +34,16 @@ export class NgoService {
         foundationDate: dto.foundationDate,
         about: {
           create: {
-            ...dto.about
-          }
+            ...dto.about,
+          },
         },
         profile: {
-          create: dto.profile
-        }
+          create: dto.profile,
+        },
       },
       include: {
         profile: true,
-        about: true
+        about: true,
       },
     });
   }
@@ -54,8 +52,8 @@ export class NgoService {
     const ngo = await this.prisma.ngo.findMany({
       include: {
         about: true,
-        profile: true
-      }
+        profile: true,
+      },
     });
     return ngo;
   }
@@ -72,12 +70,9 @@ export class NgoService {
       throw new NotFoundException("Ngo is not found.");
     }
 
-    return this.prisma.ngo.delete({
-      where: { id: ngoId },
-    });
+    return this.prisma.ngo.delete({ where: { id: ngoId } });
   }
   // update ngo...
-
   async updateNgo(userId: string, ngoId: string, dto: UpdateNgoDto) {
     const isExistNgo = await this.prisma.ngo.findUnique({
       where: { id: ngoId },
@@ -96,20 +91,18 @@ export class NgoService {
       where: { id: ngoId },
       data: {
         ngoType: dto.ngoType,
-        about:{
-          update:{
-            ...dto.about
+        about: {
+          update: {
+            ...dto.about,
           },
         },
-        profile:{
-          update:{
-            ...dto.profile
-          }
-        }
+        profile: {
+          update: {
+            ...dto.profile,
+          },
+        },
       },
-      include:{profile: true,
-        about:true
-      }
+      include: { profile: true, about: true },
     });
   }
 
@@ -119,7 +112,7 @@ export class NgoService {
       where: { id: ngoId },
       include: {
         profile: true,
-        about: true
+        about: true,
       },
     });
     if (!ngo) {

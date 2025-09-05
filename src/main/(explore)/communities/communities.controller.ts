@@ -19,7 +19,7 @@ import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
 @UseGuards(JwtAuthGuard)
 @Controller("communities")
 export class CommunitiesController {
-  constructor(private readonly service: CommunitiesService) { }
+  constructor(private readonly service: CommunitiesService) {}
 
   @Post("/")
   @ApiOperation({ summary: "Create new community" })
@@ -37,10 +37,7 @@ export class CommunitiesController {
   @Get("/")
   @ApiOperation({ summary: "Get All community" })
   async findAll() {
-    return handleRequest(
-      () => this.service.findAll(),
-      "Get All Community",
-    );
+    return handleRequest(() => this.service.findAll(), "Get All Community");
   }
 
   //get single community by ID
@@ -81,24 +78,27 @@ export class CommunitiesController {
     );
   }
 
-
   // user----community followers.
 
-  @Post(':communityId/follow')
-  userFollowCommunity(@GetUser('userId') userId: string, @Param('communityId') communityId: string) {
+  @Post(":communityId/follow")
+  userFollowCommunity(
+    @GetUser("userId") userId: string,
+    @Param("communityId") communityId: string,
+  ) {
     return handleRequest(
       () => this.service.userFollowCommunity(userId, communityId),
       "User Following a Community Successfull",
     );
   }
 
-  
-@Delete(':communityId/unFollow')
-userUnfollowCommunity(@GetUser('userId') userId: string, @Param('communityId') communityId: string) {
-  return handleRequest(
+  @Delete(":communityId/unFollow")
+  userUnfollowCommunity(
+    @GetUser("userId") userId: string,
+    @Param("communityId") communityId: string,
+  ) {
+    return handleRequest(
       () => this.service.userUnfollowCommunity(userId, communityId),
       "User Following a Community Successfull",
     );
-}
-
+  }
 }

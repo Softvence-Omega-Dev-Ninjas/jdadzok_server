@@ -1,24 +1,26 @@
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
-
 
 @Injectable()
 export class CommunitiesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   // create new community......
   async createCommunity(userId: string, dto: CreateCommunityDto) {
-
     const communitity = await this.prisma.community.findFirst({
       where: {
         ownerId: userId,
         profile: {
           is: {
-            title: dto.profile?.title
-          }
-        }
+            title: dto.profile?.title,
+          },
+        },
       },
     });
     if (communitity) {
@@ -34,16 +36,16 @@ export class CommunitiesService {
         foundationDate: dto.foundationDate,
         about: {
           create: {
-            ...dto.about
+            ...dto.about,
           },
         },
         profile: {
-          create: dto.profile
+          create: dto.profile,
         },
       },
       include: {
         about: true,
-        profile: true
+        profile: true,
       },
     });
   }
@@ -52,13 +54,11 @@ export class CommunitiesService {
     const community = await this.prisma.community.findMany({
       include: {
         profile: true,
-        about: true
-      }
-    })
+        about: true,
+      },
+    });
     return community;
   }
-
-
 
   // find one community
   async findOne(communityId: string) {
@@ -113,25 +113,21 @@ export class CommunitiesService {
         communityType: dto.communityType,
         about: {
           update: {
-            ...dto.about
-          }
+            ...dto.about,
+          },
         },
         profile: {
           update: {
-            ...dto.profile
-          }
-        }
+            ...dto.profile,
+          },
+        },
       },
       include: {
         about: true,
         profile: true,
       },
     });
-
-
-
   }
-
 
   // user----community followers.
 
@@ -139,7 +135,7 @@ export class CommunitiesService {
     const exists = await this.prisma.communityFollower.findUnique({
       where: { userId_communityId: { userId, communityId } },
     });
-    if (exists) throw new BadRequestException('Already following');
+    if (exists) throw new BadRequestException("Already following");
 
     await this.prisma.$transaction([
       this.prisma.communityFollower.create({
@@ -152,14 +148,14 @@ export class CommunitiesService {
       }),
     ]);
 
-    return { message: 'User followed community' };
+    return { message: "User followed community" };
   }
 
   async userUnfollowCommunity(userId: string, communityId: string) {
     const follow = await this.prisma.communityFollower.findUnique({
       where: { userId_communityId: { userId, communityId } },
     });
-    if (!follow) throw new BadRequestException('Not following');
+    if (!follow) throw new BadRequestException("Not following");
 
     await this.prisma.$transaction([
       this.prisma.communityFollower.delete({ where: { id: follow.id } }),
@@ -170,8 +166,6 @@ export class CommunitiesService {
       }),
     ]);
 
-    return { message: 'User unfollowed community' };
+    return { message: "User unfollowed community" };
   }
-
-
 }
