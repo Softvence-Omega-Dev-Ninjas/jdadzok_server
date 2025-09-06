@@ -10,6 +10,23 @@ on:
       # - main
       - sabbir
 
+# 🌍 Global ENV variables
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  NODE_ENV: ${{ secrets.NODE_ENV }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+  BASE_URL: ${{ secrets.BASE_URL }}
+  MAIL_USER: ${{ secrets.MAIL_USER }}
+  MAIL_PASS: ${{ secrets.MAIL_PASS }}
+  SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
+  SUPER_ADMIN_PASS: ${{ secrets.SUPER_ADMIN_PASS }}
+  REDIS_URL: ${{ secrets.REDIS_URL }}
+  TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+  TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+  TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+
 jobs:
   build-and-push:
     name: Build & Push Docker Image 🏗️
@@ -26,43 +43,39 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Log in to Docker Hub 🔑
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ env.DOCKER_USERNAME }}" --password-stdin
 
       - name: Extract Package Name & Version 📦
         id: package
         run: |
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          IMAGE_TAG="${{ secrets.DOCKER_USERNAME }}/${PACKAGE_NAME}:${PACKAGE_VERSION}"
+          IMAGE_TAG="${{ env.DOCKER_USERNAME }}/${PACKAGE_NAME}:${PACKAGE_VERSION}"
 
-          # For outputs (used by other jobs)
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-          # For current job env
-          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
-          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
-          echo "image_tag=$IMAGE_TAG" >> $GITHUB_ENV
-
       - name: Create .env file 📄
         run: |
-          echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
-          echo "PACKAGE_NAME=${{ env.package_name }}" >> .env
-          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
-          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
-          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
-          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
-          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
-          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
-          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
+          cat <<EOF > .env
+          PACKAGE_NAME=${{ steps.package.outputs.package_name }}
+          PACKAGE_VERSION=${{ steps.package.outputs.package_version }}
+          DOCKER_USERNAME=${{ env.DOCKER_USERNAME }}
+          NODE_ENV=${{ env.NODE_ENV }}
+          DATABASE_URL=${{ env.DATABASE_URL }}
+          JWT_SECRET=${{ env.JWT_SECRET }}
+          JWT_EXPIRES_IN=${{ env.JWT_EXPIRES_IN }}
+          BASE_URL=${{ env.BASE_URL }}
+          MAIL_USER=${{ env.MAIL_USER }}
+          MAIL_PASS=${{ env.MAIL_PASS }}
+          SUPER_ADMIN_EMAIL=${{ env.SUPER_ADMIN_EMAIL }}
+          SUPER_ADMIN_PASS=${{ env.SUPER_ADMIN_PASS }}
+          REDIS_URL=${{ env.REDIS_URL }}
+          TWILIO_ACCOUNT_SID=${{ env.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN=${{ env.TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER=${{ env.TWILIO_PHONE_NUMBER }}
+          EOF
 
       - name: Build Docker Image 🔨
         run: docker compose --profile prod build
@@ -70,7 +83,7 @@ jobs:
       - name: Push Docker Image 🚀
         run: |
           docker compose --profile prod push
-          echo "✅ Docker image ${{ env.image_tag }} pushed successfully!"
+          echo "✅ Docker image ${{ steps.package.outputs.image_tag }} pushed successfully!"
 
       - name: Clean up .env 🧹
         if: always()
@@ -101,61 +114,76 @@ jobs:
 
       - name: Setup SSH Key 🔐
         run: |
+          # Create SSH directory
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Write SSH private key (ensure proper format)
           echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+
+          # Add server to known hosts
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+          # Start SSH agent and add key
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+          # Create SSH config for easier connection
+          cat > ~/.ssh/config << EOF
+          Host deploy-server
+            HostName ${{ secrets.VPS_HOST }}
+            User ${{ secrets.VPS_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+            UserKnownHostsFile ~/.ssh/known_hosts
+          EOF
+          chmod 600 ~/.ssh/config
 
       - name: Test SSH Connection 🚀
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -v ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo '✅ SSH connection successful'"
+          echo "Testing SSH connection..."
+          ssh deploy-server "echo '✅ SSH connection successful'"
+          echo "SSH test completed successfully"
 
       - name: Create .env file 📄
         run: |
-          echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
-          echo "PACKAGE_NAME=${{ env.package_name }}" >> .env
-          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
-          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
-          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
-          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
-          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
-          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
-          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
+          cat <<EOF > .env
+          PACKAGE_NAME=${{ env.PACKAGE_NAME }}
+          PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
+          DOCKER_USERNAME=${{ env.DOCKER_USERNAME }}
+          NODE_ENV=${{ env.NODE_ENV }}
+          DATABASE_URL=${{ env.DATABASE_URL }}
+          JWT_SECRET=${{ env.JWT_SECRET }}
+          JWT_EXPIRES_IN=${{ env.JWT_EXPIRES_IN }}
+          BASE_URL=${{ env.BASE_URL }}
+          MAIL_USER=${{ env.MAIL_USER }}
+          MAIL_PASS=${{ env.MAIL_PASS }}
+          SUPER_ADMIN_EMAIL=${{ env.SUPER_ADMIN_EMAIL }}
+          SUPER_ADMIN_PASS=${{ env.SUPER_ADMIN_PASS }}
+          REDIS_URL=${{ env.REDIS_URL }}
+          TWILIO_ACCOUNT_SID=${{ env.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN=${{ env.TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER=${{ env.TWILIO_PHONE_NUMBER }}
+          EOF
 
       - name: Copy Files to Server 📦
         run: |
-          # Determine SSH command based on setup
-          if [ "$SSH_USE_DIRECT" = "true" ]; then
-            SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
-            SCP_CMD="scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
-          else
-            SSH_CMD="ssh -o StrictHostKeyChecking=no"
-            SCP_CMD="scp -o StrictHostKeyChecking=no"
-          fi
-
           echo "Creating directories on server..."
-          $SSH_CMD ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/${{ env.package_name }} ~/${{ env.package_name }}/scripts"
+          ssh deploy-server "mkdir -p ~/${{ env.package_name }} ~/${{ env.package_name }}/scripts"
 
           echo "Copying deployment files..."
-          $SCP_CMD docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
-          $SCP_CMD .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
-          $SCP_CMD Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/
 
           echo "Copying scripts..."
-          $SCP_CMD scripts/deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/scripts/
-          $SCP_CMD scripts/health-check.js ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/scripts/
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key scripts/deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/scripts/
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key scripts/health-check.js ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ env.package_name }}/scripts/
 
           echo "Making scripts executable..."
-          $SSH_CMD ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "chmod +x ~/${{ env.package_name }}/scripts/deploy.sh"
+          ssh deploy-server "chmod +x ~/${{ env.package_name }}/scripts/deploy.sh"
 
           echo "✅ Files copied successfully"
 
@@ -164,16 +192,9 @@ jobs:
           IMAGE_NAME: ${{ env.package_name }}
           IMAGE_VERSION: ${{ env.package_version }}
         run: |
-          # Determine SSH command
-          if [ "$SSH_USE_DIRECT" = "true" ]; then
-            SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
-          else
-            SSH_CMD="ssh -o StrictHostKeyChecking=no"
-          fi
-
           echo "Starting zero-downtime deployment..."
 
-          $SSH_CMD ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          ssh deploy-server << 'EOF'
           set -e  # Exit on any error
 
           cd ~/${{ env.package_name }}
@@ -266,19 +287,12 @@ jobs:
 
       - name: Verify Deployment ✅
         run: |
-          # Determine SSH command
-          if [ "$SSH_USE_DIRECT" = "true" ]; then
-            SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
-          else
-            SSH_CMD="ssh -o StrictHostKeyChecking=no"
-          fi
-
           echo "⏳ Waiting for services to stabilize..."
           sleep 15
 
           echo "🔍 Verifying deployment status..."
 
-          $SSH_CMD ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          ssh deploy-server << 'EOF'
           cd ~/${{ env.package_name }}
 
           echo "=== Container Status ==="
@@ -313,5 +327,5 @@ jobs:
         if: always()
         run: |
           # Clean up SSH files
-          rm -f ~/.ssh/deploy_key ~/.ssh/deploy_key.orig
+          rm -rf ~/.ssh/deploy_key* ~/.ssh/config
           rm -f .env

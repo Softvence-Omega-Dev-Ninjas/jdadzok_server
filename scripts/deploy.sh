@@ -16,19 +16,19 @@ NC='\033[0m' # No Color
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    echo -e "${BLUE}[INFO]${NC} $(date '+%Y-%m-%d %H:%M:%S') $1"
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    echo -e "${GREEN}[SUCCESS]${NC} $(date '+%Y-%m-%d %H:%M:%S') $1"
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    echo -e "${YELLOW}[WARNING]${NC} $(date '+%Y-%m-%d %H:%M:%S') $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $(date '+%Y-%m-%d %H:%M:%S') $1"
 }
 
 # Load environment variables
@@ -77,17 +77,19 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Function to check if container is healthy
-check_container_health() {
+# Function to wait for container to be ready
+wait_for_container() {
     local container_name=$1
-    local timeout=${2:-30}
+    local timeout=${2:-60}
     local count=0
     
-    log_info "Checking health of container: $container_name"
+    log_info "Waiting for container '$container_name' to be ready..."
     
     while [ $count -lt $timeout ]; do
-        if docker ps --format "table {{.Names}}\t{{.Status}}" | grep "$container_name" | grep -q "Up"; then
-            log_success "Container $container_name is running"
+        if docker ps --filter "name=$container_name" --format "{{.Status}}" | grep -q "Up"; then
+            # Wait a bit more to ensure the container is really ready
+            sleep 5
+            log_success "Container '$container_name' is ready"
             return 0
         fi
         
@@ -97,7 +99,7 @@ check_container_health() {
     done
     
     echo ""
-    log_error "Container $container_name failed to start within $timeout seconds"
+    log_error "Container '$container_name' failed to be ready within $timeout seconds"
     return 1
 }
 
@@ -117,12 +119,21 @@ check_app_health() {
         
         sleep 2
         count=$((count + 2))
-        echo -n "."
+        if [ $((count % 10)) -eq 0 ]; then
+            echo -n " [$count/${timeout}s]"
+        else
+            echo -n "."
+        fi
     done
     
     echo ""
     log_warning "Application health check failed or timed out"
     return 1
+}
+
+# Function to get running containers for the project
+get_running_containers() {
+    docker ps --filter "name=${COMPOSE_PROJECT_NAME}" --format "{{.Names}}" | sort
 }
 
 # Function to perform zero-downtime deployment
@@ -153,32 +164,45 @@ deploy() {
     export PACKAGE_VERSION="$version"
     
     # Pull new images
-    log_info "Pulling new images..."
+    log_info "Pulling new images for version $version..."
     if ! docker compose --profile prod pull; then
         log_error "Failed to pull new images"
         exit 1
     fi
+    log_success "Images pulled successfully"
     
-    # Check if this is the first deployment
-    if ! docker ps --filter "name=${COMPOSE_PROJECT_NAME}" --format "{{.Names}}" | grep -q "${COMPOSE_PROJECT_NAME}"; then
-        log_info "First deployment detected, starting services..."
-        docker compose --profile prod up -d
+    # Get currently running containers
+    RUNNING_CONTAINERS=$(get_running_containers)
+    
+    if [ -z "$RUNNING_CONTAINERS" ]; then
+        log_info "No existing containers found. Performing initial deployment..."
+        
+        # Initial deployment
+        if ! docker compose --profile prod up -d; then
+            log_error "Failed to start containers"
+            exit 1
+        fi
         
         # Wait for containers to start
-        sleep 10
+        log_info "Waiting for containers to initialize..."
+        sleep 15
         
-        # Check container health
-        if ! check_container_health "${COMPOSE_PROJECT_NAME}_app"; then
-            log_error "Initial deployment failed"
-            docker compose --profile prod logs
+        # Check if containers are running
+        if ! wait_for_container "${COMPOSE_PROJECT_NAME}_app_1" 60; then
+            log_error "Initial deployment failed - container not ready"
+            docker compose --profile prod logs --tail=50
             exit 1
         fi
         
         # Check application health
-        if check_app_health "$HEALTH_CHECK_URL"; then
+        log_info "Performing health check..."
+        if check_app_health "$HEALTH_CHECK_URL" 60; then
             log_success "Initial deployment successful!"
         else
             log_warning "Deployment completed but health check failed"
+            log_info "Container logs:"
+            docker compose --profile prod logs --tail=20
+            exit 1
         fi
         
         return 0
@@ -186,52 +210,77 @@ deploy() {
     
     # Zero-downtime update for existing deployment
     log_info "Performing zero-downtime update..."
+    log_info "Currently running containers: $(echo $RUNNING_CONTAINERS | tr '\n' ' ')"
     
-    # Scale up with new version
-    log_info "Scaling up new version..."
-    docker compose --profile prod up -d --scale app=2 --no-recreate
+    # Create new container with updated version
+    log_info "Creating new container with version $version..."
     
-    # Wait for new containers to be ready
-    sleep 15
+    # Start new containers alongside existing ones
+    if ! docker compose --profile prod up -d --no-deps --scale app=2; then
+        log_error "Failed to scale up containers"
+        exit 1
+    fi
     
-    # Get new container
-    NEW_CONTAINER=$(docker ps --filter "name=${COMPOSE_PROJECT_NAME}_app" --format "{{.Names}}" | grep -v "_1$" | head -1)
+    # Wait a bit for new container to start
+    sleep 10
+    
+    # Find the new container (should be the one with highest number)
+    NEW_CONTAINERS=$(get_running_containers)
+    NEW_CONTAINER=$(echo "$NEW_CONTAINERS" | grep "${COMPOSE_PROJECT_NAME}_app" | tail -1)
     
     if [ -z "$NEW_CONTAINER" ]; then
-        log_error "Failed to create new container"
+        log_error "Failed to identify new container"
+        log_info "Running containers: $NEW_CONTAINERS"
         exit 1
     fi
     
-    # Check if new container is healthy
-    if ! check_container_health "$NEW_CONTAINER" 30; then
-        log_error "New container failed health check, rolling back..."
-        docker stop "$NEW_CONTAINER" || true
-        docker rm "$NEW_CONTAINER" || true
+    log_info "New container created: $NEW_CONTAINER"
+    
+    # Wait for new container to be ready
+    if ! wait_for_container "$NEW_CONTAINER" 60; then
+        log_error "New container failed to start, cleaning up..."
+        docker stop "$NEW_CONTAINER" 2>/dev/null || true
+        docker rm "$NEW_CONTAINER" 2>/dev/null || true
         exit 1
     fi
     
-    # Test application health on new container
-    log_info "Testing new version..."
-    if check_app_health "$HEALTH_CHECK_URL" 30; then
-        log_success "New version is healthy, proceeding with switch..."
+    # Test new container health
+    log_info "Testing health of new container..."
+    if check_app_health "$HEALTH_CHECK_URL" 45; then
+        log_success "New container is healthy!"
         
-        # Stop old container
-        OLD_CONTAINER="${COMPOSE_PROJECT_NAME}_app_1"
-        if docker ps --format "{{.Names}}" | grep -q "$OLD_CONTAINER"; then
-            log_info "Stopping old container: $OLD_CONTAINER"
-            docker stop "$OLD_CONTAINER"
-            docker rm "$OLD_CONTAINER"
+        # Get old containers to remove
+        OLD_CONTAINERS=$(echo "$RUNNING_CONTAINERS" | grep "${COMPOSE_PROJECT_NAME}_app")
+        
+        if [ -n "$OLD_CONTAINERS" ]; then
+            log_info "Stopping old containers..."
+            echo "$OLD_CONTAINERS" | while read -r container; do
+                if [ "$container" != "$NEW_CONTAINER" ]; then
+                    log_info "Stopping container: $container"
+                    docker stop "$container" || true
+                    docker rm "$container" || true
+                fi
+            done
         fi
         
-        # Scale back to 1
-        docker compose --profile prod up -d --scale app=1
+        # Scale back to desired number of containers
+        log_info "Scaling back to single container..."
+        docker compose --profile prod up -d --scale app=1 --remove-orphans
         
         log_success "Zero-downtime deployment completed successfully!"
         
+        # Final health check
+        if check_app_health "$HEALTH_CHECK_URL" 30; then
+            log_success "Final health check passed!"
+        else
+            log_warning "Final health check failed, but deployment appears successful"
+        fi
+        
     else
-        log_error "New version failed health check, rolling back..."
-        docker stop "$NEW_CONTAINER" || true
-        docker rm "$NEW_CONTAINER" || true
+        log_error "New container failed health check, rolling back..."
+        docker stop "$NEW_CONTAINER" 2>/dev/null || true
+        docker rm "$NEW_CONTAINER" 2>/dev/null || true
+        log_error "Rollback completed"
         exit 1
     fi
 }
@@ -242,27 +291,34 @@ show_status() {
     
     echo ""
     echo "📦 Project: $COMPOSE_PROJECT_NAME"
-    echo "🏷️  Current Version: $PACKAGE_VERSION"
+    echo "🏷️  Current Version: ${PACKAGE_VERSION:-Unknown}"
+    echo "🌐 Health Check URL: $HEALTH_CHECK_URL"
     echo ""
     
-    echo "🐳 Containers:"
-    if docker ps --filter "name=${COMPOSE_PROJECT_NAME}" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" | grep -q "$COMPOSE_PROJECT_NAME"; then
+    echo "🐳 Running Containers:"
+    RUNNING_CONTAINERS=$(get_running_containers)
+    if [ -n "$RUNNING_CONTAINERS" ]; then
         docker ps --filter "name=${COMPOSE_PROJECT_NAME}" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
     else
-        echo "No containers running"
+        echo "❌ No containers running"
     fi
     
     echo ""
     echo "🏥 Health Check:"
     if check_app_health "$HEALTH_CHECK_URL" 5; then
-        log_success "Application is healthy"
+        log_success "✅ Application is healthy"
     else
-        log_warning "Application health check failed"
+        log_warning "⚠️ Application health check failed"
+        if [ -n "$RUNNING_CONTAINERS" ]; then
+            echo ""
+            echo "📋 Recent logs:"
+            docker logs --tail 10 "$(echo "$RUNNING_CONTAINERS" | head -1)" 2>/dev/null || echo "No logs available"
+        fi
     fi
     
     echo ""
-    echo "💾 Docker Images:"
-    docker images --filter "reference=${DOCKER_USERNAME}/${PACKAGE_NAME}" --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"
+    echo "💾 Available Docker Images:"
+    docker images --filter "reference=${DOCKER_USERNAME}/${PACKAGE_NAME}" --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}" 2>/dev/null || echo "No images found"
 }
 
 # Function to rollback to previous version
@@ -282,6 +338,8 @@ rollback() {
         log_error "Could not extract version from rollback image"
         exit 1
     fi
+    
+    log_info "Initiating rollback to version: $ROLLBACK_VERSION"
     
     # Perform rollback deployment
     deploy "$ROLLBACK_VERSION"
