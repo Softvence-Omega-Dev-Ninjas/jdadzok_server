@@ -222,6 +222,8 @@ jobs:
           echo "Starting deployment..."
           echo "Package: ${{ needs.build-and-push.outputs.package_name }}"
           echo "Version: ${{ needs.build-and-push.outputs.package_version }}"
+          # check both in a one
+          echo "image tag output example: ${{secrets.DOCKER_USERNAME}}/${{needs.build-and-push.outputs.package_name}}:${{needs.build-and-push.outputs.package_version}}
           echo "Image: ${{ needs.build-and-push.outputs.image_tag }}"
 
           ssh deploy-server bash << 'DEPLOY_EOF'
