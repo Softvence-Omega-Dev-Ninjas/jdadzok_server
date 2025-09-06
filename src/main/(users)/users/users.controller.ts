@@ -2,6 +2,8 @@ import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   Post,
   UseGuards,
   UsePipes,
@@ -44,13 +46,26 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @Post("me")
+  @Get("me")
   @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard)
   async GetMe(@GetUser() user: TUser) {
     try {
       const result = await this.service.getMe(user.userId);
       return successResponse(result, "User profile retrive success");
+    } catch (err) {
+      return err;
+    }
+  }
+
+  @ApiBearerAuth()
+  @Delete("delete")
+  @UsePipes(ValidationPipe)
+  @UseGuards(JwtAuthGuard)
+  async delete(@GetUser() user: TUser) {
+    try {
+      const result = await this.service.deleteAcount(user.userId);
+      return successResponse(result, "User profile delete success");
     } catch (err) {
       return err;
     }

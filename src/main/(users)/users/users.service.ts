@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { UtilsService } from "@project/lib/utils/utils.service";
+import { AuthService } from "@project/main/(started)/auth/auth.service";
 import { JwtServices } from "@project/services/jwt.service";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserRepository } from "./users.repository";
@@ -14,6 +15,7 @@ export class UserService {
     private readonly repository: UserRepository,
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
+    private readonly authService: AuthService,
   ) {}
 
   async register(body: CreateUserDto) {
@@ -41,9 +43,15 @@ export class UserService {
       roles: createdUser.role,
     });
 
+    // send the opt to the user
+    const sendOpt = await this.authService.forgetPassword({
+      email: createdUser.email,
+    });
+
     return {
       accessToken,
       user: createdUser,
+      verificaiton: sendOpt,
     };
   }
 
@@ -56,6 +64,7 @@ export class UserService {
 
     return await this.repository.update(userId, input);
   }
+
   async deleteAcount(userId: string) {
     const user = await this.repository.findById(userId);
     if (!user) throw new NotFoundException("User not found!");

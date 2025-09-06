@@ -52,6 +52,7 @@ export class AuthService {
       user: omit(user, ["password"]),
     };
   }
+  // TODO: need to be create a reuseable function for otp verification
   async forgetPassword(input: ForgetPasswordDto) {
     const user = await this.userRepository.findByEmail(input.email);
     if (!user) throw new NotFoundException("User not found");
