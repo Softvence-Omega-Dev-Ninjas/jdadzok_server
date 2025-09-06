@@ -137,7 +137,7 @@ export class AuthService {
     const hash = await this.utilsService.hash(input.password);
 
     // update the user password with that hash password
-    return await this.userRepository.update(user.id, { passowrd: hash });
+    return await this.userRepository.update(user.id, { password: hash });
   }
   async logout(email: string) {
     const user = await this.userRepository.findByEmail(email);
