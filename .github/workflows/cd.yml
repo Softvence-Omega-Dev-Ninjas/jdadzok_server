@@ -102,12 +102,26 @@ jobs:
           echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
 
       - name: Build Docker Image 🔨
-        run: docker compose --profile prod build
+        run: |
+          echo "Building Docker image: ${{ steps.extract.outputs.image_tag }}"
+          docker compose --profile prod build
+          if [ $? -eq 0 ]; then
+            echo "✅ Docker image built successfully"
+          else
+            echo "❌ Failed to build Docker image"
+            exit 1
+          fi
 
       - name: Push Docker Image 🚀
         run: |
+          echo "Pushing Docker image: ${{ steps.extract.outputs.image_tag }}"
           docker compose --profile prod push
-          echo "✅ Docker image ${{ steps.extract.outputs.image_tag }} pushed successfully!"
+          if [ $? -eq 0 ]; then
+            echo "✅ Docker image ${{ steps.extract.outputs.image_tag }} pushed successfully!"
+          else
+            echo "❌ Failed to push Docker image"
+            exit 1
+          fi
 
       - name: Clean up .env 🧹
         if: always()
@@ -129,8 +143,12 @@ jobs:
           echo "package_name: '${{ needs.build-and-push.outputs.package_name }}'"
           echo "package_version: '${{ needs.build-and-push.outputs.package_version }}'"
           echo "image_tag: '${{ needs.build-and-push.outputs.image_tag }}'"
+          if [ -z "${{ needs.build-and-push.outputs.image_tag }}" ]; then
+            echo "⚠️ IMAGE_TAG is empty, using hardcoded fallback"
+          else
+            echo "✅ IMAGE_TAG is set"
+          fi
           echo "========================="
-
           echo "✅ All outputs are valid and ready for deployment"
 
       - name: Setup SSH 🔐
@@ -200,10 +218,16 @@ jobs:
           ssh deploy-server bash << 'DEPLOY_EOF'
           set -e
 
-          # Set variables (using the exact values from GitHub Actions)
+          # Set variables
           PACKAGE_NAME="${{ needs.build-and-push.outputs.package_name }}"
           PACKAGE_VERSION="${{ needs.build-and-push.outputs.package_version }}"
           IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+
+          # Fallback to hardcoded image tag if empty or invalid
+          if [ -z "$IMAGE_TAG" ] || ! echo "$IMAGE_TAG" | grep -qE '^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+:[a-zA-Z0-9._-]+'; then
+            echo "⚠️ IMAGE_TAG is empty or invalid, using hardcoded fallback"
+            IMAGE_TAG="devlopersabbir/jdadzok_server:0.3.3"
+          fi
 
           echo "=== DEPLOYMENT STARTED ==="
           echo "Package: $PACKAGE_NAME"
