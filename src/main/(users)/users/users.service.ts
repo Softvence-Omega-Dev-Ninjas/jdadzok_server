@@ -14,7 +14,7 @@ export class UserService {
     private readonly repository: UserRepository,
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
-  ) { }
+  ) {}
 
   async register(body: CreateUserDto) {
     // check if user already exit or not

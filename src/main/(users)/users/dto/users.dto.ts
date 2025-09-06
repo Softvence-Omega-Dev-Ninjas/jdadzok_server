@@ -68,9 +68,9 @@ class SelectUser {
   metrics?: UpdateUserProfileMetricsDto;
 }
 
-export class CreateUserDto extends IntersectionType(UserCreate) { }
-export class UpdateUserDto extends IntersectionType(PartialType(UserCreate)) { }
+export class CreateUserDto extends IntersectionType(UserCreate) {}
+export class UpdateUserDto extends IntersectionType(PartialType(UserCreate)) {}
 export class SelectUserDto extends IntersectionType(
   PartialType(CreateUserDto),
   PartialType(SelectUser),
-) { }
+) {}
