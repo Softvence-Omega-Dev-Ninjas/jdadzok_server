@@ -99,10 +99,6 @@ jobs:
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Debug Image Tag 🐛
-        run: |
-          echo "Image tag is: ${{ env.image_tag }}"
-
       - name: Setup SSH Key 🔐
         run: |
           # Create SSH directory
@@ -176,101 +172,111 @@ jobs:
 
           echo "✅ Files copied successfully"
 
+      - name: Debug Environment Variables 🔍
+        run: |
+          echo "🔍 Debugging environment variables..."
+          echo "PACKAGE_NAME: ${{ env.package_name }}"
+          echo "PACKAGE_VERSION: ${{ env.package_version }}"
+          echo "IMAGE_TAG: ${{ env.image_tag }}"
+          echo "DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}"
+          if [ -z "${{ env.image_tag }}" ]; then
+            echo "❌ ERROR: IMAGE_TAG is empty!"
+            exit 1
+          fi
+
       - name: Zero-downtime Deployment 🚀
         env:
-          IMAGE_TAG: ${{ env.image_tag }}
-          PACKAGE_NAME: ${{ env.package_name }}
-          PACKAGE_VERSION: ${{ env.package_version }}
+          IMAGE_NAME: ${{ env.package_name }}
+          IMAGE_VERSION: ${{ env.package_version }}
         run: |
-          echo "📦 Setting variables..."
-          PACKAGE_NAME="${{ env.package_name }}"
-          PACKAGE_VERSION="${{ env.package_version }}"
-          IMAGE_TAG="${{ env.image_tag }}"
+          echo "Starting zero-downtime deployment..."
 
-          echo "🚀 Starting deployment on remote server..."
+          ssh deploy-server << 'EOF'
+          set -e  # Exit on any error
 
-          ssh deploy-server <<EOF
-          set -euo pipefail
+          cd ~/${{ env.package_name }}
 
-          echo "✅ Connected to server"
-          cd ~/\$PACKAGE_NAME
+          echo "🏁 Starting deployment process..."
 
-          echo "🏁 Beginning deployment process..."
-
-          # Ensure Docker Compose CLI exists
+          # Install Docker Compose CLI if needed
           if [ ! -f ~/.docker/cli-plugins/docker-compose ]; then
-            echo "📦 Installing Docker Compose CLI..."
+            echo "📦 Installing Docker Compose..."
             mkdir -p ~/.docker/cli-plugins/
-            curl -sSL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+            curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
             chmod +x ~/.docker/cli-plugins/docker-compose
             echo "✅ Docker Compose installed"
           fi
 
-          # Ensure jq is installed
+          # Install jq if not already installed
           if ! command -v jq &>/dev/null; then
             echo "📦 Installing jq..."
             sudo apt-get update && sudo apt-get install -y jq
+            echo "✅ jq installed"
           fi
 
-          # Docker login
-          echo "🔐 Logging into Docker Hub..."
+          # Log in to Docker Hub
+          echo "🔑 Logging into Docker Hub..."
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-          # Ensure Docker permissions
-          echo "🔧 Adding user to docker group (if needed)..."
-          sudo usermod -aG docker \$USER || true
+          # Ensure user has Docker permissions
+          echo "🔧 Setting up Docker permissions..."
+          sudo usermod -aG docker $USER || true
 
-          # UFW rules (optional but helpful)
-          echo "🔥 Configuring firewall rules (if UFW enabled)..."
+          # Setup firewall rules
+          echo "🔥 Configuring firewall..."
           sudo ufw allow 5055 || true
-          sudo ufw allow 5432 || true
+          sudo ufw allow 5432 || true  
           sudo ufw allow 6379 || true
 
-          echo "📥 Pulling latest Docker image: \$IMAGE_TAG"
-          if docker pull \$IMAGE_TAG; then
-            echo "✅ Docker image pulled"
+          # Pull the new image
+          echo "📥 Pulling Docker image: ${{ env.image_tag }}"
+          if docker pull ${{ env.image_tag }}; then
+            echo "✅ Image pulled successfully"
           else
-            echo "❌ Failed to pull Docker image"
+            echo "❌ Failed to pull image"
             exit 1
           fi
 
-          echo "🔍 Checking for deploy.sh..."
+          # Check if deploy script exists
           if [ ! -f "./scripts/deploy.sh" ]; then
-            echo "❌ deploy.sh not found!"
-            ls -la ./scripts || echo "No scripts directory found"
+            echo "❌ Deploy script not found!"
+            echo "Available files:"
+            ls -la scripts/ || echo "No scripts directory"
             exit 1
           fi
 
-          echo "🚦 Making script executable..."
+          # Make sure script is executable
           chmod +x ./scripts/deploy.sh
 
-          echo "🚀 Executing deploy.sh with version \$PACKAGE_VERSION..."
-          if ./scripts/deploy.sh --version \$PACKAGE_VERSION; then
-            echo "✅ deploy.sh executed successfully"
+          # Execute zero-downtime deployment script
+          echo "🚀 Executing deployment script..."
+          if ./scripts/deploy.sh --version ${{ env.package_version }}; then
+            echo "✅ Deployment script executed successfully"
           else
-            echo "❌ deploy.sh failed"
-            echo "📦 Container status:"
-            docker ps -a --filter "name=\$PACKAGE_NAME" || true
-
-            echo "🧾 Logs from app container:"
-            docker logs --tail 50 "\${PACKAGE_NAME}_app_1" 2>/dev/null || echo "No logs available"
+            echo "❌ Deployment script failed"
+            echo "Container status:"
+            docker ps -a --filter "name=${{ env.package_name }}" || true
+            echo "Recent logs:"
+            docker logs --tail 50 "${{ env.package_name }}_app_1" 2>/dev/null || true
             exit 1
           fi
 
-          echo "🔍 Verifying running containers..."
-          if docker ps --filter "name=\$PACKAGE_NAME" | grep -q "\$PACKAGE_NAME"; then
-            echo "✅ App container is running"
-            docker ps --filter "name=\$PACKAGE_NAME"
+          # Verify containers are running
+          echo "🔍 Verifying deployment..."
+          if docker ps --filter "name=${{ env.package_name }}" | grep -q "${{ env.package_name }}"; then
+            echo "✅ Containers are running"
+            docker ps --filter "name=${{ env.package_name }}"
           else
-            echo "❌ No running containers found for \$PACKAGE_NAME"
-            docker ps -a --filter "name=\$PACKAGE_NAME"
+            echo "❌ No containers found running"
+            docker ps -a --filter "name=${{ env.package_name }}"
             exit 1
           fi
 
-          echo "🔒 Logging out from Docker"
+          # Log out from Docker Hub
           docker logout
 
-          echo "🧹 Pruning unused Docker images (dangling only)..."
+          # Clean up unused Docker objects (only dangling images)
+          echo "🧹 Cleaning up unused Docker images..."
           docker image prune -f
 
           echo "🎉 Deployment completed successfully!"
