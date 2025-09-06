@@ -131,6 +131,7 @@ jobs:
     name: Deploy to VPS with Zero Downtime 🔄
     needs: build-and-push
     runs-on: ubuntu-latest
+    if: ${{ success() && needs.build-and-push.result == 'success' }}
 
     steps:
       - name: Checkout Code 📥
@@ -144,9 +145,9 @@ jobs:
           echo "package_version: '${{ needs.build-and-push.outputs.package_version }}'"
           echo "image_tag: '${{ needs.build-and-push.outputs.image_tag }}'"
           if [ -z "${{ needs.build-and-push.outputs.image_tag }}" ]; then
-            echo "⚠️ IMAGE_TAG is empty, using hardcoded fallback"
+            echo "⚠️ IMAGE_TAG is empty, using hardcoded fallback in deployment"
           else
-            echo "✅ IMAGE_TAG is set"
+            echo "✅ IMAGE_TAG is set to '${{ needs.build-and-push.outputs.image_tag }}'"
           fi
           echo "========================="
           echo "✅ All outputs are valid and ready for deployment"
@@ -176,22 +177,25 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
           echo "📄 Creating deployment .env file..."
-          echo "PACKAGE_VERSION=${{ needs.build-and-push.outputs.package_version }}" >> .env
-          echo "PACKAGE_NAME=${{ needs.build-and-push.outputs.package_name }}" >> .env
-          echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> .env
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
-          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
-          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
-          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
-          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
-          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
-          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
+          echo "PACKAGE_VERSION=\"${{ needs.build-and-push.outputs.package_version }}\"" >> .env
+          echo "PACKAGE_NAME=\"${{ needs.build-and-push.outputs.package_name }}\"" >> .env
+          echo "DOCKER_USERNAME=\"$DOCKER_USERNAME\"" >> .env
+          echo "NODE_ENV=\"${{ secrets.NODE_ENV }}\"" >> .env
+          echo "DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"" >> .env
+          echo "JWT_SECRET=\"${{ secrets.JWT_SECRET }}\"" >> .env
+          echo "JWT_EXPIRES_IN=\"${{ secrets.JWT_EXPIRES_IN }}\"" >> .env
+          echo "BASE_URL=\"${{ secrets.BASE_URL }}\"" >> .env
+          echo "MAIL_USER=\"${{ secrets.MAIL_USER }}\"" >> .env
+          echo "MAIL_PASS=\"${{ secrets.MAIL_PASS }}\"" >> .env
+          echo "SUPER_ADMIN_EMAIL=\"${{ secrets.SUPER_ADMIN_EMAIL }}\"" >> .env
+          echo "SUPER_ADMIN_PASS=\"${{ secrets.SUPER_ADMIN_PASS }}\"" >> .env
+          echo "REDIS_URL=\"${{ secrets.REDIS_URL }}\"" >> .env
+          echo "TWILIO_ACCOUNT_SID=\"${{ secrets.TWILIO_ACCOUNT_SID }}\"" >> .env
+          echo "TWILIO_AUTH_TOKEN=\"${{ secrets.TWILIO_AUTH_TOKEN }}\"" >> .env
+          echo "TWILIO_PHONE_NUMBER=\"${{ secrets.TWILIO_PHONE_NUMBER }}\"" >> .env
+          echo "=== .env File Contents (non-sensitive) ==="
+          cat .env | grep -v "MAIL_PASS\|SUPER_ADMIN_PASS\|JWT_SECRET\|TWILIO_AUTH_TOKEN"
+          echo "========================================"
 
       - name: Copy Files to Server 📦
         run: |
@@ -237,6 +241,15 @@ jobs:
 
           cd ~/$PACKAGE_NAME
 
+          # Check disk space
+          echo "Checking available disk space..."
+          df -h
+
+          # Clean up Docker resources to prevent disk space issues
+          echo "Cleaning up Docker resources..."
+          docker system prune -a -f --volumes || true
+          echo "✅ Docker cleanup completed"
+
           # Install Docker Compose if needed
           if [ ! -f ~/.docker/cli-plugins/docker-compose ]; then
             echo "Installing Docker Compose..."
@@ -281,6 +294,22 @@ jobs:
 
           # Make script executable
           chmod +x ./scripts/deploy.sh
+
+          # Validate .env file
+          if [ -f .env ]; then
+            echo "Validating .env file..."
+            while IFS= read -r line; do
+              if [[ -n "$line" && ! "$line" =~ ^# && ! "$line" =~ ^[A-Z_]+=\".*\"$ ]]; then
+                echo "❌ Invalid .env line: $line"
+                exit 1
+              fi
+            done < .env
+            echo "Sourcing .env file..."
+            source .env
+          else
+            echo "❌ .env file not found"
+            exit 1
+          fi
 
           # Run deployment
           echo "Executing deployment script..."

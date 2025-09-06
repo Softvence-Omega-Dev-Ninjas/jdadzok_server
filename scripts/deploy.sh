@@ -33,6 +33,17 @@ log_error() {
 
 # Load environment variables
 if [ -f .env ]; then
+    # Validate .env file format
+    while IFS= read -r line; do
+        # Skip empty lines and comments
+        if [[ -n "$line" && ! "$line" =~ ^# ]]; then
+            if [[ ! "$line" =~ ^[A-Z_]+=\".*\"$ ]]; then
+                log_error "Invalid .env line: $line"
+                exit 1
+            fi
+        fi
+    done < .env
+    log_info "Sourcing .env file..."
     source .env
 else
     log_error ".env file not found!"
