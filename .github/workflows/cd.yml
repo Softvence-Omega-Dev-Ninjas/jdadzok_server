@@ -27,28 +27,112 @@ jobs:
       image_tag: ${{ steps.extract.outputs.image_tag }}
 
     steps:
+      - name: Validate Required Secrets 🔐
+        run: |
+          echo "🔍 Validating required secrets and environment..."
+
+          # Check if secrets are available (they will be masked, but we can check if they're set)
+          MISSING_SECRETS=0
+
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "❌ DOCKER_USERNAME secret is not set"
+            MISSING_SECRETS=$((MISSING_SECRETS + 1))
+          else
+            echo "✅ DOCKER_USERNAME secret is configured"
+          fi
+
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "❌ DOCKER_PASSWORD secret is not set"
+            MISSING_SECRETS=$((MISSING_SECRETS + 1))
+          else
+            echo "✅ DOCKER_PASSWORD secret is configured"
+          fi
+
+          if [ $MISSING_SECRETS -gt 0 ]; then
+            echo "❌ $MISSING_SECRETS required secret(s) are missing"
+            echo "Please configure the missing secrets in your GitHub repository settings"
+            exit 1
+          fi
+
+          echo "✅ All required secrets are properly configured"
+
       - name: Checkout Code 📥
         uses: actions/checkout@v4
+
+      - name: Validate Package Configuration 📦
+        run: |
+          echo "🔍 Validating package.json..."
+
+          if [ ! -f "package.json" ]; then
+            echo "❌ package.json not found in repository root"
+            exit 1
+          fi
+
+          # Test if we can read package.json and extract required fields
+          if ! node -e "const pkg = require('./package.json'); console.log('Package:', pkg.name, 'Version:', pkg.version)" 2>/dev/null; then
+            echo "❌ Failed to read package.json or missing name/version fields"
+            exit 1
+          fi
+
+          echo "✅ package.json is valid and readable"
 
       - name: Extract Package Info 📦
         id: extract
         run: |
+          # First, validate that required secrets are available
+          if [ -z "${{ env.DOCKER_USERNAME }}" ]; then
+            echo "❌ ERROR: DOCKER_USERNAME is not set or empty"
+            echo "Available env vars:"
+            env | grep -E '^(DOCKER_|GITHUB_)' || echo "No DOCKER_ or GITHUB_ vars found"
+            exit 1
+          fi
+
+          if [ -z "${{ env.DOCKER_PASSWORD }}" ]; then
+            echo "❌ ERROR: DOCKER_PASSWORD is not set or empty"
+            exit 1
+          fi
+
+          echo "✅ Required secrets validation passed"
+
           # Extract from package.json
+          echo "📦 Extracting package information..."
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          IMAGE_TAG="${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}"
+          DOCKER_USER="${{ env.DOCKER_USERNAME }}"
+          IMAGE_TAG="${DOCKER_USER}/${PACKAGE_NAME}:${PACKAGE_VERSION}"
 
-          # Debug output
+          # Comprehensive debug output
           echo "=== EXTRACTED VALUES ==="
-          echo "PACKAGE_NAME: $PACKAGE_NAME"
-          echo "PACKAGE_VERSION: $PACKAGE_VERSION"
-          echo "IMAGE_TAG: $IMAGE_TAG"
+          echo "PACKAGE_NAME: '$PACKAGE_NAME'"
+          echo "PACKAGE_VERSION: '$PACKAGE_VERSION'"
+          echo "DOCKER_USER: '$DOCKER_USER'"
+          echo "IMAGE_TAG: '$IMAGE_TAG'"
           echo "========================="
+
+          # Validate extracted values
+          if [ -z "$PACKAGE_NAME" ]; then
+            echo "❌ ERROR: PACKAGE_NAME is empty"
+            exit 1
+          fi
+
+          if [ -z "$PACKAGE_VERSION" ]; then
+            echo "❌ ERROR: PACKAGE_VERSION is empty"
+            exit 1
+          fi
+
+          if [ -z "$IMAGE_TAG" ]; then
+            echo "❌ ERROR: IMAGE_TAG is empty"
+            exit 1
+          fi
+
+          echo "✅ All extracted values are valid"
 
           # Set outputs
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+          echo "✅ Package extraction completed successfully"
 
       - name: Log in to Docker Hub 🔑
         run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
@@ -95,29 +179,46 @@ jobs:
 
       - name: Verify Build Outputs 🔍
         run: |
+          echo "🔍 Verifying build job outputs..."
           echo "=== BUILD JOB OUTPUTS ==="
-          echo "package_name: ${{ needs.build-and-push.outputs.package_name }}"
-          echo "package_version: ${{ needs.build-and-push.outputs.package_version }}"
-          echo "image_tag: ${{ needs.build-and-push.outputs.image_tag }}"
+          echo "package_name: '${{ needs.build-and-push.outputs.package_name }}'"
+          echo "package_version: '${{ needs.build-and-push.outputs.package_version }}'"
+          echo "image_tag: '${{ needs.build-and-push.outputs.image_tag }}'"
           echo "========================="
 
-          # Fail early if any output is empty
-          if [ -z "${{ needs.build-and-push.outputs.package_name }}" ]; then
-            echo "ERROR: package_name is empty"
+          # Check build job status first
+          echo "Build job result: ${{ needs.build-and-push.result }}"
+          if [ "${{ needs.build-and-push.result }}" != "success" ]; then
+            echo "❌ ERROR: Build job did not succeed. Status: ${{ needs.build-and-push.result }}"
             exit 1
+          fi
+
+          # Validate individual outputs with detailed error messages
+          ERRORS=0
+
+          if [ -z "${{ needs.build-and-push.outputs.package_name }}" ]; then
+            echo "❌ ERROR: package_name is empty - build job failed to extract package name from package.json"
+            ERRORS=$((ERRORS + 1))
           fi
 
           if [ -z "${{ needs.build-and-push.outputs.package_version }}" ]; then
-            echo "ERROR: package_version is empty"
-            exit 1
+            echo "❌ ERROR: package_version is empty - build job failed to extract version from package.json"
+            ERRORS=$((ERRORS + 1))
           fi
 
           if [ -z "${{ needs.build-and-push.outputs.image_tag }}" ]; then
-            echo "ERROR: image_tag is empty"
+            echo "❌ ERROR: image_tag is empty - build job failed to construct Docker image tag"
+            echo "This usually means DOCKER_USERNAME secret is not set or the image tag construction failed"
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          if [ $ERRORS -gt 0 ]; then
+            echo "❌ Found $ERRORS error(s) in build outputs"
+            echo "Please check the build-and-push job logs for more details"
             exit 1
           fi
 
-          echo "✅ All outputs are valid"
+          echo "✅ All outputs are valid and ready for deployment"
 
       - name: Setup SSH 🔐
         run: |
