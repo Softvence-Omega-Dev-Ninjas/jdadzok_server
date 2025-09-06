@@ -18,7 +18,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-  constructor(private readonly service: UserService) {}
+  constructor(private readonly service: UserService) { }
 
   @MakePublic()
   @Post("register")
@@ -26,8 +26,10 @@ export class UserController {
   async register(@Body() body: CreateUserDto) {
     try {
       const result = await this.service.register(body);
+      console.info(result)
       return successResponse(result, "Registration successfull!");
     } catch (err) {
+      console.info(err)
       return err;
     }
   }
