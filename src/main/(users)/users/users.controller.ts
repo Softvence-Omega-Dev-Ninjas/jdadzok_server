@@ -42,6 +42,7 @@ export class UserController {
       return err;
     }
   }
+
   @ApiBearerAuth()
   @Post("me")
   @UsePipes(ValidationPipe)
@@ -49,7 +50,7 @@ export class UserController {
   async GetMe(@GetUser() user: TUser) {
     try {
       const result = await this.service.getMe(user.userId);
-      return successResponse(result, "Registration successfull!");
+      return successResponse(result, "User profile retrive success");
     } catch (err) {
       return err;
     }

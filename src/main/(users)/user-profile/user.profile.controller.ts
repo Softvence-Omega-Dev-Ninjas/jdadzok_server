@@ -2,6 +2,7 @@ import { GetUser } from "@common/jwt/jwt.decorator";
 import {
   Body,
   Controller,
+  Get,
   Post,
   UseGuards,
   UsePipes,
@@ -33,7 +34,9 @@ export class UserProfileController {
       return err;
     }
   }
-
+  @Get()
+  @UsePipes(ValidationPipe)
+  @UseGuards(JwtAuthGuard)
   async getProfile(@GetUser() user: TUser) {
     try {
       const profile = await this.profileService.get(user.userId);

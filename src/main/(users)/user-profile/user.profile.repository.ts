@@ -8,9 +8,23 @@ export class UserProfileRepository {
 
   async create(userId: string, input: CreateUserProfileDto) {
     return await this.prisma.$transaction(async (tx) => {
-      const user = await tx.user.findFirst({ where: { id: userId } });
+      const user = await tx.user.findFirst({
+        where: { id: userId },
+        include: { profile: true },
+      });
       if (!user) throw new NotFoundException("User not found!");
 
+      if (user.profile) {
+        return await tx.profile.update({
+          where: {
+            userId: user.id!,
+            username: user.profile.username,
+          },
+          data: {
+            ...input,
+          },
+        });
+      }
       return await tx.profile.create({
         data: {
           ...input,

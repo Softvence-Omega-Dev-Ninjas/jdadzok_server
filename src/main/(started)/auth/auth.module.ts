@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { JwtModule, JwtService } from "@nestjs/jwt";
 import { RedisService } from "@project/common/redis/redis.service";
+import { UserProfileRepository } from "@project/main/(users)/user-profile/user.profile.repository";
 import { JwtServices } from "@project/services/jwt.service";
 import { AuthController } from "./auth.controller";
 import { AuthRepository } from "./auth.repository";
@@ -25,6 +26,7 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
     JwtServices,
     JwtService,
     JwtStrategy,
+    UserProfileRepository,
   ],
   exports: [AuthRepository, JwtModule, JwtStrategy],
 })

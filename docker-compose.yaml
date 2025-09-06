@@ -1,11 +1,12 @@
 services:
   app:
-    profiles: ["prod"]
+    profiles:
+      - prod
     build:
       context: .
       dockerfile: Dockerfile
     image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
-    container_name: ${PACKAGE_NAME}_app_1
+    container_name: ${PACKAGE_NAME}_api
     ports:
       - "5055:5055"
     environment:
@@ -14,7 +15,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - REDIS_URL=${REDIS_URL}
     depends_on:
-      - postgres
+      - db
       - redis
     restart: unless-stopped
     healthcheck:
@@ -23,29 +24,33 @@ services:
       timeout: 10s
       retries: 3
 
-  postgres:
-    profiles: ["prod"]
+  db:
     image: postgres:15
-    container_name: ${PACKAGE_NAME}_postgres
+    container_name: jdadzok_db
+    restart: always
+    profiles:
+      - dev
+      - prod
     environment:
-      POSTGRES_DB: ${PACKAGE_NAME}
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password123
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jdadzok_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+    ports:
+      - "5431:5432"
 
   redis:
-    profiles: ["prod"]
-    image: redis:7-alpine
-    container_name: ${PACKAGE_NAME}_redis
+    image: redis
+    container_name: jdadzok_redis
+    restart: always
+    profiles:
+      - dev
+      - prod
     ports:
-      - "6379:6379"
+      - "6378:6379"
     volumes:
       - redis_data:/data
-    restart: unless-stopped
 
 volumes:
   postgres_data:

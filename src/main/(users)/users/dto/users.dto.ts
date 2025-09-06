@@ -17,6 +17,10 @@ import { UpdateUserProfileMetricsDto } from "../../profile-metrics/dto/user.prof
 import { UpdateUserProfileDto } from "../../user-profile/dto/user.profile.dto";
 
 class UserCreate {
+  @ApiProperty({ description: "name of the user", example: "John Mollik" })
+  @IsString()
+  name?: string;
+
   @ApiProperty({ description: "User email address", example: "user@user.com" })
   @IsEmail()
   email: string;
