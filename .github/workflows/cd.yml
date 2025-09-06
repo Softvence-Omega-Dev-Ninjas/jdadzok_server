@@ -7,7 +7,6 @@ on:
       - completed
   push:
     branches:
-      # - main
       - sabbir
 
 jobs:
@@ -25,8 +24,6 @@ jobs:
       - name: Validate Required Secrets 🔐
         run: |
           echo "🔍 Validating required secrets and environment..."
-
-          # Check if secrets are available (they will be masked, but we can check if they're set)
           MISSING_SECRETS=0
 
           if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
@@ -45,7 +42,6 @@ jobs:
 
           if [ $MISSING_SECRETS -gt 0 ]; then
             echo "❌ $MISSING_SECRETS required secret(s) are missing"
-            echo "Please configure the missing secrets in your GitHub repository settings"
             exit 1
           fi
 
@@ -54,28 +50,10 @@ jobs:
       - name: Checkout Code 📥
         uses: actions/checkout@v4
 
-      - name: Validate Package Configuration 📦
-        run: |
-          echo "🔍 Validating package.json..."
-
-          if [ ! -f "package.json" ]; then
-            echo "❌ package.json not found in repository root"
-            exit 1
-          fi
-
-          # Test if we can read package.json and extract required fields
-          if ! node -e "const pkg = require('./package.json'); console.log('Package:', pkg.name, 'Version:', pkg.version)" 2>/dev/null; then
-            echo "❌ Failed to read package.json or missing name/version fields"
-            exit 1
-          fi
-
-          echo "✅ package.json is valid and readable"
-
-      - name: Extract Package Info 📦 (Hardcoded)
+      - name: Set Hardcoded Package Info 📦
         id: extract
         run: |
           echo "📦 Using hardcoded Docker image information..."
-
           PACKAGE_NAME="jdadzok_server"
           PACKAGE_VERSION="0.3.3"
           IMAGE_TAG="devlopersabbir/jdadzok_server:0.3.3"
@@ -86,40 +64,11 @@ jobs:
           echo "IMAGE_TAG: $IMAGE_TAG"
           echo "========================="
 
-          # Set outputs
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
           echo "✅ Outputs written to GITHUB_OUTPUT"
-
-      - name: Mandatory Output Validation ⁉️
-        run: |
-          echo "⁉️ Final validation of job outputs before job completion..."
-
-          # Force job failure if any output is empty
-          if [ -z "${{ steps.extract.outputs.package_name }}" ]; then
-            echo "❌ CRITICAL: package_name output is empty - FAILING BUILD JOB"
-            exit 1
-          fi
-
-          if [ -z "${{ steps.extract.outputs.package_version }}" ]; then
-            echo "❌ CRITICAL: package_version output is empty - FAILING BUILD JOB"
-            exit 1
-          fi
-
-          if [ -z "${{ steps.extract.outputs.image_tag }}" ]; then
-            echo "❌ CRITICAL: image_tag output is empty - FAILING BUILD JOB"
-            echo "This means the Extract Package Info step failed silently"
-            echo "Check the Extract Package Info step logs above for the actual error"
-            exit 1
-          fi
-
-          echo "✅ All mandatory outputs are present - build job can proceed"
-          echo "Final outputs:"
-          echo "  package_name: '${{ steps.extract.outputs.package_name }}'"
-          echo "  package_version: '${{ steps.extract.outputs.package_version }}'"
-          echo "  image_tag: '${{ steps.extract.outputs.image_tag }}'"
 
       - name: Log in to Docker Hub 🔑
         env:
@@ -127,15 +76,8 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo "🔑 Logging into Docker Hub..."
-          echo "Username: $(echo $DOCKER_USERNAME | sed 's/./*/g')" # Masked for security
-
-          if echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; then
-            echo "✅ Successfully logged into Docker Hub"
-          else
-            echo "❌ Failed to log into Docker Hub"
-            echo "Please check your DOCKER_USERNAME and DOCKER_PASSWORD secrets"
-            exit 1
-          fi
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          echo "✅ Successfully logged into Docker Hub"
 
       - name: Create .env file 📄
         env:
@@ -189,38 +131,6 @@ jobs:
           echo "image_tag: '${{ needs.build-and-push.outputs.image_tag }}'"
           echo "========================="
 
-          # Check build job status first
-          echo "Build job result: ${{ needs.build-and-push.result }}"
-          if [ "${{ needs.build-and-push.result }}" != "success" ]; then
-            echo "❌ ERROR: Build job did not succeed. Status: ${{ needs.build-and-push.result }}"
-            exit 1
-          fi
-
-          # Validate individual outputs with detailed error messages
-          ERRORS=0
-
-          if [ -z "${{ needs.build-and-push.outputs.package_name }}" ]; then
-            echo "❌ ERROR: package_name is empty - build job failed to extract package name from package.json"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          if [ -z "${{ needs.build-and-push.outputs.package_version }}" ]; then
-            echo "❌ ERROR: package_version is empty - build job failed to extract version from package.json"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          if [ -z "${{ needs.build-and-push.outputs.image_tag }}" ]; then
-            echo "❌ ERROR: image_tag is empty - build job failed to construct Docker image tag"
-            echo "This usually means DOCKER_USERNAME secret is not set or the image tag construction failed"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          if [ $ERRORS -gt 0 ]; then
-            echo "❌ Found $ERRORS error(s) in build outputs"
-            echo "Please check the build-and-push job logs for more details"
-            exit 1
-          fi
-
           echo "✅ All outputs are valid and ready for deployment"
 
       - name: Setup SSH 🔐
@@ -271,11 +181,11 @@ jobs:
           ssh deploy-server "mkdir -p ~/${{ needs.build-and-push.outputs.package_name }}/scripts"
 
           echo "Copying files..."
-          scp -i ~/.ssh/deploy_key docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
-          scp -i ~/.ssh/deploy_key .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
-          scp -i ~/.ssh/deploy_key Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
-          scp -i ~/.ssh/deploy_key scripts/deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/scripts/
-          scp -i ~/.ssh/deploy_key scripts/health-check.js ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/scripts/
+          scp docker-compose.yaml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
+          scp .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
+          scp Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
+          scp scripts/deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/scripts/
+          scp scripts/health-check.js ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/scripts/
 
           ssh deploy-server "chmod +x ~/${{ needs.build-and-push.outputs.package_name }}/scripts/deploy.sh"
           echo "✅ Files copied successfully"
@@ -290,7 +200,6 @@ jobs:
           ssh deploy-server bash << 'DEPLOY_EOF'
           set -e
 
-          # Set variables (using the exact values from GitHub Actions)
           PACKAGE_NAME="${{ needs.build-and-push.outputs.package_name }}"
           PACKAGE_VERSION="${{ needs.build-and-push.outputs.package_version }}"
           IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
@@ -321,45 +230,13 @@ jobs:
           echo "Logging into Docker Hub..."
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-          # Set Docker permissions
-          sudo usermod -aG docker $USER || true
-
-          # Configure firewall
-          sudo ufw allow 5055 || true
-          sudo ufw allow 5432 || true
-          sudo ufw allow 6379 || true
-
           # Pull the Docker image
           echo "Pulling Docker image: $IMAGE_TAG"
-          if docker pull "$IMAGE_TAG"; then
-            echo "✅ Image pulled successfully"
-          else
-            echo "❌ Failed to pull image: $IMAGE_TAG"
-            exit 1
-          fi
-
-          # Verify deploy script exists
-          if [ ! -f "./scripts/deploy.sh" ]; then
-            echo "❌ deploy.sh not found"
-            ls -la scripts/ || echo "No scripts directory"
-            exit 1
-          fi
-
-          # Make script executable
-          chmod +x ./scripts/deploy.sh
+          docker pull "$IMAGE_TAG"
 
           # Run deployment
           echo "Executing deployment script..."
-          if ./scripts/deploy.sh --version "$PACKAGE_VERSION"; then
-            echo "✅ Deployment successful"
-          else
-            echo "❌ Deployment failed"
-            echo "Container status:"
-            docker ps -a --filter "name=$PACKAGE_NAME"
-            echo "Container logs:"
-            docker logs --tail 50 "${PACKAGE_NAME}_app_1" 2>/dev/null || echo "No logs"
-            exit 1
-          fi
+          ./scripts/deploy.sh --version "$PACKAGE_VERSION"
 
           # Verify containers are running
           if docker ps --filter "name=$PACKAGE_NAME" | grep -q "$PACKAGE_NAME"; then
@@ -392,16 +269,12 @@ jobs:
           docker ps --filter "name=$PACKAGE_NAME"
 
           echo "=== Health Check ==="
-          if [ -f "./scripts/deploy.sh" ]; then
-            ./scripts/deploy.sh status
+          if curl -f http://localhost:5055/health 2>/dev/null; then
+            echo "✅ Health check passed"
           else
-            echo "Checking health manually..."
-            if curl -f http://localhost:5055/health 2>/dev/null; then
-              echo "✅ Health check passed"
-            else
-              echo "⚠️ Health check failed"
-              docker logs --tail 20 "${PACKAGE_NAME}_app_1" 2>/dev/null || echo "No logs"
-            fi
+            echo "⚠️ Health check failed"
+            docker logs --tail 20 "${PACKAGE_NAME}_app_1" 2>/dev/null || echo "No logs"
+            exit 1
           fi
 
           echo "=== Final Status ==="
