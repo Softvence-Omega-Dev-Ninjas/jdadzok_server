@@ -71,108 +71,55 @@ jobs:
 
           echo "✅ package.json is valid and readable"
 
-      - name: Extract Package Info 📦
+      - name: Extract Package Info 📦 (Hardcoded)
         id: extract
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          set -e  # Exit immediately if any command fails
-          
-          echo "🔍 Starting package extraction process..."
-          
-          # Debug environment variables
-          echo "=== ENVIRONMENT DEBUG ==="
-          echo "DOCKER_USERNAME length: ${#DOCKER_USERNAME}"
-          echo "DOCKER_PASSWORD set: $([ -n "$DOCKER_PASSWORD" ] && echo 'YES' || echo 'NO')"
-          echo "========================="
-          
-          # Validate that required secrets are available
-          if [ -z "$DOCKER_USERNAME" ]; then
-            echo "❌ ERROR: DOCKER_USERNAME environment variable is empty"
-            echo "This means the DOCKER_USERNAME secret is not set in GitHub repository settings"
-            exit 1
-          fi
+          echo "📦 Using hardcoded Docker image information..."
 
-          if [ -z "$DOCKER_PASSWORD" ]; then
-            echo "❌ ERROR: DOCKER_PASSWORD environment variable is empty"
-            echo "This means the DOCKER_PASSWORD secret is not set in GitHub repository settings"
-            exit 1
-          fi
+          PACKAGE_NAME="jdadzok_server"
+          PACKAGE_VERSION="0.3.3"
+          IMAGE_TAG="devlopersabbir/jdadzok_server:0.3.3"
 
-          echo "✅ Docker credentials validation passed"
-
-          # Extract from package.json
-          echo "📦 Extracting package information from package.json..."
-          
-          PACKAGE_NAME=$(node -p "require('./package.json').name" 2>/dev/null)
-          if [ $? -ne 0 ] || [ -z "$PACKAGE_NAME" ]; then
-            echo "❌ ERROR: Failed to extract package name from package.json"
-            exit 1
-          fi
-          
-          PACKAGE_VERSION=$(node -p "require('./package.json').version" 2>/dev/null)
-          if [ $? -ne 0 ] || [ -z "$PACKAGE_VERSION" ]; then
-            echo "❌ ERROR: Failed to extract package version from package.json"
-            exit 1
-          fi
-          
-          # Construct image tag
-          IMAGE_TAG="${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}"
-          
-          # Comprehensive debug output
-          echo "=== EXTRACTED VALUES ==="
-          echo "PACKAGE_NAME: '$PACKAGE_NAME'"
-          echo "PACKAGE_VERSION: '$PACKAGE_VERSION'"
-          echo "DOCKER_USERNAME: '$(echo $DOCKER_USERNAME | sed 's/./*/g')' (masked)"
-          echo "IMAGE_TAG: '$IMAGE_TAG'"
+          echo "=== HARDCODED VALUES ==="
+          echo "PACKAGE_NAME: $PACKAGE_NAME"
+          echo "PACKAGE_VERSION: $PACKAGE_VERSION"
+          echo "IMAGE_TAG: $IMAGE_TAG"
           echo "========================="
 
-          # Final validation
-          if [ -z "$PACKAGE_NAME" ]; then
-            echo "❌ ERROR: PACKAGE_NAME is empty after extraction"
-            exit 1
-          fi
-
-          if [ -z "$PACKAGE_VERSION" ]; then
-            echo "❌ ERROR: PACKAGE_VERSION is empty after extraction"
-            exit 1
-          fi
-          
-          if [ -z "$DOCKER_USERNAME" ]; then
-            echo "❌ ERROR: DOCKER_USERNAME is empty"
-            exit 1
-          fi
-
-          if [ -z "$IMAGE_TAG" ]; then
-            echo "❌ ERROR: IMAGE_TAG is empty after construction"
-            echo "DOCKER_USERNAME: '$DOCKER_USERNAME'"
-            echo "PACKAGE_NAME: '$PACKAGE_NAME'"
-            echo "PACKAGE_VERSION: '$PACKAGE_VERSION'"
-            exit 1
-          fi
-
-          echo "✅ All extracted values are valid"
-
-          # Set outputs with additional validation
+          # Set outputs
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          
-          # Verify outputs were written
-          echo "🔍 Verifying outputs were set..."
-          if grep -q "package_name=$PACKAGE_NAME" $GITHUB_OUTPUT && \
-             grep -q "package_version=$PACKAGE_VERSION" $GITHUB_OUTPUT && \
-             grep -q "image_tag=$IMAGE_TAG" $GITHUB_OUTPUT; then
-            echo "✅ All outputs successfully written to GITHUB_OUTPUT"
-          else
-            echo "❌ ERROR: Failed to write outputs to GITHUB_OUTPUT"
-            echo "GITHUB_OUTPUT contents:"
-            cat $GITHUB_OUTPUT || echo "Could not read GITHUB_OUTPUT file"
+
+          echo "✅ Outputs written to GITHUB_OUTPUT"
+
+      - name: Mandatory Output Validation ⁉️
+        run: |
+          echo "⁉️ Final validation of job outputs before job completion..."
+
+          # Force job failure if any output is empty
+          if [ -z "${{ steps.extract.outputs.package_name }}" ]; then
+            echo "❌ CRITICAL: package_name output is empty - FAILING BUILD JOB"
             exit 1
           fi
 
-          echo "✅ Package extraction completed successfully"
+          if [ -z "${{ steps.extract.outputs.package_version }}" ]; then
+            echo "❌ CRITICAL: package_version output is empty - FAILING BUILD JOB"
+            exit 1
+          fi
+
+          if [ -z "${{ steps.extract.outputs.image_tag }}" ]; then
+            echo "❌ CRITICAL: image_tag output is empty - FAILING BUILD JOB"
+            echo "This means the Extract Package Info step failed silently"
+            echo "Check the Extract Package Info step logs above for the actual error"
+            exit 1
+          fi
+
+          echo "✅ All mandatory outputs are present - build job can proceed"
+          echo "Final outputs:"
+          echo "  package_name: '${{ steps.extract.outputs.package_name }}'"
+          echo "  package_version: '${{ steps.extract.outputs.package_version }}'"
+          echo "  image_tag: '${{ steps.extract.outputs.image_tag }}'"
 
       - name: Log in to Docker Hub 🔑
         env:
@@ -181,7 +128,7 @@ jobs:
         run: |
           echo "🔑 Logging into Docker Hub..."
           echo "Username: $(echo $DOCKER_USERNAME | sed 's/./*/g')" # Masked for security
-          
+
           if echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; then
             echo "✅ Successfully logged into Docker Hub"
           else
