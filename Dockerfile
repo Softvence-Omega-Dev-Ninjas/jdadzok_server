@@ -3,51 +3,42 @@ FROM node:22 AS builder
 
 WORKDIR /app
 
-# Install required build dependencies
 RUN apt-get update && apt-get install -y openssl
 
-# Copy package.json and lockfile first (to cache Docker layers)
+# Copy only what is needed to install dependencies and generate Prisma
 COPY package*.json ./
-
-# Install all dependencies including devDependencies
-RUN npm install
-
-# Copy the rest of the application files
 COPY . .
 
-# Generate Prisma client (ensure prisma/schema.prisma exists)
+RUN npm install
+
+# Generate Prisma client (explicitly)
 RUN npx prisma generate
 
-# Build the app (NestJS -> dist/)
+# Now copy everything else
+COPY . .
+
+# Build the app
 RUN npm run build
 
 
-# Stage 2: Production Stage (minimal image)
+# Stage 2: Production Stage
 FROM node:22-slim AS production
 
 WORKDIR /app
 
-# Install openssl if needed in runtime (e.g., if used by your app)
 RUN apt-get update && apt-get install -y openssl && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy only needed files from builder
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-# Set environment variables (can be overridden at runtime)
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
+ENV NODE_ENV=production
 
-# Optional: copy .env if you're not using secrets manager
-# COPY .env .env
-
-# Expose the port your NestJS app runs on
 EXPOSE 5056
 
-# Start the app
 CMD ["node", "dist/main"]
+
 
 
 # FROM node:22-slim
