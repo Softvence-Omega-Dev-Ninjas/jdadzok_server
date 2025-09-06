@@ -17,3 +17,13 @@ generated
 .env.keys
 .env
 jdadzok.pem
+
+node_modules
+dist
+Dockerfile
+.dockerignore
+.env
+*.log
+.git
+.gitignore
+README.md
