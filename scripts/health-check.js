@@ -15,7 +15,7 @@ const execAsync = util.promisify(exec);
 const CONFIG = {
   host: process.env.HEALTH_HOST || "localhost",
   port: process.env.HEALTH_PORT || 5056,
-  path: process.env.HEALTH_PATH || "/health",
+  path: process.env.HEALTH_PATH || "/",
   timeout: parseInt(process.env.HEALTH_TIMEOUT) || 10000,
   retries: parseInt(process.env.HEALTH_RETRIES) || 3,
   retryDelay: parseInt(process.env.HEALTH_RETRY_DELAY) || 2000,

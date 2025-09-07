@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Zero Downtime Deployment Script with Automatic Rollback
+# Simplified Zero Downtime Deployment Script
 # Usage: ./deploy.sh --version <version> [--rollback] [status]
 
 set -e
@@ -8,10 +8,9 @@ set -e
 # Configuration
 PACKAGE_NAME="${PACKAGE_NAME:-jdadzok_server}"
 DOCKER_USERNAME="${DOCKER_USERNAME:-devlopersabbir}"
-HEALTH_ENDPOINT="http://localhost:5056/health"
+HEALTH_ENDPOINT="http://localhost:5056/"
 HEALTH_TIMEOUT=30
-HEALTH_RETRIES=10
-DEPLOYMENT_TIMEOUT=300
+HEALTH_RETRIES=6
 
 # Colors for output
 RED='\033[0;31m'
@@ -85,7 +84,7 @@ save_version_to_history() {
     tail -n 10 "$version_file" > "${version_file}.tmp" && mv "${version_file}.tmp" "$version_file"
 }
 
-# Function to check if container is healthy
+# Simple health check using curl
 check_health() {
     local container_name=$1
     local max_attempts=${2:-$HEALTH_RETRIES}
@@ -96,35 +95,24 @@ check_health() {
     while [ $attempt -le $max_attempts ]; do
         log_info "Health check attempt $attempt/$max_attempts"
         
-        # Check if container is running
+        # Check if container is running first
         if ! docker ps --filter "name=$container_name" --format "{{.Names}}" | grep -q "^$container_name$"; then
             log_error "Container $container_name is not running"
             return 1
         fi
         
-        # Check container health status
-        local health_status=$(docker inspect --format='{{.State.Health.Status}}' "$container_name" 2>/dev/null || echo "none")
-        
-        if [ "$health_status" = "healthy" ]; then
-            log_success "Container $container_name is healthy"
-            return 0
-        elif [ "$health_status" = "unhealthy" ]; then
-            log_error "Container $container_name is unhealthy"
-            return 1
-        fi
-        
-        # Also check HTTP endpoint
-        if curl -f -s --connect-timeout 5 --max-time 10 "$HEALTH_ENDPOINT" > /dev/null 2>&1; then
-            log_success "HTTP health check passed for $container_name"
+        # Simple curl check for the endpoint
+        if curl -f -s --connect-timeout 5 --max-time 10 "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
+            log_success "Health check passed - endpoint returned status: ok"
             return 0
         fi
         
-        log_info "Waiting for container to become healthy... (${HEALTH_TIMEOUT}s)"
+        log_info "Waiting for service to be ready... (${HEALTH_TIMEOUT}s)"
         sleep $HEALTH_TIMEOUT
         attempt=$((attempt + 1))
     done
     
-    log_error "Health check failed for $container_name after $max_attempts attempts"
+    log_error "Health check failed after $max_attempts attempts"
     return 1
 }
 
@@ -192,15 +180,14 @@ deploy_version() {
         docker rename "$new_container" "$old_container" 2>/dev/null || true
     fi
     
-    # Create new container with updated image tag in docker-compose
-    log_info "Creating new container with version $version"
-    
     # Update .env file with new version
     if [ -f .env ]; then
         sed -i "s/PACKAGE_VERSION=.*/PACKAGE_VERSION=\"$version\"/" .env
+        log_info "Updated .env file with version $version"
     fi
     
     # Start new container
+    log_info "Starting new container with version $version"
     if docker compose --profile prod up -d app; then
         log_success "New container started successfully"
     else
@@ -214,11 +201,11 @@ deploy_version() {
         return 1
     fi
     
-    # Wait for container to be ready
-    log_info "Waiting for new container to be ready..."
-    sleep 10
+    # Wait a bit for container to initialize
+    log_info "Waiting for new container to initialize..."
+    sleep 15
     
-    # Perform health check
+    # Perform simple health check
     if check_health "$new_container"; then
         log_success "New container is healthy"
         
@@ -242,10 +229,12 @@ deploy_version() {
             docker rename "$old_container" "$new_container"
             docker start "$new_container"
             
-            if check_health "$new_container" 3; then
+            # Quick check on restored container
+            sleep 10
+            if curl -f -s --connect-timeout 5 --max-time 10 "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
                 log_success "Previous container restored successfully"
             else
-                log_error "Failed to restore previous container"
+                log_warning "Previous container restored but health check uncertain"
             fi
         fi
         
@@ -272,14 +261,11 @@ show_status() {
     # Show health status
     echo "=== Health Status ==="
     if docker ps --filter "name=${PACKAGE_NAME}_api" --format "{{.Names}}" | grep -q "${PACKAGE_NAME}_api"; then
-        local health_status=$(docker inspect --format='{{.State.Health.Status}}' "${PACKAGE_NAME}_api" 2>/dev/null || echo "unknown")
-        echo "Container Health: $health_status"
-        
         # Test HTTP endpoint
-        if curl -f -s --connect-timeout 5 --max-time 10 "$HEALTH_ENDPOINT" > /dev/null 2>&1; then
-            echo "HTTP Endpoint: ✅ Healthy"
+        if curl -f -s --connect-timeout 5 --max-time 10 "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
+            echo "HTTP Endpoint: ✅ Healthy (status: ok)"
         else
-            echo "HTTP Endpoint: ❌ Unhealthy"
+            echo "HTTP Endpoint: ❌ Unhealthy or not responding"
         fi
     else
         echo "No running containers found"

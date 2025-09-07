@@ -35,9 +35,9 @@ services:
     restart: unless-stopped
     # Enhanced health check for better zero-downtime deployment
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://0.0.0.0:5056/health"]
-      interval: 15s # Check every 15 seconds (more frequent)
-      timeout: 10s # 10 second timeout
+      test: ["CMD", "curl", "-f", "http://localhost:5056/"]
+      interval: 30s # Check every 15 seconds (more frequent)
+      timeout: 15s # 10 second timeout
       retries: 3 # 3 retries before marking unhealthy
       start_period: 30s # Wait 30 seconds before starting health checks
 
@@ -131,15 +131,7 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-    labels:
-      - "backup.enable=true"
-      - "backup.schedule=daily"
   redis_data:
-    driver: local
-    labels:
-      - "backup.enable=true"
-      - "backup.schedule=daily"
 
 # Add networks for better isolation (optional)
 networks:

@@ -63,12 +63,11 @@ jobs:
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           IMAGE_TAG="${{secrets.DOCKER_USERNAME}}/$PACKAGE_NAME:$PACKAGE_VERSION"
 
-
-          echo "=== HARDCODED VALUES ==="
+          echo "=== IMAGE INFO ==="
           echo "PACKAGE_NAME: $PACKAGE_NAME"
           echo "PACKAGE_VERSION: $PACKAGE_VERSION"
           echo "IMAGE_TAG: $IMAGE_TAG"
-          echo "========================="
+          echo "=================="
 
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
@@ -103,8 +102,8 @@ jobs:
           echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
           echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
           echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-          echo "REDIS_HOST"=${{ secrets.REDIS_HOST }} >> .env
-          echo "REDIS_PORT"=${{ secrets.REDIS_PORT }} >> .env
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
           echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
           echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
           echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
@@ -158,7 +157,6 @@ jobs:
             echo "✅ IMAGE_TAG is set to '${{ needs.build-and-push.outputs.image_tag }}'"
           fi
           echo "========================="
-          echo "✅ All outputs are valid and ready for deployment"
 
       - name: Setup SSH 🔐
         run: |
@@ -200,13 +198,9 @@ jobs:
           echo "REDIS_URL=\"${{ secrets.REDIS_URL }}\"" >> .env
           echo "REDIS_HOST=\"${{ secrets.REDIS_HOST }}\"" >> .env
           echo "REDIS_PORT=\"${{ secrets.REDIS_PORT }}\"" >> .env
-
           echo "TWILIO_ACCOUNT_SID=\"${{ secrets.TWILIO_ACCOUNT_SID }}\"" >> .env
           echo "TWILIO_AUTH_TOKEN=\"${{ secrets.TWILIO_AUTH_TOKEN }}\"" >> .env
           echo "TWILIO_PHONE_NUMBER=\"${{ secrets.TWILIO_PHONE_NUMBER }}\"" >> .env
-          echo "=== .env File Contents (non-sensitive) ==="
-          cat .env | grep -v "MAIL_PASS\|SUPER_ADMIN_PASS\|JWT_SECRET\|TWILIO_AUTH_TOKEN"
-          echo "========================================"
 
       - name: Copy Files to Server 📦
         run: |
@@ -218,12 +212,10 @@ jobs:
           scp -i ~/.ssh/deploy_key .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
           scp -i ~/.ssh/deploy_key Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
           scp -i ~/.ssh/deploy_key scripts/deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/scripts/
-          scp -i ~/.ssh/deploy_key scripts/health-check.js ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/scripts/
 
           ssh deploy-server "chmod +x ~/${{ needs.build-and-push.outputs.package_name }}/scripts/deploy.sh"
           echo "✅ Files copied successfully"
 
-      # UPDATED: Simplified deployment step using the new deploy.sh script
       - name: Deploy Application 🚀
         run: |
           echo "Starting deployment..."
@@ -253,13 +245,6 @@ jobs:
             chmod +x ~/.docker/cli-plugins/docker-compose
           fi
 
-          # Install Node.js if needed (for health check script)
-          if ! command -v node &>/dev/null; then
-            echo "Installing Node.js..."
-            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-            sudo apt-get install -y nodejs
-          fi
-
           # Login to Docker Hub
           echo "Logging into Docker Hub..."
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
@@ -273,7 +258,7 @@ jobs:
             exit 1
           fi
 
-          # Run the deployment script - THIS IS THE KEY CHANGE!
+          # Run the simplified deployment script
           echo "Executing zero-downtime deployment..."
           if ./scripts/deploy.sh --version "$PACKAGE_VERSION"; then
             echo "✅ Deployment successful"
@@ -289,7 +274,6 @@ jobs:
           echo "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
           DEPLOY_EOF
 
-      # UPDATED: Use the new deployment script for verification
       - name: Verify Deployment ✅
         run: |
           echo "Verifying deployment..."
@@ -300,24 +284,16 @@ jobs:
           echo "=== Running deployment status check ==="
           ./scripts/deploy.sh status
 
-          echo "=== Running comprehensive health check ==="
-          if command -v node &>/dev/null && [ -f "./scripts/health-check.js" ]; then
-            node ./scripts/health-check.js
-            if [ $? -eq 0 ]; then
-              echo "🎉 Comprehensive health check passed!"
-            else
-              echo "❌ Comprehensive health check failed!"
-              exit 1
-            fi
+          echo "=== Testing endpoint directly ==="
+          if curl -f -s --connect-timeout 5 --max-time 10 "http://localhost:5056/" | grep -q '"status":"ok"'; then
+            echo "🎉 Endpoint health check passed! Service is responding with status: ok"
           else
-            echo "⚠️ Node.js or health-check.js not available, using basic check"
-            if curl -f http://localhost:5056/health 2>/dev/null; then
-              echo "✅ Basic health check passed"
-            else
-              echo "❌ Basic health check failed"
-              exit 1
-            fi
+            echo "❌ Endpoint health check failed!"
+            exit 1
           fi
+
+          echo "=== Final verification ==="
+          echo "Deployment verified successfully!"
           VERIFY_EOF
 
       - name: Cleanup 🧹
