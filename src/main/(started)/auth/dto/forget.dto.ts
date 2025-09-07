@@ -8,4 +8,4 @@ class ForgetPassword {
   @IsEmail()
   email: string;
 }
-export class ForgetPasswordDto extends IntersectionType(ForgetPassword) { }
+export class ForgetPasswordDto extends IntersectionType(ForgetPassword) {}

@@ -49,4 +49,4 @@ const generateBaseLayout = (subject: string, body: string): string => {
   </html>
   `;
 };
-export default generateBaseLayout
+export default generateBaseLayout;

@@ -21,7 +21,10 @@ import { JwtAuthGuard } from "./guards/jwt-auth";
 
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService, private readonly userSerivice: UserService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userSerivice: UserService,
+  ) {}
 
   @MakePublic()
   @Post("login")

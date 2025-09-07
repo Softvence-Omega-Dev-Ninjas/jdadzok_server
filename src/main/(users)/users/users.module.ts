@@ -19,8 +19,8 @@ import { UserService } from "./users.service";
     JwtServices,
     UserProfileRepository,
     OptService,
-    MailService
+    MailService,
   ],
   exports: [UserRepository, UserService],
 })
-export class UserModule { }
+export class UserModule {}

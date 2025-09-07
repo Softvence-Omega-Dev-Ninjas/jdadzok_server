@@ -20,8 +20,8 @@ export class UserService {
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
     private readonly otpService: OptService,
-    private readonly mailService: MailService
-  ) { }
+    private readonly mailService: MailService,
+  ) {}
 
   async register(body: CreateUserDto) {
     // has password if provider is email
@@ -42,7 +42,10 @@ export class UserService {
       sub: createdUser.id,
       roles: createdUser.role,
     });
-    const otp = await this.sendOtpMail({ email: createdUser.email, userId: createdUser.id })
+    const otp = await this.sendOtpMail({
+      email: createdUser.email,
+      userId: createdUser.id,
+    });
     return {
       accessToken,
       user: createdUser,
@@ -52,12 +55,12 @@ export class UserService {
 
   async verifyOpt(input: VerifyTokenDto) {
     const user = await this.repository.findById(input.userId);
-    if (!user) throw new NotFoundException("User not found with that ID")
+    if (!user) throw new NotFoundException("User not found with that ID");
 
     await this.otpService.verifyOtp({
       userId: user.id,
       token: input.token,
-      type: 'EMAIL_VERIFICATION',
+      type: "EMAIL_VERIFICATION",
     });
 
     // Update DB
@@ -66,11 +69,11 @@ export class UserService {
 
   async resnetOtp(input: ResentOtpDto) {
     const user = await this.repository.findByEmail(input.email);
-    if (!user) throw new NotFoundException("User not found with that email")
+    if (!user) throw new NotFoundException("User not found with that email");
 
     // again send their otp
-    const otp = await this.sendOtpMail({ userId: user.id, email: user.email })
-    return otp
+    const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
+    return otp;
   }
 
   async updateUser(userId: string, input: UpdateUserDto) {
@@ -98,13 +101,15 @@ export class UserService {
     const otp = await this.otpService.generateOtp({
       userId: user.userId,
       email: user.email,
-      type: "EMAIL_VERIFICATION"
-    })
+      type: "EMAIL_VERIFICATION",
+    });
 
     await this.mailService.sendMail(
       user.email,
-      "Please verify your email with that otp", "otp", { otp: otp.token }
+      "Please verify your email with that otp",
+      "otp",
+      { otp: otp.token },
     );
-    return otp
+    return otp;
   }
 }

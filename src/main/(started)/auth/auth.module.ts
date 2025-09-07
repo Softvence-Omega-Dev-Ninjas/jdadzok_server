@@ -30,8 +30,8 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
     UserProfileRepository,
     OptService,
     UserRepository,
-    UserService
+    UserService,
   ],
   exports: [AuthRepository, AuthService, JwtModule, JwtStrategy],
 })
-export class AuthModule { }
+export class AuthModule {}

@@ -4,7 +4,7 @@ import {
   Get,
   UseGuards,
   UsePipes,
-  ValidationPipe
+  ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
@@ -15,7 +15,7 @@ import { UserProfileService } from "./user.profile.service";
 @ApiBearerAuth()
 @Controller("user-profile")
 export class UserProfileController {
-  constructor(private readonly profileService: UserProfileService) { }
+  constructor(private readonly profileService: UserProfileService) {}
 
   @Get()
   @UsePipes(ValidationPipe)

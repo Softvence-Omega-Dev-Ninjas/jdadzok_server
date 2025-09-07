@@ -1,4 +1,9 @@
-import { BadGatewayException, BadRequestException, Injectable, Logger } from "@nestjs/common";
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+  Logger,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import appMetadata from "@project/app-metadata/app-metadata";
 import { ENVEnum } from "@project/common/enum/env.enum";
@@ -23,10 +28,16 @@ export class MailService {
     });
   }
 
-  public async sendMail(to: string, subject: string, type: MailTemplateType, context: MailContext = {}): Promise<void> {
+  public async sendMail(
+    to: string,
+    subject: string,
+    type: MailTemplateType,
+    context: MailContext = {},
+  ): Promise<void> {
     const html = this.renderTemplate(type, context);
     // make same innital email validation for send email
-    if (!to.endsWith("@gmail.com")) throw new BadRequestException("Email must end with @gmail.com")
+    if (!to.endsWith("@gmail.com"))
+      throw new BadRequestException("Email must end with @gmail.com");
 
     const mailOptions = {
       from: `"${appMetadata.displayName}" <${this.configService.get<string>(ENVEnum.MAIL_USER)}>`,
@@ -40,7 +51,7 @@ export class MailService {
       this.logger.log(`✅ Email sent to ${to} with subject "${subject}"`);
     } catch (error) {
       this.logger.error(`❌ Failed to send email to ${to}`, error.stack);
-      throw new BadGatewayException(`❌ Failed to send email to ${to}`)
+      throw new BadGatewayException(`❌ Failed to send email to ${to}`);
     }
   }
 
@@ -48,12 +59,14 @@ export class MailService {
     switch (type) {
       case "otp":
         return generateOtpEmail(context.otp!);
-      case 'friend-request':
-        return generateFriendRequestEmail(context.senderName!, context.avatarUrl!);
+      case "friend-request":
+        return generateFriendRequestEmail(
+          context.senderName!,
+          context.avatarUrl!,
+        );
       // if we have then make case here...
       default:
         throw new Error(`Unknown email template type: ${type}`);
     }
   }
-
 }

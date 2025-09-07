@@ -9,4 +9,4 @@ import { UtilsService } from "./utils.service";
   providers: [UtilsService, OptService, JwtService, RedisService],
   exports: [UtilsService, OptService],
 })
-export class UtilsModule { }
+export class UtilsModule {}

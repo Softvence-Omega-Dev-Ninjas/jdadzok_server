@@ -6,7 +6,7 @@ import { Cache } from "cache-manager";
 
 @Injectable()
 export class RedisService {
-  constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) { }
+  constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) {}
 
   private bindKey(key: RedisKey, suffix?: string) {
     const prefix = redisKey[key];

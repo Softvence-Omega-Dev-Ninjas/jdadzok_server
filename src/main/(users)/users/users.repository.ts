@@ -1,4 +1,8 @@
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { omit } from "@project/utils";
 import { UserProfileRepository } from "../user-profile/user.profile.repository";
@@ -9,7 +13,7 @@ export class UserRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly profileRepo: UserProfileRepository,
-  ) { }
+  ) {}
 
   async store(input: CreateUserDto) {
     return await this.prisma.$transaction(async (tx) => {
@@ -21,7 +25,9 @@ export class UserRepository {
 
       if (isUser && !isUser.isVerified) {
         // if it's not verified then give chances to verify account again
-        throw new BadRequestException("Please resent OTP to verify your account.")
+        throw new BadRequestException(
+          "Please resent OTP to verify your account.",
+        );
       }
 
       const createUser = omit(input, ["name"]);
@@ -29,16 +35,20 @@ export class UserRepository {
       const user = await tx.user.create({
         data: { ...createUser, role: "USER", capLevel: "NONE" },
       });
-      console.log('created user: ', user)
+      console.log("created user: ", user);
 
       // if input has name then create profile
-      const profile = await this.profileRepo.create(user.id, {
-        name: input.name ?? "",
-      }, tx);
+      const profile = await this.profileRepo.create(
+        user.id,
+        {
+          name: input.name ?? "",
+        },
+        tx,
+      );
 
       const resObj = { ...user, profile };
       return omit(resObj, ["password"]);
-    })
+    });
   }
 
   async findByEmail(email: string) {

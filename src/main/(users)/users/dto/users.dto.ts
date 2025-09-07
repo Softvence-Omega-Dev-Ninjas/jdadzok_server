@@ -22,7 +22,10 @@ class UserCreate {
   @IsString()
   name?: string;
 
-  @ApiProperty({ description: "User email address", example: "devlopersabbir@gmail.com" })
+  @ApiProperty({
+    description: "User email address",
+    example: "devlopersabbir@gmail.com",
+  })
   @IsEmail()
   email: string;
 
@@ -68,9 +71,9 @@ class SelectUser {
   metrics?: UpdateUserProfileMetricsDto;
 }
 
-export class CreateUserDto extends IntersectionType(UserCreate) { }
-export class UpdateUserDto extends IntersectionType(PartialType(UserCreate)) { }
+export class CreateUserDto extends IntersectionType(UserCreate) {}
+export class UpdateUserDto extends IntersectionType(PartialType(UserCreate)) {}
 export class SelectUserDto extends IntersectionType(
   PartialType(CreateUserDto),
   PartialType(SelectUser),
-) { }
+) {}

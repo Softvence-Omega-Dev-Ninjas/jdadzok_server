@@ -20,7 +20,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-  constructor(private readonly service: UserService) { }
+  constructor(private readonly service: UserService) {}
 
   @MakePublic()
   @Post("register")
@@ -34,7 +34,6 @@ export class UserController {
     }
   }
 
-
   @Post("verify-account")
   @UsePipes(ValidationPipe)
   async verifyAccount(@Body() body: VerifyTokenDto) {
@@ -46,11 +45,14 @@ export class UserController {
     }
   }
 
-  @Post('resent-otp')
+  @Post("resent-otp")
   async resentOtp(@Body() body: ResentOtpDto) {
     try {
       const result = await this.service.resnetOtp(body);
-      return successResponse(result, "OTP resented please check your email and verify it");
+      return successResponse(
+        result,
+        "OTP resented please check your email and verify it",
+      );
     } catch (err) {
       return err;
     }
