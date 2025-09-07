@@ -53,7 +53,7 @@ fi
 # Default values
 COMPOSE_PROJECT_NAME="${PACKAGE_NAME}"
 NEW_VERSION=""
-HEALTH_CHECK_URL="http://localhost:5055/health"
+HEALTH_CHECK_URL="http://localhost:5056/health"
 HEALTH_CHECK_TIMEOUT=60
 ROLLBACK_TAG=""
 
