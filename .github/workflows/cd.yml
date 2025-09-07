@@ -50,13 +50,19 @@ jobs:
       - name: Checkout Code 📥
         uses: actions/checkout@v4
 
-      - name: Set Hardcoded Package Info 📦
+      - name: Set up NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Set Package Info 📦
         id: extract
         run: |
-          echo "📦 Using hardcoded Docker image information..."
-          PACKAGE_NAME="jdadzok_server"
-          PACKAGE_VERSION="0.3.3"
-          IMAGE_TAG="devlopersabbir/jdadzok_server:0.3.3"
+          echo "📦 Using Docker image information..."
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          IMAGE_TAG="${{secrets.DOCKER_USERNAME}}/$PACKAGE_NAME:$PACKAGE_VERSION"
+
 
           echo "=== HARDCODED VALUES ==="
           echo "PACKAGE_NAME: $PACKAGE_NAME"
