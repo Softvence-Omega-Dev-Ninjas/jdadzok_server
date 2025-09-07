@@ -108,6 +108,7 @@ export class AuthService {
     });
     await this.otpService.delete({ type: "RESET_PASSWORD", userId: user.id });
     return updatedUser;
+
   }
 
   async logout(email: string) {

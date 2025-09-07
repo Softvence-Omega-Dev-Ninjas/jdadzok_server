@@ -35,4 +35,6 @@ model Community {
   @@index([communityType])
   @@index([capLevel])
   @@index([isVerified])
+  CommunityFollower CommunityFollower[]
+
 }

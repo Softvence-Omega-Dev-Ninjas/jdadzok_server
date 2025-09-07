@@ -1,6 +1,6 @@
 import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { CoreGroupModule } from "./(core)/core.group.module";
+import { ExploreGroupModule } from "./(explore)/explore.group.module";
 import { MarketplacesGroupModule } from "./(marketplace)/marketplace.group.module";
 import { PostsGroupModule } from "./(posts)/posts.group.module";
 import { SharedGroupModule } from "./(shared)/shared.group.module";
@@ -18,7 +18,7 @@ import { UserGroupModule } from "./(users)/users.group.module";
     SharedGroupModule,
     PostsGroupModule,
     MarketplacesGroupModule,
-    CoreGroupModule,
+    ExploreGroupModule,
   ],
   controllers: [],
   providers: [],
