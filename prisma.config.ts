@@ -1,6 +1,9 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import path from "path";
 import { defineConfig } from "prisma/config";
+
+// Explicitly load environment variables
+config({ path: path.resolve(process.cwd(), ".env") });
 
 export default defineConfig({
   schema: path.join("prisma", "schema"),

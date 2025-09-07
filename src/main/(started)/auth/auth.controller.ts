@@ -1,3 +1,4 @@
+import { UserService } from "@module/(users)/users/users.service";
 import {
   Body,
   Controller,
@@ -10,6 +11,7 @@ import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
 import { GetUser, MakePublic } from "@project/common/jwt/jwt.decorator";
 import { successResponse } from "@project/common/utils/response.util";
+import { ResentOtpDto } from "@project/main/(users)/users/dto/resent-otp.dto";
 import { AuthService } from "./auth.service";
 import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
@@ -19,7 +21,10 @@ import { JwtAuthGuard } from "./guards/jwt-auth";
 
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userSerivice: UserService,
+  ) {}
 
   @MakePublic()
   @Post("login")
@@ -61,9 +66,9 @@ export class AuthController {
 
   @MakePublic()
   @Post("resent-code")
-  async resentCode(@Body() body: ForgetPasswordDto) {
+  async resentCode(@Body() body: ResentOtpDto) {
     try {
-      const result = await this.authService.forgetPassword(body);
+      const result = await this.authService.resnetOtp(body);
       return successResponse(
         result,
         "Resend code email sent successfully! Please check your mail.",

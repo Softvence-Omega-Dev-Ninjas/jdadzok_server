@@ -73,6 +73,10 @@ pnpm-lock.yml
 .env.keys
 pnpm-lock.yaml
 
+
+cicdpipe.pem
+jdadzok.pem
+
 # prisma/migrations
 # */migrations
 # ./prisma/migrations

@@ -2,6 +2,8 @@ import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   Post,
   UseGuards,
   UsePipes,
@@ -11,6 +13,8 @@ import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
 import { GetUser, MakePublic } from "@project/common/jwt/jwt.decorator";
 import { successResponse } from "@project/common/utils/response.util";
+import { VerifyTokenDto } from "@project/main/(started)/auth/dto/verify-token.dto";
+import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserService } from "./users.service";
 
@@ -30,6 +34,30 @@ export class UserController {
     }
   }
 
+  @Post("verify-account")
+  @UsePipes(ValidationPipe)
+  async verifyAccount(@Body() body: VerifyTokenDto) {
+    try {
+      const result = await this.service.verifyOpt(body);
+      return successResponse(result, "User account verified");
+    } catch (err) {
+      return err;
+    }
+  }
+
+  @Post("resent-otp")
+  async resentOtp(@Body() body: ResentOtpDto) {
+    try {
+      const result = await this.service.resnetOtp(body);
+      return successResponse(
+        result,
+        "OTP resented please check your email and verify it",
+      );
+    } catch (err) {
+      return err;
+    }
+  }
+
   @ApiBearerAuth()
   @Post("update")
   @UsePipes(ValidationPipe)
@@ -42,14 +70,28 @@ export class UserController {
       return err;
     }
   }
+
   @ApiBearerAuth()
-  @Post("me")
+  @Get("me")
   @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard)
   async GetMe(@GetUser() user: TUser) {
     try {
       const result = await this.service.getMe(user.userId);
-      return successResponse(result, "Registration successfull!");
+      return successResponse(result, "User profile retrive success");
+    } catch (err) {
+      return err;
+    }
+  }
+
+  @ApiBearerAuth()
+  @Delete("delete")
+  @UsePipes(ValidationPipe)
+  @UseGuards(JwtAuthGuard)
+  async delete(@GetUser() user: TUser) {
+    try {
+      const result = await this.service.deleteAcount(user.userId);
+      return successResponse(result, "User profile delete success");
     } catch (err) {
       return err;
     }

@@ -7,6 +7,7 @@ import {
 } from "@nestjs/swagger";
 import { AuthProvider, CapLevel, Role } from "@prisma/client";
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsOptional,
@@ -17,7 +18,14 @@ import { UpdateUserProfileMetricsDto } from "../../profile-metrics/dto/user.prof
 import { UpdateUserProfileDto } from "../../user-profile/dto/user.profile.dto";
 
 class UserCreate {
-  @ApiProperty({ description: "User email address", example: "user@user.com" })
+  @ApiProperty({ description: "name of the user", example: "John Mollik" })
+  @IsString()
+  name?: string;
+
+  @ApiProperty({
+    description: "User email address",
+    example: "devlopersabbir@gmail.com",
+  })
   @IsEmail()
   email: string;
 
@@ -37,21 +45,16 @@ class UserCreate {
   authProvider?: AuthProvider;
 
   @ApiHideProperty()
-  @ApiPropertyOptional({
-    enum: Role,
-    description: "User role",
-    example: Role.USER,
-  })
+  @IsBoolean()
+  @IsOptional()
+  isVerified?: boolean;
+
+  @ApiHideProperty()
   @IsOptional()
   @IsEnum(Role)
   role?: Role;
 
   @ApiHideProperty()
-  @ApiPropertyOptional({
-    enum: CapLevel,
-    description: "User capability level",
-    example: CapLevel.GREEN,
-  })
   @IsOptional()
   @IsEnum(CapLevel)
   capLevel?: CapLevel;

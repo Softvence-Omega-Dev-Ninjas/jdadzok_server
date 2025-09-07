@@ -9,9 +9,10 @@ export const RedisConfig: CacheModuleAsyncOptions = {
   isGlobal: true,
   imports: [ConfigModule],
   useFactory: async (configService: ConfigService) => {
-    const redisHost = configService.getOrThrow(ENVEnum.REDIS_HOST);
-    const redisPort = configService.getOrThrow(ENVEnum.REDIS_PORT);
-    const redisUrl = `redis://${redisHost}:${redisPort}`;
+    // const redisHost = configService.getOrThrow(ENVEnum.REDIS_HOST);
+    // const redisPort = configService.getOrThrow(ENVEnum.REDIS_PORT);
+    const redisUrl = configService.getOrThrow(ENVEnum.REDIS_URL);
+    // const redisUrl = `redis://${redisHost}:${redisPort}`;
 
     return {
       stores: [

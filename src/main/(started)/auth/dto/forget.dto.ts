@@ -3,7 +3,7 @@ import { IsEmail } from "class-validator";
 
 class ForgetPassword {
   @ApiProperty({
-    example: "user@example.com",
+    example: "devlopersabbir@gmail.com",
   })
   @IsEmail()
   email: string;

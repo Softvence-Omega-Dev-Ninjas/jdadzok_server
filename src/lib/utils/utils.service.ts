@@ -36,11 +36,4 @@ export class UtilsService {
       expiresIn: this.configService.get<string>(ENVEnum.JWT_EXPIRES_IN),
     });
   }
-
-  generateOtpAndExpiry(): { otp: number; expiryTime: Date } {
-    const otp = Math.floor(100000 + Math.random() * 900000); // 6-digit code
-    const expiryTime = new Date();
-    expiryTime.setMinutes(expiryTime.getMinutes() + 10); // valid for 10 minutes
-    return { otp, expiryTime };
-  }
 }

@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { UserProfileRepository } from "@project/main/(users)/user-profile/user.profile.repository";
 import { UserRepository } from "@project/main/(users)/users/users.repository";
 import { GifRepository } from "../gif/gif.repository";
 import { LocationRepository } from "../locations/locations.repository";
@@ -19,6 +20,7 @@ import { PostService } from "./posts.service";
     GifRepository,
     PostMetadataRepository,
     UserRepository,
+    UserProfileRepository,
   ],
   exports: [PostRepository],
 })
