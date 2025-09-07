@@ -1,13 +1,25 @@
+#!/usr/bin/env node
+
+/**
+ * Advanced Health Check Script
+ * Performs comprehensive health checks on the application
+ */
+
 const http = require("http");
-const https = require("https");
-const { URL } = require("url");
+const { exec } = require("child_process");
+const util = require("util");
+
+const execAsync = util.promisify(exec);
 
 // Configuration
-const config = {
-  url: process.env.HEALTH_CHECK_URL || "http://localhost:5056/health",
-  timeout: parseInt(process.env.HEALTH_CHECK_TIMEOUT) || 10000,
-  retries: parseInt(process.env.HEALTH_CHECK_RETRIES) || 3,
-  interval: parseInt(process.env.HEALTH_CHECK_INTERVAL) || 2000,
+const CONFIG = {
+  host: process.env.HEALTH_HOST || "localhost",
+  port: process.env.HEALTH_PORT || 5056,
+  path: process.env.HEALTH_PATH || "/health",
+  timeout: parseInt(process.env.HEALTH_TIMEOUT) || 10000,
+  retries: parseInt(process.env.HEALTH_RETRIES) || 3,
+  retryDelay: parseInt(process.env.HEALTH_RETRY_DELAY) || 2000,
+  containerName: process.env.PACKAGE_NAME || "jdadzok_server",
 };
 
 // Colors for console output
@@ -17,306 +29,347 @@ const colors = {
   green: "\x1b[32m",
   yellow: "\x1b[33m",
   blue: "\x1b[34m",
+  magenta: "\x1b[35m",
+  cyan: "\x1b[36m",
 };
 
-function log(level, message) {
-  const timestamp = new Date().toISOString();
-  const colorMap = {
-    info: colors.blue,
-    success: colors.green,
-    warning: colors.yellow,
-    error: colors.red,
-  };
-
-  const color = colorMap[level] || colors.reset;
-  console.log(
-    `${color}[${timestamp}] [${level.toUpperCase()}] ${message}${colors.reset}`,
-  );
-}
-
-function makeRequest(url, timeout) {
-  return new Promise((resolve, reject) => {
-    const parsedUrl = new URL(url);
-    const client = parsedUrl.protocol === "https:" ? https : http;
-
-    const options = {
-      hostname: parsedUrl.hostname,
-      port: parsedUrl.port || (parsedUrl.protocol === "https:" ? 443 : 80),
-      path: parsedUrl.pathname + parsedUrl.search,
-      method: "GET",
-      timeout: timeout,
-      headers: {
-        "User-Agent": "Health-Check/1.0.0",
-        Accept: "application/json, text/plain, */*",
-      },
+class HealthChecker {
+  constructor() {
+    this.results = {
+      timestamp: new Date().toISOString(),
+      overall: false,
+      checks: {},
+      errors: [],
     };
+  }
 
-    const req = client.request(options, (res) => {
-      let data = "";
+  log(message, color = "reset") {
+    const timestamp = new Date().toISOString();
+    console.log(`${colors[color]}[${timestamp}] ${message}${colors.reset}`);
+  }
 
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
+  async delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
-      res.on("end", () => {
-        resolve({
-          statusCode: res.statusCode,
-          headers: res.headers,
-          body: data,
-          responseTime: Date.now() - startTime,
+  async checkHttpEndpoint(retries = CONFIG.retries) {
+    this.log("🔍 Checking HTTP endpoint...", "blue");
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const result = await this.makeHttpRequest();
+        this.results.checks.http = {
+          status: "healthy",
+          responseTime: result.responseTime,
+          statusCode: result.statusCode,
+          attempt: attempt,
+        };
+        this.log(
+          `✅ HTTP endpoint healthy (${result.responseTime}ms, status: ${result.statusCode})`,
+          "green",
+        );
+        return true;
+      } catch (error) {
+        this.log(
+          `❌ HTTP check failed (attempt ${attempt}/${retries}): ${error.message}`,
+          "red",
+        );
+
+        if (attempt === retries) {
+          this.results.checks.http = {
+            status: "unhealthy",
+            error: error.message,
+            attempts: retries,
+          };
+          this.results.errors.push(
+            `HTTP endpoint check failed: ${error.message}`,
+          );
+          return false;
+        }
+
+        await this.delay(CONFIG.retryDelay);
+      }
+    }
+  }
+
+  makeHttpRequest() {
+    return new Promise((resolve, reject) => {
+      const startTime = Date.now();
+      const url = `http://${CONFIG.host}:${CONFIG.port}${CONFIG.path}`;
+
+      const request = http.get(url, { timeout: CONFIG.timeout }, (response) => {
+        const responseTime = Date.now() - startTime;
+        let data = "";
+
+        response.on("data", (chunk) => {
+          data += chunk;
+        });
+
+        response.on("end", () => {
+          if (response.statusCode >= 200 && response.statusCode < 400) {
+            resolve({
+              statusCode: response.statusCode,
+              responseTime: responseTime,
+              data: data,
+            });
+          } else {
+            reject(new Error(`HTTP ${response.statusCode}: ${data}`));
+          }
         });
       });
-    });
 
-    const startTime = Date.now();
+      request.on("error", (error) => {
+        reject(new Error(`Request failed: ${error.message}`));
+      });
 
-    req.on("error", (error) => {
-      reject({
-        error: error.message,
-        code: error.code,
-        responseTime: Date.now() - startTime,
+      request.on("timeout", () => {
+        request.destroy();
+        reject(new Error(`Request timeout after ${CONFIG.timeout}ms`));
       });
     });
+  }
 
-    req.on("timeout", () => {
-      req.destroy();
-      reject({
-        error: "Request timeout",
-        code: "TIMEOUT",
-        responseTime: Date.now() - startTime,
-      });
-    });
+  async checkContainerStatus() {
+    this.log("🐳 Checking container status...", "blue");
 
-    req.end();
-  });
-}
-
-async function performHealthCheck(url, retries, interval) {
-  log("info", `Starting health check for: ${url}`);
-  log(
-    "info",
-    `Configuration: retries=${retries}, interval=${interval}ms, timeout=${config.timeout}ms`,
-  );
-
-  for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      log("info", `Health check attempt ${attempt}/${retries}`);
+      const { stdout } = await execAsync(
+        `docker ps --filter "name=${CONFIG.containerName}_api" --format "{{.Names}}\t{{.Status}}\t{{.Image}}"`,
+      );
 
-      const result = await makeRequest(url, config.timeout);
+      if (stdout.trim()) {
+        const lines = stdout.trim().split("\n");
+        const containerInfo = lines[0].split("\t");
 
-      log("info", `Response: ${result.statusCode} (${result.responseTime}ms)`);
-
-      if (result.statusCode >= 200 && result.statusCode < 300) {
-        // Try to parse response body as JSON for additional health info
-        let healthData = null;
-        try {
-          healthData = JSON.parse(result.body);
-        } catch (e) {
-          // Not JSON, that's fine
-        }
-
-        if (healthData) {
-          log(
-            "success",
-            `Health check passed! Status: ${healthData.status || "unknown"}`,
-          );
-          if (healthData.timestamp) {
-            log("info", `Server timestamp: ${healthData.timestamp}`);
-          }
-          if (healthData.uptime) {
-            log("info", `Server uptime: ${healthData.uptime}`);
-          }
-          if (healthData.version) {
-            log("info", `Server version: ${healthData.version}`);
-          }
-        } else {
-          log("success", `Health check passed! (${result.responseTime}ms)`);
-        }
-
-        return {
-          success: true,
-          statusCode: result.statusCode,
-          responseTime: result.responseTime,
-          data: healthData,
+        this.results.checks.container = {
+          status: "running",
+          name: containerInfo[0],
+          containerStatus: containerInfo[1],
+          image: containerInfo[2],
         };
+
+        this.log(
+          `✅ Container running: ${containerInfo[0]} (${containerInfo[1]})`,
+          "green",
+        );
+        return true;
       } else {
-        log("warning", `Unexpected status code: ${result.statusCode}`);
-        if (result.body) {
-          log("info", `Response body: ${result.body.substring(0, 200)}`);
-        }
+        this.results.checks.container = {
+          status: "not_running",
+          error: "No containers found",
+        };
+        this.results.errors.push("Container is not running");
+        this.log("❌ Container is not running", "red");
+        return false;
       }
     } catch (error) {
-      log("error", `Health check failed: ${error.error} (${error.code})`);
-      if (error.responseTime) {
-        log("info", `Response time: ${error.responseTime}ms`);
-      }
-    }
-
-    if (attempt < retries) {
-      log("info", `Waiting ${interval}ms before next attempt...`);
-      await new Promise((resolve) => setTimeout(resolve, interval));
+      this.results.checks.container = {
+        status: "error",
+        error: error.message,
+      };
+      this.results.errors.push(`Container check failed: ${error.message}`);
+      this.log(`❌ Container check failed: ${error.message}`, "red");
+      return false;
     }
   }
 
-  log("error", `All ${retries} health check attempts failed`);
-  return {
-    success: false,
-  };
-}
+  async checkDockerHealth() {
+    this.log("🏥 Checking Docker health status...", "blue");
 
-// Additional health checks
-async function checkDatabaseConnection() {
-  // This is a placeholder - implement actual database health check
-  // based on your database type (PostgreSQL, MySQL, MongoDB, etc.)
-  log("info", "Database connection check not implemented");
-  return { success: true, message: "Skipped" };
-}
-
-async function checkRedisConnection() {
-  // This is a placeholder - implement actual Redis health check
-  log("info", "Redis connection check not implemented");
-  return { success: true, message: "Skipped" };
-}
-
-async function checkDependencies() {
-  log("info", "Checking external dependencies...");
-
-  const checks = [
-    { name: "Database", check: checkDatabaseConnection },
-    { name: "Redis", check: checkRedisConnection },
-  ];
-
-  const results = {};
-
-  for (const { name, check } of checks) {
     try {
-      const result = await check();
-      results[name] = result;
-      log(
-        result.success ? "success" : "warning",
-        `${name}: ${result.message || (result.success ? "OK" : "Failed")}`,
+      const { stdout } = await execAsync(
+        `docker inspect --format='{{.State.Health.Status}}' ${CONFIG.containerName}_api 2>/dev/null || echo "none"`,
       );
+      const healthStatus = stdout.trim();
+
+      if (healthStatus === "healthy") {
+        this.results.checks.dockerHealth = {
+          status: "healthy",
+        };
+        this.log("✅ Docker health check: healthy", "green");
+        return true;
+      } else if (healthStatus === "unhealthy") {
+        this.results.checks.dockerHealth = {
+          status: "unhealthy",
+        };
+        this.results.errors.push("Docker health check reports unhealthy");
+        this.log("❌ Docker health check: unhealthy", "red");
+        return false;
+      } else {
+        this.results.checks.dockerHealth = {
+          status: "no_healthcheck",
+          note: "No health check configured",
+        };
+        this.log("⚠️  No Docker health check configured", "yellow");
+        return true; // Don't fail if no health check is configured
+      }
     } catch (error) {
-      results[name] = { success: false, error: error.message };
-      log("error", `${name}: ${error.message}`);
+      this.results.checks.dockerHealth = {
+        status: "error",
+        error: error.message,
+      };
+      this.log(`⚠️  Docker health check error: ${error.message}`, "yellow");
+      return true; // Don't fail the overall check for this
     }
   }
 
-  return results;
-}
+  async checkDependencies() {
+    this.log("🔗 Checking service dependencies...", "blue");
 
-async function main() {
-  const args = process.argv.slice(2);
-  const command = args[0] || "check";
+    const dependencies = [
+      { name: "postgres", container: "jdadzok_db", port: 5431 },
+      { name: "redis", container: "jdadzok_redis", port: 6378 },
+    ];
 
-  switch (command) {
-    case "check":
-    case "health":
-      const result = await performHealthCheck(
-        config.url,
-        config.retries,
-        config.interval,
-      );
-      process.exit(result.success ? 0 : 1);
+    let allDepsHealthy = true;
+    this.results.checks.dependencies = {};
 
-    case "full":
-      log("info", "Performing comprehensive health check...");
-      const healthResult = await performHealthCheck(
-        config.url,
-        config.retries,
-        config.interval,
-      );
-      const depResults = await checkDependencies();
+    for (const dep of dependencies) {
+      try {
+        const { stdout } = await execAsync(
+          `docker ps --filter "name=${dep.container}" --format "{{.Status}}"`,
+        );
 
-      const allSuccessful =
-        healthResult.success &&
-        Object.values(depResults).every((r) => r.success);
+        if (stdout.trim() && stdout.includes("Up")) {
+          this.results.checks.dependencies[dep.name] = {
+            status: "running",
+            container: dep.container,
+          };
+          this.log(`✅ ${dep.name} dependency: running`, "green");
+        } else {
+          this.results.checks.dependencies[dep.name] = {
+            status: "not_running",
+            container: dep.container,
+          };
+          this.results.errors.push(`${dep.name} dependency is not running`);
+          this.log(`❌ ${dep.name} dependency: not running`, "red");
+          allDepsHealthy = false;
+        }
+      } catch (error) {
+        this.results.checks.dependencies[dep.name] = {
+          status: "error",
+          error: error.message,
+          container: dep.container,
+        };
+        this.log(
+          `❌ ${dep.name} dependency check failed: ${error.message}`,
+          "red",
+        );
+        allDepsHealthy = false;
+      }
+    }
 
-      log("info", "=== Health Check Summary ===");
-      log(
-        healthResult.success ? "success" : "error",
-        `Application: ${healthResult.success ? "HEALTHY" : "UNHEALTHY"}`,
-      );
+    return allDepsHealthy;
+  }
 
-      for (const [name, result] of Object.entries(depResults)) {
-        log(
-          result.success ? "success" : "warning",
-          `${name}: ${result.success ? "OK" : "FAILED"}`,
+  async performAllChecks() {
+    this.log("🚀 Starting comprehensive health check...", "cyan");
+
+    const checks = [
+      this.checkContainerStatus(),
+      this.checkDockerHealth(),
+      this.checkDependencies(),
+      this.checkHttpEndpoint(),
+    ];
+
+    const results = await Promise.all(checks);
+    this.results.overall = results.every((result) => result);
+
+    this.log("📊 Health check summary:", "cyan");
+    this.log(
+      `   Container Status: ${this.results.checks.container?.status || "unknown"}`,
+      this.results.checks.container?.status === "running" ? "green" : "red",
+    );
+    this.log(
+      `   Docker Health: ${this.results.checks.dockerHealth?.status || "unknown"}`,
+      this.results.checks.dockerHealth?.status === "healthy"
+        ? "green"
+        : "yellow",
+    );
+    this.log(
+      `   HTTP Endpoint: ${this.results.checks.http?.status || "unknown"}`,
+      this.results.checks.http?.status === "healthy" ? "green" : "red",
+    );
+
+    // Log dependency status
+    if (this.results.checks.dependencies) {
+      for (const [name, dep] of Object.entries(
+        this.results.checks.dependencies,
+      )) {
+        this.log(
+          `   ${name}: ${dep.status}`,
+          dep.status === "running" ? "green" : "red",
         );
       }
+    }
 
-      process.exit(allSuccessful ? 0 : 1);
-
-    case "monitor":
-      log("info", "Starting continuous monitoring...");
-      const monitorInterval = parseInt(args[1]) || 30000; // Default 30 seconds
-
-      while (true) {
-        await performHealthCheck(config.url, 1, 0);
-        await new Promise((resolve) => setTimeout(resolve, monitorInterval));
+    if (this.results.overall) {
+      this.log("🎉 Overall health status: HEALTHY", "green");
+    } else {
+      this.log("💥 Overall health status: UNHEALTHY", "red");
+      if (this.results.errors.length > 0) {
+        this.log("Errors found:", "red");
+        this.results.errors.forEach((error) => {
+          this.log(`  - ${error}`, "red");
+        });
       }
+    }
 
-    case "help":
-    default:
-      console.log(`
-Health Check Script Usage:
+    return this.results;
+  }
 
-  node health-check.js [command] [options]
-
-Commands:
-  check, health    Perform a single health check (default)
-  full            Perform comprehensive health check including dependencies
-  monitor [ms]    Continuously monitor health (default interval: 30s)
-  help            Show this help message
-
-Environment Variables:
-  HEALTH_CHECK_URL       Health check endpoint (default: http://0.0.0.0:5055/health)
-  HEALTH_CHECK_TIMEOUT   Request timeout in ms (default: 10000)
-  HEALTH_CHECK_RETRIES   Number of retry attempts (default: 3)
-  HEALTH_CHECK_INTERVAL  Interval between retries in ms (default: 2000)
-
-Examples:
-  node health-check.js
-  node health-check.js full
-  node health-check.js monitor 60000
-  HEALTH_CHECK_URL=https://myapi.com/health node health-check.js
-
-Exit Codes:
-  0 - Health check passed
-  1 - Health check failed
-      `);
-      process.exit(0);
+  getExitCode() {
+    return this.results.overall ? 0 : 1;
   }
 }
 
-// Handle process signals gracefully
-process.on("SIGINT", () => {
-  log("info", "Received SIGINT, shutting down gracefully...");
-  process.exit(0);
-});
+// Main execution
+async function main() {
+  const checker = new HealthChecker();
 
-process.on("SIGTERM", () => {
-  log("info", "Received SIGTERM, shutting down gracefully...");
-  process.exit(0);
-});
+  try {
+    const results = await checker.performAllChecks();
 
-// Handle uncaught exceptions
-process.on("uncaughtException", (error) => {
-  log("error", `Uncaught exception: ${error.message}`);
-  console.error(error);
-  process.exit(1);
-});
+    // Output JSON if requested
+    if (process.argv.includes("--json")) {
+      console.log(JSON.stringify(results, null, 2));
+    }
 
-process.on("unhandledRejection", (reason, promise) => {
-  log("error", `Unhandled rejection at: ${promise}, reason: ${reason}`);
-  process.exit(1);
-});
-
-// Run the main function
-if (require.main === module) {
-  main().catch((error) => {
-    log("error", `Fatal error: ${error.message}`);
-    console.error(error);
+    process.exit(checker.getExitCode());
+  } catch (error) {
+    console.error(
+      `${colors.red}Health check failed with error: ${error.message}${colors.reset}`,
+    );
     process.exit(1);
-  });
+  }
 }
+
+// Handle CLI arguments
+if (process.argv.includes("--help")) {
+  console.log(`
+Health Check Script
+
+Usage: node health-check.js [options]
+
+Options:
+  --json     Output results in JSON format
+  --help     Show this help message
+
+Environment Variables:
+  HEALTH_HOST         Host to check (default: localhost)
+  HEALTH_PORT         Port to check (default: 5056)
+  HEALTH_PATH         Health endpoint path (default: /health)
+  HEALTH_TIMEOUT      Request timeout in ms (default: 10000)
+  HEALTH_RETRIES      Number of retries (default: 3)
+  HEALTH_RETRY_DELAY  Delay between retries in ms (default: 2000)
+  PACKAGE_NAME        Container name prefix (default: jdadzok_server)
+    `);
+  process.exit(0);
+}
+
+// Run the health check
+if (require.main === module) {
+  main();
+}
+
+module.exports = HealthChecker;

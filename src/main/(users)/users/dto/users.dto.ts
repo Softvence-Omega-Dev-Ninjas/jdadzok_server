@@ -7,6 +7,7 @@ import {
 } from "@nestjs/swagger";
 import { AuthProvider, CapLevel, Role } from "@prisma/client";
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsOptional,
@@ -21,7 +22,7 @@ class UserCreate {
   @IsString()
   name?: string;
 
-  @ApiProperty({ description: "User email address", example: "user@user.com" })
+  @ApiProperty({ description: "User email address", example: "devlopersabbir@gmail.com" })
   @IsEmail()
   email: string;
 
@@ -41,21 +42,16 @@ class UserCreate {
   authProvider?: AuthProvider;
 
   @ApiHideProperty()
-  @ApiPropertyOptional({
-    enum: Role,
-    description: "User role",
-    example: Role.USER,
-  })
+  @IsBoolean()
+  @IsOptional()
+  isVerified?: boolean;
+
+  @ApiHideProperty()
   @IsOptional()
   @IsEnum(Role)
   role?: Role;
 
   @ApiHideProperty()
-  @ApiPropertyOptional({
-    enum: CapLevel,
-    description: "User capability level",
-    example: CapLevel.GREEN,
-  })
   @IsOptional()
   @IsEnum(CapLevel)
   capLevel?: CapLevel;
@@ -72,9 +68,9 @@ class SelectUser {
   metrics?: UpdateUserProfileMetricsDto;
 }
 
-export class CreateUserDto extends IntersectionType(UserCreate) {}
-export class UpdateUserDto extends IntersectionType(PartialType(UserCreate)) {}
+export class CreateUserDto extends IntersectionType(UserCreate) { }
+export class UpdateUserDto extends IntersectionType(PartialType(UserCreate)) { }
 export class SelectUserDto extends IntersectionType(
   PartialType(CreateUserDto),
   PartialType(SelectUser),
-) {}
+) { }

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { omit } from "@project/utils";
 import { UserProfileRepository } from "../user-profile/user.profile.repository";
@@ -9,23 +9,38 @@ export class UserRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly profileRepo: UserProfileRepository,
-  ) {}
+  ) { }
 
   async store(input: CreateUserDto) {
-    // make sure role is USER, and cap level none when they create their account
-    const createUser = omit(input, ["name"]);
-    const user = await this.prisma.user.create({
-      data: { ...createUser, role: "USER", capLevel: "NONE" },
-    });
+    return await this.prisma.$transaction(async (tx) => {
+      const isUser = await tx.user.findFirst({ where: { email: input.email } });
+      // if user already has && user is already verified then throw error otherwise processed
+      if (isUser && isUser.isVerified) {
+        throw new ConflictException("User email already exist, please login");
+      }
 
-    // if input has name then create profile
-    const profile = await this.profileRepo.create(user.id, {
-      name: input.name ?? "",
-    });
+      if (isUser && !isUser.isVerified) {
+        // if it's not verified then give chances to verify account again
+        throw new BadRequestException("Please resent OTP to verify your account.")
+      }
 
-    const resObj = { ...user, profile };
-    return omit(resObj, ["password"]);
+      const createUser = omit(input, ["name"]);
+      // make sure role is USER, and cap level none when they create their account
+      const user = await tx.user.create({
+        data: { ...createUser, role: "USER", capLevel: "NONE" },
+      });
+      console.log('created user: ', user)
+
+      // if input has name then create profile
+      const profile = await this.profileRepo.create(user.id, {
+        name: input.name ?? "",
+      }, tx);
+
+      const resObj = { ...user, profile };
+      return omit(resObj, ["password"]);
+    })
   }
+
   async findByEmail(email: string) {
     return await this.prisma.user.findUnique({
       where: { email },

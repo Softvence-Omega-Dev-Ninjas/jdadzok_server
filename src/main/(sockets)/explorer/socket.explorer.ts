@@ -9,11 +9,11 @@ export class SocketExplorer implements OnModuleInit {
     private readonly sharedSocket: SharedSocketService,
     private readonly moduleRef: ModuleRef,
     private readonly reflector: Reflector,
-  ) {}
+  ) { }
 
   onModuleInit() {
-    const provider = this.moduleRef;
-    console.info("providers: ", provider);
+    // const provider = this.moduleRef;
+    // console.info("providers: ", provider);
     // for (const [, instance] of Object.entries(provider)) {
     //     const prototype = Object.getPrototypeOf(instance);
     //     if (!prototype) continue;

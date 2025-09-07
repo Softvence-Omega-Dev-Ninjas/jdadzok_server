@@ -17,7 +17,8 @@
       "@module/*": ["src/main/*"],
       "@common/*": ["src/common/*"],
       "@configs/*": ["src/configs/*"],
-      "@constants/*": ["src/constants/*"]
+      "@constants/*": ["src/constants/*"],
+      "@metadata/*": ["src/app-metadata/*"]
     },
     "incremental": true,
     "skipLibCheck": true,

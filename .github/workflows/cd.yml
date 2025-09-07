@@ -217,14 +217,12 @@ jobs:
           ssh deploy-server "chmod +x ~/${{ needs.build-and-push.outputs.package_name }}/scripts/deploy.sh"
           echo "✅ Files copied successfully"
 
+      # UPDATED: Simplified deployment step using the new deploy.sh script
       - name: Deploy Application 🚀
         run: |
           echo "Starting deployment..."
           echo "Package: ${{ needs.build-and-push.outputs.package_name }}"
           echo "Version: ${{ needs.build-and-push.outputs.package_version }}"
-          # check both in a one
-          echo "image tag output example: ${{secrets.DOCKER_USERNAME}}/${{needs.build-and-push.outputs.package_name}}:${{needs.build-and-push.outputs.package_version}}"
-          echo "Image: ${{ needs.build-and-push.outputs.image_tag }}"
 
           ssh deploy-server bash << 'DEPLOY_EOF'
           set -e
@@ -232,31 +230,15 @@ jobs:
           # Set variables
           PACKAGE_NAME="${{ needs.build-and-push.outputs.package_name }}"
           PACKAGE_VERSION="${{ needs.build-and-push.outputs.package_version }}"
-          IMAGE_TAG="${{secrets.DOCKER_USERNAME}}/${{needs.build-and-push.outputs.package_name}}:${{needs.build-and-push.outputs.package_version}}"
-
-          # Fallback to hardcoded image tag if empty or invalid
-          if [ -z "$IMAGE_TAG" ] || ! echo "$IMAGE_TAG" | grep -qE '^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+:[a-zA-Z0-9._-]+'; then
-            echo "⚠️ IMAGE_TAG is empty or invalid, using hardcoded fallback"
-            IMAGE_TAG="devlopersabbir/jdadzok_server:0.3.3"
-          fi
 
           echo "=== DEPLOYMENT STARTED ==="
           echo "Package: $PACKAGE_NAME"
           echo "Version: $PACKAGE_VERSION"
-          echo "Image: $IMAGE_TAG"
           echo "=============================="
 
           cd ~/$PACKAGE_NAME
 
-          # Check disk space
-          echo "Checking available disk space..."
-          df -h
-
-          # Clean up Docker resources to prevent disk space issues
-          echo "Cleaning up Docker resources..."
-          docker system prune -a -f --volumes || true
-          echo "✅ Docker cleanup completed"
-
+          # Basic system setup (only if needed)
           # Install Docker Compose if needed
           if [ ! -f ~/.docker/cli-plugins/docker-compose ]; then
             echo "Installing Docker Compose..."
@@ -265,52 +247,19 @@ jobs:
             chmod +x ~/.docker/cli-plugins/docker-compose
           fi
 
-          # Install jq if needed
-          if ! command -v jq &>/dev/null; then
-            echo "Installing jq..."
-            sudo apt-get update && sudo apt-get install -y jq
+          # Install Node.js if needed (for health check script)
+          if ! command -v node &>/dev/null; then
+            echo "Installing Node.js..."
+            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            sudo apt-get install -y nodejs
           fi
 
           # Login to Docker Hub
           echo "Logging into Docker Hub..."
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-          # Set Docker permissions
-          sudo usermod -aG docker $USER || true
-
-          # Configure firewall
-          sudo ufw allow 5055 || true
-          sudo ufw allow 5432 || true
-          sudo ufw allow 6379 || true
-
-          # Pull the Docker image
-          echo "Pulling Docker image: $IMAGE_TAG"
-          if docker pull "$IMAGE_TAG"; then
-            echo "✅ Image pulled successfully"
-          else
-            echo "❌ Failed to pull image: $IMAGE_TAG"
-            exit 1
-          fi
-
-          # Verify deploy script exists
-          if [ ! -f "./scripts/deploy.sh" ]; then
-            echo "❌ deploy.sh not found"
-            ls -la scripts/ || echo "No scripts directory"
-            exit 1
-          fi
-
-          # Make script executable
-          chmod +x ./scripts/deploy.sh
-
-          # Validate .env file
+          # Source environment variables
           if [ -f .env ]; then
-            echo "Validating .env file..."
-            while IFS= read -r line; do
-              if [[ -n "$line" && ! "$line" =~ ^# && ! "$line" =~ ^[A-Z_]+=\".*\"$ ]]; then
-                echo "❌ Invalid .env line: $line"
-                exit 1
-              fi
-            done < .env
             echo "Sourcing .env file..."
             source .env
           else
@@ -318,26 +267,12 @@ jobs:
             exit 1
           fi
 
-          # Run deployment
-          echo "Executing deployment script..."
+          # Run the deployment script - THIS IS THE KEY CHANGE!
+          echo "Executing zero-downtime deployment..."
           if ./scripts/deploy.sh --version "$PACKAGE_VERSION"; then
             echo "✅ Deployment successful"
           else
-            echo "❌ Deployment failed"
-            echo "Container status:"
-            docker ps -a --filter "name=$PACKAGE_NAME"
-            echo "Container logs:"
-            docker logs --tail 50 "${PACKAGE_NAME}_app_1" 2>/dev/null || echo "No logs"
-            exit 1
-          fi
-
-          # Verify containers are running
-          if docker ps --filter "name=$PACKAGE_NAME" | grep -q "$PACKAGE_NAME"; then
-            echo "✅ Containers are running"
-            docker ps --filter "name=$PACKAGE_NAME"
-          else
-            echo "❌ No containers running"
-            docker ps -a --filter "name=$PACKAGE_NAME"
+            echo "❌ Deployment failed - automatic rollback should have occurred"
             exit 1
           fi
 
@@ -348,38 +283,34 @@ jobs:
           echo "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
           DEPLOY_EOF
 
+      # UPDATED: Use the new deployment script for verification
       - name: Verify Deployment ✅
         run: |
-          echo "Waiting for services to stabilize..."
-          sleep 15
-
           echo "Verifying deployment..."
           ssh deploy-server bash << 'VERIFY_EOF'
           PACKAGE_NAME="${{ needs.build-and-push.outputs.package_name }}"
           cd ~/$PACKAGE_NAME
 
-          echo "=== Container Status ==="
-          docker ps --filter "name=$PACKAGE_NAME"
+          echo "=== Running deployment status check ==="
+          ./scripts/deploy.sh status
 
-          echo "=== Health Check ==="
-          if [ -f "./scripts/deploy.sh" ]; then
-            ./scripts/deploy.sh status
-          else
-            echo "Checking health manually..."
-            if curl -f http://localhost:5056/health 2>/dev/null; then
-              echo "✅ Health check passed"
+          echo "=== Running comprehensive health check ==="
+          if command -v node &>/dev/null && [ -f "./scripts/health-check.js" ]; then
+            node ./scripts/health-check.js
+            if [ $? -eq 0 ]; then
+              echo "🎉 Comprehensive health check passed!"
             else
-              echo "⚠️ Health check failed"
-              docker logs --tail 20 "${PACKAGE_NAME}_app_1" 2>/dev/null || echo "No logs"
+              echo "❌ Comprehensive health check failed!"
+              exit 1
             fi
-          fi
-
-          echo "=== Final Status ==="
-          if docker ps --filter "name=$PACKAGE_NAME" | grep -q "Up"; then
-            echo "🎉 Deployment verification successful!"
           else
-            echo "❌ Deployment verification failed!"
-            exit 1
+            echo "⚠️ Node.js or health-check.js not available, using basic check"
+            if curl -f http://localhost:5056/health 2>/dev/null; then
+              echo "✅ Basic health check passed"
+            else
+              echo "❌ Basic health check failed"
+              exit 1
+            fi
           fi
           VERIFY_EOF
 

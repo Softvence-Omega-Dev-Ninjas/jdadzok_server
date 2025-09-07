@@ -2,7 +2,7 @@ import { ApiProperty, IntersectionType } from "@nestjs/swagger";
 import { IsEmail, IsOptional, IsString, MinLength } from "class-validator";
 
 class Login {
-  @ApiProperty({ description: "User email address", example: "user@user.com" })
+  @ApiProperty({ description: "User email address", example: "devlopersabbir@gmail.com" })
   @IsEmail()
   email: string;
 
@@ -13,4 +13,4 @@ class Login {
   password?: string;
 }
 
-export class LoginDto extends IntersectionType(Login) {}
+export class LoginDto extends IntersectionType(Login) { }

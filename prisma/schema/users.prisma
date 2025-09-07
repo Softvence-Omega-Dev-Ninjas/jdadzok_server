@@ -5,6 +5,7 @@ model User {
   email        String       @unique
   password     String?
   authProvider AuthProvider @default(EMAIL)
+  isVerified Boolean @default(false)
   
   // User role and progression
   role     Role     @default(USER)

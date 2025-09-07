@@ -13,12 +13,14 @@ import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
 import { GetUser, MakePublic } from "@project/common/jwt/jwt.decorator";
 import { successResponse } from "@project/common/utils/response.util";
+import { VerifyTokenDto } from "@project/main/(started)/auth/dto/verify-token.dto";
+import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-  constructor(private readonly service: UserService) {}
+  constructor(private readonly service: UserService) { }
 
   @MakePublic()
   @Post("register")
@@ -26,10 +28,30 @@ export class UserController {
   async register(@Body() body: CreateUserDto) {
     try {
       const result = await this.service.register(body);
-      console.info(result);
       return successResponse(result, "Registration successfull!");
     } catch (err) {
-      console.info(err);
+      return err;
+    }
+  }
+
+
+  @Post("verify-account")
+  @UsePipes(ValidationPipe)
+  async verifyAccount(@Body() body: VerifyTokenDto) {
+    try {
+      const result = await this.service.verifyOpt(body);
+      return successResponse(result, "User account verified");
+    } catch (err) {
+      return err;
+    }
+  }
+
+  @Post('resent-otp')
+  async resentOtp(@Body() body: ResentOtpDto) {
+    try {
+      const result = await this.service.resnetOtp(body);
+      return successResponse(result, "OTP resented please check your email and verify it");
+    } catch (err) {
       return err;
     }
   }

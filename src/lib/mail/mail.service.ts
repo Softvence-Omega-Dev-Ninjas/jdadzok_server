@@ -1,12 +1,16 @@
-import { Injectable } from "@nestjs/common";
+import { BadGatewayException, BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import appMetadata from "@project/app-metadata/app-metadata";
 import { ENVEnum } from "@project/common/enum/env.enum";
-import { RESET_TOKEN_EXPIRES_IN } from "@project/constants";
 import * as nodemailer from "nodemailer";
+import { MailContext, MailTemplateType } from "./mail-context.type";
+import { generateFriendRequestEmail } from "./templates/friend-request.template";
+import { generateOtpEmail } from "./templates/otp.template";
 
 @Injectable()
 export class MailService {
   private transporter: nodemailer.Transporter;
+  private logger = new Logger(MailService.name);
 
   constructor(private configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
@@ -19,55 +23,37 @@ export class MailService {
     });
   }
 
-  async sendLoginCodeEmail(
-    email: string,
-    code: string,
-  ): Promise<nodemailer.SentMessageInfo> {
-    const mailOptions = {
-      from: `"No Reply" <${this.configService.get<string>(ENVEnum.MAIL_USER)}>`,
-      to: email,
-      subject: "Login Code",
-      html: `
-        <h3>Welcome!</h3>
-        <p>Please login by using the code below:</p>
-        <p>Your login code is ${code}</p>
-      `,
-    };
+  public async sendMail(to: string, subject: string, type: MailTemplateType, context: MailContext = {}): Promise<void> {
+    const html = this.renderTemplate(type, context);
+    // make same innital email validation for send email
+    if (!to.endsWith("@gmail.com")) throw new BadRequestException("Email must end with @gmail.com")
 
-    return await this.transporter.sendMail(mailOptions);
-  }
-
-  async sendEmail(
-    email: string,
-    subject: string,
-    message: string,
-  ): Promise<nodemailer.SentMessageInfo> {
     const mailOptions = {
-      from: `"No Reply" <${this.configService.get<string>(ENVEnum.MAIL_USER)}>`,
-      to: email,
+      from: `"${appMetadata.displayName}" <${this.configService.get<string>(ENVEnum.MAIL_USER)}>`,
+      to,
       subject,
-      html: message,
+      html,
     };
 
-    return await this.transporter.sendMail(mailOptions);
+    try {
+      await this.transporter.sendMail(mailOptions);
+      this.logger.log(`✅ Email sent to ${to} with subject "${subject}"`);
+    } catch (error) {
+      this.logger.error(`❌ Failed to send email to ${to}`, error.stack);
+      throw new BadGatewayException(`❌ Failed to send email to ${to}`)
+    }
   }
 
-  async forgetPasswordMail(
-    email: string,
-    code: string,
-  ): Promise<nodemailer.SentMessageInfo> {
-    const mailOptions = {
-      from: `"No Reply" <${this.configService.get<string>(ENVEnum.MAIL_USER)}>`,
-      to: email,
-      subject: "Forgot Password",
-      html: `
-        <h3>Reset Your Password</h3>
-        <p>Please use the code below to reset your password:</p>
-        <p>Your reset code is <b>${code}</b></p>
-        <p style="color: red">This code will expire within ${RESET_TOKEN_EXPIRES_IN / 1000 / 60} minutes</p>
-      `,
-    };
-
-    return await this.transporter.sendMail(mailOptions);
+  private renderTemplate(type: MailTemplateType, context: MailContext): string {
+    switch (type) {
+      case "otp":
+        return generateOtpEmail(context.otp!);
+      case 'friend-request':
+        return generateFriendRequestEmail(context.senderName!, context.avatarUrl!);
+      // if we have then make case here...
+      default:
+        throw new Error(`Unknown email template type: ${type}`);
+    }
   }
+
 }

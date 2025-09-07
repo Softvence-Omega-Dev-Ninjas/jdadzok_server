@@ -22,15 +22,36 @@ services:
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
       - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      # Added BASE_URL which was missing
+      - BASE_URL=${BASE_URL}
+      # Added individual Redis configs for flexibility
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    # Enhanced health check for better zero-downtime deployment
     healthcheck:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:5056/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 15s # Check every 15 seconds (more frequent)
+      timeout: 10s # 10 second timeout
+      retries: 3 # 3 retries before marking unhealthy
+      start_period: 30s # Wait 30 seconds before starting health checks
+
+    # Add logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Add labels for better container management
+    labels:
+      - "app.name=${PACKAGE_NAME}"
+      - "app.version=${PACKAGE_VERSION}"
+      - "deployment.type=zero-downtime"
 
   db:
     image: postgres:15
@@ -43,13 +64,37 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: jdadzok_db
+      # Add these for better performance
+      POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5431:5432"
+    # Add health check for database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jdadzok_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # Add resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    # Add logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
-    image: redis
+    image: redis:7-alpine # Use Alpine version for smaller size
     container_name: jdadzok_redis
     restart: always
     profiles:
@@ -59,7 +104,46 @@ services:
       - "6378:6379"
     volumes:
       - redis_data:/data
+    # Add Redis configuration for better performance
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    # Add health check for Redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    # Add resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    # Add logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
 
 volumes:
   postgres_data:
+    driver: local
+    labels:
+      - "backup.enable=true"
+      - "backup.schedule=daily"
   redis_data:
+    driver: local
+    labels:
+      - "backup.enable=true"
+      - "backup.schedule=daily"
+
+# Add networks for better isolation (optional)
+networks:
+  default:
+    name: ${PACKAGE_NAME}_network
+    labels:
+      - "project=${PACKAGE_NAME}"
