@@ -53,7 +53,11 @@ async function bootstrap() {
 
   const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5056", 10);
 
-  await app.listen(port, process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost", () => console.info(`PORT=${port}`));
+  await app.listen(
+    port,
+    process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost",
+    () => console.info(`PORT=${port}`),
+  );
 }
 
 void bootstrap();
