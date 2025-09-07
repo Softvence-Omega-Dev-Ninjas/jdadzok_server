@@ -4,7 +4,7 @@ const { URL } = require("url");
 
 // Configuration
 const config = {
-  url: process.env.HEALTH_CHECK_URL || "http://localhost:5055/health",
+  url: process.env.HEALTH_CHECK_URL || "http://localhost:5056/health",
   timeout: parseInt(process.env.HEALTH_CHECK_TIMEOUT) || 10000,
   retries: parseInt(process.env.HEALTH_CHECK_RETRIES) || 3,
   interval: parseInt(process.env.HEALTH_CHECK_INTERVAL) || 2000,
@@ -270,7 +270,7 @@ Commands:
   help            Show this help message
 
 Environment Variables:
-  HEALTH_CHECK_URL       Health check endpoint (default: http://localhost:5055/health)
+  HEALTH_CHECK_URL       Health check endpoint (default: http://0.0.0.0:5055/health)
   HEALTH_CHECK_TIMEOUT   Request timeout in ms (default: 10000)
   HEALTH_CHECK_RETRIES   Number of retry attempts (default: 3)
   HEALTH_CHECK_INTERVAL  Interval between retries in ms (default: 2000)

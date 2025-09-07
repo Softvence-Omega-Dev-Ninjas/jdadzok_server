@@ -232,7 +232,7 @@ jobs:
           # Set variables
           PACKAGE_NAME="${{ needs.build-and-push.outputs.package_name }}"
           PACKAGE_VERSION="${{ needs.build-and-push.outputs.package_version }}"
-          IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+          IMAGE_TAG="${{secrets.DOCKER_USERNAME}}/${{needs.build-and-push.outputs.package_name}}:${{needs.build-and-push.outputs.package_version}}"
 
           # Fallback to hardcoded image tag if empty or invalid
           if [ -z "$IMAGE_TAG" ] || ! echo "$IMAGE_TAG" | grep -qE '^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+:[a-zA-Z0-9._-]+'; then
@@ -366,7 +366,7 @@ jobs:
             ./scripts/deploy.sh status
           else
             echo "Checking health manually..."
-            if curl -f http://localhost:5055/health 2>/dev/null; then
+            if curl -f http://localhost:5056/health 2>/dev/null; then
               echo "✅ Health check passed"
             else
               echo "⚠️ Health check failed"
