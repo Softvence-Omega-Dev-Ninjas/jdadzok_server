@@ -1,4 +1,3 @@
-import { UserService } from "@module/(users)/users/users.service";
 import {
   Body,
   Controller,
@@ -23,8 +22,7 @@ import { JwtAuthGuard } from "./guards/jwt-auth";
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly userSerivice: UserService,
-  ) {}
+  ) { }
 
   @MakePublic()
   @Post("login")

@@ -7,8 +7,10 @@ import {
   ExecutionContext,
   NotFoundException,
   SetMetadata,
+  UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
+import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { RequestWithUser } from "./jwt.interface";
 
 export const ROLES_KEY = "roles";
@@ -21,12 +23,21 @@ export function MakePublic() {
 }
 
 export const GetUser = createParamDecorator(
-  (key: string | undefined, ctx: ExecutionContext) => {
+  async (key: string | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
     if (!user || !user.userId)
       throw new NotFoundException("Request User not found!");
+
+    const prisma = new PrismaService();
+    const IsVerified = await prisma.user.findFirst({
+      where: { OR: [{ id: user.userId }, { email: user.email }] }, select: {
+        isVerified: true
+      }
+    });
+    // check user verified or not
+    if (!IsVerified?.isVerified) throw new UnauthorizedException("Please verify your account first")
 
     return key ? user?.[key] : user;
   },
