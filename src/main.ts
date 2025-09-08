@@ -5,6 +5,7 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import "reflect-metadata";
 import z from "zod";
+import appMetadata from "./app-metadata/app-metadata";
 import { AppModule } from "./app.module";
 import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
@@ -41,9 +42,9 @@ async function bootstrap() {
   // ✅ Swagger config with Bearer Auth
   extendZodWithOpenApi(z);
   const config = new DocumentBuilder()
-    .setTitle("Jdadzok")
-    .setDescription("Jdadzok API description")
-    .setVersion("1.0")
+    .setTitle(appMetadata.displayName)
+    .setDescription(appMetadata.description)
+    .setVersion(appMetadata.version)
     .addBearerAuth()
     .build();
 

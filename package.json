@@ -1,8 +1,8 @@
 {
   "name": "jdadzok_server",
   "displayName": "JdadZok Server",
-  "version": "0.4.0",
-  "description": "This is backend for jdadzok",
+  "version": "0.4.1",
+  "description": "This is backend for jdadzok social media application",
   "author": "Vision 360",
   "private": true,
   "license": "UNLICENSED",

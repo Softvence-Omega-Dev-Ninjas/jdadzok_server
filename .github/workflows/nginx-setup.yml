@@ -24,12 +24,25 @@ jobs:
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "✅ Outputs written to GITHUB_OUTPUT"
 
-      - name: 🔐 Set up SSH
+      - name: Setup SSH 🔐
         run: |
-          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > deploy_key
-          chmod 600 deploy_key
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+          cat > ~/.ssh/config << EOF
+          Host deploy-server
+            HostName ${{ secrets.VPS_HOST }}
+            User ${{ secrets.VPS_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Test SSH Connection 🚀
+        run: ssh deploy-server "echo 'SSH connection successful'"
 
       - name: ⚙️ Prepare and update NGINX .env values on VPS
         run: |
@@ -61,14 +74,32 @@ jobs:
             echo "✅ .env updated on VPS"
           EOF
 
+      - name: Debug the scripts directory
+        run: ls -al ./scripts
+
       - name: 🧪 Run NGINX Setup Script on VPS
         run: |
-          echo "🚀 Running setup-nginx.sh on VPS"
-          # copy the setup-nginx.sh file
-          ls -a
-          scp -i ~/.ssh/deploy_key scripts/setup-nginx.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ steps.package.outputs.package_name }}/scripts/
+          echo "🚀 Preparing to run setup-nginx.sh on VPS"
 
-          ls -a
+          PACKAGE_NAME=${{ steps.package.outputs.package_name }}
 
-          echo "Copy success now run the bash file"
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/${{ steps.package.outputs.package_name }}/scripts && chmod +x setup-nginx.sh && ./setup-nginx.sh"
+          ssh deploy-server "bash -s" <<EOF
+            set -e
+            cd ~/\$PACKAGE_NAME
+
+            if [ ! -f scripts/setup-nginx.sh ]; then
+              echo "❌ scripts/setup-nginx.sh not found. Will copy from runner."
+              exit 10
+            else
+              echo "✅ setup-nginx.sh found on VPS"
+            fi
+          EOF
+
+          # Check exit code; if 10, then copy scripts directory
+          if [ $? -eq 10 ]; then
+            echo "📤 Copying scripts directory to VPS..."
+            scp -r ./scripts deploy-server:~/${{ steps.package.outputs.package_name }}/
+          fi
+
+          echo "🚀 Running setup-nginx.sh on VPS..."
+          ssh deploy-server "cd ~/${{ steps.package.outputs.package_name }}/scripts && chmod +x setup-nginx.sh && ./setup-nginx.sh"
