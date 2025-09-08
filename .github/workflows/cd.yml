@@ -199,6 +199,10 @@ jobs:
           echo "TWILIO_AUTH_TOKEN=\"${{ secrets.TWILIO_AUTH_TOKEN }}\"" >> .env
           echo "TWILIO_PHONE_NUMBER=\"${{ secrets.TWILIO_PHONE_NUMBER }}\"" >> .env
 
+          # for nginx
+          echo "EMAIL=\"${{secrets.EMAIL}}\"" >> .env
+          echo "BASE_URL=\"${{secrets.BASE_URL}}\"" >> .env
+
       - name: Copy Files to Server 📦
         run: |
           echo "Creating directories..."
@@ -209,6 +213,7 @@ jobs:
           scp -i ~/.ssh/deploy_key .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
           scp -i ~/.ssh/deploy_key Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/
           scp -i ~/.ssh/deploy_key scripts/deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/scripts/
+          scp -i ~/.ssh/deploy_key scripts/setup-nginx.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ needs.build-and-push.outputs.package_name }}/scripts/
 
           ssh deploy-server "chmod +x ~/${{ needs.build-and-push.outputs.package_name }}/scripts/deploy.sh"
           echo "✅ Files copied successfully"
