@@ -5,15 +5,12 @@ on:
     workflows: ["CI Pipeline"]
     types:
       - completed
-  push:
-    branches:
-      - main
 
 jobs:
   build-and-push:
     name: Build & Push Docker Image 🏗️
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
 
     outputs:
       package_name: ${{ steps.extract.outputs.package_name }}
