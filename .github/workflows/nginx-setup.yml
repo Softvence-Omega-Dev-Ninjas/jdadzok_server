@@ -19,12 +19,11 @@ jobs:
         id: package
         run: |
           PACKAGE_NAME=$(node -p "require('./package.json').name")
-
           echo "📦 PACKAGE_NAME: $PACKAGE_NAME"
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "✅ Outputs written to GITHUB_OUTPUT"
 
-      - name: Setup SSH 🔐
+      - name: 🔐 Setup SSH
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
@@ -41,18 +40,17 @@ jobs:
           EOF
           chmod 600 ~/.ssh/config
 
-      - name: Test SSH Connection 🚀
-        run: ssh deploy-server "echo 'SSH connection successful'"
+      - name: 🚀 Test SSH Connection
+        run: ssh deploy-server "echo '✅ SSH connection successful'"
 
       - name: ⚙️ Prepare and update NGINX .env values on VPS
         run: |
           echo "🛠 Updating NGINX-related env vars on VPS"
 
-          ssh -i deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "bash -s" <<EOF
+          ssh deploy-server "bash -s" <<EOF
             set -e
 
             cd ~/${{ steps.package.outputs.package_name }}
-
             touch .env
 
             update_var() {
@@ -74,7 +72,7 @@ jobs:
             echo "✅ .env updated on VPS"
           EOF
 
-      - name: Debug the scripts directory
+      - name: 📁 Debug scripts directory
         run: ls -al ./scripts
 
       - name: 🧪 Run NGINX Setup Script on VPS
