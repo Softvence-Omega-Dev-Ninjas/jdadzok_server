@@ -35,7 +35,6 @@ export class UserRepository {
       const user = await tx.user.create({
         data: { ...createUser, role: "USER", capLevel: "NONE" },
       });
-      console.log("created user: ", user);
 
       // if input has name then create profile
       const profile = await this.profileRepo.create(
