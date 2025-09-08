@@ -1,4 +1,4 @@
-name: Deploy NGINX HTTPS Reverse Proxy
+name: 🚀 Deploy NGINX HTTPS Reverse Proxy 🔐
 
 on:
   workflow_run:
@@ -12,23 +12,56 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-
-      - name: Update .env file with secrets
+      - name: 🧠 Extract the package name
+        id: package
         run: |
-          sed -i '/^BASE_URL=/d' .env
-          sed -i '/^EMAIL=/d' .env
-          sed -i '/^DOCKER_USERNAME=/d' .env
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
 
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-          echo "EMAIL=${{ secrets.EMAIL }}" >> .env
-          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
+          echo "📦 PACKAGE_NAME: $PACKAGE_NAME"
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "✅ Outputs written to GITHUB_OUTPUT"
 
-      - name: Run NGINX HTTPS Setup
+      - name: 🔐 Set up SSH
         run: |
-          chmod +x setup_nginx_compose.sh
-          ./setup-nginx.sh
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > deploy_key
+          chmod 600 deploy_key
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: ⚙️ Prepare and update NGINX .env values on VPS
+        run: |
+          echo "🛠 Updating NGINX-related env vars on VPS"
+
+          ssh -i deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "bash -s" <<EOF
+            set -e
+
+            cd ~/${{ steps.package.outputs.package_name }}
+
+            touch .env
+
+            update_var() {
+              KEY=\$1
+              VALUE=\$2
+              if grep -qE "^\\\$KEY=" .env; then
+                sed -i "s|^\\\$KEY=.*|\\\$KEY=\\\$VALUE|" .env
+                echo "🔄 Updated: \$KEY"
+              else
+                echo "\$KEY=\$VALUE" >> .env
+                echo "➕ Added: \$KEY"
+              fi
+            }
+
+            update_var BASE_URL "${{ secrets.BASE_URL }}"
+            update_var EMAIL "${{ secrets.EMAIL }}"
+            update_var DOCKER_USERNAME "${{ secrets.DOCKER_USERNAME }}"
+
+            echo "✅ .env updated on VPS"
+          EOF
+
+      - name: 🧪 Run NGINX Setup Script on VPS
+        run: |
+          echo "🚀 Running setup-nginx.sh on VPS"
+          ssh -i deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/${{ steps.package.outputs.package_name }} && chmod +x setup-nginx.sh && ./setup-nginx.sh"

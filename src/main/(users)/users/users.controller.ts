@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   Post,
   UseGuards,
   UsePipes,
@@ -71,18 +70,18 @@ export class UserController {
     }
   }
 
-  @ApiBearerAuth()
-  @Get("me")
-  @UsePipes(ValidationPipe)
-  @UseGuards(JwtAuthGuard)
-  async GetMe(@GetUser() user: TUser) {
-    try {
-      const result = await this.service.getMe(user.userId);
-      return successResponse(result, "User profile retrive success");
-    } catch (err) {
-      return err;
-    }
-  }
+  // @ApiBearerAuth()
+  // @Get("me")
+  // @UsePipes(ValidationPipe)
+  // @UseGuards(JwtAuthGuard)
+  // async GetMe(@GetUser() user: TUser) {
+  //   try {
+  //     const result = await this.service.getMe(user.userId);
+  //     return successResponse(result, "User profile retrive success");
+  //   } catch (err) {
+  //     return err;
+  //   }
+  // }
 
   @ApiBearerAuth()
   @Delete("delete")
