@@ -6,7 +6,7 @@ import {
   Post,
   UseGuards,
   UsePipes,
-  ValidationPipe
+  ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
@@ -19,7 +19,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-  constructor(private readonly service: UserService) { }
+  constructor(private readonly service: UserService) {}
 
   @MakePublic()
   @Post("register")
