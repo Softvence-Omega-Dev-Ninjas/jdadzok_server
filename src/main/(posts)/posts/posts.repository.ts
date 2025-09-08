@@ -83,7 +83,12 @@ export class PostRepository {
 
       return tx.post.findUnique({
         where: { id: postForAuthor.id },
-        include: this.defaultInclude,
+        include: {
+          ...this.defaultInclude,
+          author: {
+            include: { profile: { select: { name: true } } },
+          },
+        },
       });
     });
   }

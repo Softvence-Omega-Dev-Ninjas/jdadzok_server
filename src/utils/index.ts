@@ -1,4 +1,5 @@
 import slug from "slugify";
+import { Socket } from "socket.io";
 import { ZodError, ZodSchema } from "zod";
 
 export function parseQueryParams<T, U>(
@@ -67,4 +68,9 @@ export const omit = <T extends object, K extends keyof T>(
   return Object.fromEntries(
     Object.entries(obj).filter(([key]) => !keys.includes(key as K)),
   ) as Omit<T, K>;
+};
+export const getUserFromSocket = (
+  client: Socket,
+): { sub: string; email?: string } => {
+  return client.data?.user;
 };

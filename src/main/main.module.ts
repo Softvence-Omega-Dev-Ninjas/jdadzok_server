@@ -1,5 +1,6 @@
 import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { RedisModule } from "@project/common/redis/redis.module";
 import { ExploreGroupModule } from "./(explore)/explore.group.module";
 import { MarketplacesGroupModule } from "./(marketplace)/marketplace.group.module";
 import { PostsGroupModule } from "./(posts)/posts.group.module";
@@ -12,6 +13,7 @@ import { UserGroupModule } from "./(users)/users.group.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    RedisModule,
     SocketsGroupModule,
     StartedGroupModule,
     UserGroupModule,
@@ -22,5 +24,6 @@ import { UserGroupModule } from "./(users)/users.group.module";
   ],
   controllers: [],
   providers: [],
+  exports: [],
 })
 export class MainModule {}

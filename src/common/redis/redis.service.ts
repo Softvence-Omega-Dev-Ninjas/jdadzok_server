@@ -1,9 +1,10 @@
 import { redisKey, RedisKey } from "@constants/redis.key";
 import { TTL, TTLKey } from "@constants/ttl.constants";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Inject, Injectable } from "@nestjs/common";
+import { Global, Inject, Injectable } from "@nestjs/common";
 import { Cache } from "cache-manager";
 
+@Global()
 @Injectable()
 export class RedisService {
   constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) {}
