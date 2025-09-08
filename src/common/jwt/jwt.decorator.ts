@@ -32,12 +32,14 @@ export const GetUser = createParamDecorator(
 
     const prisma = new PrismaService();
     const IsVerified = await prisma.user.findFirst({
-      where: { OR: [{ id: user.userId }, { email: user.email }] }, select: {
-        isVerified: true
-      }
+      where: { OR: [{ id: user.userId }, { email: user.email }] },
+      select: {
+        isVerified: true,
+      },
     });
     // check user verified or not
-    if (!IsVerified?.isVerified) throw new UnauthorizedException("Please verify your account first")
+    if (!IsVerified?.isVerified)
+      throw new UnauthorizedException("Please verify your account first");
 
     return key ? user?.[key] : user;
   },

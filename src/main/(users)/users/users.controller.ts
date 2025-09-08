@@ -19,7 +19,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-  constructor(private readonly service: UserService) { }
+  constructor(private readonly service: UserService) {}
 
   @MakePublic()
   @Post("register")
