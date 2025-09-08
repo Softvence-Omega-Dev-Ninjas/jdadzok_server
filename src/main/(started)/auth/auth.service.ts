@@ -1,4 +1,3 @@
-import { RedisService } from "@common/redis/redis.service";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import {
   BadRequestException,
@@ -25,9 +24,8 @@ export class AuthService {
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
     private readonly mailService: MailService,
-    private readonly redisService: RedisService,
     private readonly otpService: OptService,
-  ) {}
+  ) { }
 
   async login(input: LoginDto) {
     const user = await this.userRepository.findByEmail(input.email);
