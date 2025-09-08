@@ -2,9 +2,11 @@ name: CI Pipeline
 
 on:
   push:
+    branches:
+      - "**" # any branch
   pull_request:
     branches:
-      - main
+      - "**" # whenever a new pr comes
 
 jobs:
   lint-test:
