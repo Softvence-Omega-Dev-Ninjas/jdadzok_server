@@ -4,6 +4,9 @@ export const redisKey = {
   USER_SESSION: "USER_SESSION",
   PRODUCT_CACHE: "PRODUCT_CACHE",
   ORDER_CACHE: "ORDER_CACHE",
+
+  // SOCKET
+  SOCKET: "SOCKET",
 } as const;
 
 export type RedisKey = keyof typeof redisKey;

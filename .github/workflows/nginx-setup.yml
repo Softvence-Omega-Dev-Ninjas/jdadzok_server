@@ -64,4 +64,11 @@ jobs:
       - name: 🧪 Run NGINX Setup Script on VPS
         run: |
           echo "🚀 Running setup-nginx.sh on VPS"
-          ssh -i deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/${{ steps.package.outputs.package_name }} && chmod +x setup-nginx.sh && ./setup-nginx.sh"
+          # copy the setup-nginx.sh file
+          ls -a
+          scp -i ~/.ssh/deploy_key scripts/setup-nginx.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/${{ steps.package.outputs.package_name }}/scripts/
+
+          ls -a
+
+          echo "Copy success now run the bash file"
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/${{ steps.package.outputs.package_name }}/scripts && chmod +x setup-nginx.sh && ./setup-nginx.sh"

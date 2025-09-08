@@ -35,16 +35,27 @@ export class UserService {
     }
     // if they select any other provider, we will not store password
     if (body.authProvider !== "EMAIL") delete body.password;
+    // skip creating account now.
     const createdUser = await this.repository.store(body);
+    if (!createdUser.isVerified) {
+      // send otp again
+      const otp = await this.sendOtpMail({
+        email: body.email,
+        userId: createdUser.id,
+      });
+      return {
+        verificaiton: otp,
+      };
+    }
 
+    const otp = await this.sendOtpMail({
+      email: createdUser.email,
+      userId: createdUser.id,
+    });
     const accessToken = await this.jwtService.signAsync({
       email: createdUser.email,
       sub: createdUser.id,
       roles: createdUser.role,
-    });
-    const otp = await this.sendOtpMail({
-      email: createdUser.email,
-      userId: createdUser.id,
     });
     return {
       accessToken,
@@ -57,6 +68,8 @@ export class UserService {
     const user = await this.repository.findById(input.userId);
     if (!user) throw new NotFoundException("User not found with that ID");
 
+    if (user.isVerified)
+      throw new ConflictException("Account already verified!");
     await this.otpService.verifyOtp({
       userId: user.id,
       token: input.token,

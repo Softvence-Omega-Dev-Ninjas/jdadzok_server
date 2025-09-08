@@ -1,4 +1,8 @@
-import { BadGatewayException, Injectable } from "@nestjs/common";
+import {
+  BadGatewayException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { JwtServices } from "@project/services/jwt.service";
 import { Socket } from "socket.io";
 
@@ -6,14 +10,23 @@ import { Socket } from "socket.io";
 export class SocketAuthMiddleware {
   constructor(private authService: JwtServices) {}
 
-  use(socket: Socket, next: (err?: any) => void) {
-    const token = socket.handshake.auth.token; // Pass token from client
-    if (!token) return next(new Error("Authentication error"));
+  async use(socket: Socket, next: (err?: any) => void) {
+    try {
+      const token = socket.handshake.auth.token || socket.handshake.query.token; // Pass token from client
+      if (!token) throw new UnauthorizedException("Missing auth token");
 
-    const user = this.authService.verifyAsync(token);
-    if (!user)
-      throw new BadGatewayException("Unable to connnect to the socket");
-    socket.data.user = user; // Attach user to socket for later use
-    return next();
+      const user = await this.authService.verifyAsync(token);
+      if (!user)
+        throw new BadGatewayException("Unable to connnect to the socket");
+
+      console.info("user: ", user);
+      socket.data.user = user;
+      socket.join(user.sub);
+
+      next();
+    } catch (err: any) {
+      console.info(err);
+      next(new UnauthorizedException("Invalid or expired token"));
+    }
   }
 }

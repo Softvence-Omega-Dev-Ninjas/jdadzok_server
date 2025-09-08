@@ -13,6 +13,7 @@ import {
   Query,
   UseGuards,
   UsePipes,
+  ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
@@ -25,9 +26,10 @@ import { PostService } from "./posts.service";
 export class PostController {
   constructor(private readonly service: PostService) {}
 
+  @ApiOperation({ summary: "Create a new post" })
   @Post()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: "Create a new post" })
+  @UsePipes(ValidationPipe)
   async store(@GetUser() user: TUser, @Body() body: CreatePostDto) {
     const post = await this.service.create({
       ...body,

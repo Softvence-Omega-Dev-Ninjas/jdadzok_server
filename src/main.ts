@@ -14,10 +14,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  app.enableCors({
-    origin: ["*"],
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  // Apply Redis adapter for WebSockets
+  // app.useWebSocketAdapter(new RedisIoAdapter(app));
 
+  // CORS configuration
+  app.enableCors({
+    origin: "*",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
   });
 

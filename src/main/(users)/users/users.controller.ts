@@ -27,6 +27,8 @@ export class UserController {
   async register(@Body() body: CreateUserDto) {
     try {
       const result = await this.service.register(body);
+      if (!result["accessToken"])
+        return successResponse(result, "Please check your mail to verify OTP");
       return successResponse(result, "Registration successfull!");
     } catch (err) {
       return err;
@@ -38,7 +40,7 @@ export class UserController {
   async verifyAccount(@Body() body: VerifyTokenDto) {
     try {
       const result = await this.service.verifyOpt(body);
-      return successResponse(result, "User account verified");
+      return successResponse(result, "User account verify successfully");
     } catch (err) {
       return err;
     }

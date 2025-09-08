@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-} from "@nestjs/common";
+import { ConflictException, Injectable } from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { omit } from "@project/utils";
 import { UserProfileRepository } from "../user-profile/user.profile.repository";
@@ -25,9 +21,8 @@ export class UserRepository {
 
       if (isUser && !isUser.isVerified) {
         // if it's not verified then give chances to verify account again
-        throw new BadRequestException(
-          "Please resent OTP to verify your account.",
-        );
+        // to do that we have to sent the otp again
+        return isUser;
       }
 
       const createUser = omit(input, ["name"]);
