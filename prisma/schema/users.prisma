@@ -91,4 +91,5 @@ model User {
   @@index([capLevel])
   @@index([role])
   @@index([createdAt])
+  CommunityFollower CommunityFollower[]
 }
