@@ -1,22 +1,20 @@
 import { Controller, Get } from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import appMetadata from "./app-metadata/app-metadata";
 
 @ApiTags("App")
 @Controller()
 export class AppController {
   @ApiOkResponse({
     description: "Returns service health status",
-    schema: {
-      example: {
-        status: "ok",
-        timestamp: "2025-05-27T12:00:00.000Z",
-      },
-    },
   })
   @Get()
   async getHealth() {
     return {
       status: "ok",
+      version: appMetadata.version,
+      name: appMetadata.displayName,
+      description: appMetadata.description,
       timestamp: new Date().toISOString(),
     };
   }
@@ -37,7 +35,9 @@ export class AppController {
     return {
       status: "healthy",
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || "0.3.1",
+      version: appMetadata.version,
+      name: appMetadata.displayName,
+      description: appMetadata.description,
       uptime: process.uptime(),
     };
   }
