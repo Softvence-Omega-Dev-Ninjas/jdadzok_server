@@ -224,6 +224,16 @@ CREATE TABLE "public"."community_about" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."community_followers" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "communityId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "community_followers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."communities" (
     "id" TEXT NOT NULL,
     "ownerId" TEXT NOT NULL,
@@ -701,6 +711,7 @@ CREATE TABLE "public"."users" (
     "email" TEXT NOT NULL,
     "password" TEXT,
     "authProvider" "public"."AuthProvider" NOT NULL DEFAULT 'EMAIL',
+    "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "role" "public"."Role" NOT NULL DEFAULT 'USER',
     "capLevel" "public"."CapLevel" NOT NULL DEFAULT 'NONE',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -852,6 +863,9 @@ CREATE UNIQUE INDEX "community_memberships_userId_communityId_key" ON "public"."
 
 -- CreateIndex
 CREATE UNIQUE INDEX "community_about_communityId_key" ON "public"."community_about"("communityId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "community_followers_userId_communityId_key" ON "public"."community_followers"("userId", "communityId");
 
 -- CreateIndex
 CREATE INDEX "communities_ownerId_idx" ON "public"."communities"("ownerId");
@@ -1221,6 +1235,12 @@ ALTER TABLE "public"."community_memberships" ADD CONSTRAINT "community_membershi
 
 -- AddForeignKey
 ALTER TABLE "public"."community_about" ADD CONSTRAINT "community_about_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "public"."communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."community_followers" ADD CONSTRAINT "community_followers_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."community_followers" ADD CONSTRAINT "community_followers_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "public"."communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."communities" ADD CONSTRAINT "communities_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

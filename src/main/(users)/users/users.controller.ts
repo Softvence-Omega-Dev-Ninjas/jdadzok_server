@@ -3,11 +3,10 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   Post,
   UseGuards,
   UsePipes,
-  ValidationPipe,
+  ValidationPipe
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
@@ -20,7 +19,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-  constructor(private readonly service: UserService) {}
+  constructor(private readonly service: UserService) { }
 
   @MakePublic()
   @Post("register")
@@ -71,18 +70,18 @@ export class UserController {
     }
   }
 
-  @ApiBearerAuth()
-  @Get("me")
-  @UsePipes(ValidationPipe)
-  @UseGuards(JwtAuthGuard)
-  async GetMe(@GetUser() user: TUser) {
-    try {
-      const result = await this.service.getMe(user.userId);
-      return successResponse(result, "User profile retrive success");
-    } catch (err) {
-      return err;
-    }
-  }
+  // @ApiBearerAuth()
+  // @Get("me")
+  // @UsePipes(ValidationPipe)
+  // @UseGuards(JwtAuthGuard)
+  // async GetMe(@GetUser() user: TUser) {
+  //   try {
+  //     const result = await this.service.getMe(user.userId);
+  //     return successResponse(result, "User profile retrive success");
+  //   } catch (err) {
+  //     return err;
+  //   }
+  // }
 
   @ApiBearerAuth()
   @Delete("delete")
