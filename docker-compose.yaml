@@ -22,6 +22,7 @@ services:
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
       - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      - EMAIL=${EMAIL}
       # Added BASE_URL which was missing
       - BASE_URL=${BASE_URL}
       # Added individual Redis configs for flexibility

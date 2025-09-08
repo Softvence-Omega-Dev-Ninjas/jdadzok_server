@@ -1,4 +1,3 @@
-import { RedisService } from "@common/redis/redis.service";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import {
   BadRequestException,
@@ -25,7 +24,6 @@ export class AuthService {
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
     private readonly mailService: MailService,
-    private readonly redisService: RedisService,
     private readonly otpService: OptService,
   ) {}
 
@@ -108,7 +106,6 @@ export class AuthService {
     });
     await this.otpService.delete({ type: "RESET_PASSWORD", userId: user.id });
     return updatedUser;
-
   }
 
   async logout(email: string) {
