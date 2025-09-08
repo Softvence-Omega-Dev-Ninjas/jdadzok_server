@@ -129,6 +129,63 @@ services:
         max-size: "5m"
         max-file: "3"
 
+  nginx:
+    profiles:
+      - prod
+    image: nginx:alpine
+    container_name: ${PACKAGE_NAME}_nginx
+    depends_on:
+      - app
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - default
+    restart: always
+
+  certbot:
+    profiles:
+      - prod
+    image: certbot/certbot
+    container_name: ${PACKAGE_NAME}_certbot
+    volumes:
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+    entrypoint: >
+      sh -c "sleep 5 && certbot certonly --webroot --webroot-path=/var/www/certbot 
+             --email ${EMAIL} --agree-tos --no-eff-email 
+             -d ${BASE_URL}"
+    depends_on:
+      - nginx
+    networks:
+      - default
+    restart: "no"
+
+  certbot-renew:
+    profiles:
+      - prod
+    image: certbot/certbot
+    container_name: ${PACKAGE_NAME}_certbot_renew
+    volumes:
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+    entrypoint: >
+      sh -c "trap exit TERM; 
+             while :; do 
+               echo '🔄 Checking for SSL renewal...'; 
+               certbot renew --webroot --webroot-path=/var/www/certbot --quiet --deploy-hook 'nginx -s reload'; 
+               sleep 12h; 
+             done"
+    depends_on:
+      - nginx
+    networks:
+      - default
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
