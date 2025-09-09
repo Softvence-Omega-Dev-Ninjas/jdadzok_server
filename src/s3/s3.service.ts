@@ -17,7 +17,6 @@
 //         const AWS_S3_BUCKET_NAME = configSerivce.getOrThrow(ENVEnum.AWS_S3_BUCKET_NAME)
 //         this.AWS_S3_BUCKET_NAME = AWS_S3_BUCKET_NAME
 
-
 //         this.s3 = new S3Client({
 //             region: AWS_REGION!,
 //             credentials: {
