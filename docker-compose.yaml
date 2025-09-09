@@ -141,6 +141,8 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/certbot/www:/var/www/certbot
       - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/selfsigned:/etc/nginx/selfsigned
+
     ports:
       - "80:80"
       - "443:443"
@@ -156,10 +158,13 @@ services:
     volumes:
       - ./nginx/certbot/www:/var/www/certbot
       - ./nginx/certbot/conf:/etc/letsencrypt
+    environment:
+      - EMAIL=${EMAIL}
+      - BASE_URL=${BASE_URL}
     entrypoint: >
-      sh -c "sleep 5 && certbot certonly --webroot --webroot-path=/var/www/certbot 
-             --email ${EMAIL} --agree-tos --no-eff-email 
-             -d ${BASE_URL}"
+      certbot certonly --webroot --webroot-path=/var/www/certbot 
+      --email ${EMAIL} --agree-tos --no-eff-email 
+      -d ${BASE_URL}
     depends_on:
       - nginx
     networks:

@@ -1,29 +1,78 @@
+#!/bin/bash
 set -euo pipefail
 
 echo "🚀 Starting NGINX + HTTPS deployment..."
 
-# === Step 1: Load .env with fallback ===
+# === Load env ===
 if [[ -f .env ]]; then
-  export $(grep -v '^#' .env | xargs)
-else
-  echo "⚠️ .env file not found, using default values."
+  echo "Loading environment variables from .env file..."
+  # cleanup .env
+  sed -i 's/\r//' .env
+  sed -i 's/[[:space:]]*$//' .env
+  sed -i '/^$/d' .env
+  sed -i '/^#/d' .env
+
+  while IFS='=' read -r key value; do
+    if [[ -z "$key" || "$key" =~ ^# ]]; then continue; fi
+    key=$(echo "$key" | xargs)
+    value=$(echo "$value" | xargs | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
+    export "$key=$value"
+    echo "Setting: $key=$value"
+  done < .env
 fi
 
-# Fallbacks
-BASE_URL="${BASE_URL:-example.com}"
+# Defaults
+BASE_URL="${BASE_URL:-localhost}"
 EMAIL="${EMAIL:-admin@example.com}"
 PACKAGE_NAME="${PACKAGE_NAME:-myapp}"
 PORT="${PORT:-5056}"
 
-echo "🌐 BASE_URL: $BASE_URL"
-echo "📧 EMAIL: $EMAIL"
-echo "📦 PACKAGE_NAME: $PACKAGE_NAME"
-echo "📍 PORT: $PORT"
+# Determine if BASE_URL is domain or IP/localhost
+if [[ "$BASE_URL" == "localhost" || "$BASE_URL" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  USE_SELF_SIGNED=true
+  PUBLIC_IP=$(curl -s http://checkip.amazonaws.com)
+  echo "📡 Using IP-based access: $PUBLIC_IP"
+else
+  USE_SELF_SIGNED=false
+fi
 
-# === Step 2: Prepare folders ===
-mkdir -p nginx/conf.d nginx/certbot/www nginx/certbot/conf
+# Prepare folders
+mkdir -p nginx/conf.d nginx/certbot/www nginx/certbot/conf nginx/selfsigned
 
-# === Step 3: Generate NGINX config ===
+# NGINX config
+if [[ "$USE_SELF_SIGNED" == true ]]; then
+  # Generate self-signed cert if not already
+  if [[ ! -f "nginx/selfsigned/fullchain.pem" ]]; then
+    bash scripts/generate-self-signed-cert.sh "$PUBLIC_IP"
+  fi
+
+cat > nginx/conf.d/default.conf <<EOF
+server {
+    listen 80;
+    server_name $PUBLIC_IP;
+
+    location / {
+        return 301 https://\$host\$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name $PUBLIC_IP;
+
+    ssl_certificate /etc/nginx/selfsigned/fullchain.pem;
+    ssl_certificate_key /etc/nginx/selfsigned/privkey.pem;
+
+    location / {
+        proxy_pass http://app:$PORT;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+EOF
+
+else
+
 cat > nginx/conf.d/default.conf <<EOF
 server {
     listen 80;
@@ -53,27 +102,31 @@ server {
 }
 EOF
 
-echo "📝 NGINX config updated."
-
-# === Step 4: Stop conflicting containers (safe cleanup) ===
-docker rm -f "${PACKAGE_NAME}_nginx" "${PACKAGE_NAME}_certbot" "${PACKAGE_NAME}_certbot_renew" 2>/dev/null || true
-
-# === Step 5: Start base services ===
-docker-compose up -d app nginx
-
-# === Step 6: First-time cert issue if needed ===
-CERT_PATH="nginx/certbot/conf/live/$BASE_URL/fullchain.pem"
-if [[ ! -f "$CERT_PATH" ]]; then
-  echo "🔐 First-time certbot run..."
-  docker-compose run --rm certbot
-else
-  echo "✅ SSL already exists — skipping certbot issue."
 fi
 
-# === Step 7: Restart nginx to apply new cert ===
-docker-compose restart nginx
+echo "📝 NGINX config updated."
 
-# === Step 8: Start certbot-renew service (background) ===
-docker-compose up -d certbot-renew
+# Stop old containers
+docker rm -f "${PACKAGE_NAME}_nginx" "${PACKAGE_NAME}_certbot" "${PACKAGE_NAME}_certbot_renew" 2>/dev/null || true
 
-echo "✅ Setup complete: https://$BASE_URL"
+# Start base services
+docker-compose up -d app nginx
+
+# Certbot only for domain
+if [[ "$USE_SELF_SIGNED" == false ]]; then
+  CERT_PATH="nginx/certbot/conf/live/$BASE_URL/fullchain.pem"
+  if [[ ! -f "$CERT_PATH" ]]; then
+    echo "🔐 First-time certbot run..."
+    docker-compose run --rm certbot
+  else
+    echo "✅ SSL already exists — skipping certbot issue."
+  fi
+
+  docker-compose restart nginx
+  docker-compose up -d certbot-renew
+else
+  echo "🔒 Self-signed SSL active — skipping certbot."
+fi
+
+echo "✅ Setup complete:"
+echo "  ➤ Public: https://$([[ $USE_SELF_SIGNED == true ]] && echo $PUBLIC_IP || echo $BASE_URL)"

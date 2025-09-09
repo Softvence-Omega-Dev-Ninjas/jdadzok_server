@@ -85,12 +85,14 @@ jobs:
             set -e
             cd ~/\$PACKAGE_NAME
 
-            if [ ! -f scripts/setup-nginx.sh ]; then
-              echo "❌ scripts/setup-nginx.sh not found. Will copy from runner."
-              exit 10
-            else
-              echo "✅ setup-nginx.sh found on VPS"
-            fi
+            for file in scripts/generate-self-signed-cert.sh scripts/setup-nginx.sh; do
+              if [ ! -f "$file" ]; then
+                echo "❌ $file not found. Will copy from runner."
+                exit 10
+              else
+                echo "✅ $(basename "$file") found on VPS"
+              fi
+            done
           EOF
 
           # Check exit code; if 10, then copy scripts directory
@@ -98,6 +100,9 @@ jobs:
             echo "📤 Copying scripts directory to VPS..."
             scp -r ./scripts deploy-server:~/${{ steps.package.outputs.package_name }}/
           fi
+
+          echo "🔐 Generate CERT"
+          ssh deploy-server "cd ~/${{ steps.package.outputs.package_name }}/scripts && chmod +x generate-self-signed-cert.sh && ./generate-self-signed-cert.sh"
 
           echo "🚀 Running setup-nginx.sh on VPS..."
           ssh deploy-server "cd ~/${{ steps.package.outputs.package_name }}/scripts && chmod +x setup-nginx.sh && ./setup-nginx.sh"
