@@ -132,6 +132,14 @@ export type VerificationStatus = (typeof verificationStatus)[number];
 export const membershipTier = ["SILVER", "GOLD", "PLATINUM"] as const;
 export type MembershipTier = (typeof membershipTier)[number];
 
-export const gender = ["MALE", "FEMALE", "TRANSGENDER", "GENDERQUEER", "GENDERFLUID", "AGENDER", "BIGENDER", "PANGENDER"] as const;
+export const gender = [
+  "MALE",
+  "FEMALE",
+  "TRANSGENDER",
+  "GENDERQUEER",
+  "GENDERFLUID",
+  "AGENDER",
+  "BIGENDER",
+  "PANGENDER",
+] as const;
 export type Gender = (typeof gender)[number];
-

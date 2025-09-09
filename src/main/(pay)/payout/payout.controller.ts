@@ -38,7 +38,7 @@ import { PayoutService } from "./payout.service";
 @Controller("payouts")
 @UseGuards(JwtAuthGuard)
 export class PayoutController {
-  constructor(private readonly payoutService: PayoutService) { }
+  constructor(private readonly payoutService: PayoutService) {}
 
   @Post()
   @ApiOperation({ summary: "Create a new payout request" })
@@ -107,9 +107,7 @@ export class PayoutController {
     description: "Payout statistics retrieved successfully",
     type: PayoutStatsDto,
   })
-  async getUserPayoutStats(
-    @GetUser() user: TUser,
-  ): Promise<PayoutStatsDto> {
+  async getUserPayoutStats(@GetUser() user: TUser): Promise<PayoutStatsDto> {
     return this.payoutService.getPayoutStats(user.userId);
   }
 
@@ -245,7 +243,8 @@ export class PayoutController {
   @HttpCode(HttpStatus.OK)
   async updatePayoutStatus(
     @Param("id") id: string,
-    @Body() body: {
+    @Body()
+    body: {
       status: PayOutStatus;
       transactionId?: string;
       processorFee?: number;
@@ -255,7 +254,7 @@ export class PayoutController {
       id,
       body.status,
       body.transactionId,
-      body.processorFee
+      body.processorFee,
     );
   }
 
@@ -292,7 +291,9 @@ export class PayoutController {
   }
 
   @Post("validate-amount")
-  @ApiOperation({ summary: "Validate if user can create a payout with specified amount" })
+  @ApiOperation({
+    summary: "Validate if user can create a payout with specified amount",
+  })
   @ApiResponse({
     status: 200,
     description: "Validation result",
@@ -300,8 +301,8 @@ export class PayoutController {
       type: "object",
       properties: {
         canCreate: { type: "boolean" },
-        reason: { type: "string" }
-      }
+        reason: { type: "string" },
+      },
     },
   })
   @HttpCode(HttpStatus.OK)
@@ -333,9 +334,7 @@ export class PayoutController {
   @ApiParam({ name: "id", description: "Payout ID" })
   @ApiResponse({ status: 204, description: "Payout deleted successfully" })
   @HttpCode(HttpStatus.NO_CONTENT)
-  async adminDeletePayout(
-    @Param("id") id: string,
-  ): Promise<void> {
+  async adminDeletePayout(@Param("id") id: string): Promise<void> {
     return this.payoutService.adminDeletePayout(id);
   }
 }

@@ -22,10 +22,10 @@ import { UserGroupModule } from "./(users)/users.group.module";
     PostsGroupModule,
     MarketplacesGroupModule,
     ExploreGroupModule,
-    PayGroupModule
+    PayGroupModule,
   ],
   controllers: [],
   providers: [],
   exports: [],
 })
-export class MainModule { }
+export class MainModule {}

@@ -12,7 +12,8 @@ export class S3Service {
   private AWS_S3_BUCKET_NAME: string;
   private AWS_REGION: string;
 
-  constructor(private readonly configSerivce: ConfigService,
+  constructor(
+    private readonly configSerivce: ConfigService,
     private readonly redisService: RedisService,
   ) {
     this.AWS_REGION = this.configSerivce.getOrThrow("AWS_REGION");
@@ -89,12 +90,7 @@ export class S3Service {
 
       // Store in Redis if small file
       if (isSmallFile && fileHash) {
-        await this.redisService.set(
-          "S3FileHash",
-          result,
-          "1d",
-          fileHash,
-        );
+        await this.redisService.set("S3FileHash", result, "1d", fileHash);
       }
 
       return result;

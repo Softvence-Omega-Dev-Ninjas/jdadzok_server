@@ -9,7 +9,6 @@ export const redisKey = {
   SOCKET: "SOCKET",
   // upload files
   S3FileHash: "s3:fileHash",
-
 } as const;
 
 export type RedisKey = keyof typeof redisKey;

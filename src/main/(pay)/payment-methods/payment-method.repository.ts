@@ -1,11 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { CreatePaymentMethodDto, PaymentMethodQueryDto, UpdatePaymentMethodDto } from "./dto/payment-method.dto";
+import {
+  CreatePaymentMethodDto,
+  PaymentMethodQueryDto,
+  UpdatePaymentMethodDto,
+} from "./dto/payment-method.dto";
 
 @Injectable()
 export class PaymentMethodRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, data: CreatePaymentMethodDto) {
     // If this is being set as default, unset other default payment methods for this user
@@ -42,8 +46,8 @@ export class PaymentMethodRepository {
     return this.prisma.paymentMethods.findMany({
       where,
       orderBy: [
-        { isDefault: 'desc' }, // Default methods first
-        { createdAt: 'desc' },
+        { isDefault: "desc" }, // Default methods first
+        { createdAt: "desc" },
       ],
     });
   }
@@ -51,16 +55,13 @@ export class PaymentMethodRepository {
   async findByUserId(userId: string) {
     return this.prisma.paymentMethods.findMany({
       where: { userId },
-      orderBy: [
-        { isDefault: 'desc' },
-        { createdAt: 'desc' },
-      ],
+      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
     });
   }
 
   async findById(id: string) {
     return this.prisma.paymentMethods.findUnique({
-      where: { id }
+      where: { id },
     });
   }
 
@@ -71,8 +72,8 @@ export class PaymentMethodRepository {
         userId,
       },
       include: {
-        user: true
-      }
+        user: true,
+      },
     });
   }
 
@@ -121,7 +122,7 @@ export class PaymentMethodRepository {
         },
       });
     } catch (error) {
-      if (error.code === 'P2025') {
+      if (error.code === "P2025") {
         return null; // Record not found
       }
       throw error;

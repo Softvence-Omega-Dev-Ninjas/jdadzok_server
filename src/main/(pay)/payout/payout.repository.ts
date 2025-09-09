@@ -1,11 +1,16 @@
 import { Injectable } from "@nestjs/common";
 import { Payout, PayOutStatus, Prisma } from "@prisma/client";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { CreatePayoutDto, PayoutQueryDto, PayoutStatsDto, UpdatePayoutDto } from "./dto/payout.dto";
+import {
+  CreatePayoutDto,
+  PayoutQueryDto,
+  PayoutStatsDto,
+  UpdatePayoutDto,
+} from "./dto/payout.dto";
 
 @Injectable()
 export class PayoutRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, data: CreatePayoutDto): Promise<Payout> {
     return this.prisma.payout.create({
@@ -19,7 +24,9 @@ export class PayoutRepository {
 
   async findAll(query?: PayoutQueryDto): Promise<Payout[]> {
     const where: Prisma.PayoutWhereInput = {};
-    const orderBy: Prisma.PayoutOrderByWithRelationInput[] = [{ createdAt: 'desc' }];
+    const orderBy: Prisma.PayoutOrderByWithRelationInput[] = [
+      { createdAt: "desc" },
+    ];
 
     if (query?.userId) {
       where.userId = query.userId;
@@ -64,8 +71,8 @@ export class PayoutRepository {
             id: true,
             profile: {
               include: {
-                user: true
-              }
+                user: true,
+              },
             },
             email: true,
           },
@@ -74,10 +81,14 @@ export class PayoutRepository {
     });
   }
 
-  async findByUserId(userId: string, limit = 50, offset = 0): Promise<Payout[]> {
+  async findByUserId(
+    userId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<Payout[]> {
     return this.prisma.payout.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit,
       skip: offset,
     });
@@ -112,14 +123,14 @@ export class PayoutRepository {
   async findPendingPayouts(limit = 100): Promise<Payout[]> {
     return this.prisma.payout.findMany({
       where: { status: PayOutStatus.PENDING },
-      orderBy: { createdAt: 'asc' }, // Process oldest first
+      orderBy: { createdAt: "asc" }, // Process oldest first
       take: limit,
       include: {
         user: {
           select: {
             id: true,
             profile: {
-              include: { user: true }
+              include: { user: true },
             },
             email: true,
           },
@@ -128,10 +139,14 @@ export class PayoutRepository {
     });
   }
 
-  async findByStatus(status: PayOutStatus, limit = 50, offset = 0): Promise<Payout[]> {
+  async findByStatus(
+    status: PayOutStatus,
+    limit = 50,
+    offset = 0,
+  ): Promise<Payout[]> {
     return this.prisma.payout.findMany({
       where: { status },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit,
       skip: offset,
       include: {
@@ -153,7 +168,12 @@ export class PayoutRepository {
     });
   }
 
-  async updateStatus(id: string, status: PayOutStatus, transactionId?: string, processorFee?: number): Promise<Payout> {
+  async updateStatus(
+    id: string,
+    status: PayOutStatus,
+    transactionId?: string,
+    processorFee?: number,
+  ): Promise<Payout> {
     const updateData: any = { status };
 
     if (transactionId) {
@@ -176,7 +196,10 @@ export class PayoutRepository {
     });
   }
 
-  async deleteByIdAndUserId(id: string, userId: string): Promise<Payout | null> {
+  async deleteByIdAndUserId(
+    id: string,
+    userId: string,
+  ): Promise<Payout | null> {
     try {
       return await this.prisma.payout.delete({
         where: {
@@ -185,7 +208,7 @@ export class PayoutRepository {
         },
       });
     } catch (error) {
-      if (error.code === 'P2025') {
+      if (error.code === "P2025") {
         return null; // Record not found
       }
       throw error;
@@ -233,11 +256,7 @@ export class PayoutRepository {
   async getStats(userId?: string): Promise<PayoutStatsDto> {
     const where = userId ? { userId } : {};
 
-    const [
-      totalStats,
-      pendingStats,
-      paidStats,
-    ] = await Promise.all([
+    const [totalStats, pendingStats, paidStats] = await Promise.all([
       this.prisma.payout.aggregate({
         where,
         _sum: {
@@ -310,7 +329,7 @@ export class PayoutRepository {
   async getLastPayout(userId: string): Promise<Payout | null> {
     return this.prisma.payout.findFirst({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 }

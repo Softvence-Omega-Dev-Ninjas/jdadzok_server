@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { Payout, PayOutStatus } from "@prisma/client";
 import {
   CreatePayoutDto,
@@ -6,30 +10,37 @@ import {
   PayoutResponseDto,
   PayoutStatsDto,
   ProcessPayoutDto,
-  UpdatePayoutDto
+  UpdatePayoutDto,
 } from "./dto/payout.dto";
 import { PayoutRepository } from "./payout.repository";
 
 @Injectable()
 export class PayoutService {
-  constructor(
-    private readonly payoutRepository: PayoutRepository,
-  ) { }
+  constructor(private readonly payoutRepository: PayoutRepository) {}
 
-  async createPayout(userId: string, createDto: CreatePayoutDto): Promise<PayoutResponseDto> {
+  async createPayout(
+    userId: string,
+    createDto: CreatePayoutDto,
+  ): Promise<PayoutResponseDto> {
     try {
       // Validate minimum payout amount
-      const minPayoutAmount = 5.00; // $5.00 minimum
+      const minPayoutAmount = 5.0; // $5.00 minimum
       if (createDto.amount < minPayoutAmount) {
-        throw new BadRequestException(`Minimum payout amount is $${minPayoutAmount.toFixed(2)}`);
+        throw new BadRequestException(
+          `Minimum payout amount is $${minPayoutAmount.toFixed(2)}`,
+        );
       }
 
       // Check if user has pending payouts (optional business rule)
-      const pendingAmount = await this.payoutRepository.getPendingAmountByUser(createDto.userId || userId);
-      const maxPendingAmount = 1000.00; // $1000 max pending
+      const pendingAmount = await this.payoutRepository.getPendingAmountByUser(
+        createDto.userId || userId,
+      );
+      const maxPendingAmount = 1000.0; // $1000 max pending
 
       if (pendingAmount + createDto.amount > maxPendingAmount) {
-        throw new BadRequestException(`Total pending amount would exceed maximum of $${maxPendingAmount.toFixed(2)}`);
+        throw new BadRequestException(
+          `Total pending amount would exceed maximum of $${maxPendingAmount.toFixed(2)}`,
+        );
       }
 
       const payout = await this.payoutRepository.create(userId, createDto);
@@ -42,17 +53,28 @@ export class PayoutService {
     }
   }
 
-  async findUserPayouts(userId: string, limit = 50, offset = 0): Promise<PayoutResponseDto[]> {
-    const payouts = await this.payoutRepository.findByUserId(userId, limit, offset);
-    return payouts.map(payout => this.transformToResponse(payout));
+  async findUserPayouts(
+    userId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<PayoutResponseDto[]> {
+    const payouts = await this.payoutRepository.findByUserId(
+      userId,
+      limit,
+      offset,
+    );
+    return payouts.map((payout) => this.transformToResponse(payout));
   }
 
   async findPayouts(query?: PayoutQueryDto): Promise<PayoutResponseDto[]> {
     const payouts = await this.payoutRepository.findAll(query);
-    return payouts.map(payout => this.transformToResponse(payout));
+    return payouts.map((payout) => this.transformToResponse(payout));
   }
 
-  async findPayoutById(id: string, userId?: string): Promise<PayoutResponseDto> {
+  async findPayoutById(
+    id: string,
+    userId?: string,
+  ): Promise<PayoutResponseDto> {
     const payout = userId
       ? await this.payoutRepository.findByIdAndUserId(id, userId)
       : await this.payoutRepository.findById(id);
@@ -66,20 +88,31 @@ export class PayoutService {
 
   async findPendingPayouts(limit = 100): Promise<PayoutResponseDto[]> {
     const payouts = await this.payoutRepository.findPendingPayouts(limit);
-    return payouts.map(payout => this.transformToResponse(payout));
+    return payouts.map((payout) => this.transformToResponse(payout));
   }
 
-  async findPayoutsByStatus(status: PayOutStatus, limit = 50, offset = 0): Promise<PayoutResponseDto[]> {
-    const payouts = await this.payoutRepository.findByStatus(status, limit, offset);
-    return payouts.map(payout => this.transformToResponse(payout));
+  async findPayoutsByStatus(
+    status: PayOutStatus,
+    limit = 50,
+    offset = 0,
+  ): Promise<PayoutResponseDto[]> {
+    const payouts = await this.payoutRepository.findByStatus(
+      status,
+      limit,
+      offset,
+    );
+    return payouts.map((payout) => this.transformToResponse(payout));
   }
 
   async updatePayout(
     id: string,
     userId: string,
-    updateDto: UpdatePayoutDto
+    updateDto: UpdatePayoutDto,
   ): Promise<PayoutResponseDto> {
-    const existingPayout = await this.payoutRepository.findByIdAndUserId(id, userId);
+    const existingPayout = await this.payoutRepository.findByIdAndUserId(
+      id,
+      userId,
+    );
     if (!existingPayout) {
       throw new NotFoundException("Payout not found");
     }
@@ -96,8 +129,9 @@ export class PayoutService {
     };
 
     // Remove undefined values
-    Object.keys(allowedUpdates).forEach((key: keyof typeof allowedUpdates) =>
-      allowedUpdates[key] === undefined && delete allowedUpdates[key]
+    Object.keys(allowedUpdates).forEach(
+      (key: keyof typeof allowedUpdates) =>
+        allowedUpdates[key] === undefined && delete allowedUpdates[key],
     );
 
     if (Object.keys(allowedUpdates).length === 0) {
@@ -105,7 +139,10 @@ export class PayoutService {
     }
 
     try {
-      const updatedPayout = await this.payoutRepository.update(id, allowedUpdates);
+      const updatedPayout = await this.payoutRepository.update(
+        id,
+        allowedUpdates,
+      );
       return this.transformToResponse(updatedPayout);
     } catch (error) {
       throw new BadRequestException("Failed to update payout");
@@ -126,7 +163,10 @@ export class PayoutService {
     await this.payoutRepository.delete(id);
   }
 
-  async processPayout(id: string, processDto: ProcessPayoutDto): Promise<PayoutResponseDto> {
+  async processPayout(
+    id: string,
+    processDto: ProcessPayoutDto,
+  ): Promise<PayoutResponseDto> {
     const payout = await this.payoutRepository.findById(id);
     if (!payout) {
       throw new NotFoundException("Payout not found");
@@ -141,7 +181,7 @@ export class PayoutService {
         id,
         PayOutStatus.PAID,
         processDto.transactionId,
-        processDto.processorFee
+        processDto.processorFee,
       );
 
       return this.transformToResponse(updatedPayout);
@@ -180,7 +220,10 @@ export class PayoutService {
   }
 
   // Admin only methods
-  async adminUpdatePayout(id: string, updateDto: UpdatePayoutDto): Promise<PayoutResponseDto> {
+  async adminUpdatePayout(
+    id: string,
+    updateDto: UpdatePayoutDto,
+  ): Promise<PayoutResponseDto> {
     const existingPayout = await this.payoutRepository.findById(id);
     if (!existingPayout) {
       throw new NotFoundException("Payout not found");
@@ -203,13 +246,23 @@ export class PayoutService {
     await this.payoutRepository.delete(id);
   }
 
-  async updatePayoutStatus(id: string, status: PayOutStatus, transactionId?: string, processorFee?: number): Promise<PayoutResponseDto> {
+  async updatePayoutStatus(
+    id: string,
+    status: PayOutStatus,
+    transactionId?: string,
+    processorFee?: number,
+  ): Promise<PayoutResponseDto> {
     const payout = await this.payoutRepository.findById(id);
     if (!payout) {
       throw new NotFoundException("Payout not found");
     }
 
-    const updatedPayout = await this.payoutRepository.updateStatus(id, status, transactionId, processorFee);
+    const updatedPayout = await this.payoutRepository.updateStatus(
+      id,
+      status,
+      transactionId,
+      processorFee,
+    );
     return this.transformToResponse(updatedPayout);
   }
 
@@ -236,11 +289,14 @@ export class PayoutService {
     return !!payout;
   }
 
-  async canUserCreatePayout(userId: string, amount: number): Promise<{
+  async canUserCreatePayout(
+    userId: string,
+    amount: number,
+  ): Promise<{
     canCreate: boolean;
     reason?: string;
   }> {
-    const minPayoutAmount = 5.00;
+    const minPayoutAmount = 5.0;
     if (amount < minPayoutAmount) {
       return {
         canCreate: false,
@@ -248,8 +304,9 @@ export class PayoutService {
       };
     }
 
-    const pendingAmount = await this.payoutRepository.getPendingAmountByUser(userId);
-    const maxPendingAmount = 1000.00;
+    const pendingAmount =
+      await this.payoutRepository.getPendingAmountByUser(userId);
+    const maxPendingAmount = 1000.0;
 
     if (pendingAmount + amount > maxPendingAmount) {
       return {

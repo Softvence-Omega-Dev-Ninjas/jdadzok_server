@@ -36,7 +36,7 @@ import { PaymentMethodService } from "./payment-method.service";
 @Controller("payment-methods")
 @UseGuards(JwtAuthGuard)
 export class PaymentMethodController {
-  constructor(private readonly paymentMethodService: PaymentMethodService) { }
+  constructor(private readonly paymentMethodService: PaymentMethodService) {}
 
   @Post()
   @ApiOperation({ summary: "Create a new payment method" })
@@ -52,10 +52,13 @@ export class PaymentMethodController {
     @Body() createDto: CreatePaymentMethodDto,
   ) {
     try {
-      const pm = await this.paymentMethodService.createPaymentMethod(user.userId, createDto);
-      return successResponse(pm, "Payment method created successfully")
+      const pm = await this.paymentMethodService.createPaymentMethod(
+        user.userId,
+        createDto,
+      );
+      return successResponse(pm, "Payment method created successfully");
     } catch (err) {
-      return err
+      return err;
     }
   }
 
@@ -73,7 +76,9 @@ export class PaymentMethodController {
   }
 
   @Get("all")
-  @ApiOperation({ summary: "Get all payment methods with query filters (admin only)" })
+  @ApiOperation({
+    summary: "Get all payment methods with query filters (admin only)",
+  })
   @ApiQuery({ type: PaymentMethodQueryDto, required: false })
   @ApiResponse({
     status: 200,
@@ -87,7 +92,9 @@ export class PaymentMethodController {
   }
 
   @Get("default")
-  @ApiOperation({ summary: "Get the default payment method for the current user" })
+  @ApiOperation({
+    summary: "Get the default payment method for the current user",
+  })
   @ApiResponse({
     status: 200,
     description: "Default payment method retrieved successfully",
@@ -131,7 +138,11 @@ export class PaymentMethodController {
     @Param("id") id: string,
     @Body() updateDto: UpdatePaymentMethodDto,
   ): Promise<PaymentMethodResponseDto> {
-    return this.paymentMethodService.updatePaymentMethod(id, user.userId, updateDto);
+    return this.paymentMethodService.updatePaymentMethod(
+      id,
+      user.userId,
+      updateDto,
+    );
   }
 
   @Put(":id/set-default")
@@ -154,7 +165,10 @@ export class PaymentMethodController {
   @Delete(":id")
   @ApiOperation({ summary: "Delete a payment method" })
   @ApiParam({ name: "id", description: "Payment method ID" })
-  @ApiResponse({ status: 204, description: "Payment method deleted successfully" })
+  @ApiResponse({
+    status: 204,
+    description: "Payment method deleted successfully",
+  })
   @ApiResponse({ status: 404, description: "Payment method not found" })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePaymentMethod(
@@ -176,10 +190,11 @@ export class PaymentMethodController {
     @GetUser() user: TUser,
     @Param("id") id: string,
   ): Promise<{ isOwner: boolean }> {
-    const isOwner = await this.paymentMethodService.validatePaymentMethodOwnership(
-      id,
-      user.userId,
-    );
+    const isOwner =
+      await this.paymentMethodService.validatePaymentMethodOwnership(
+        id,
+        user.userId,
+      );
     return { isOwner };
   }
 }
