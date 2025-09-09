@@ -20,6 +20,9 @@ CREATE TYPE "public"."CommunityType" AS ENUM ('PUBLIC', 'PRIVATE', 'CUSTOM');
 CREATE TYPE "public"."Feelings" AS ENUM ('HAPPY', 'SAD', 'ANGRY', 'AMAZED', 'AMUSED', 'SCARED', 'PROUD', 'TIRED', 'CONFUSED', 'RELAXED', 'EXCITED', 'WORRIED', 'LOVED', 'GRATEFUL', 'BLESSED', 'HUNGRY', 'HOPEFUL', 'LONELY', 'SILLY', 'THANKFUL', 'AWESOME', 'BORED', 'COOL', 'DETERMINED', 'IN_LOVE', 'INSPIRED', 'MOTIVATED', 'SICK', 'SLEEPY', 'STRESSED', 'STRONG', 'FUNNY', 'MEH');
 
 -- CreateEnum
+CREATE TYPE "public"."Gender" AS ENUM ('MALE', 'FEMALE', 'TRANSGENDER', 'GENDERQUEER', 'GENDERFLUID', 'AGENDER', 'BIGENDER', 'PANGENDER');
+
+-- CreateEnum
 CREATE TYPE "public"."IdentityVerificationType" AS ENUM ('GOVERMENT_ID_OR_PASSPORT', 'BUSINESS_CERTIFIED_OR_LICENSE');
 
 -- CreateEnum
@@ -608,6 +611,9 @@ CREATE TABLE "public"."profiles" (
     "avatarUrl" TEXT,
     "coverUrl" TEXT,
     "location" TEXT,
+    "dateOfBirth" TIMESTAMP(3),
+    "gender" "public"."Gender" NOT NULL DEFAULT 'MALE',
+    "experience" TEXT,
     "followersCount" INTEGER NOT NULL DEFAULT 0,
     "followingCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -1,0 +1,169 @@
+TECHNICAL BRIEF: FLUTTER DEVELOPER FOR SOCIAL MEDIA APP (AFRICAN DIASPORA FOCUS)
+
+🚀 1. PROJECT OVERVIEW
+We are building a cross-platform social media mobile app for Africans, people of African descent, the African diaspora, and allies of Africa’s development.
+The platform will combine content creation, community engagement, and volunteering with a revenue-sharing Cap system and a socially impactful mission.
+The app will be built using Flutter (for iOS + Android) and Firebase (or compatible backend), ready to scale globally.
+
+🧩 2. KEY MVP FEATURES
+A. USER EXPERIENCE & INTERACTION
+Splash screen & onboarding walkthrough
+Email, Google, Apple login options
+Homepage feed by category (10 main areas)
+Trending posts + topic discussions
+Post creation (text, image, video)
+Commenting, voting, sharing
+Push notifications for likes, replies, earnings
+User profiles with Cap level, followers, and activity tracker
+B. CAP SYSTEM (GAMIFIED RECOGNITION + REWARDS)
+Cap
+Level
+Benefits
+Upgrade Criteria
+🟢 Green
+New Member
+Basic visibility, 2% ad revenue share
+Sign-up & post
+🟡 Yellow
+Active Contributor
+Enhanced reach, 10% ad share, marketplace access
+Activity score + admin review
+🔴 Red
+Trusted Creator
+20% ad share, unlock volunteer hub
+Verified content, admin vetting
+⚫ Black
+Esteemed Contributor
+40–50% ad share, high visibility
+Must complete 8-week volunteer service
+⚫ Ostrich Feather Cap
+Global Changemaker
+60% ad share or donate to African project, brand deals, recognition
+Nominated by secret panel after Black Cap status
+
+
+🌍 3. VOLUNTEERING MODULE
+“Volunteer Hub” matches African/diaspora professionals with real-world development needs in Africa.
+Features:
+Verified requests from NGOs, schools, hospitals, governments
+Diaspora applicants offer remote or in-person service
+8-week service required to qualify for Black Cap
+Fast-track Red Cap for early-stage volunteers
+Profiles showing impact, photos, endorsements
+Optional donation/support button on volunteer profile
+
+💰 4. MONETIZATION MODEL
+Core Revenue Streams:
+Ad revenue sharing based on Cap tier (2–60%)
+Creator subscriptions (fans fund directly)
+Marketplace commissions (5–20% on goods/services)
+Sponsored content by brands or institutions
+Premium account perks (ad-free, analytics)
+Volunteer-Based Monetization:
+Diaspora & NGO “Sponsor a Volunteer” campaigns
+Corporate CSR partnerships (match volunteers to projects)
+Digital service badges (NFTs) for milestone recognition
+Verification fees for high-impact volunteer profiles
+Corporate Memberships:
+Tier
+Type
+Benefits
+Silver
+Basic
+Free daily ads, company profile
+Gold
+Mid-level
+Sponsorship tools, advanced analytics
+Platinum
+Elite
+Front-page features, CSR integration, private volunteer requests
+
+
+📚 5. CONTENT STRUCTURE (10 CATEGORIES)
+Area
+Subtopics
+🎬 Entertainment & Pop Culture
+Movies, TV, Music, Memes
+🧠 Health & Wellbeing
+Mental Health, Fitness, Recovery
+📚 Learning & Education
+Study Tips, Courses, African History
+💼 Work & Careers
+Jobs, Freelance, Entrepreneurship
+📰 News & Society
+Politics, Justice, Global Events
+🔬 Science & Tech
+AI, Innovation, Environment
+🎨 Creative Expression
+Poetry, Art, Photography
+🌍 Lifestyle & Identity
+Fashion, Food, Faith, Culture
+💞 Relationships & Growth
+Love, Family, Therapy
+🛒 Market & Monetize
+Sell Products, Courses, NFTs
+
+
+💻 6. TECH STACK
+Layer
+Tech
+Frontend
+Flutter (Android/iOS)
+Backend
+Firebase or Node.js + Firestore
+Auth
+Firebase Auth (Google, Apple, email)
+Storage
+Firebase Storage or AWS S3
+Notifications
+Firebase Cloud Messaging
+Payments
+Stripe / PayPal
+Hosting
+Firebase Hosting or Vercel
+Cap Progression
+Algorithm + Admin dashboard logic
+
+
+🔐 7. SECURITY & MODERATION
+CAPTCHA on suspicious actions
+Role-based access (admin, moderator, verified user)
+Rate-limiting + IP filtering
+AI-powered toxicity flagging (Perspective API)
+Firebase security rules
+2FA for admin accounts
+
+📦 8. DELIVERABLES (MVP PHASE)
+Cross-platform mobile app (Flutter)
+Social feed & profile system
+Cap system & earnings dashboard
+Volunteer Hub + admin workflow
+Marketplace (digital goods only)
+Stripe/PayPal integration
+Admin dashboard for moderation
+Basic analytics (user growth, activity)
+
+📁 9. PROVIDED ASSETS
+Branding pack (logo, fonts, color codes)
+Sample wireframes (homepage, Cap system, Volunteer profile)
+Content structure outline (categories)
+Legal copy (T&Cs for Cap system, volunteer guidelines)
+
+🧑‍💻 10. IDEAL DEVELOPER PROFILE
+3+ years of Flutter app development
+1+ social or community app published
+Firebase + Firestore + Stripe experience
+Clean architecture and documented code
+Familiarity with Africa/diaspora is a bonus
+
+✅ USE CLEAN, LICENSED CODE
+Only use MIT, BSD, Apache-2.0 licensed packages
+Avoid GPL, AGPL licensed code unless approved
+Transfer full IP ownership to client upon completion
+
+📌 TO APPLY, PLEASE INCLUDE:
+2–3 examples of previous Flutter apps
+Your backend preference & why
+Estimated timeline with milestones
+Fixed-price quote for MVP
+NDA & IP transfer acceptance

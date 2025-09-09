@@ -1,6 +1,8 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { RedisService } from "@common/redis/redis.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { createHash } from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 import { S3ResponseDto } from "./dto/s3.dto";
 
@@ -10,7 +12,9 @@ export class S3Service {
   private AWS_S3_BUCKET_NAME: string;
   private AWS_REGION: string;
 
-  constructor(private readonly configSerivce: ConfigService) {
+  constructor(private readonly configSerivce: ConfigService,
+    private readonly redisService: RedisService,
+  ) {
     this.AWS_REGION = this.configSerivce.getOrThrow("AWS_REGION");
     this.AWS_S3_BUCKET_NAME =
       this.configSerivce.getOrThrow("AWS_S3_BUCKET_NAME");
@@ -43,28 +47,57 @@ export class S3Service {
   }
 
   async uploadFile(file: Express.Multer.File): Promise<S3ResponseDto> {
-    const fileExt = file.originalname.split(".").pop();
-    const uniqueFileName = `${uuidv4()}.${fileExt}`;
+    const isSmallFile = file.size < 20 * 1024 * 1024; // 20MB
+    let fileHash: string | null = null;
 
+    if (isSmallFile) {
+      // Generate file hash
+      fileHash = createHash("sha256").update(file.buffer).digest("hex");
+
+      // Check Redis for existing URL
+      const cached = await this.redisService.get<S3ResponseDto>(
+        "S3FileHash",
+        fileHash,
+      );
+
+      if (cached) return cached; // Skip upload
+    }
+
+    // Build S3 Key
+    const fileExt = file.originalname.split(".").pop();
     const folder = this.getFolderByMimeType(file.mimetype);
+    const uniqueFileName = `${fileHash ?? uuidv4()}.${fileExt}`;
     const s3Key = `${folder}/${uniqueFileName}`;
 
     try {
+      // Upload
       const command = new PutObjectCommand({
         Bucket: this.AWS_S3_BUCKET_NAME,
         Key: s3Key,
         Body: file.buffer,
-        ContentType: file.mimetype, // Important for browser preview
+        ContentType: file.mimetype,
       });
 
       await this.s3.send(command);
 
-      return {
+      const result: S3ResponseDto = {
         size: file.size,
         type: file.mimetype,
         originalName: file.originalname,
         url: `https://${this.AWS_S3_BUCKET_NAME}.s3.${this.AWS_REGION}.amazonaws.com/${s3Key}`,
       };
+
+      // Store in Redis if small file
+      if (isSmallFile && fileHash) {
+        await this.redisService.set(
+          "S3FileHash",
+          result,
+          "1d",
+          fileHash,
+        );
+      }
+
+      return result;
     } catch (err) {
       throw new BadRequestException("Failed to upload file to S3");
     }
