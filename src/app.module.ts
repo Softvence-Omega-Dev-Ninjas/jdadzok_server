@@ -25,12 +25,12 @@ import { S3BucketModule } from "./s3/s3.module";
     PassportModule,
     LibModule,
     MainModule,
-    S3BucketModule
+    S3BucketModule,
   ],
   providers: [RedisService],
   controllers: [AppController],
 })
-export class AppModule { }
+export class AppModule {}
 // export class AppModule implements NestModule {
 //   // configure(consumer: MiddlewareConsumer) {
 //   //   consumer.apply(LoggerMiddleware).forRoutes('*');
