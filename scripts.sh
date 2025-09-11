@@ -2,12 +2,39 @@
 
 ENV_FILE=".env"
 
+# Static values
+DOCKER_USERNAME="devlopersabbir"
+EMAIL="devlopersabbir@gmail.com"
+
+# Get values from package.json
+PACKAGE_NAME=$(node -p  "require('./package.json').name || 'empty_name'")
+PACKAGE_VERSION=$(node -p "require('./package.json').version || '0.0.1'")
+
 # Colors
 GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
 RED="\033[0;31m"
 BLUE="\033[0;34m"
 RESET="\033[0m"
+
+# Prepare new env variables content
+NEW_ENV_VARS="DOCKER_USERNAME=\"$DOCKER_USERNAME\"
+PACKAGE_NAME=\"$PACKAGE_NAME\"
+PACKAGE_VERSION=\"$PACKAGE_VERSION\"
+EMAIL=\"$EMAIL\""
+
+# Remove old instances of these variables if they exist in .env
+TMP_ENV=$(mktemp)
+grep -vE '^(DOCKER_USERNAME|PACKAGE_NAME|PACKAGE_VERSION|EMAIL)=' "$ENV_FILE" > "$TMP_ENV"
+
+# Write the new variables + cleaned original env back to .env
+{
+  echo "$NEW_ENV_VARS"
+  echo ""
+  cat "$TMP_ENV"
+} > "$ENV_FILE"
+
+rm "$TMP_ENV"
 
 echo -e "${BLUE}🚀 Starting to upload GitHub secrets from ${ENV_FILE}...${RESET}"
 
