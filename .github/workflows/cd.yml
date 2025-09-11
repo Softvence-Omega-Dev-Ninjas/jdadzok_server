@@ -95,12 +95,11 @@ jobs:
           echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
           echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
           echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
+          echo "EMAIL=${{ secrets.EMAIL }}" >> .env
           echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
           echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
           echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
           echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
           echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
           echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
           echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
@@ -194,12 +193,11 @@ jobs:
           echo "JWT_EXPIRES_IN=\"${{ secrets.JWT_EXPIRES_IN }}\"" >> .env
           echo "BASE_URL=\"${{ secrets.BASE_URL }}\"" >> .env
           echo "MAIL_USER=\"${{ secrets.MAIL_USER }}\"" >> .env
+          echo "EMAIL=\"${{ secrets.EMAIL }}\"" >> .env
           echo "MAIL_PASS=\"${{ secrets.MAIL_PASS }}\"" >> .env
           echo "SUPER_ADMIN_EMAIL=\"${{ secrets.SUPER_ADMIN_EMAIL }}\"" >> .env
           echo "SUPER_ADMIN_PASS=\"${{ secrets.SUPER_ADMIN_PASS }}\"" >> .env
           echo "REDIS_URL=\"${{ secrets.REDIS_URL }}\"" >> .env
-          echo "REDIS_HOST=\"${{ secrets.REDIS_HOST }}\"" >> .env
-          echo "REDIS_PORT=\"${{ secrets.REDIS_PORT }}\"" >> .env
           echo "TWILIO_ACCOUNT_SID=\"${{ secrets.TWILIO_ACCOUNT_SID }}\"" >> .env
           echo "TWILIO_AUTH_TOKEN=\"${{ secrets.TWILIO_AUTH_TOKEN }}\"" >> .env
           echo "TWILIO_PHONE_NUMBER=\"${{ secrets.TWILIO_PHONE_NUMBER }}\"" >> .env
