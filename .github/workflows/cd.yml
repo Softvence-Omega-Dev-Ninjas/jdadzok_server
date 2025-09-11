@@ -56,8 +56,22 @@ jobs:
         id: extract
         run: |
           echo "📦 Using Docker image information..."
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "Current directory: $(pwd)"
+          ls -la
+          if [ ! -f package.json ]; then
+            echo "❌ package.json not found"
+            exit 1
+          fi
+          PACKAGE_NAME=$(node -p "require('./package.json').name || ''")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version || ''")
+          if [ -z "$PACKAGE_NAME" ]; then
+            echo "❌ PACKAGE_NAME is empty, using fallback 'jdadzok_server'"
+            PACKAGE_NAME="jdadzok_server"
+          fi
+          if [ -z "$PACKAGE_VERSION" ]; then
+            echo "❌ PACKAGE_VERSION is empty"
+            exit 1
+          fi
           IMAGE_TAG="${{secrets.DOCKER_USERNAME}}/$PACKAGE_NAME:$PACKAGE_VERSION"
 
           echo "=== IMAGE INFO ==="
@@ -85,31 +99,31 @@ jobs:
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          echo "📄 Creating .env file for Docker build..."
-          echo "PACKAGE_VERSION=${{ steps.extract.outputs.package_version }}" >> .env
-          echo "PACKAGE_NAME=${{ steps.extract.outputs.package_name }}" >> .env
-          echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> .env
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
-          echo "EMAIL=${{ secrets.EMAIL }}" >> .env
-          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
-          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
-          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
-          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
-          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
-          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
-          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
-          # aws
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} " >> .env
-          echo "AWS_S3_BUCKET_NAME=${{secrets.AWS_S3_BUCKET_NAME}}" >> .env
+          echo "📄 Creating deployment .env file..."
+          echo "PACKAGE_VERSION=\"${{ needs.build-and-push.outputs.package_version }}\"" >> .env
+          echo "PACKAGE_NAME=\"${{ needs.build-and-push.outputs.package_name || 'jdadzok_server' }}\"" >> .env
+          echo "DOCKER_USERNAME=\"$DOCKER_USERNAME\"" >> .env
+          echo "NODE_ENV=\"${{ secrets.NODE_ENV }}\"" >> .env
+          echo "DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"" >> .env
+          echo "JWT_SECRET=\"${{ secrets.JWT_SECRET }}\"" >> .env
+          echo "JWT_EXPIRES_IN=\"${{ secrets.JWT_EXPIRES_IN }}\"" >> .env
+          echo "BASE_URL=\"${{ secrets.BASE_URL }}\"" >> .env
+          echo "MAIL_USER=\"${{ secrets.MAIL_USER }}\"" >> .env
+          echo "EMAIL=\"${{ secrets.EMAIL }}\"" >> .env
+          echo "MAIL_PASS=\"${{ secrets.MAIL_PASS }}\"" >> .env
+          echo "SUPER_ADMIN_EMAIL=\"${{ secrets.SUPER_ADMIN_EMAIL }}\"" >> .env
+          echo "SUPER_ADMIN_PASS=\"${{ secrets.SUPER_ADMIN_PASS }}\"" >> .env
+          echo "REDIS_URL=\"${{ secrets.REDIS_URL }}\"" >> .env
+          echo "TWILIO_ACCOUNT_SID=\"${{ secrets.TWILIO_ACCOUNT_SID }}\"" >> .env
+          echo "TWILIO_AUTH_TOKEN=\"${{ secrets.TWILIO_AUTH_TOKEN }}\"" >> .env
+          echo "TWILIO_PHONE_NUMBER=\"${{ secrets.TWILIO_PHONE_NUMBER }}\"" >> .env
+          echo "AWS_REGION=\"${{ secrets.AWS_REGION }}\"" >> .env
+          echo "AWS_ACCESS_KEY_ID=\"${{ secrets.AWS_ACCESS_KEY_ID }}\"" >> .env
+          echo "AWS_SECRET_ACCESS_KEY=\"${{ secrets.AWS_SECRET_ACCESS_KEY }}\"" >> .env
+          echo "AWS_S3_BUCKET_NAME=\"${{secrets.AWS_S3_BUCKET_NAME}}\"" >> .env
+          echo "EMAIL=\"${{secrets.EMAIL}}\"" >> .env
+          echo "BASE_URL=\"${{secrets.BASE_URL}}\"" >> .env
+          cat .env  # Debug: show contents of .env file
 
       - name: Build Docker Image 🔨
         run: |
@@ -187,7 +201,7 @@ jobs:
         run: |
           echo "📄 Creating deployment .env file..."
           echo "PACKAGE_VERSION=\"${{ needs.build-and-push.outputs.package_version }}\"" >> .env
-          echo "PACKAGE_NAME=\"${{ needs.build-and-push.outputs.package_name }}\"" >> .env
+          echo "PACKAGE_NAME=\"${{ needs.build-and-push.outputs.package_name || 'jdadzok_server' }}\"" >> .env
           echo "DOCKER_USERNAME=\"$DOCKER_USERNAME\"" >> .env
           echo "NODE_ENV=\"${{ secrets.NODE_ENV }}\"" >> .env
           echo "DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"" >> .env
@@ -200,21 +214,16 @@ jobs:
           echo "SUPER_ADMIN_EMAIL=\"${{ secrets.SUPER_ADMIN_EMAIL }}\"" >> .env
           echo "SUPER_ADMIN_PASS=\"${{ secrets.SUPER_ADMIN_PASS }}\"" >> .env
           echo "REDIS_URL=\"${{ secrets.REDIS_URL }}\"" >> .env
-          echo "REDIS_HOST=\"${{ secrets.REDIS_HOST }}\"" >> .env
-          echo "REDIS_PORT=\"${{ secrets.REDIS_PORT }}\"" >> .env
           echo "TWILIO_ACCOUNT_SID=\"${{ secrets.TWILIO_ACCOUNT_SID }}\"" >> .env
           echo "TWILIO_AUTH_TOKEN=\"${{ secrets.TWILIO_AUTH_TOKEN }}\"" >> .env
           echo "TWILIO_PHONE_NUMBER=\"${{ secrets.TWILIO_PHONE_NUMBER }}\"" >> .env
-
-          # for aws
           echo "AWS_REGION=\"${{ secrets.AWS_REGION }}\"" >> .env
           echo "AWS_ACCESS_KEY_ID=\"${{ secrets.AWS_ACCESS_KEY_ID }}\"" >> .env
           echo "AWS_SECRET_ACCESS_KEY=\"${{ secrets.AWS_SECRET_ACCESS_KEY }}\"" >> .env
           echo "AWS_S3_BUCKET_NAME=\"${{secrets.AWS_S3_BUCKET_NAME}}\"" >> .env
-
-          # for nginx
           echo "EMAIL=\"${{secrets.EMAIL}}\"" >> .env
           echo "BASE_URL=\"${{secrets.BASE_URL}}\"" >> .env
+          cat .env  # Debug: show contents of .env file
 
       - name: Copy Files to Server 📦
         run: |
@@ -237,12 +246,13 @@ jobs:
           echo "Package: ${{ needs.build-and-push.outputs.package_name }}"
           echo "Version: ${{ needs.build-and-push.outputs.package_version }}"
           echo "Image Tag: ${{ needs.build-and-push.outputs.image_tag }}"
+          cat .env  # Debug: show .env contents
 
           ssh deploy-server bash << 'DEPLOY_EOF'
           set -e
 
           # Set variables
-          PACKAGE_NAME="${{ needs.build-and-push.outputs.package_name }}"
+          PACKAGE_NAME="${{ needs.build-and-push.outputs.package_name || 'jdadzok_server' }}"
           PACKAGE_VERSION="${{ needs.build-and-push.outputs.package_version }}"
 
           echo "=== DEPLOYMENT STARTED ==="
@@ -252,7 +262,6 @@ jobs:
 
           cd ~/$PACKAGE_NAME
 
-          # Basic system setup (only if needed)
           # Install Docker Compose if needed
           if [ ! -f ~/.docker/cli-plugins/docker-compose ]; then
             echo "Installing Docker Compose..."
@@ -268,6 +277,7 @@ jobs:
           # Source environment variables
           if [ -f .env ]; then
             echo "Sourcing .env file..."
+            cat .env  # Debug: show .env contents on server
             source .env
           else
             echo "❌ .env file not found"
