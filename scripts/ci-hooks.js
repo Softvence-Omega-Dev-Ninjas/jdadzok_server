@@ -6,7 +6,7 @@ const { default: yoctoSpinner } = require("yocto-spinner");
 // Helper function to run shell commands and return the output
 function runCommand(command) {
   try {
-    console.log(chalk.blue(`Running command: ${command}`)); // Log command for debugging
+    console.log(chalk.blue(`\nRunning command: ${command}\n`)); // Log command for debugging
     return execSync(command, { encoding: "utf-8" });
   } catch (error) {
     console.error(chalk.red(`Error while executing command: ${command}`));
@@ -23,7 +23,7 @@ function getStagedFiles() {
 // Main function that runs checks and fixes on modified files
 (async () => {
   const spinner = yoctoSpinner().start(
-    "Running CI checks on modified files...\n\n",
+    "\nRunning CI checks on modified files...\n",
   );
 
   const stagedFiles = getStagedFiles();
