@@ -65,6 +65,7 @@ jobs:
           echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
           echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
           echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
+          echo "EMAIL=${{secrets.EMAIL}}" >> .env
           echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
           echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
           echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
