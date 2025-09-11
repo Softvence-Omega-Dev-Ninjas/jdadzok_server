@@ -27,7 +27,7 @@ export class UserController {
   async register(@Body() body: CreateUserDto) {
     try {
       const result = await this.service.register(body);
-      if (!result["accessToken"])
+      if (result["verificaiton"])
         return successResponse(result, "Please check your mail to verify OTP");
       return successResponse(result, "Registration successfull!");
     } catch (err) {

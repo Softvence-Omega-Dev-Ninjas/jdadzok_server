@@ -13,12 +13,17 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
+      "@app/*": ["src/app-metadata/*"],
       "@project/*": ["src/*"],
-      "@module/*": ["src/main/*"],
       "@common/*": ["src/common/*"],
       "@configs/*": ["src/configs/*"],
       "@constants/*": ["src/constants/*"],
-      "@metadata/*": ["src/app-metadata/*"]
+      "@global/*": ["src/global/*"],
+      "@lib/*": ["src/lib/*"],
+      "@module/*": ["src/main/*"],
+      "@scripts/*": ["src/scripts"],
+      "@service/*": ["src/services"],
+      "@utils/*": ["src/utils"]
     },
     "incremental": true,
     "skipLibCheck": true,

@@ -1,40 +1,109 @@
-// import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-// import { ENVEnum } from '@common/enum/env.enum';
-// import { Injectable } from '@nestjs/common';
-// import { ConfigService } from '@nestjs/config';
-// import { extname } from 'path';
-// import { v4 as uuid } from 'uuid';
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { RedisService } from "@common/redis/redis.service";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { createHash } from "node:crypto";
+import { v4 as uuidv4 } from "uuid";
+import { S3ResponseDto } from "./dto/s3.dto";
 
-// @Injectable()
-// export class S3Service {
-//     private s3: S3Client;
+@Injectable()
+export class S3Service {
+  private s3: S3Client;
+  private AWS_S3_BUCKET_NAME: string;
+  private AWS_REGION: string;
 
-//     constructor(private readonly configSerivce: ConfigService) {
-//         const AWS_REGION = configSerivce.getOrThrow(ENVEnum.AWS_REGION)
-//         const AWS_ACCESS_KEY_ID = configSerivce.getOrThrow(ENVEnum.AWS_ACCESS_KEY_ID)
-//         const AWS_SECRET_ACCESS_KEY = configSerivce.getOrThrow(ENVEnum.AWS_SECRET_ACCESS_KEY)
-//         this.s3 = new S3Client({
-//             region: AWS_REGION!,
-//             credentials: {
-//                 accessKeyId: AWS_ACCESS_KEY_ID!,
-//                 secretAccessKey: AWS_SECRET_ACCESS_KEY!,
-//             },
-//         });
-//     }
+  constructor(
+    private readonly configSerivce: ConfigService,
+    private readonly redisService: RedisService,
+  ) {
+    this.AWS_REGION = this.configSerivce.getOrThrow("AWS_REGION");
+    this.AWS_S3_BUCKET_NAME =
+      this.configSerivce.getOrThrow("AWS_S3_BUCKET_NAME");
 
-//     async uploadFile(file: Express.Multer.File, folder: string): Promise<string> {
-//         const fileExtension = extname(file.originalname);
-//         const key = `${folder}/${uuid()}${fileExtension}`;
+    this.s3 = new S3Client({
+      region: this.AWS_REGION,
+      credentials: {
+        accessKeyId: this.configSerivce.getOrThrow("AWS_ACCESS_KEY_ID"),
+        secretAccessKey: this.configSerivce.getOrThrow("AWS_SECRET_ACCESS_KEY"),
+      },
+    });
+  }
 
-//         const command = new PutObjectCommand({
-//             Bucket: process.env.AWS_S3_BUCKET_NAME,
-//             Key: key,
-//             Body: file.buffer,
-//             ContentType: file.mimetype,
-//         });
+  async uploadFiles(files: Express.Multer.File[]): Promise<S3ResponseDto[]> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException("No file(s) uploaded");
+    }
 
-//         await this.s3.send(command);
+    if (files.length > 20) {
+      throw new BadRequestException("You can upload a maximum of 20 files");
+    }
 
-//         return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-//     }
-// }
+    const results: S3ResponseDto[] = [];
+
+    for (const file of files) {
+      results.push(await this.uploadFile(file));
+    }
+
+    return results;
+  }
+
+  async uploadFile(file: Express.Multer.File): Promise<S3ResponseDto> {
+    const isSmallFile = file.size < 20 * 1024 * 1024; // 20MB
+    let fileHash: string | null = null;
+
+    if (isSmallFile) {
+      // Generate file hash
+      fileHash = createHash("sha256").update(file.buffer).digest("hex");
+
+      // Check Redis for existing URL
+      const cached = await this.redisService.get<S3ResponseDto>(
+        "S3FileHash",
+        fileHash,
+      );
+
+      if (cached) return cached; // Skip upload
+    }
+
+    // Build S3 Key
+    const fileExt = file.originalname.split(".").pop();
+    const folder = this.getFolderByMimeType(file.mimetype);
+    const uniqueFileName = `${fileHash ?? uuidv4()}.${fileExt}`;
+    const s3Key = `${folder}/${uniqueFileName}`;
+
+    try {
+      // Upload
+      const command = new PutObjectCommand({
+        Bucket: this.AWS_S3_BUCKET_NAME,
+        Key: s3Key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      });
+
+      await this.s3.send(command);
+
+      const result: S3ResponseDto = {
+        size: file.size,
+        type: file.mimetype,
+        originalName: file.originalname,
+        url: `https://${this.AWS_S3_BUCKET_NAME}.s3.${this.AWS_REGION}.amazonaws.com/${s3Key}`,
+      };
+
+      // Store in Redis if small file
+      if (isSmallFile && fileHash) {
+        await this.redisService.set("S3FileHash", result, "1d", fileHash);
+      }
+
+      return result;
+    } catch (err) {
+      console.info(err);
+      throw new BadRequestException("Failed to upload file to S3");
+    }
+  }
+
+  private getFolderByMimeType(mimeType: string): string {
+    if (mimeType.startsWith("image/")) return "images";
+    if (mimeType.startsWith("audio/")) return "audio";
+    if (mimeType.startsWith("video/")) return "videos";
+    return "documents";
+  }
+}

@@ -16,7 +16,7 @@ export class UserRepository {
       const isUser = await tx.user.findFirst({ where: { email: input.email } });
       // if user already has && user is already verified then throw error otherwise processed
       if (isUser && isUser.isVerified) {
-        throw new ConflictException("User email already exist, please login");
+        throw new ConflictException("User already exist, please login");
       }
 
       if (isUser && !isUser.isVerified) {
@@ -35,7 +35,7 @@ export class UserRepository {
       const profile = await this.profileRepo.create(
         user.id,
         {
-          name: input.name ?? "",
+          name: input.name ?? input.email.split("@")[0],
         },
         tx,
       );

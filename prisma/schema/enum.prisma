@@ -75,6 +75,17 @@ enum Feelings {
   MEH
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  TRANSGENDER
+  GENDERQUEER
+  GENDERFLUID
+  AGENDER
+  BIGENDER
+  PANGENDER
+}
+
 enum IdentityVerificationType {
   GOVERMENT_ID_OR_PASSPORT
   BUSINESS_CERTIFIED_OR_LICENSE

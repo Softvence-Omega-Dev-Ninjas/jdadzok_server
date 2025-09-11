@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -111,6 +112,9 @@ export class UserService {
   }
 
   private async sendOtpMail(user: Omit<TUser, "role">) {
+    // make same innital email validation for send email
+    if (!user.email.endsWith("@gmail.com"))
+      throw new BadRequestException("Email must end with @gmail.com");
     const otp = await this.otpService.generateOtp({
       userId: user.userId,
       email: user.email,
@@ -123,6 +127,7 @@ export class UserService {
       "otp",
       { otp: otp.token },
     );
+
     return otp;
   }
 }

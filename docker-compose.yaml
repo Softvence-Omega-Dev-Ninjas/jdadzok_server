@@ -106,7 +106,7 @@ services:
     volumes:
       - redis_data:/data
     # Add Redis configuration for better performance
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 1000mb --maxmemory-policy allkeys-lru
     # Add health check for Redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -119,10 +119,10 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: 256M
+          memory: 1000M
         reservations:
           cpus: "0.1"
-          memory: 128M
+          memory: 1000M
     # Add logging
     logging:
       driver: "json-file"
@@ -141,6 +141,8 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/certbot/www:/var/www/certbot
       - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/selfsigned:/etc/nginx/selfsigned
+
     ports:
       - "80:80"
       - "443:443"
@@ -156,10 +158,13 @@ services:
     volumes:
       - ./nginx/certbot/www:/var/www/certbot
       - ./nginx/certbot/conf:/etc/letsencrypt
+    environment:
+      - EMAIL=${EMAIL}
+      - BASE_URL=${BASE_URL}
     entrypoint: >
-      sh -c "sleep 5 && certbot certonly --webroot --webroot-path=/var/www/certbot 
-             --email ${EMAIL} --agree-tos --no-eff-email 
-             -d ${BASE_URL}"
+      certbot certonly --webroot --webroot-path=/var/www/certbot 
+      --email ${EMAIL} --agree-tos --no-eff-email 
+      -d ${BASE_URL}
     depends_on:
       - nginx
     networks:

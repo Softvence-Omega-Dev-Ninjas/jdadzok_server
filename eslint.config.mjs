@@ -20,6 +20,7 @@ export default defineConfig([
     plugins: { js },
     extends: ["js/recommended"],
     rules: {
+      "no-useless-catch": "off",
       "no-console": [
         "warn",
         { allow: ["warn", "error", "info", "group", "groupEnd"] },
