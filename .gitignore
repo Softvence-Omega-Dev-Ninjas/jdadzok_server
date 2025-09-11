@@ -81,3 +81,5 @@ jdadzok.pem
 # */migrations
 # ./prisma/migrations
 # .env
+
+jdadzok deploy.pem
