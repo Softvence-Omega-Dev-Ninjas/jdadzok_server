@@ -23,7 +23,7 @@ function getStagedFiles() {
 // Main function that runs checks and fixes on modified files
 (async () => {
   const spinner = yoctoSpinner().start(
-    "Running CI checks on modified files...",
+    "Running CI checks on modified files...\n\n",
   );
 
   const stagedFiles = getStagedFiles();
