@@ -1,7 +1,7 @@
 {
   "name": "jdadzok_server",
   "displayName": "JdadZok Server",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "This is backend for jdadzok social media application",
   "author": "Vision 360",
   "private": true,
@@ -31,7 +31,8 @@
     "prisma:format": "npx prisma format",
     "postinstall": "npx prisma generate",
     "prod": "bash ./scripts.sh",
-    "prepare": "husky"
+    "prepare": "husky",
+    "seed:cap": "tsx src/scripts/seed-cap-requirements.ts"
   },
   "dependencies": {
     "@anatine/zod-nestjs": "^2.0.12",

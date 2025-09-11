@@ -27,3 +27,5 @@
 
 - [ ] Must test both (like & comment) module
 - [ ] In comment section user can also upload file (it can be image or video)
+
+- [ ] post creating accept multiple files

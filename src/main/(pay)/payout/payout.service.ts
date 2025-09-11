@@ -145,6 +145,7 @@ export class PayoutService {
       );
       return this.transformToResponse(updatedPayout);
     } catch (error) {
+      console.info(error);
       throw new BadRequestException("Failed to update payout");
     }
   }
@@ -186,6 +187,7 @@ export class PayoutService {
 
       return this.transformToResponse(updatedPayout);
     } catch (error) {
+      console.info(error);
       throw new BadRequestException("Failed to process payout");
     }
   }
@@ -233,6 +235,7 @@ export class PayoutService {
       const updatedPayout = await this.payoutRepository.update(id, updateDto);
       return this.transformToResponse(updatedPayout);
     } catch (error) {
+      console.info(error);
       throw new BadRequestException("Failed to update payout");
     }
   }

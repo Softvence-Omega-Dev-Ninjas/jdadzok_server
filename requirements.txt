@@ -1,169 +1,129 @@
-TECHNICAL BRIEF: FLUTTER DEVELOPER FOR SOCIAL MEDIA APP (AFRICAN DIASPORA FOCUS)
+# JDADZOK SERVER - CAP SYSTEM IMPLEMENTATION
+# Technical Requirements Document
 
-🚀 1. PROJECT OVERVIEW
-We are building a cross-platform social media mobile app for Africans, people of African descent, the African diaspora, and allies of Africa’s development.
-The platform will combine content creation, community engagement, and volunteering with a revenue-sharing Cap system and a socially impactful mission.
-The app will be built using Flutter (for iOS + Android) and Firebase (or compatible backend), ready to scale globally.
+## PROJECT OVERVIEW
+Backend implementation for JdadZok social media platform featuring a gamified Cap system that rewards user engagement and volunteerism with revenue sharing opportunities.
 
-🧩 2. KEY MVP FEATURES
-A. USER EXPERIENCE & INTERACTION
-Splash screen & onboarding walkthrough
-Email, Google, Apple login options
-Homepage feed by category (10 main areas)
-Trending posts + topic discussions
-Post creation (text, image, video)
-Commenting, voting, sharing
-Push notifications for likes, replies, earnings
-User profiles with Cap level, followers, and activity tracker
-B. CAP SYSTEM (GAMIFIED RECOGNITION + REWARDS)
-Cap
-Level
-Benefits
-Upgrade Criteria
-🟢 Green
-New Member
-Basic visibility, 2% ad revenue share
-Sign-up & post
-🟡 Yellow
-Active Contributor
-Enhanced reach, 10% ad share, marketplace access
-Activity score + admin review
-🔴 Red
-Trusted Creator
-20% ad share, unlock volunteer hub
-Verified content, admin vetting
-⚫ Black
-Esteemed Contributor
-40–50% ad share, high visibility
-Must complete 8-week volunteer service
-⚫ Ostrich Feather Cap
-Global Changemaker
-60% ad share or donate to African project, brand deals, recognition
-Nominated by secret panel after Black Cap status
+## TECHNICAL STACK
+- **Backend Framework**: NestJS with TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT with Passport
+- **Real-time**: WebSockets (Socket.IO)
+- **File Storage**: AWS S3 / Cloudinary
+- **Payment Processing**: Stripe / PayPal
+- **Email Service**: Nodemailer
+- **Caching**: Redis
+- **Queue Processing**: BullMQ
+
+## CAP SYSTEM FEATURES
+### CAP LEVELS & PROGRESSION SYSTEM
+
+#### 1. Cap Level Hierarchy
+| Level | Name | Ad Revenue Share | Benefits | Upgrade Requirements |
+|-------|------|------------------|----------|---------------------|
+| 🟢 GREEN | New Member | 2% | Basic visibility | Sign-up + first post |
+| 🟡 YELLOW | Active Contributor | 10% | Enhanced reach, marketplace access | Activity score ≥ 50 |
+| 🔴 RED | Trusted Creator | 20% | Volunteer hub access | Activity score ≥ 100 + admin verification |
+| ⚫ BLACK | Esteemed Contributor | 45% | High visibility, priority support | 8-week volunteer service completion |
+| 🪶 OSTRICH_FEATHER | Global Changemaker | 60% | Brand deals, global recognition | Panel nomination after BLACK status |
+
+#### 2. Technical Implementation
 
 
-🌍 3. VOLUNTEERING MODULE
-“Volunteer Hub” matches African/diaspora professionals with real-world development needs in Africa.
-Features:
-Verified requests from NGOs, schools, hospitals, governments
-Diaspora applicants offer remote or in-person service
-8-week service required to qualify for Black Cap
-Fast-track Red Cap for early-stage volunteers
-Profiles showing impact, photos, endorsements
-Optional donation/support button on volunteer profile
+**Database Models:**
+- `CapRequirements`: Stores level criteria and benefits
+- `UserMetrics`: Tracks engagement and activity scores
+- `AdRevenueShare`: Monthly revenue distribution records
+- `VolunteerApplication`: Volunteer project applications
+- `Users`: Includes capLevel field
 
-💰 4. MONETIZATION MODEL
-Core Revenue Streams:
-Ad revenue sharing based on Cap tier (2–60%)
-Creator subscriptions (fans fund directly)
-Marketplace commissions (5–20% on goods/services)
-Sponsored content by brands or institutions
-Premium account perks (ad-free, analytics)
-Volunteer-Based Monetization:
-Diaspora & NGO “Sponsor a Volunteer” campaigns
-Corporate CSR partnerships (match volunteers to projects)
-Digital service badges (NFTs) for milestone recognition
-Verification fees for high-impact volunteer profiles
-Corporate Memberships:
-Tier
-Type
-Benefits
-Silver
-Basic
-Free daily ads, company profile
-Gold
-Mid-level
-Sponsorship tools, advanced analytics
-Platinum
-Elite
-Front-page features, CSR integration, private volunteer requests
+**Core Services:**
+- `CapLevelService`: Level calculation and promotion logic
+- `UserMetricsService`: Activity score computation
+- `AdRevenueService`: Revenue sharing calculations
+- `VolunteerTrackingService`: Volunteer hours management
 
+### API ENDPOINTS
 
-📚 5. CONTENT STRUCTURE (10 CATEGORIES)
-Area
-Subtopics
-🎬 Entertainment & Pop Culture
-Movies, TV, Music, Memes
-🧠 Health & Wellbeing
-Mental Health, Fitness, Recovery
-📚 Learning & Education
-Study Tips, Courses, African History
-💼 Work & Careers
-Jobs, Freelance, Entrepreneurship
-📰 News & Society
-Politics, Justice, Global Events
-🔬 Science & Tech
-AI, Innovation, Environment
-🎨 Creative Expression
-Poetry, Art, Photography
-🌍 Lifestyle & Identity
-Fashion, Food, Faith, Culture
-💞 Relationships & Growth
-Love, Family, Therapy
-🛒 Market & Monetize
-Sell Products, Courses, NFTs
+#### Cap Level Management
+```
+GET    /cap-level/status/:userId       # Get user's current cap status
+GET    /cap-level/requirements/:level  # Get requirements for specific level
+POST   /cap-level/calculate/:userId    # Recalculate user's eligible level
+PUT    /cap-level/promote/:userId      # Admin: Manual promotion
+GET    /cap-level/metrics/:userId      # Get detailed user metrics
+```
+
+#### User Metrics
+```
+POST   /user-metrics/update/:userId    # Update user activity metrics
+GET    /user-metrics/:userId           # Get user metrics summary
+POST   /user-metrics/activity-score    # Calculate activity score
+```
+
+#### Revenue Sharing
+```
+GET    /revenue/user/:userId           # Get user's revenue history
+POST   /revenue/calculate              # Calculate monthly revenue shares
+GET    /revenue/stats                  # Platform revenue statistics
+```
 
 
-💻 6. TECH STACK
-Layer
-Tech
-Frontend
-Flutter (Android/iOS)
-Backend
-Firebase or Node.js + Firestore
-Auth
-Firebase Auth (Google, Apple, email)
-Storage
-Firebase Storage or AWS S3
-Notifications
-Firebase Cloud Messaging
-Payments
-Stripe / PayPal
-Hosting
-Firebase Hosting or Vercel
-Cap Progression
-Algorithm + Admin dashboard logic
+### ACTIVITY SCORING ALGORITHM
 
+#### Engagement Metrics Weight
+```typescript
+interface ActivityScore {
+  posts: number * 5;        // 5 points per post
+  comments: number * 2;     // 2 points per comment
+  likes: number * 1;        // 1 point per like given
+  shares: number * 3;       // 3 points per share
+  followers: number * 0.5;  // 0.5 points per follower
+  volunteerHours: number * 10; // 10 points per volunteer hour
+}
+```
 
-🔐 7. SECURITY & MODERATION
-CAPTCHA on suspicious actions
-Role-based access (admin, moderator, verified user)
-Rate-limiting + IP filtering
-AI-powered toxicity flagging (Perspective API)
-Firebase security rules
-2FA for admin accounts
+#### Level Promotion Logic
+1. **GREEN → YELLOW**: Activity Score ≥ 50
+2. **YELLOW → RED**: Activity Score ≥ 100 + Admin verification
+3. **RED → BLACK**: 8-week volunteer service completion
+4. **BLACK → OSTRICH_FEATHER**: Secret panel nomination
 
-📦 8. DELIVERABLES (MVP PHASE)
-Cross-platform mobile app (Flutter)
-Social feed & profile system
-Cap system & earnings dashboard
-Volunteer Hub + admin workflow
-Marketplace (digital goods only)
-Stripe/PayPal integration
-Admin dashboard for moderation
-Basic analytics (user growth, activity)
+### VOLUNTEER INTEGRATION
+- Track volunteer applications and project completions
+- Verify 8-week service requirement for BLACK cap
+- Integration with volunteer project management system
+- Automatic cap promotion upon volunteer milestone completion
 
-📁 9. PROVIDED ASSETS
-Branding pack (logo, fonts, color codes)
-Sample wireframes (homepage, Cap system, Volunteer profile)
-Content structure outline (categories)
-Legal copy (T&Cs for Cap system, volunteer guidelines)
+### REVENUE SHARING SYSTEM
+- Monthly revenue calculation based on user engagement
+- Automatic distribution to user payment methods
+- Revenue tracking per user and per cap level
+- Admin dashboard for revenue management
 
-🧑‍💻 10. IDEAL DEVELOPER PROFILE
-3+ years of Flutter app development
-1+ social or community app published
-Firebase + Firestore + Stripe experience
-Clean architecture and documented code
-Familiarity with Africa/diaspora is a bonus
+### REAL-TIME FEATURES
+- WebSocket notifications for cap level promotions
+- Live activity score updates
+- Real-time earnings tracking
+- Instant notification on volunteer project acceptance
 
-✅ USE CLEAN, LICENSED CODE
-Only use MIT, BSD, Apache-2.0 licensed packages
-Avoid GPL, AGPL licensed code unless approved
-Transfer full IP ownership to client upon completion
+### SECURITY & VALIDATION
+- Admin approval required for RED+ levels
+- Volunteer service verification through NGO partnerships
+- Anti-gaming measures for activity score manipulation
+- Secure payment processing for revenue sharing
 
-📌 TO APPLY, PLEASE INCLUDE:
-2–3 examples of previous Flutter apps
-Your backend preference & why
-Estimated timeline with milestones
-Fixed-price quote for MVP
-NDA & IP transfer acceptance
+### IMPLEMENTATION PRIORITY
+1. **Phase 1**: Basic cap level system with GREEN/YELLOW progression
+2. **Phase 2**: Volunteer integration and RED/BLACK levels
+3. **Phase 3**: Revenue sharing automation
+4. **Phase 4**: Advanced analytics and OSTRICH_FEATHER nomination system
+
+---
+
+## DEVELOPMENT NOTES
+- All cap level changes require database transactions for consistency
+- Activity scores should be calculated in background jobs to avoid performance impact
+- Revenue sharing calculations run monthly via scheduled tasks
+- Comprehensive logging for all cap level promotions and demotions
+- API rate limiting to prevent abuse of metrics calculation endpoints

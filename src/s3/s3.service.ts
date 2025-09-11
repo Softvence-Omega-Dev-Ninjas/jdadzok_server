@@ -95,6 +95,7 @@ export class S3Service {
 
       return result;
     } catch (err) {
+      console.info(err);
       throw new BadRequestException("Failed to upload file to S3");
     }
   }

@@ -1,9 +1,4 @@
-import {
-  BadGatewayException,
-  BadRequestException,
-  Injectable,
-  Logger,
-} from "@nestjs/common";
+import { BadGatewayException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import appMetadata from "@project/app-metadata/app-metadata";
 import { ENVEnum } from "@project/common/enum/env.enum";
@@ -35,9 +30,6 @@ export class MailService {
     context: MailContext = {},
   ): Promise<void> {
     const html = this.renderTemplate(type, context);
-    // make same innital email validation for send email
-    if (!to.endsWith("@gmail.com"))
-      throw new BadRequestException("Email must end with @gmail.com");
 
     const mailOptions = {
       from: `"${appMetadata.displayName}" <${this.configService.get<string>(ENVEnum.MAIL_USER)}>`,

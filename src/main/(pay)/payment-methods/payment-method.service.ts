@@ -112,6 +112,7 @@ export class PaymentMethodService {
       );
       return this.transformToResponse(updatedPaymentMethod);
     } catch (error) {
+      console.info(error);
       throw new BadRequestException("Failed to update payment method");
     }
   }
