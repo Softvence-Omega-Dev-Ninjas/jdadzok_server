@@ -100,6 +100,8 @@ jobs:
           echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
           echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
           echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
           echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
           echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
           echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
@@ -198,6 +200,8 @@ jobs:
           echo "SUPER_ADMIN_EMAIL=\"${{ secrets.SUPER_ADMIN_EMAIL }}\"" >> .env
           echo "SUPER_ADMIN_PASS=\"${{ secrets.SUPER_ADMIN_PASS }}\"" >> .env
           echo "REDIS_URL=\"${{ secrets.REDIS_URL }}\"" >> .env
+          echo "REDIS_HOST=\"${{ secrets.REDIS_HOST }}\"" >> .env
+          echo "REDIS_PORT=\"${{ secrets.REDIS_PORT }}\"" >> .env
           echo "TWILIO_ACCOUNT_SID=\"${{ secrets.TWILIO_ACCOUNT_SID }}\"" >> .env
           echo "TWILIO_AUTH_TOKEN=\"${{ secrets.TWILIO_AUTH_TOKEN }}\"" >> .env
           echo "TWILIO_PHONE_NUMBER=\"${{ secrets.TWILIO_PHONE_NUMBER }}\"" >> .env
@@ -232,6 +236,7 @@ jobs:
           echo "Starting deployment..."
           echo "Package: ${{ needs.build-and-push.outputs.package_name }}"
           echo "Version: ${{ needs.build-and-push.outputs.package_version }}"
+          echo "Image Tag: ${{ needs.build-and-push.outputs.image_tag }}"
 
           ssh deploy-server bash << 'DEPLOY_EOF'
           set -e
