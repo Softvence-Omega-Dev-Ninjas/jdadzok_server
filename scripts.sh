@@ -1,41 +1,53 @@
 #!/bin/bash
 
-# path of package.json file and our .env file
-PACKAGE_JSON="./package.json"
-ENV_FILE="./.env"
+ENV_FILE=".env"
 
-# check package.json file exist or nto 
-if [ ! -f "$PACKAGE_JSON" ]; then
-  echo "Error: package.json not found in current directory."
-  exit 1
-fi
+# Colors
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+RED="\033[0;31m"
+BLUE="\033[0;34m"
+RESET="\033[0m"
 
-# extract the name and version from package.json
-# Extract name and version from package.json using jq
-PACKAGE_NAME=$(jq -r '.name' "$PACKAGE_JSON")
-PACKAGE_VERSION=$(jq -r '.version' "$PACKAGE_JSON")
+echo -e "${BLUE}🚀 Starting to upload GitHub secrets from ${ENV_FILE}...${RESET}"
 
-# Check for jq dependency
-if ! command -v jq >/dev/null 2>&1; then
-    echo "Error: jq is not install"
-    apt install jq
-fi
+while IFS= read -r line || [ -n "$line" ]; do
+  # Trim whitespace
+  line=$(echo "$line" | sed 's/^[ \t]*//;s/[ \t]*$//')
 
-# prepare lines to insert
-NAME_LINE="PACKAGE_NAME=\"${PACKAGE_NAME}\""
-VERSION_LINE="PACKAGE_VERSION=\"${PACKAGE_VERSION}\""
+  # Skip empty lines or comments
+  if [[ -z "$line" || "$line" =~ ^# ]]; then
+    echo -e "${YELLOW}⚠️  Skipping comment/empty line${RESET}"
+    continue
+  fi
 
-# remove if already has
-grep -v '^PACKAGE_NAME=' "$ENV_FILE" | grep -v '^PACKAGE_VERSION=' > "$ENV_FILE.tmp" 2>/dev/null || true
+  # Check if line contains '='
+  if [[ "$line" != *"="* ]]; then
+    echo -e "${YELLOW}⚠️  Skipping invalid line (no '='): ${line}${RESET}"
+    continue
+  fi
 
-# Insert the new values at the top
-{
-  echo "$NAME_LINE"
-  echo "$VERSION_LINE"
-  cat "$ENV_FILE.tmp" 2>/dev/null
-} > "$ENV_FILE"
+  # Remove spaces around '='
+  line=$(echo "$line" | sed 's/ *= */=/g')
 
-# Clean up temporary file
-rm -f "$ENV_FILE.tmp"
+  key="${line%%=*}"
+  value="${line#*=}"
 
-echo ".env file updated with package name and version."
+  # Skip if key empty
+  if [[ -z "$key" ]]; then
+    echo -e "${YELLOW}⚠️  Skipping line with empty key: ${line}${RESET}"
+    continue
+  fi
+
+  # Remove surrounding quotes from value
+  value="${value%\"}"
+  value="${value#\"}"
+  value="${value%\'}"
+  value="${value#\'}"
+
+  echo -e "${GREEN}✨ Setting secret:${RESET} ${BLUE}$key${RESET} 🔑"
+  gh secret set "$key" --body "$value" && echo -e "${GREEN}✅ Secret $key set successfully!${RESET}" || echo -e "${RED}❌ Failed to set secret $key${RESET}"
+
+done < "$ENV_FILE"
+
+echo -e "${BLUE}🎉 All done! Your secrets are now safe and sound in GitHub!${RESET}"
