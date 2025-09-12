@@ -1,10 +1,21 @@
-name: Setup Environment
+name: Reusable Setup Environment
 on:
   workflow_call:
+    outputs:
+      package-name:
+        description: "Package name"
+        value: ${{ jobs.setup.outputs.package-name }}
+      package-version:
+        description: "Package version"
+        value: ${{ jobs.setup.outputs.package-version }}
 
 jobs:
   setup:
     runs-on: ubuntu-latest
+    outputs:
+      package-name: ${{ steps.export-vars.outputs.package-name }}
+      package-version: ${{ steps.export-vars.outputs.package-version }}
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -48,3 +59,16 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+
+      - name: Export key variables as outputs
+        id: export-vars
+        run: |
+          echo "package-name=${{ env.PACKAGE_NAME }}" >> $GITHUB_OUTPUT
+          echo "package-version=${{ env.PACKAGE_VERSION }}" >> $GITHUB_OUTPUT
+
+      - name: Upload .env artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: env-file
+          path: .env
+          retention-days: 1

@@ -111,23 +111,29 @@ inputs:
     description: "VPS SSH private key"
     required: true
 
+outputs:
+  env-file-path:
+    description: "Path to the generated .env file"
+    value: ${{ steps.generate-env.outputs.env-file-path }}
+
 runs:
   using: "composite"
   steps:
     - name: Generate .env file
+      id: generate-env
       shell: bash
       run: |
-        echo "Creating .env file in $GITHUB_WORKSPACE..."
-        touch "$GITHUB_WORKSPACE/.env"
-        chmod 644 "$GITHUB_WORKSPACE/.env"
-        cat <<EOF > "$GITHUB_WORKSPACE/.env"
+        ENV_FILE="$GITHUB_WORKSPACE/.env"
+        echo "Creating .env file at $ENV_FILE..."
 
+        # Create the .env file
+        cat <<EOF > "$ENV_FILE"
         DOCKER_USERNAME=${{ inputs.DOCKER_USERNAME }}
         PACKAGE_NAME=${{ inputs.PACKAGE_NAME }}
         PACKAGE_VERSION=${{ inputs.PACKAGE_VERSION }}
         EMAIL=${{ inputs.EMAIL }}
 
-        NODE_ENV="production"
+        NODE_ENV=production
 
         PG_USERNAME=${{ inputs.PG_USERNAME }}
         PG_PASSWORD=${{ inputs.PG_PASSWORD }}
@@ -171,33 +177,54 @@ runs:
         VPS_SSH_PRIVATE_KEY=${{ inputs.VPS_SSH_PRIVATE_KEY }}
         EOF
 
-        if [ -s "$GITHUB_WORKSPACE/.env" ]; then
-          echo ".env file created successfully at $GITHUB_WORKSPACE/.env (size: $(wc -c < "$GITHUB_WORKSPACE/.env") bytes)"
-          ls -la "$GITHUB_WORKSPACE"
+        # Verify file creation
+        if [ -s "$ENV_FILE" ]; then
+          echo "✅ .env file created successfully at $ENV_FILE (size: $(wc -c < "$ENV_FILE") bytes)"
+          echo "env-file-path=$ENV_FILE" >> $GITHUB_OUTPUT
         else
-          echo "Error: .env file is empty or not created"
+          echo "❌ Error: .env file is empty or not created"
           exit 1
         fi
 
-    - name: Export .env to GITHUB_ENV
+    - name: Export variables to GITHUB_ENV
       shell: bash
       run: |
-        if [ ! -f "$GITHUB_WORKSPACE/.env" ]; then
-          echo "Error: .env file not found at $GITHUB_WORKSPACE/.env"
+        ENV_FILE="$GITHUB_WORKSPACE/.env"
+
+        if [ ! -f "$ENV_FILE" ]; then
+          echo "❌ Error: .env file not found at $ENV_FILE"
           exit 1
         fi
-        while IFS='=' read -r key value; do
-          if [[ ! "$key" =~ ^# && -n "$key" ]]; then
+
+        echo "📤 Exporting environment variables to GITHUB_ENV..."
+
+        # Read .env file and export to GITHUB_ENV
+        while IFS='=' read -r key value || [ -n "$key" ]; do
+          # Skip empty lines and comments
+          if [[ -n "$key" && ! "$key" =~ ^[[:space:]]*# ]]; then
+            # Remove any trailing whitespace and quotes
+            key=$(echo "$key" | xargs)
+            value=$(echo "$value" | xargs | sed 's/^"//;s/"$//')
+            
+            # Export to GITHUB_ENV
             echo "$key=$value" >> "$GITHUB_ENV"
           fi
-        done < "$GITHUB_WORKSPACE/.env"
+        done < "$ENV_FILE"
 
-    - name: Verify setup (without exposing values)
+        echo "✅ Environment variables exported successfully"
+
+    - name: Verify setup
       shell: bash
       run: |
-        if [ -f "$GITHUB_WORKSPACE/.env" ]; then
-          echo "🤝 .env generated and loaded into environment (total vars: $(grep -c '=' "$GITHUB_WORKSPACE/.env"))"
+        ENV_FILE="$GITHUB_WORKSPACE/.env"
+
+        if [ -f "$ENV_FILE" ]; then
+          VAR_COUNT=$(grep -c '^[^#]*=' "$ENV_FILE" || echo "0")
+          echo "🎉 Setup complete!"
+          echo "📁 .env file location: $ENV_FILE"
+          echo "🔢 Total variables: $VAR_COUNT"
+          echo "📊 File size: $(wc -c < "$ENV_FILE") bytes"
         else
-          echo "Error: .env file missing after generation"
+          echo "❌ Error: .env file missing after generation"
           exit 1
         fi
