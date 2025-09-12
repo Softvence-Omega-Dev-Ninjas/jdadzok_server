@@ -18,11 +18,7 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      - name: Download .env artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: env-file
-          path: ${{ github.workspace }}
+
       - name: Debug downloaded .env
         run: |
           echo "Current working directory: $(pwd)"
@@ -49,6 +45,7 @@ jobs:
           echo "Package name: $PACKAGE_NAME"
           echo "Package version: $PACKAGE_VERSION"
           echo "✅ Great, we can perfectly access our env"
+
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -74,12 +71,8 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-      - name: Download .env artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: env-file
-          path: ${{ github.workspace }}
-      - name: Debug downloaded .env
+
+      - name: Debug .env
         run: |
           echo "Current working directory: $(pwd)"
           ls -la "${{ github.workspace }}"
