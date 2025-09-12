@@ -1,5 +1,5 @@
-name: "Create .env file"
-description: "Generates a .env file from environment variables and secrets"
+name: "Setup and Load Environment"
+description: "Generates .env from secrets and exports to GITHUB_ENV"
 
 runs:
   using: "composite"
@@ -57,13 +57,16 @@ runs:
         VPS_SSH_PRIVATE_KEY=${{ secrets.VPS_SSH_PRIVATE_KEY }}
         EOF
 
-    - name: Upload .env as artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: env-file
-        path: .env
-
-    - name: See the cat of .env file
+    - name: Export .env to GITHUB_ENV
+      shell: bash
       run: |
-        cat .env
-        echo "🤝 All right .env is ready"
+        while IFS='=' read -r key value; do
+          if [[ ! "$key" =~ ^# && -n "$key" ]]; then
+            echo "$key=$value" >> "$GITHUB_ENV"
+          fi
+        done < .env
+
+    - name: Verify setup (without exposing values)
+      shell: bash
+      run: |
+        echo "🤝 .env generated and loaded into environment (total vars: $(grep -c '=' .env))"
