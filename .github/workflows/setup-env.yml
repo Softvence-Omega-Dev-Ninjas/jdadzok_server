@@ -1,79 +1,6 @@
 name: Setup Environment
 on:
   workflow_call:
-    secrets:
-      DOCKER_USERNAME:
-        required: true
-      PACKAGE_NAME:
-        required: true
-      PACKAGE_VERSION:
-        required: true
-      EMAIL:
-        required: true
-      PG_USERNAME:
-        required: true
-      PG_PASSWORD:
-        required: true
-      PG_DATABASE:
-        required: true
-      PG_PORT:
-        required: true
-      DATABASE_URL:
-        required: true
-      JWT_SECRET:
-        required: true
-      JWT_EXPIRES_IN:
-        required: true
-      BASE_URL:
-        required: true
-      PORT:
-        required: true
-      MAIL_USER:
-        required: true
-      MAIL_PASS:
-        required: true
-      SUPER_ADMIN_EMAIL:
-        required: true
-      SUPER_ADMIN_PASS:
-        required: true
-      REDIS_HOST:
-        required: true
-      REDIS_USER:
-        required: true
-      REDIS_PASS:
-        required: true
-      REDIS_PORT:
-        required: true
-      REDIS_CONTAINER:
-        required: true
-      REDIS_URL:
-        required: true
-      TWILIO_ACCOUNT_SID:
-        required: true
-      TWILIO_AUTH_TOKEN:
-        required: true
-      TWILIO_PHONE_NUMBER:
-        required: true
-      AWS_REGION:
-        required: true
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
-      AWS_S3_BUCKET_NAME:
-        required: true
-      IMAGE_TAG:
-        required: true
-      DOCKER_PASSWORD:
-        required: true
-      GIT_TOKEN:
-        required: true
-      VPS_HOST:
-        required: true
-      VPS_USER:
-        required: true
-      VPS_SSH_PRIVATE_KEY:
-        required: true
 
 jobs:
   setup:
@@ -81,6 +8,7 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+
       - name: Setup and load environment
         uses: ./.github/actions/setup-and-load-env
         with:
