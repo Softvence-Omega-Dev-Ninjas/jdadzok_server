@@ -3,8 +3,8 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { config } from 'dotenv';
-import { expand } from 'dotenv-expand';
+import { config } from "dotenv";
+import { expand } from "dotenv-expand";
 import path from "path";
 import "reflect-metadata";
 import z from "zod";
@@ -14,7 +14,7 @@ import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
 // import { GlobalExceptionFilter } from "./common/filter/http-exception.filter";
 
-expand(config({ path: path.resolve(process.cwd(), ".env") }))
+expand(config({ path: path.resolve(process.cwd(), ".env") }));
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
