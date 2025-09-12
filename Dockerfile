@@ -1,40 +1,38 @@
-# Stage 1: Build Stage
-FROM node:22 AS builder
+# Stage 1: Build
+FROM node:20 AS builder
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y openssl
-
-# Copy only what is needed to install dependencies and generate Prisma
+# Copy package files
 COPY package*.json ./
-COPY . .
 
+# Install deps
 RUN npm install
 
-# Generate Prisma client (explicitly)
-RUN npm run prisma:generate
-
-# Now copy everything else
+# Copy source code
 COPY . .
 
-# Build the app
+# Important! Copy the prisma folder
+COPY prisma ./prisma
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Build the app (NestJS / TS etc.)
 RUN npm run build
 
 
-# Stage 2: Production Stage
-FROM node:22-slim AS production
+# Stage 2: Run
+FROM node:20-alpine
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y openssl && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
 COPY --from=builder /app/prisma ./prisma
 
-ENV NODE_ENV=development
-
+ENV NODE_ENV=production
 EXPOSE 5056
 
 CMD ["npm", "run", "start:prod"]
