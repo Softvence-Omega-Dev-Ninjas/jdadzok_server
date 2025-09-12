@@ -117,9 +117,10 @@ runs:
     - name: Generate .env file
       shell: bash
       run: |
-        echo "Creating .env file..."
-        touch .env
-        cat <<EOF > .env
+        echo "Creating .env file in $GITHUB_WORKSPACE..."
+        touch "$GITHUB_WORKSPACE/.env"
+        cat <<EOF > "$GITHUB_WORKSPACE/.env"
+
         DOCKER_USERNAME=${{ inputs.DOCKER_USERNAME }}
         PACKAGE_NAME=${{ inputs.PACKAGE_NAME }}
         PACKAGE_VERSION=${{ inputs.PACKAGE_VERSION }}
@@ -168,8 +169,10 @@ runs:
         VPS_USER=${{ inputs.VPS_USER }}
         VPS_SSH_PRIVATE_KEY=${{ inputs.VPS_SSH_PRIVATE_KEY }}
         EOF
-        if [ -s .env ]; then
-          echo ".env file created successfully (size: $(wc -c < .env) bytes)"
+
+        if [ -s "$GITHUB_WORKSPACE/.env" ]; then
+          echo ".env file created successfully at $GITHUB_WORKSPACE/.env (size: $(wc -c < "$GITHUB_WORKSPACE/.env") bytes)"
+          ls -la "$GITHUB_WORKSPACE"
         else
           echo "Error: .env file is empty or not created"
           exit 1
@@ -178,28 +181,28 @@ runs:
     - name: Export .env to GITHUB_ENV
       shell: bash
       run: |
-        if [ ! -f .env ]; then
-          echo "Error: .env file does not exist"
+        if [ ! -f "$GITHUB_WORKSPACE/.env" ]; then
+          echo "Error: .env file not found at $GITHUB_WORKSPACE/.env"
           exit 1
         fi
         while IFS='=' read -r key value; do
           if [[ ! "$key" =~ ^# && -n "$key" ]]; then
             echo "$key=$value" >> "$GITHUB_ENV"
           fi
-        done < .env
+        done < "$GITHUB_WORKSPACE/.env"
 
     - name: Upload .env as artifact
       uses: actions/upload-artifact@v4
       with:
         name: env-file
-        path: .env
+        path: ${{ github.workspace }}/.env
         if-no-files-found: error
 
     - name: Verify setup (without exposing values)
       shell: bash
       run: |
-        if [ -f .env ]; then
-          echo "🤝 .env generated and loaded into environment (total vars: $(grep -c '=' .env))"
+        if [ -f "$GITHUB_WORKSPACE/.env" ]; then
+          echo "🤝 .env generated and loaded into environment (total vars: $(grep -c '=' "$GITHUB_WORKSPACE/.env"))"
         else
           echo "Error: .env file missing after generation"
           exit 1
