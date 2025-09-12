@@ -265,20 +265,22 @@ jobs:
       - name: Deploy Application 🚀
         run: |
           echo "Starting deployment..."
-          echo "Package: $PACKAGE_NAME"
-          echo "Version: $PACKAGE_VERSION"
-          echo "Image Tag: $IMAGE_TAG"
+          echo "Package: ${{secrets.PACKAGE_NAME}}"
+          echo "Version: ${{secrets.PACKAGE_VERSION}}"
+          echo "Image Tag: ${{secrets.IMAGE_TAG}}"
           cat .env  # Debug: show .env contents
+
+          chmod 600 ~/.ssh/deploy_key
 
           ssh deploy-server bash << 'DEPLOY_EOF'
           set -e
 
           echo "=== DEPLOYMENT STARTED ==="
-          echo "Package: $PACKAGE_NAME"
-          echo "Version: $PACKAGE_VERSION"
+          echo "Package:  ${{secrets.PACKAGE_NAME}}"
+          echo "Version:  ${{secrets.PACKAGE_NAME}}"
           echo "=============================="
 
-          cd ~/$PACKAGE_NAME
+          cd ~/${{secrets.PACKAGE_NAME}}
 
           # Install Docker Compose if needed
           if [ ! -f ~/.docker/cli-plugins/docker-compose ]; then
@@ -290,7 +292,7 @@ jobs:
 
           # Login to Docker Hub
           echo "Logging into Docker Hub..."
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
 
           # Source environment variables
           if [ -f .env ]; then
@@ -304,7 +306,7 @@ jobs:
 
           # Run the simplified deployment script
           echo "Executing zero-downtime deployment..."
-          if ./scripts/deploy.sh --version "$PACKAGE_VERSION"; then
+          if ./scripts/deploy.sh --version "${{secrets.PACKAGE_VERSION}}"; then
             echo "✅ Deployment successful"
           else
             echo "❌ Deployment failed - automatic rollback should have occurred"
@@ -322,7 +324,7 @@ jobs:
         run: |
           echo "Verifying deployment..."
           ssh deploy-server bash << 'VERIFY_EOF'
-          cd ~/$PACKAGE_NAME
+          cd ~/${{secrets.PACKAGE_NAME}}
 
           echo "=== Running deployment status check ==="
           ./scripts/deploy.sh status
