@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 import chalk from "chalk";
 import { config } from 'dotenv';
 import { expand } from 'dotenv-expand';
 import path from "path";
 import { Seeds } from "./seeds/user";
+
 
 // Explicitly load environment variables
 const prisma = new PrismaClient();
