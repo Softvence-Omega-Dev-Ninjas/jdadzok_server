@@ -1,5 +1,115 @@
 name: "Setup and Load Environment"
-description: "Generates .env from secrets and exports to GITHUB_ENV"
+description: "Generates .env from inputs and exports to GITHUB_ENV"
+
+inputs:
+  DOCKER_USERNAME:
+    description: "Docker username"
+    required: true
+  PACKAGE_NAME:
+    description: "Package name"
+    required: true
+  PACKAGE_VERSION:
+    description: "Package version"
+    required: true
+  EMAIL:
+    description: "Email"
+    required: true
+  PG_USERNAME:
+    description: "Postgres username"
+    required: true
+  PG_PASSWORD:
+    description: "Postgres password"
+    required: true
+  PG_DATABASE:
+    description: "Postgres database"
+    required: true
+  PG_PORT:
+    description: "Postgres port"
+    required: true
+  DATABASE_URL:
+    description: "Database URL"
+    required: true
+  JWT_SECRET:
+    description: "JWT secret"
+    required: true
+  JWT_EXPIRES_IN:
+    description: "JWT expiration"
+    required: true
+  BASE_URL:
+    description: "Base URL"
+    required: true
+  PORT:
+    description: "Port"
+    required: true
+  MAIL_USER:
+    description: "Mail user"
+    required: true
+  MAIL_PASS:
+    description: "Mail password"
+    required: true
+  SUPER_ADMIN_EMAIL:
+    description: "Super admin email"
+    required: true
+  SUPER_ADMIN_PASS:
+    description: "Super admin password"
+    required: true
+  REDIS_HOST:
+    description: "Redis host"
+    required: true
+  REDIS_USER:
+    description: "Redis user"
+    required: true
+  REDIS_PASS:
+    description: "Redis password"
+    required: true
+  REDIS_PORT:
+    description: "Redis port"
+    required: true
+  REDIS_CONTAINER:
+    description: "Redis container"
+    required: true
+  REDIS_URL:
+    description: "Redis URL"
+    required: true
+  TWILIO_ACCOUNT_SID:
+    description: "Twilio account SID"
+    required: true
+  TWILIO_AUTH_TOKEN:
+    description: "Twilio auth token"
+    required: true
+  TWILIO_PHONE_NUMBER:
+    description: "Twilio phone number"
+    required: true
+  AWS_REGION:
+    description: "AWS region"
+    required: true
+  AWS_ACCESS_KEY_ID:
+    description: "AWS access key ID"
+    required: true
+  AWS_SECRET_ACCESS_KEY:
+    description: "AWS secret access key"
+    required: true
+  AWS_S3_BUCKET_NAME:
+    description: "AWS S3 bucket name"
+    required: true
+  IMAGE_TAG:
+    description: "Image tag"
+    required: true
+  DOCKER_PASSWORD:
+    description: "Docker password"
+    required: true
+  GIT_TOKEN:
+    description: "Git token"
+    required: true
+  VPS_HOST:
+    description: "VPS host"
+    required: true
+  VPS_USER:
+    description: "VPS user"
+    required: true
+  VPS_SSH_PRIVATE_KEY:
+    description: "VPS SSH private key"
+    required: true
 
 runs:
   using: "composite"
@@ -8,53 +118,53 @@ runs:
       shell: bash
       run: |
         cat <<EOF > .env
-        DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-        PACKAGE_NAME=${{ secrets.PACKAGE_NAME }}
-        PACKAGE_VERSION=${{ secrets.PACKAGE_VERSION }}
-        EMAIL=${{ secrets.EMAIL }}
+        DOCKER_USERNAME=${{ inputs.DOCKER_USERNAME }}
+        PACKAGE_NAME=${{ inputs.PACKAGE_NAME }}
+        PACKAGE_VERSION=${{ inputs.PACKAGE_VERSION }}
+        EMAIL=${{ inputs.EMAIL }}
 
         NODE_ENV="production"
 
-        PG_USERNAME=${{ secrets.PG_USERNAME }}
-        PG_PASSWORD=${{ secrets.PG_PASSWORD }}
-        PG_DATABASE=${{ secrets.PG_DATABASE }}
-        PG_PORT=${{ secrets.PG_PORT }}
-        DATABASE_URL=${{ secrets.DATABASE_URL }}
+        PG_USERNAME=${{ inputs.PG_USERNAME }}
+        PG_PASSWORD=${{ inputs.PG_PASSWORD }}
+        PG_DATABASE=${{ inputs.PG_DATABASE }}
+        PG_PORT=${{ inputs.PG_PORT }}
+        DATABASE_URL=${{ inputs.DATABASE_URL }}
 
-        JWT_SECRET=${{ secrets.JWT_SECRET }}
-        JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
-        BASE_URL=${{ secrets.BASE_URL }}
+        JWT_SECRET=${{ inputs.JWT_SECRET }}
+        JWT_EXPIRES_IN=${{ inputs.JWT_EXPIRES_IN }}
+        BASE_URL=${{ inputs.BASE_URL }}
 
-        PORT=${{ secrets.PORT }}
+        PORT=${{ inputs.PORT }}
 
-        MAIL_USER=${{ secrets.MAIL_USER }}
-        MAIL_PASS=${{ secrets.MAIL_PASS }}
+        MAIL_USER=${{ inputs.MAIL_USER }}
+        MAIL_PASS=${{ inputs.MAIL_PASS }}
 
-        SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}
-        SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}
+        SUPER_ADMIN_EMAIL=${{ inputs.SUPER_ADMIN_EMAIL }}
+        SUPER_ADMIN_PASS=${{ inputs.SUPER_ADMIN_PASS }}
 
-        REDIS_HOST=${{ secrets.REDIS_HOST }}
-        REDIS_USER=${{ secrets.REDIS_USER }}
-        REDIS_PASS=${{ secrets.REDIS_PASS }}
-        REDIS_PORT=${{ secrets.REDIS_PORT }}
-        REDIS_CONTAINER=${{ secrets.REDIS_CONTAINER }}
-        REDIS_URL=${{ secrets.REDIS_URL }}
+        REDIS_HOST=${{ inputs.REDIS_HOST }}
+        REDIS_USER=${{ inputs.REDIS_USER }}
+        REDIS_PASS=${{ inputs.REDIS_PASS }}
+        REDIS_PORT=${{ inputs.REDIS_PORT }}
+        REDIS_CONTAINER=${{ inputs.REDIS_CONTAINER }}
+        REDIS_URL=${{ inputs.REDIS_URL }}
 
-        TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
-        TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}
-        TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}
+        TWILIO_ACCOUNT_SID=${{ inputs.TWILIO_ACCOUNT_SID }}
+        TWILIO_AUTH_TOKEN=${{ inputs.TWILIO_AUTH_TOKEN }}
+        TWILIO_PHONE_NUMBER=${{ inputs.TWILIO_PHONE_NUMBER }}
 
-        AWS_REGION=${{ secrets.AWS_REGION }}
-        AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
+        AWS_REGION=${{ inputs.AWS_REGION }}
+        AWS_ACCESS_KEY_ID=${{ inputs.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY=${{ inputs.AWS_SECRET_ACCESS_KEY }}
+        AWS_S3_BUCKET_NAME=${{ inputs.AWS_S3_BUCKET_NAME }}
 
-        IMAGE_TAG=${{ secrets.IMAGE_TAG }}
-        DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
-        GIT_TOKEN=${{ secrets.GIT_TOKEN }}
-        VPS_HOST=${{ secrets.VPS_HOST }}
-        VPS_USER=${{ secrets.VPS_USER }}
-        VPS_SSH_PRIVATE_KEY=${{ secrets.VPS_SSH_PRIVATE_KEY }}
+        IMAGE_TAG=${{ inputs.IMAGE_TAG }}
+        DOCKER_PASSWORD=${{ inputs.DOCKER_PASSWORD }}
+        GIT_TOKEN=${{ inputs.GIT_TOKEN }}
+        VPS_HOST=${{ inputs.VPS_HOST }}
+        VPS_USER=${{ inputs.VPS_USER }}
+        VPS_SSH_PRIVATE_KEY=${{ inputs.VPS_SSH_PRIVATE_KEY }}
         EOF
 
     - name: Export .env to GITHUB_ENV
@@ -65,6 +175,12 @@ runs:
             echo "$key=$value" >> "$GITHUB_ENV"
           fi
         done < .env
+
+    - name: Upload .env as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: env-file
+        path: .env
 
     - name: Verify setup (without exposing values)
       shell: bash

@@ -1,0 +1,120 @@
+name: Setup Environment
+on:
+  workflow_call:
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      PACKAGE_NAME:
+        required: true
+      PACKAGE_VERSION:
+        required: true
+      EMAIL:
+        required: true
+      PG_USERNAME:
+        required: true
+      PG_PASSWORD:
+        required: true
+      PG_DATABASE:
+        required: true
+      PG_PORT:
+        required: true
+      DATABASE_URL:
+        required: true
+      JWT_SECRET:
+        required: true
+      JWT_EXPIRES_IN:
+        required: true
+      BASE_URL:
+        required: true
+      PORT:
+        required: true
+      MAIL_USER:
+        required: true
+      MAIL_PASS:
+        required: true
+      SUPER_ADMIN_EMAIL:
+        required: true
+      SUPER_ADMIN_PASS:
+        required: true
+      REDIS_HOST:
+        required: true
+      REDIS_USER:
+        required: true
+      REDIS_PASS:
+        required: true
+      REDIS_PORT:
+        required: true
+      REDIS_CONTAINER:
+        required: true
+      REDIS_URL:
+        required: true
+      TWILIO_ACCOUNT_SID:
+        required: true
+      TWILIO_AUTH_TOKEN:
+        required: true
+      TWILIO_PHONE_NUMBER:
+        required: true
+      AWS_REGION:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_S3_BUCKET_NAME:
+        required: true
+      IMAGE_TAG:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+      GIT_TOKEN:
+        required: true
+      VPS_HOST:
+        required: true
+      VPS_USER:
+        required: true
+      VPS_SSH_PRIVATE_KEY:
+        required: true
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup and load environment
+        uses: ./.github/actions/setup-and-load-env
+        with:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+          EMAIL: ${{ secrets.EMAIL }}
+          PG_USERNAME: ${{ secrets.PG_USERNAME }}
+          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          PG_DATABASE: ${{ secrets.PG_DATABASE }}
+          PG_PORT: ${{ secrets.PG_PORT }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+          PORT: ${{ secrets.PORT }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
+          SUPER_ADMIN_PASS: ${{ secrets.SUPER_ADMIN_PASS }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_USER: ${{ secrets.REDIS_USER }}
+          REDIS_PASS: ${{ secrets.REDIS_PASS }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_CONTAINER: ${{ secrets.REDIS_CONTAINER }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}

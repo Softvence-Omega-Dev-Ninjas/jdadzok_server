@@ -9,16 +9,30 @@ on:
       - "**"
 
 jobs:
+  setup-env:
+    uses: ./.github/workflows/setup-environement-variable.yml
+    secrets: inherit
+
   lint-test:
     name: 🧪 CI - Lint, Build, Format, Prisma
     runs-on: ubuntu-latest
-
+    needs: setup-env
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup and load environment
-        uses: ./.github/actions/setup-and-load-env
+      - name: Download .env artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: env-file
+
+      - name: Load .env to GITHUB_ENV
+        run: |
+          while IFS='=' read -r key value; do
+            if [[ ! "$key" =~ ^# && -n "$key" ]]; then
+              echo "$key=$value" >> "$GITHUB_ENV"
+            fi
+          done < .env
 
       - name: Echo package name and version (for testing)
         run: |
@@ -53,13 +67,23 @@ jobs:
   build-test:
     name: 🧪 Docker Image Build
     runs-on: ubuntu-latest
-
+    needs: setup-env
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup and load environment
-        uses: ./.github/actions/setup-and-load-env
+      - name: Download .env artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: env-file
+
+      - name: Load .env to GITHUB_ENV
+        run: |
+          while IFS='=' read -r key value; do
+            if [[ ! "$key" =~ ^# && -n "$key" ]]; then
+              echo "$key=$value" >> "$GITHUB_ENV"
+            fi
+          done < .env
 
       - name: Build Docker Image 🔨
         run: |
