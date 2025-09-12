@@ -12,7 +12,7 @@ COPY . .
 RUN npm install
 
 # Generate Prisma client (explicitly)
-RUN npx prisma generate
+RUN npm run prisma:generate
 
 # Now copy everything else
 COPY . .

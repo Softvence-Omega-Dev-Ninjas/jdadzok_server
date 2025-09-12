@@ -1,12 +1,12 @@
 import { config } from "dotenv";
 import { expand } from "dotenv-expand";
 import path from "path";
-import { defineConfig } from "prisma/config";
+import type { PrismaConfig } from "prisma";
 
 // Explicitly load environment variables
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
-export default defineConfig({
+export default {
   schema: path.join("prisma", "schema"),
 
   migrations: {
@@ -19,4 +19,4 @@ export default defineConfig({
   typedSql: {
     path: path.join("prisma", "queries"),
   },
-});
+} satisfies PrismaConfig;
