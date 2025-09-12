@@ -19,4 +19,4 @@ export default {
   typedSql: {
     path: path.join("prisma", "queries"),
   },
-} satisfies PrismaConfig
+} satisfies PrismaConfig;
