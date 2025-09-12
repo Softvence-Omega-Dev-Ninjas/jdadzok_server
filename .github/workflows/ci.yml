@@ -133,7 +133,6 @@ jobs:
           GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
 
       - name: 📋 Verify environment variables
         run: |
