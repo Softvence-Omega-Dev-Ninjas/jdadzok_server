@@ -205,7 +205,7 @@ jobs:
           scp -i ~/.ssh/deploy_key docker-compose.yaml $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
           scp -i ~/.ssh/deploy_key .env  $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
           scp -i ~/.ssh/deploy_key Dockerfile $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
-          scp -i ~/.ssh/deploy_key -r scripts/ $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/scripts/
+          scp -i ~/.ssh/deploy_key -r scripts $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
 
           echo "✅ Files copied successfully"
 
