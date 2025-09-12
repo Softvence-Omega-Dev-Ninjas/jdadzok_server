@@ -1,6 +1,7 @@
 name: 🚀 CD Pipeline with Zero Downtime
 
 on:
+  push:
   workflow_run:
     workflows: ["CI Pipeline"]
     types:
@@ -208,6 +209,10 @@ jobs:
           scp -i ~/.ssh/deploy_key -r scripts $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
 
           echo "✅ Files copied successfully"
+
+      - name: Fix permissions on server 🌋
+        run: |
+          ssh deploy-server "chmod -R +x ~/$PACKAGE_NAME/scripts/*.sh"
 
       - name: Deploy Application 🚀
         run: |

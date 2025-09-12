@@ -66,14 +66,14 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "$VPS_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          echo "${{secrets.VPS_SSH_PRIVATE_KEY}}" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{secrets.VPS_HOST}} >> ~/.ssh/known_hosts
 
           cat > ~/.ssh/config << EOF
           Host deploy-server
-            HostName $VPS_HOST
-            User $VPS_USER
+            HostName ${{secrets.VPS_HOST}}
+            User ${{secrets.VPS_USER}}
             IdentityFile ~/.ssh/deploy_key
             StrictHostKeyChecking no
           EOF
@@ -91,7 +91,7 @@ jobs:
 
           ssh deploy-server "bash -s" <<EOF
             set -e
-            cd ~/\$PACKAGE_NAME
+            cd ~/${{secrets.PACKAGE_NAME}}
 
             for file in scripts/generate-self-signed-cert.sh scripts/setup-nginx.sh; do
               if [ ! -f "$file" ]; then
@@ -106,11 +106,11 @@ jobs:
           # Check exit code; if 10, then copy scripts directory
           if [ $? -eq 10 ]; then
             echo "📤 Copying scripts directory to VPS..."
-            scp -r ./scripts deploy-server:~/$PACKAGE_NAME/
+            scp -r ./scripts deploy-server:~/${{secrets.PACKAGE_NAME}}/
           fi
 
           echo "🔐 Generate CERT"
-          ssh deploy-server "cd ~/$PACKAGE_NAME/scripts && chmod +x generate-self-signed-cert.sh && ./generate-self-signed-cert.sh"
+          ssh deploy-server "cd ~/${{secrets.PACKAGE_NAME}}/scripts && chmod +x generate-self-signed-cert.sh && ./generate-self-signed-cert.sh"
 
           echo "🚀 Running setup-nginx.sh on VPS..."
-          ssh deploy-server "cd ~/$PACKAGE_NAME/scripts && chmod +x setup-nginx.sh && ./setup-nginx.sh"
+          ssh deploy-server "cd ~/${{secrets.PACKAGE_NAME}}/scripts && chmod +x setup-nginx.sh && ./setup-nginx.sh"
