@@ -175,7 +175,7 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          echo "$VPS_SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          echo "${{secrets.VPS_SSH_PRIVATE_KEY}}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
           ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
@@ -189,6 +189,12 @@ jobs:
             StrictHostKeyChecking no
           EOF
           chmod 600 ~/.ssh/config
+
+      - name: Debug SSH key
+        run: |
+          echo "-----BEGIN KEY-----"
+          head -n 10 ~/.ssh/deploy_key
+          echo "-----END KEY-----"
 
       - name: Create .env file 📄
         run: |
@@ -245,8 +251,8 @@ jobs:
       - name: Copy Files to Server 📦
         run: |
           echo "Creating directories..."
+          chmod 600 ~/.ssh/deploy_key
           ssh deploy-server "mkdir -p ~/$PACKAGE_NAME/scripts"
-
           echo "Copying files..."
 
           scp -i ~/.ssh/deploy_key docker-compose.yaml $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
