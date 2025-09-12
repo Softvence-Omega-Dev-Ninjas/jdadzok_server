@@ -196,58 +196,6 @@ jobs:
           head -n 10 ~/.ssh/deploy_key
           echo "-----END KEY-----"
 
-      - name: Create .env file 📄
-        run: |
-          echo "📄 Creating deployment .env file..."
-
-          echo "PACKAGE_VERSION=\"$PACKAGE_VERSION\"" >> .env
-          echo "PACKAGE_NAME=\"$PACKAGE_NAME\"" >> .env
-          echo "DOCKER_USERNAME=\"$DOCKER_USERNAME\"" >> .env
-          echo "EMAIL=\"$EMAIL\"" >> .env
-          echo "NODE_ENV=\"$NODE_ENV\"" >> .env
-
-          echo "PG_USERNAME=\"$PG_USERNAME\"" >> .env
-          echo "PG_PASSWORD=\"$PG_PASSWORD\"" >> .env
-          echo "PG_DATABASE=\"$PG_DATABASE\"" >> .env
-          echo "PG_PORT=\"$PG_PORT\"" >> .env
-          echo "DATABASE_URL=\"$DATABASE_URL\"" >> .env
-
-          echo "JWT_SECRET=\"$JWT_SECRET\"" >> .env
-          echo "JWT_EXPIRES_IN=\"$JWT_EXPIRES_IN\"" >> .env
-          echo "BASE_URL=\"$BASE_URL\"" >> .env
-          echo "PORT=\"$PORT\"" >> .env
-
-          echo "MAIL_USER=\"$MAIL_USER\"" >> .env
-          echo "MAIL_PASS=\"$MAIL_PASS\"" >> .env
-
-          echo "SUPER_ADMIN_EMAIL=\"$SUPER_ADMIN_EMAIL\"" >> .env
-          echo "SUPER_ADMIN_PASS=\"$SUPER_ADMIN_PASS\"" >> .env
-
-          echo "REDIS_HOST=\"$REDIS_HOST\"" >> .env
-          echo "REDIS_USER=\"$REDIS_USER\"" >> .env
-          echo "REDIS_PASS=\"$REDIS_PASS\"" >> .env
-          echo "REDIS_PORT=\"$REDIS_PORT\"" >> .env
-          echo "REDIS_CONTAINER=\"$REDIS_CONTAINER\"" >> .env
-          echo "REDIS_URL=\"$REDIS_URL\"" >> .env
-
-          echo "TWILIO_ACCOUNT_SID=\"$TWILIO_ACCOUNT_SID\"" >> .env
-          echo "TWILIO_AUTH_TOKEN=\"$TWILIO_AUTH_TOKEN\"" >> .env
-          echo "TWILIO_PHONE_NUMBER=\"$TWILIO_PHONE_NUMBER\"" >> .env
-
-          echo "AWS_REGION=\"$AWS_REGION\"" >> .env
-          echo "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\"" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\"" >> .env
-          echo "AWS_S3_BUCKET_NAME=\"$AWS_S3_BUCKET_NAME\"" >> .env
-
-          echo "IMAGE_TAG=\"$IMAGE_TAG\"" >> .env
-          echo "DOCKER_PASSWORD=\"$DOCKER_PASSWORD\"" >> .env
-          echo "GIT_TOKEN=\"$GIT_TOKEN\"" >> .env
-
-          echo "VPS_HOST=\"$VPS_HOST\"" >> .env
-          echo "VPS_USER=\"$VPS_USER\"" >> .env
-
-          cat .env  # Debug: show contents of .env file
-
       - name: Copy Files to Server 📦
         run: |
           echo "Creating directories..."
