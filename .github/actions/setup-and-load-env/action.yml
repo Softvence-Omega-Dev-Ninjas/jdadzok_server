@@ -127,7 +127,7 @@ runs:
         PACKAGE_VERSION=${{ inputs.PACKAGE_VERSION }}
         EMAIL=${{ inputs.EMAIL }}
 
-        NODE_ENV=production
+        NODE_ENV=development
 
         PG_USERNAME=${{ inputs.PG_USERNAME }}
         PG_PASSWORD=${{ inputs.PG_PASSWORD }}
@@ -232,7 +232,7 @@ runs:
         echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
         echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
         echo "EMAIL=$EMAIL" >> $GITHUB_ENV
-        echo "NODE_ENV=production" >> $GITHUB_ENV
+        echo "NODE_ENV=${NODE_ENV}" >> $GITHUB_ENV
         echo "PG_USERNAME=$PG_USERNAME" >> $GITHUB_ENV
         echo "PG_PASSWORD=$PG_PASSWORD" >> $GITHUB_ENV
         echo "PG_DATABASE=$PG_DATABASE" >> $GITHUB_ENV

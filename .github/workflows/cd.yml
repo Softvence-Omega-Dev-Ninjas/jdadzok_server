@@ -198,7 +198,7 @@ jobs:
           echo "PACKAGE_NAME=\"$PACKAGE_NAME\"" >> .env
           echo "DOCKER_USERNAME=\"$DOCKER_USERNAME\"" >> .env
           echo "EMAIL=\"$EMAIL\"" >> .env
-          echo "NODE_ENV=\"production\"" >> .env
+          echo "NODE_ENV=\"$NODE_ENV\"" >> .env
 
           echo "PG_USERNAME=\"$PG_USERNAME\"" >> .env
           echo "PG_PASSWORD=\"$PG_PASSWORD\"" >> .env

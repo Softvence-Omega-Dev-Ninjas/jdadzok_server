@@ -33,7 +33,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 EXPOSE 5056
 
