@@ -1,9 +1,10 @@
 import { config } from "dotenv";
+import { expand } from "dotenv-expand";
 import path from "path";
 import { defineConfig } from "prisma/config";
 
 // Explicitly load environment variables
-config({ path: path.resolve(process.cwd(), ".env") });
+expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
 export default defineConfig({
   schema: path.join("prisma", "schema"),
