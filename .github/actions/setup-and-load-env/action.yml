@@ -117,6 +117,8 @@ runs:
     - name: Generate .env file
       shell: bash
       run: |
+        echo "Creating .env file..."
+        touch .env
         cat <<EOF > .env
         DOCKER_USERNAME=${{ inputs.DOCKER_USERNAME }}
         PACKAGE_NAME=${{ inputs.PACKAGE_NAME }}
@@ -166,10 +168,20 @@ runs:
         VPS_USER=${{ inputs.VPS_USER }}
         VPS_SSH_PRIVATE_KEY=${{ inputs.VPS_SSH_PRIVATE_KEY }}
         EOF
+        if [ -s .env ]; then
+          echo ".env file created successfully (size: $(wc -c < .env) bytes)"
+        else
+          echo "Error: .env file is empty or not created"
+          exit 1
+        fi
 
     - name: Export .env to GITHUB_ENV
       shell: bash
       run: |
+        if [ ! -f .env ]; then
+          echo "Error: .env file does not exist"
+          exit 1
+        fi
         while IFS='=' read -r key value; do
           if [[ ! "$key" =~ ^# && -n "$key" ]]; then
             echo "$key=$value" >> "$GITHUB_ENV"
@@ -181,8 +193,14 @@ runs:
       with:
         name: env-file
         path: .env
+        if-no-files-found: error
 
     - name: Verify setup (without exposing values)
       shell: bash
       run: |
-        echo "🤝 .env generated and loaded into environment (total vars: $(grep -c '=' .env))"
+        if [ -f .env ]; then
+          echo "🤝 .env generated and loaded into environment (total vars: $(grep -c '=' .env))"
+        else
+          echo "Error: .env file missing after generation"
+          exit 1
+        fi
