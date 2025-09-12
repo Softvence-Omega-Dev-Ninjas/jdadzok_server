@@ -8,7 +8,7 @@ on:
       - "**"
 jobs:
   setup-env:
-    uses: ./.github/workflows/setup-environement-variable.yml
+    uses: ./.github/workflows/setup-env.yml
     secrets: inherit
 
   lint-test:
@@ -23,6 +23,16 @@ jobs:
         with:
           name: env-file
           path: ${{ github.workspace }}
+      - name: Debug downloaded .env
+        run: |
+          echo "Current working directory: $(pwd)"
+          ls -la "${{ github.workspace }}"
+          if [ -f "${{ github.workspace }}/.env" ]; then
+            echo ".env file found at ${{ github.workspace }}/.env (size: $(wc -c < "${{ github.workspace }}/.env") bytes)"
+          else
+            echo "Error: .env file not found after download"
+            exit 1
+          fi
       - name: Load .env to GITHUB_ENV
         run: |
           if [ ! -f "${{ github.workspace }}/.env" ]; then
@@ -69,6 +79,16 @@ jobs:
         with:
           name: env-file
           path: ${{ github.workspace }}
+      - name: Debug downloaded .env
+        run: |
+          echo "Current working directory: $(pwd)"
+          ls -la "${{ github.workspace }}"
+          if [ -f "${{ github.workspace }}/.env" ]; then
+            echo ".env file found at ${{ github.workspace }}/.env (size: $(wc -c < "${{ github.workspace }}/.env") bytes)"
+          else
+            echo "Error: .env file not found after download"
+            exit 1
+          fi
       - name: Load .env to GITHUB_ENV
         run: |
           if [ ! -f "${{ github.workspace }}/.env" ]; then

@@ -191,6 +191,20 @@ runs:
           fi
         done < "$GITHUB_WORKSPACE/.env"
 
+    - name: Debug before upload
+      shell: bash
+      run: |
+        echo "Current working directory: $(pwd)"
+        echo "Checking for .env file before upload..."
+        if [ -f "$GITHUB_WORKSPACE/.env" ]; then
+          echo ".env exists at $GITHUB_WORKSPACE/.env (size: $(wc -c < "$GITHUB_WORKSPACE/.env") bytes)"
+          ls -la "$GITHUB_WORKSPACE"
+        else
+          echo "Error: .env file not found at $GITHUB_WORKSPACE/.env"
+          exit 1
+        fi
+        sleep 1  # Add delay to ensure file is written
+
     - name: Upload .env as artifact
       uses: actions/upload-artifact@v4
       with:
