@@ -37,4 +37,4 @@ ENV NODE_ENV=development
 
 EXPOSE 5056
 
-CMD ["node", "dist/main"]
+CMD ["npx", "prisma", "migrate", "deploy", "&&", "node", "dist/main"]
