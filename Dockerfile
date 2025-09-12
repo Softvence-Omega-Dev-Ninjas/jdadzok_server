@@ -12,7 +12,7 @@ COPY . .
 RUN npm install
 
 # Generate Prisma client (explicitly)
-RUN npx prisma generate
+RUN npm run prisma:generate
 
 # Now copy everything else
 COPY . .
@@ -33,8 +33,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 EXPOSE 5056
 
-CMD ["node", "dist/main"]
+CMD ["npm", "run", "start:prod"]

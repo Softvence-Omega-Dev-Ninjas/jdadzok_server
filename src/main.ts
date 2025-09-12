@@ -3,6 +3,9 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { config } from "dotenv";
+import { expand } from "dotenv-expand";
+import path from "path";
 import "reflect-metadata";
 import z from "zod";
 import appMetadata from "./app-metadata/app-metadata";
@@ -11,6 +14,7 @@ import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
 // import { GlobalExceptionFilter } from "./common/filter/http-exception.filter";
 
+expand(config({ path: path.resolve(process.cwd(), ".env") }));
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
@@ -56,7 +60,7 @@ async function bootstrap() {
 
   await app.listen(
     port,
-    process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost",
+    process.env.NODE_ENV !== "production" ? "localhost" : "0.0.0.0",
     () => console.info(`PORT=${port}`),
   );
 }

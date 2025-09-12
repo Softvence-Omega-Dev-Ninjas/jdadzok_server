@@ -8,7 +8,7 @@ services:
     image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
     container_name: ${PACKAGE_NAME}_api
     ports:
-      - "5056:5056"
+      - "5056:${PORT}"
     environment:
       - NODE_ENV=${NODE_ENV}
       - DATABASE_URL=${DATABASE_URL}
@@ -23,7 +23,6 @@ services:
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
       - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
       - EMAIL=${EMAIL}
-      # Added BASE_URL which was missing
       - BASE_URL=${BASE_URL}
       # aws
       - AWS_REGION=${AWS_REGION}
@@ -39,7 +38,7 @@ services:
     restart: unless-stopped
     # Enhanced health check for better zero-downtime deployment
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5056/"]
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/"]
       interval: 30s # Check every 15 seconds (more frequent)
       timeout: 15s # 10 second timeout
       retries: 3 # 3 retries before marking unhealthy
@@ -59,21 +58,21 @@ services:
 
   db:
     image: postgres:15
-    container_name: jdadzok_db
+    container_name: ${PG_DATABASE}
     restart: always
     profiles:
       - dev
       - prod
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: jdadzok_db
+      POSTGRES_USER: ${PG_USERNAME}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DATABASE}
       # Add these for better performance
       POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5431:5432"
+      - "5431:${PG_PORT}"
     # Add health check for database
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d jdadzok_db"]
@@ -99,13 +98,13 @@ services:
 
   redis:
     image: redis:7-alpine # Use Alpine version for smaller size
-    container_name: jdadzok_redis
+    container_name: ${REDIS_CONTAINER}
     restart: always
     profiles:
       - dev
       - prod
     ports:
-      - "6378:6379"
+      - "6378:${REDIS_PORT}"
     volumes:
       - redis_data:/data
     # Add Redis configuration for better performance

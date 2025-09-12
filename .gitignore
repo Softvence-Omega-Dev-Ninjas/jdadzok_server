@@ -83,3 +83,4 @@ jdadzok.pem
 # .env
 
 jdadzok deploy.pem
+nginx
