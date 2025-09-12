@@ -1,0 +1,21 @@
+name: "Load .env as environment"
+description: "Sources .env and exports to $GITHUB_ENV"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: env-file
+
+    - name: Export .env to GITHUB_ENV
+      shell: bash
+      run: |
+        set -a
+        source .env
+        set +a
+        while IFS='=' read -r key value; do
+          if [[ ! "$key" =~ ^# && -n "$key" ]]; then
+            echo "$key=$value" >> "$GITHUB_ENV"
+          fi
+        done < .env

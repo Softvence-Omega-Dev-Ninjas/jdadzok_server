@@ -3,19 +3,43 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - "**" # any branch
+      - "**"
   pull_request:
     branches:
-      - "**" # whenever a new pr comes
+      - "**"
 
 jobs:
-  lint-test:
-    name: 🧪 CI - Lint, Build, Format, Prisma
+  setup:
+    name: ⚙️ Setup Environment
     runs-on: ubuntu-latest
 
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
+
+      - name: Create .env file
+        uses: ./.github/actions/setup-env
+
+  lint-test:
+    name: 🧪 CI - Lint, Build, Format, Prisma
+    runs-on: ubuntu-latest
+    needs: setup # 👈 Ensures .env is created before this job
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: Load .env values
+        uses: ./.github/actions/load-env
+
+      - name: Cat the .env file
+        run: cat .env
+
+      - name: Echo package name and version
+        run: |
+          echo "Package name: $PACKAGE_NAME"
+          echo "Package version: $PACKAGE_VERSION"
+          echo "✅ Great, we can perfectly access our env"
 
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v3
@@ -38,52 +62,21 @@ jobs:
         run: npm run prisma:generate
 
   build-test:
-    name: 🧪 Testing for production building docker image
+    name: 🧪 Docker Image Build
     runs-on: ubuntu-latest
-    needs: lint-test
+    needs: lint-test # lint-test already needs setup → this is safe
 
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: Extract Package Name & Version 📦
-        id: package
-        run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_ENV
-          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
-
-      - name: Create .env file 📄
-        run: |
-          echo "PACKAGE_VERSION=${{ env.package_version }}" >> .env
-          echo "PACKAGE_NAME=${{ env.package_name }}" >> .env
-          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
-          echo "EMAIL=${{secrets.EMAIL}}" >> .env
-          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
-          echo "SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}" >> .env
-          echo "SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}" >> .env
-          echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env
-          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
-          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
-          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
-
-          # aws
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} " >> .env
-          echo "AWS_S3_BUCKET_NAME=${{secrets.AWS_S3_BUCKET_NAME}}" >> .env
+      - name: Load .env values
+        uses: ./.github/actions/load-env
 
       - name: Build Docker Image 🔨
         run: |
           docker compose --profile prod build
-          echo "✅ Docker image build with version v${{ env.package_version }} success 🤝!"
+          echo "✅ Docker image build with version v${{ env.PACKAGE_VERSION }} success 🤝!"
 
       - name: Clean up .env 🧹
         if: always()
