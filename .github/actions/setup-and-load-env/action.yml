@@ -111,23 +111,17 @@ inputs:
     description: "VPS SSH private key"
     required: true
 
-outputs:
-  env-file-path:
-    description: "Path to the generated .env file"
-    value: ${{ steps.generate-env.outputs.env-file-path }}
-
 runs:
   using: "composite"
   steps:
-    - name: Generate .env file
-      id: generate-env
+    - name: 🔧 Generate .env file
       shell: bash
       run: |
         ENV_FILE="$GITHUB_WORKSPACE/.env"
-        echo "Creating .env file at $ENV_FILE..."
+        echo "🔧 Creating .env file at $ENV_FILE..."
 
-        # Create the .env file
-        cat <<EOF > "$ENV_FILE"
+        # Create the .env file with all variables
+        cat <<'EOF' > "$ENV_FILE"
         DOCKER_USERNAME=${{ inputs.DOCKER_USERNAME }}
         PACKAGE_NAME=${{ inputs.PACKAGE_NAME }}
         PACKAGE_VERSION=${{ inputs.PACKAGE_VERSION }}
@@ -178,15 +172,16 @@ runs:
         EOF
 
         # Verify file creation
-        if [ -s "$ENV_FILE" ]; then
-          echo "✅ .env file created successfully at $ENV_FILE (size: $(wc -c < "$ENV_FILE") bytes)"
-          echo "env-file-path=$ENV_FILE" >> $GITHUB_OUTPUT
+        if [ -f "$ENV_FILE" ] && [ -s "$ENV_FILE" ]; then
+          FILE_SIZE=$(wc -c < "$ENV_FILE")
+          echo "✅ .env file created successfully (size: ${FILE_SIZE} bytes)"
+          echo "📁 Location: $ENV_FILE"
         else
-          echo "❌ Error: .env file is empty or not created"
+          echo "❌ Error: .env file creation failed"
           exit 1
         fi
 
-    - name: Export variables to GITHUB_ENV
+    - name: 📤 Export variables to GITHUB_ENV
       shell: bash
       run: |
         ENV_FILE="$GITHUB_WORKSPACE/.env"
@@ -198,32 +193,60 @@ runs:
 
         echo "📤 Exporting environment variables to GITHUB_ENV..."
 
-        # Read .env file and export to GITHUB_ENV
-        while IFS='=' read -r key value || [ -n "$key" ]; do
-          # Skip empty lines and comments
-          if [[ -n "$key" && ! "$key" =~ ^[[:space:]]*# ]]; then
-            # Remove any trailing whitespace and quotes
-            key=$(echo "$key" | xargs)
-            value=$(echo "$value" | xargs | sed 's/^"//;s/"$//')
-            
-            # Export to GITHUB_ENV
-            echo "$key=$value" >> "$GITHUB_ENV"
-          fi
-        done < "$ENV_FILE"
+        # Export each variable to GITHUB_ENV
+        echo "DOCKER_USERNAME=${{ inputs.DOCKER_USERNAME }}" >> "$GITHUB_ENV"
+        echo "PACKAGE_NAME=${{ inputs.PACKAGE_NAME }}" >> "$GITHUB_ENV"
+        echo "PACKAGE_VERSION=${{ inputs.PACKAGE_VERSION }}" >> "$GITHUB_ENV"
+        echo "EMAIL=${{ inputs.EMAIL }}" >> "$GITHUB_ENV"
+        echo "NODE_ENV=production" >> "$GITHUB_ENV"
+        echo "PG_USERNAME=${{ inputs.PG_USERNAME }}" >> "$GITHUB_ENV"
+        echo "PG_PASSWORD=${{ inputs.PG_PASSWORD }}" >> "$GITHUB_ENV"
+        echo "PG_DATABASE=${{ inputs.PG_DATABASE }}" >> "$GITHUB_ENV"
+        echo "PG_PORT=${{ inputs.PG_PORT }}" >> "$GITHUB_ENV"
+        echo "DATABASE_URL=${{ inputs.DATABASE_URL }}" >> "$GITHUB_ENV"
+        echo "JWT_SECRET=${{ inputs.JWT_SECRET }}" >> "$GITHUB_ENV"
+        echo "JWT_EXPIRES_IN=${{ inputs.JWT_EXPIRES_IN }}" >> "$GITHUB_ENV"
+        echo "BASE_URL=${{ inputs.BASE_URL }}" >> "$GITHUB_ENV"
+        echo "PORT=${{ inputs.PORT }}" >> "$GITHUB_ENV"
+        echo "MAIL_USER=${{ inputs.MAIL_USER }}" >> "$GITHUB_ENV"
+        echo "MAIL_PASS=${{ inputs.MAIL_PASS }}" >> "$GITHUB_ENV"
+        echo "SUPER_ADMIN_EMAIL=${{ inputs.SUPER_ADMIN_EMAIL }}" >> "$GITHUB_ENV"
+        echo "SUPER_ADMIN_PASS=${{ inputs.SUPER_ADMIN_PASS }}" >> "$GITHUB_ENV"
+        echo "REDIS_HOST=${{ inputs.REDIS_HOST }}" >> "$GITHUB_ENV"
+        echo "REDIS_USER=${{ inputs.REDIS_USER }}" >> "$GITHUB_ENV"
+        echo "REDIS_PASS=${{ inputs.REDIS_PASS }}" >> "$GITHUB_ENV"
+        echo "REDIS_PORT=${{ inputs.REDIS_PORT }}" >> "$GITHUB_ENV"
+        echo "REDIS_CONTAINER=${{ inputs.REDIS_CONTAINER }}" >> "$GITHUB_ENV"
+        echo "REDIS_URL=${{ inputs.REDIS_URL }}" >> "$GITHUB_ENV"
+        echo "TWILIO_ACCOUNT_SID=${{ inputs.TWILIO_ACCOUNT_SID }}" >> "$GITHUB_ENV"
+        echo "TWILIO_AUTH_TOKEN=${{ inputs.TWILIO_AUTH_TOKEN }}" >> "$GITHUB_ENV"
+        echo "TWILIO_PHONE_NUMBER=${{ inputs.TWILIO_PHONE_NUMBER }}" >> "$GITHUB_ENV"
+        echo "AWS_REGION=${{ inputs.AWS_REGION }}" >> "$GITHUB_ENV"
+        echo "AWS_ACCESS_KEY_ID=${{ inputs.AWS_ACCESS_KEY_ID }}" >> "$GITHUB_ENV"
+        echo "AWS_SECRET_ACCESS_KEY=${{ inputs.AWS_SECRET_ACCESS_KEY }}" >> "$GITHUB_ENV"
+        echo "AWS_S3_BUCKET_NAME=${{ inputs.AWS_S3_BUCKET_NAME }}" >> "$GITHUB_ENV"
+        echo "IMAGE_TAG=${{ inputs.IMAGE_TAG }}" >> "$GITHUB_ENV"
+        echo "DOCKER_PASSWORD=${{ inputs.DOCKER_PASSWORD }}" >> "$GITHUB_ENV"
+        echo "GIT_TOKEN=${{ inputs.GIT_TOKEN }}" >> "$GITHUB_ENV"
+        echo "VPS_HOST=${{ inputs.VPS_HOST }}" >> "$GITHUB_ENV"
+        echo "VPS_USER=${{ inputs.VPS_USER }}" >> "$GITHUB_ENV"
+        echo "VPS_SSH_PRIVATE_KEY=${{ inputs.VPS_SSH_PRIVATE_KEY }}" >> "$GITHUB_ENV"
 
-        echo "✅ Environment variables exported successfully"
+        echo "✅ All environment variables exported successfully"
 
-    - name: Verify setup
+    - name: 🔍 Verify setup
       shell: bash
       run: |
         ENV_FILE="$GITHUB_WORKSPACE/.env"
 
         if [ -f "$ENV_FILE" ]; then
-          VAR_COUNT=$(grep -c '^[^#]*=' "$ENV_FILE" || echo "0")
-          echo "🎉 Setup complete!"
-          echo "📁 .env file location: $ENV_FILE"
-          echo "🔢 Total variables: $VAR_COUNT"
-          echo "📊 File size: $(wc -c < "$ENV_FILE") bytes"
+          VAR_COUNT=$(grep -c '^[A-Z]' "$ENV_FILE" 2>/dev/null || echo "0")
+          FILE_SIZE=$(wc -c < "$ENV_FILE")
+          echo "🎉 Environment setup complete!"
+          echo "📁 .env file: $ENV_FILE"
+          echo "🔢 Variables count: $VAR_COUNT"
+          echo "📊 File size: ${FILE_SIZE} bytes"
+          echo "✅ Ready to use in subsequent steps"
         else
           echo "❌ Error: .env file missing after generation"
           exit 1
