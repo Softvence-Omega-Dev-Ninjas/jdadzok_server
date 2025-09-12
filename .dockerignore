@@ -27,3 +27,4 @@ Dockerfile
 .git
 .gitignore
 README.md
+nginx

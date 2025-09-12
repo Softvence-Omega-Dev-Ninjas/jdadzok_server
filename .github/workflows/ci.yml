@@ -89,6 +89,7 @@ jobs:
   build-test:
     name: 🧪 Docker Image Build
     runs-on: ubuntu-latest
+    needs: lint-test
 
     steps:
       - name: 📥 Checkout code
