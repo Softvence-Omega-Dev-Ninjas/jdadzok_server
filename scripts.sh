@@ -27,37 +27,53 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
-# Update dynamic values in .env file
 echo -e "${BLUE}🔄 Updating dynamic values in $ENV_FILE...${RESET}"
 
-# Create a temporary file for the updated .env
+# Temporary env file
 TMP_ENV=$(mktemp)
 
-# Process the .env file line by line
+# Update lines with only required values and preserve structure
 while IFS= read -r line || [ -n "$line" ]; do
-    # Skip empty lines and comments
+    # Preserve comments and empty lines
     if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
         echo "$line" >> "$TMP_ENV"
         continue
     fi
-    
-    # Update dynamic values
-    if [[ "$line" =~ ^DOCKER_USERNAME= ]]; then
-        echo "DOCKER_USERNAME=\"$DOCKER_USERNAME\"" >> "$TMP_ENV"
-    elif [[ "$line" =~ ^PACKAGE_NAME= ]]; then
-        echo "PACKAGE_NAME=\"$PACKAGE_NAME\"" >> "$TMP_ENV"
-    elif [[ "$line" =~ ^PACKAGE_VERSION= ]]; then
-        echo "PACKAGE_VERSION=\"$PACKAGE_VERSION\"" >> "$TMP_ENV"
-    elif [[ "$line" =~ ^EMAIL= ]]; then
-        echo "EMAIL=\"$EMAIL\"" >> "$TMP_ENV"
-    elif [[ "$line" =~ ^IMAGE_TAG= ]]; then
-        echo "IMAGE_TAG=\"$IMAGE_TAG\"" >> "$TMP_ENV"
-    else
-        echo "$line" >> "$TMP_ENV"
-    fi
+
+    # Update specific values
+    case "$line" in
+        DOCKER_USERNAME=*)
+            echo "DOCKER_USERNAME=$DOCKER_USERNAME" >> "$TMP_ENV"
+            ;;
+        PACKAGE_NAME=*)
+            echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$TMP_ENV"
+            ;;
+        PACKAGE_VERSION=*)
+            echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> "$TMP_ENV"
+            ;;
+        EMAIL=*)
+            echo "EMAIL=$EMAIL" >> "$TMP_ENV"
+            ;;
+        IMAGE_TAG=*)
+            echo "IMAGE_TAG=$IMAGE_TAG" >> "$TMP_ENV"
+            ;;
+        MAIL_PASS=*)
+            # Always wrap MAIL_PASS value in double quotes
+            value="${line#MAIL_PASS=}"
+            value="${value%\"}"
+            value="${value#\"}"
+            echo "MAIL_PASS=\"$value\"" >> "$TMP_ENV"
+            ;;
+        *)
+            # Everything else as-is
+            echo "$line" >> "$TMP_ENV"
+            ;;
+    esac
 done < "$ENV_FILE"
 
-# Replace the original .env with updated content
+
+
+# Replace original .env with updated one
 mv "$TMP_ENV" "$ENV_FILE"
 
 echo -e "${GREEN}✅ Updated values:${RESET}"
@@ -69,94 +85,42 @@ echo -e "   IMAGE_TAG: $IMAGE_TAG"
 
 echo -e "${BLUE}🚀 Uploading GitHub secrets from ${ENV_FILE}...${RESET}"
 
-# Parse and upload secrets
-current_key=""
-current_value=""
-inside_value=0
-line_number=0
-
+# Uploading secrets
 while IFS= read -r line || [ -n "$line" ]; do
-    line_number=$((line_number + 1))
-    
-    # Trim leading/trailing whitespace
-    line=$(echo "$line" | sed 's/^[ \t]*//;s/[ \t]*$//')
-
-    # Skip empty lines and comments
+    # Skip comments and empty lines
     if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
         continue
     fi
 
-    if [[ $inside_value -eq 0 ]]; then
-        # Match KEY="value or KEY=value patterns
-        if [[ "$line" =~ ^([A-Z_][A-Z0-9_]*)=\"(.*)$ ]]; then
-            current_key="${BASH_REMATCH[1]}"
-            rest="${BASH_REMATCH[2]}"
+    # Parse KEY=VALUE
+    if [[ "$line" =~ ^([A-Z_][A-Z0-9_]*)=(.*)$ ]]; then
+        key="${BASH_REMATCH[1]}"
+        value="${BASH_REMATCH[2]}"
 
-            # Check if it's a single-line value ending with "
-            if [[ "$rest" =~ ^.*\"[[:space:]]*$ ]]; then
-                # Single-line value
-                current_value="${rest%\"}"
-                inside_value=0
-            else
-                # Multi-line value starts
-                current_value="$rest"
-                inside_value=1
-                continue
-            fi
-        elif [[ "$line" =~ ^([A-Z_][A-Z0-9_]*)=(.*)$ ]]; then
-            # Handle unquoted values
-            current_key="${BASH_REMATCH[1]}"
-            current_value="${BASH_REMATCH[2]}"
-            # Remove surrounding quotes if present
-            current_value=$(echo "$current_value" | sed 's/^"//;s/"$//')
-            inside_value=0
+        # Strip surrounding quotes (unless MAIL_PASS)
+        if [[ "$key" != "MAIL_PASS" ]]; then
+            value="${value%\"}"
+            value="${value#\"}"
+        fi
+
+        echo -e "${GREEN}✨ Setting secret:${RESET} ${BLUE}${key}${RESET} 🔑"
+
+        if gh secret set "$key" --body "$value" 2>/dev/null; then
+            echo -e "${GREEN}✅ Secret $key set successfully!${RESET}"
         else
-            echo -e "${YELLOW}⚠️  Skipping invalid line $line_number: $line${RESET}"
-            continue
+            echo -e "${RED}❌ Failed to set secret $key${RESET}"
+            if ! command -v gh &> /dev/null; then
+                echo -e "${RED}❌ GitHub CLI (gh) is not installed.${RESET}"
+                exit 1
+            fi
+            if ! gh auth status &> /dev/null; then
+                echo -e "${RED}❌ GitHub CLI is not authenticated. Run 'gh auth login'.${RESET}"
+                exit 1
+            fi
         fi
     else
-        # Continue reading multi-line value
-        if [[ "$line" == *\" ]]; then
-            # End of multi-line value
-            current_value+=$'\n'"${line%\"}"
-            inside_value=0
-        else
-            # Continue multi-line value
-            current_value+=$'\n'"$line"
-            continue
-        fi
+        echo -e "${YELLOW}⚠️  Skipping invalid line: $line${RESET}"
     fi
-
-    # Upload the secret to GitHub
-    if [[ -n "$current_key" && -n "$current_value" ]]; then
-        echo -e "${GREEN}✨ Setting secret:${RESET} ${BLUE}${current_key}${RESET} 🔑"
-        
-        if gh secret set "$current_key" --body "$current_value" 2>/dev/null; then
-            echo -e "${GREEN}✅ Secret $current_key set successfully!${RESET}"
-        else
-            echo -e "${RED}❌ Failed to set secret $current_key${RESET}"
-            
-            # Check if gh CLI is available and authenticated
-            if ! command -v gh &> /dev/null; then
-                echo -e "${RED}❌ GitHub CLI (gh) is not installed. Please install it first.${RESET}"
-                exit 1
-            fi
-            
-            if ! gh auth status &> /dev/null; then
-                echo -e "${RED}❌ GitHub CLI is not authenticated. Run 'gh auth login' first.${RESET}"
-                exit 1
-            fi
-        fi
-    fi
-
-    # Reset for next iteration
-    current_key=""
-    current_value=""
-    
 done < "$ENV_FILE"
 
-echo -e "${BLUE}🎉 All done! Your secrets are now safe and sound in GitHub!${RESET}"
-echo -e "${GREEN}📊 Summary:${RESET}"
-echo -e "   📁 Source file: $ENV_FILE"
-echo -e "   🔐 Secrets uploaded to GitHub repository"
-echo -e "   ✅ Ready to use in GitHub Actions workflows"
+echo -e "${BLUE}🎉 All done! Secrets uploaded to GitHub.${RESET}"
