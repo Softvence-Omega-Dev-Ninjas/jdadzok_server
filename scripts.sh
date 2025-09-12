@@ -7,7 +7,7 @@ DOCKER_USERNAME="devlopersabbir"
 EMAIL="devlopersabbir@gmail.com"
 
 # Get values from package.json
-PACKAGE_NAME=$(node -p  "require('./package.json').name || 'empty_name'")
+PACKAGE_NAME=$(node -p "require('./package.json').name || 'empty_name'")
 PACKAGE_VERSION=$(node -p "require('./package.json').version || '0.0.1'")
 
 # Colors
@@ -17,17 +17,17 @@ RED="\033[0;31m"
 BLUE="\033[0;34m"
 RESET="\033[0m"
 
-# Prepare new env variables content
+# Prepare new env variables content (quoted)
 NEW_ENV_VARS="DOCKER_USERNAME=\"$DOCKER_USERNAME\"
 PACKAGE_NAME=\"$PACKAGE_NAME\"
 PACKAGE_VERSION=\"$PACKAGE_VERSION\"
 EMAIL=\"$EMAIL\""
 
-# Remove old instances of these variables if they exist in .env
+# Clean old keys from .env (preserve other lines)
 TMP_ENV=$(mktemp)
 grep -vE '^(DOCKER_USERNAME|PACKAGE_NAME|PACKAGE_VERSION|EMAIL)=' "$ENV_FILE" > "$TMP_ENV"
 
-# Write the new variables + cleaned original env back to .env
+# Write new .env
 {
   echo "$NEW_ENV_VARS"
   echo ""
@@ -38,42 +38,52 @@ rm "$TMP_ENV"
 
 echo -e "${BLUE}🚀 Starting to upload GitHub secrets from ${ENV_FILE}...${RESET}"
 
+# Parser that supports multi-line values
+current_key=""
+current_value=""
+in_multiline=0
+
 while IFS= read -r line || [ -n "$line" ]; do
   # Trim whitespace
   line=$(echo "$line" | sed 's/^[ \t]*//;s/[ \t]*$//')
 
-  # Skip empty lines or comments
-  if [[ -z "$line" || "$line" =~ ^# ]]; then
-    echo -e "${YELLOW}⚠️  Skipping comment/empty line${RESET}"
+  # Skip empty or comment lines
+  [[ -z "$line" || "$line" =~ ^# ]] && {
+    [[ $in_multiline -eq 0 ]] && echo -e "${YELLOW}⚠️  Skipping comment/empty line${RESET}"
+    continue
+  }
+
+  if [[ $in_multiline -eq 0 && "$line" =~ ^([A-Z_][A-Z0-9_]*)=\"(.*) ]]; then
+    current_key="${BASH_REMATCH[1]}"
+    rest="${BASH_REMATCH[2]}"
+
+    if [[ "$rest" =~ \"$ ]]; then
+      current_value="${rest%\"}"
+      in_multiline=0
+    else
+      current_value="${rest}"
+      in_multiline=1
+      continue
+    fi
+  elif [[ $in_multiline -eq 1 ]]; then
+    current_value="${current_value}"$'\n'"$line"
+
+    if [[ "$line" == *\" ]]; then
+      current_value="${current_value%\"}"
+      in_multiline=0
+    else
+      continue
+    fi
+  else
+    echo -e "${YELLOW}⚠️  Skipping invalid line: $line${RESET}"
     continue
   fi
 
-  # Check if line contains '='
-  if [[ "$line" != *"="* ]]; then
-    echo -e "${YELLOW}⚠️  Skipping invalid line (no '='): ${line}${RESET}"
-    continue
-  fi
-
-  # Remove spaces around '='
-  line=$(echo "$line" | sed 's/ *= */=/g')
-
-  key="${line%%=*}"
-  value="${line#*=}"
-
-  # Skip if key empty
-  if [[ -z "$key" ]]; then
-    echo -e "${YELLOW}⚠️  Skipping line with empty key: ${line}${RESET}"
-    continue
-  fi
-
-  # Remove surrounding quotes from value
-  value="${value%\"}"
-  value="${value#\"}"
-  value="${value%\'}"
-  value="${value#\'}"
-
-  echo -e "${GREEN}✨ Setting secret:${RESET} ${BLUE}$key${RESET} 🔑"
-  gh secret set "$key" --body "$value" && echo -e "${GREEN}✅ Secret $key set successfully!${RESET}" || echo -e "${RED}❌ Failed to set secret $key${RESET}"
+  # Now we have a complete key/value pair
+  echo -e "${GREEN}✨ Setting secret:${RESET} ${BLUE}${current_key}${RESET} 🔑"
+  gh secret set "$current_key" --body "$current_value" && \
+    echo -e "${GREEN}✅ Secret $current_key set successfully!${RESET}" || \
+    echo -e "${RED}❌ Failed to set secret $current_key${RESET}"
 
 done < "$ENV_FILE"
 
