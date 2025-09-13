@@ -21,7 +21,6 @@ RUN npx prisma generate
 # Build the app (NestJS / TS etc.)
 RUN npm run build
 
-
 # Stage 2: Run
 FROM node:20-alpine
 
