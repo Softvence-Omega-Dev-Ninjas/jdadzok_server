@@ -12,6 +12,7 @@
     "build": "nest build",
     "dev": "npx prisma migrate deploy && nest start --watch",
     "start:prod": "npx prisma migrate deploy && node dist/main",
+    "start:docker": "npx prisma migrate deploy --schema=./prisma/schema/schema.prisma && node dist/main",
     "start:debug": "nest start --debug --watch",
     "format": "prettier --ignore-path .gitignore --check \"**/*.+(js|ts|json)\"",
     "format:fix": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
