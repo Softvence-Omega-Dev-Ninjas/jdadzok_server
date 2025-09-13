@@ -32,7 +32,10 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
 
+RUN ls -la prisma/schema
+
+
 ENV NODE_ENV=production
 EXPOSE 5056
 
-CMD ["npm", "run", "start:prod"]
+CMD ["npm", "run", "start:docker"]
