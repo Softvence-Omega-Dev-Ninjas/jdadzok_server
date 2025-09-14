@@ -33,7 +33,7 @@
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src", "prisma/seeds/constants/index.ts"],
   "exclude": [
     "node_modules",
     "test",

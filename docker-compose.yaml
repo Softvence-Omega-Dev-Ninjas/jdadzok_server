@@ -8,7 +8,7 @@ services:
     image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
     container_name: ${PACKAGE_NAME}_api
     ports:
-      - "5056:${PORT}"
+      - "${PORT}:${PORT}"
     environment:
       - NODE_ENV=${NODE_ENV}
       - DATABASE_URL=${DATABASE_URL}
@@ -31,7 +31,7 @@ services:
       - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
 
     depends_on:
-      db:
+      localhost:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -56,7 +56,7 @@ services:
       - "app.version=${PACKAGE_VERSION}"
       - "deployment.type=zero-downtime"
 
-  db:
+  localhost:
     image: postgres:15
     container_name: ${PG_DATABASE}
     restart: always
@@ -72,7 +72,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5431:${PG_PORT}"
+      - "${PG_PORT}:${PG_PORT}"
     # Add health check for database
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d jdadzok_db"]
@@ -104,7 +104,7 @@ services:
       - dev
       - prod
     ports:
-      - "6378:${REDIS_PORT}"
+      - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
       - redis_data:/data
     # Add Redis configuration for better performance

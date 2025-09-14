@@ -14,7 +14,7 @@ export class ChoicesRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userChoiceRepository: UserChoiceRepository,
-  ) {}
+  ) { }
 
   /**
    * Find a choice by its slug
@@ -43,12 +43,9 @@ export class ChoicesRepository {
       for (const choiceDto of data) {
         let choice = await this.findBySlug(tx, choiceDto.slug!);
 
-        if (!choice) {
-          choice = await this.create(tx, choiceDto);
-        }
-
+        // make sure that user not providing out of our prechoices.
         if (!choice)
-          throw new ConflictException("Fail to find or create new one");
+          throw new ConflictException("Choice must need to be in our list");
 
         // Check if this user already has this choice
         const existingUserChoice = await this.userChoiceRepository.findUnique(
@@ -69,7 +66,7 @@ export class ChoicesRepository {
     });
   }
 
-  async findAll(userId: CreateChoiceDto["userId"]) {
+  async findManyByUserId(userId: CreateChoiceDto["userId"]) {
     return await this.prisma.choice.findMany({
       where: {
         userChoices: {
@@ -89,5 +86,18 @@ export class ChoicesRepository {
         userId,
       });
     });
+  }
+
+  async findMany() {
+    return await this.prisma.choice.findMany({
+      include: {
+        userChoices: {
+          include: {
+            choice: true,
+            user: true
+          }
+        }
+      }
+    })
   }
 }
