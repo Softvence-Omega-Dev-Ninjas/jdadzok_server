@@ -9,7 +9,7 @@ export class UserRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly profileRepo: UserProfileRepository,
-  ) {}
+  ) { }
 
   async store(input: CreateUserDto) {
     return await this.prisma.$transaction(async (tx) => {
@@ -83,7 +83,7 @@ export class UserRepository {
   }
 
   async update(id: string, data: Partial<UpdateUserDto>) {
-    await this.prisma.user.update({
+    return await this.prisma.user.update({
       where: { id },
       data: {
         ...data,

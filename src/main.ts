@@ -12,6 +12,7 @@ import appMetadata from "./app-metadata/app-metadata";
 import { AppModule } from "./app.module";
 import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
+
 // import { GlobalExceptionFilter } from "./common/filter/http-exception.filter";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));

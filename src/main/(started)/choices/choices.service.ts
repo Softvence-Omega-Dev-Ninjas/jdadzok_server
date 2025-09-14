@@ -5,11 +5,11 @@ import { parseChoiceInput } from "./utils";
 
 @Injectable()
 export class ChoicesService {
-  constructor(private readonly choicesRepo: ChoicesRepository) {}
+  constructor(private readonly choicesRepo: ChoicesRepository) { }
 
   async assignChoices(userId: string, dtos: CreateChoiceDto[]) {
     // max 5 choices
-    const existing = await this.choicesRepo.findAll(userId);
+    const existing = await this.choicesRepo.findManyByUserId(userId);
     if (existing.length + dtos.length > 5) {
       throw new BadRequestException("You can select at most 5 choices.");
     }
@@ -18,10 +18,13 @@ export class ChoicesService {
   }
 
   async getUserChoices(userId: string) {
-    return this.choicesRepo.findAll(userId);
+    return this.choicesRepo.findManyByUserId(userId);
   }
 
   async removeChoice(userId: string, slug: string) {
     return this.choicesRepo.delete(userId, slug);
+  }
+  async findMany() {
+    return await this.choicesRepo.findMany();
   }
 }

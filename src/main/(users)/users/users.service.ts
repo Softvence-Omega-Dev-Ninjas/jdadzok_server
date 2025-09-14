@@ -10,6 +10,7 @@ import { OptService } from "@project/lib/utils/otp.service";
 import { UtilsService } from "@project/lib/utils/utils.service";
 import { VerifyTokenDto } from "@project/main/(started)/auth/dto/verify-token.dto";
 import { JwtServices } from "@project/services/jwt.service";
+import { omit } from "@utils/index";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserRepository } from "./users.repository";
@@ -22,7 +23,7 @@ export class UserService {
     private readonly jwtService: JwtServices,
     private readonly otpService: OptService,
     private readonly mailService: MailService,
-  ) {}
+  ) { }
 
   async register(body: CreateUserDto) {
     // has password if provider is email
@@ -78,7 +79,14 @@ export class UserService {
     });
 
     // Update DB
-    return await this.repository.update(input.userId, { isVerified: true });
+    const updatedUser = await this.repository.update(input.userId, { isVerified: true });
+    // when user account verified then we will have to send create a token and send it to as response
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      roles: user.role,
+      email: user.email,
+    });
+    return { user: omit(updatedUser, ['password']), accessToken }
   }
 
   async resnetOtp(input: ResentOtpDto) {

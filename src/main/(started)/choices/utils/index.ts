@@ -1,4 +1,5 @@
 import { slugify } from "@project/utils";
+import { PreChoices } from "../constants";
 import { CreateChoiceDto } from "../dto/choices.create.dto";
 
 export const parseChoiceInput = (
@@ -6,9 +7,7 @@ export const parseChoiceInput = (
   input: CreateChoiceDto[],
 ): CreateChoiceDto[] => {
   return input
-    .map((choice: any) => {
-      if (!choice.text || typeof choice.text !== "string") return null;
-
+    .map((choice: PreChoices) => {
       return {
         ...choice,
         slug: slugify(choice.text),

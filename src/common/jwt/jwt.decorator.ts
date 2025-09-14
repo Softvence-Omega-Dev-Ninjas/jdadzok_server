@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
+import { cookieHandler } from "./cookie.handler";
 import { RequestWithUser } from "./jwt.interface";
 
 export const ROLES_KEY = "roles";
@@ -26,6 +27,21 @@ export const GetUser = createParamDecorator(
   async (key: string | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
+
+    if (!cookieHandler(request, "get")) throw new UnauthorizedException("Cookies not found on request")
+
+    if (!user || !user.userId)
+      throw new NotFoundException("Request User not found!");
+    return key ? user?.[key] : user;
+  },
+);
+
+export const GetVerifiedUser = createParamDecorator(
+  async (key: string | undefined, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<RequestWithUser>();
+    const user = request.user;
+
+    if (!cookieHandler(request, "get")) throw new UnauthorizedException("Cookies not found on request");
 
     if (!user || !user.userId)
       throw new NotFoundException("Request User not found!");
@@ -43,7 +59,7 @@ export const GetUser = createParamDecorator(
 
     return key ? user?.[key] : user;
   },
-);
+)
 
 export function ValidateAuth<R extends Role>(...roles: R[]) {
   const decorators = [UseGuards(JwtAuthGuard, RolesGuard)];
