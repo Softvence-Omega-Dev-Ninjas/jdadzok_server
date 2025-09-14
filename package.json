@@ -1,7 +1,7 @@
 {
   "name": "jdadzok_server",
   "displayName": "JdadZok Server",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "This is backend for jdadzok social media application",
   "author": "Vision 360",
   "private": true,
@@ -12,6 +12,7 @@
     "build": "nest build",
     "dev": "npx prisma migrate deploy && nest start --watch",
     "start:prod": "npx prisma migrate deploy && node dist/main",
+    "start:docker": "npx prisma migrate deploy --schema=./prisma/schema/schema.prisma && node dist/main",
     "start:debug": "nest start --debug --watch",
     "format": "prettier --ignore-path .gitignore --check \"**/*.+(js|ts|json)\"",
     "format:fix": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
@@ -29,7 +30,6 @@
     "prisma:studio": "npx prisma studio",
     "prisma:validate": "npx prisma validate",
     "prisma:format": "npx prisma format",
-    "postinstall": "npm run prisma:generate",
     "prod": "bash ./scripts.sh",
     "seed:cap": "tsx src/scripts/seed-cap-requirements.ts"
   },
