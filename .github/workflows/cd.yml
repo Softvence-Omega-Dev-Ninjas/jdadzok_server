@@ -33,6 +33,7 @@ jobs:
           PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
           PG_DATABASE: ${{ secrets.PG_DATABASE }}
           PG_PORT: ${{ secrets.PG_PORT }}
+          PG_HOST: ${{ secrets.PG_HOST }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
@@ -121,6 +122,7 @@ jobs:
           PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
           PG_DATABASE: ${{ secrets.PG_DATABASE }}
           PG_PORT: ${{ secrets.PG_PORT }}
+          PG_HOST: ${{ secrets.PG_HOST }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
@@ -282,7 +284,7 @@ jobs:
           ./scripts/deploy.sh status
 
           echo "=== Testing endpoint directly ==="
-          if curl -f -s --connect-timeout 5 --max-time 10 "http://localhost:5056/" | grep -q '"status":"ok"'; then
+          if curl -f -s --connect-timeout 5 --max-time 10 "http://localhost:${{secrets.PORT}}/" | grep -q '"status":"ok"'; then
             echo "🎉 Endpoint health check passed! Service is responding with status: ok"
           else
             echo "❌ Endpoint health check failed!"
