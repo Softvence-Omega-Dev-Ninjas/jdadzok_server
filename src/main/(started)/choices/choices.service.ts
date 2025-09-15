@@ -5,7 +5,7 @@ import { parseChoiceInput } from "./utils";
 
 @Injectable()
 export class ChoicesService {
-  constructor(private readonly choicesRepo: ChoicesRepository) { }
+  constructor(private readonly choicesRepo: ChoicesRepository) {}
 
   async assignChoices(userId: string, dtos: CreateChoiceDto[]) {
     // max 5 choices

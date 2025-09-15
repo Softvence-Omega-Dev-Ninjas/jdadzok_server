@@ -14,7 +14,7 @@ export class ChoicesRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userChoiceRepository: UserChoiceRepository,
-  ) { }
+  ) {}
 
   /**
    * Find a choice by its slug
@@ -41,7 +41,7 @@ export class ChoicesRepository {
     return await this.prisma.$transaction(async (tx) => {
       const results: Choice[] = [];
       for (const choiceDto of data) {
-        let choice = await this.findBySlug(tx, choiceDto.slug!);
+        const choice = await this.findBySlug(tx, choiceDto.slug!);
 
         // make sure that user not providing out of our prechoices.
         if (!choice)
@@ -94,10 +94,10 @@ export class ChoicesRepository {
         userChoices: {
           include: {
             choice: true,
-            user: true
-          }
-        }
-      }
-    })
+            user: true,
+          },
+        },
+      },
+    });
   }
 }

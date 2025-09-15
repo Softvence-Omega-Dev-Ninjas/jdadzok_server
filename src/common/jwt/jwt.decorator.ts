@@ -28,7 +28,8 @@ export const GetUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
-    if (!cookieHandler(request, "get")) throw new UnauthorizedException("Cookies not found on request")
+    if (!cookieHandler(request, "get"))
+      throw new UnauthorizedException("Cookies not found on request");
 
     if (!user || !user.userId)
       throw new NotFoundException("Request User not found!");
@@ -41,7 +42,8 @@ export const GetVerifiedUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
-    if (!cookieHandler(request, "get")) throw new UnauthorizedException("Cookies not found on request");
+    if (!cookieHandler(request, "get"))
+      throw new UnauthorizedException("Cookies not found on request");
 
     if (!user || !user.userId)
       throw new NotFoundException("Request User not found!");
@@ -59,7 +61,7 @@ export const GetVerifiedUser = createParamDecorator(
 
     return key ? user?.[key] : user;
   },
-)
+);
 
 export function ValidateAuth<R extends Role>(...roles: R[]) {
   const decorators = [UseGuards(JwtAuthGuard, RolesGuard)];

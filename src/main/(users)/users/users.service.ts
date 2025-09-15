@@ -23,7 +23,7 @@ export class UserService {
     private readonly jwtService: JwtServices,
     private readonly otpService: OptService,
     private readonly mailService: MailService,
-  ) { }
+  ) {}
 
   async register(body: CreateUserDto) {
     // has password if provider is email
@@ -79,14 +79,16 @@ export class UserService {
     });
 
     // Update DB
-    const updatedUser = await this.repository.update(input.userId, { isVerified: true });
+    const updatedUser = await this.repository.update(input.userId, {
+      isVerified: true,
+    });
     // when user account verified then we will have to send create a token and send it to as response
     const accessToken = await this.jwtService.signAsync({
       sub: user.id,
       roles: user.role,
       email: user.email,
     });
-    return { user: omit(updatedUser, ['password']), accessToken }
+    return { user: omit(updatedUser, ["password"]), accessToken };
   }
 
   async resnetOtp(input: ResentOtpDto) {

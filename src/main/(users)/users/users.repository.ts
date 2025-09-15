@@ -9,7 +9,7 @@ export class UserRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly profileRepo: UserProfileRepository,
-  ) { }
+  ) {}
 
   async store(input: CreateUserDto) {
     return await this.prisma.$transaction(async (tx) => {

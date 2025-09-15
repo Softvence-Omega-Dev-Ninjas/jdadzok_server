@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import { preChoices } from './constants';
+import { preChoices } from "./constants";
 
 type TPrimsa = PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>;
 export class Seeds {
@@ -24,7 +24,7 @@ export class Seeds {
   public choice = async () => {
     await this.prisma.choice.createMany({
       data: preChoices,
-      skipDuplicates: true
+      skipDuplicates: true,
     });
-  }
+  };
 }
