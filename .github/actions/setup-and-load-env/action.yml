@@ -26,6 +26,9 @@ inputs:
   PG_PORT:
     description: "Postgres port"
     required: true
+  PG_HOST:
+    description: "Postgres host"
+    required: true
   DATABASE_URL:
     description: "Database URL"
     required: true
@@ -133,6 +136,7 @@ runs:
         PG_PASSWORD=${{ inputs.PG_PASSWORD }}
         PG_DATABASE=${{ inputs.PG_DATABASE }}
         PG_PORT=${{ inputs.PG_PORT }}
+        PG_HOST=${{ inputs.PG_HOST }}
         DATABASE_URL=${{ inputs.DATABASE_URL }}
 
         JWT_SECRET=${{ inputs.JWT_SECRET }}
@@ -197,6 +201,7 @@ runs:
         PG_PASSWORD: ${{ inputs.PG_PASSWORD }}
         PG_DATABASE: ${{ inputs.PG_DATABASE }}
         PG_PORT: ${{ inputs.PG_PORT }}
+        PG_HOST: ${{ inputs.PG_HOST }}
         DATABASE_URL: ${{ inputs.DATABASE_URL }}
         JWT_SECRET: ${{ inputs.JWT_SECRET }}
         JWT_EXPIRES_IN: ${{ inputs.JWT_EXPIRES_IN }}
@@ -237,6 +242,7 @@ runs:
         echo "PG_PASSWORD=$PG_PASSWORD" >> $GITHUB_ENV
         echo "PG_DATABASE=$PG_DATABASE" >> $GITHUB_ENV
         echo "PG_PORT=$PG_PORT" >> $GITHUB_ENV
+        echo "PG_HOST=$PG_HOST" >> $GITHUB_ENV
         echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
         echo "JWT_SECRET=$JWT_SECRET" >> $GITHUB_ENV
         echo "JWT_EXPIRES_IN=$JWT_EXPIRES_IN" >> $GITHUB_ENV
