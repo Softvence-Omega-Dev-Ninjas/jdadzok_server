@@ -1,4 +1,8 @@
-import { GetUser, GetVerifiedUser, MakePublic } from "@common/jwt/jwt.decorator";
+import {
+  GetUser,
+  GetVerifiedUser,
+  MakePublic,
+} from "@common/jwt/jwt.decorator";
 import { successResponse } from "@common/utils/response.util";
 import {
   Body,
@@ -18,8 +22,7 @@ import { choicesBodyOptions } from "./example";
 
 @Controller("choices")
 export class ChoicesController {
-  constructor(private readonly choicesService: ChoicesService) { }
-
+  constructor(private readonly choicesService: ChoicesService) {}
 
   @ApiBearerAuth()
   @ApiBody(choicesBodyOptions)
@@ -59,12 +62,12 @@ export class ChoicesController {
 
   @ApiOperation({ summary: "Get all choices for user selection" })
   @MakePublic()
-  @Get('all')
+  @Get("all")
   async getAll() {
     try {
       return await this.choicesService.findMany();
     } catch (err) {
-      return err
+      return err;
     }
   }
 }

@@ -61,7 +61,7 @@ async function bootstrap() {
 
   await app.listen(
     port,
-    process.env.NODE_ENV !== "production" ? "localhost" : "0.0.0.0",
+    process.env.NODE_ENV === "development" ? "0.0.0.0" : "localhost",
     () => console.info(`PORT=${port}`),
   );
 }

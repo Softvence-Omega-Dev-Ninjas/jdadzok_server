@@ -10,7 +10,11 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
-import { GetUser, GetVerifiedUser, MakePublic } from "@project/common/jwt/jwt.decorator";
+import {
+  GetUser,
+  GetVerifiedUser,
+  MakePublic,
+} from "@project/common/jwt/jwt.decorator";
 import { successResponse } from "@project/common/utils/response.util";
 import { VerifyTokenDto } from "@project/main/(started)/auth/dto/verify-token.dto";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
@@ -19,7 +23,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-  constructor(private readonly service: UserService) { }
+  constructor(private readonly service: UserService) {}
 
   @MakePublic()
   @Post("register")

@@ -23,12 +23,15 @@ import { JwtAuthGuard } from "./guards/jwt-auth";
 
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @MakePublic()
   @Post("login")
   @UsePipes(ValidationPipe)
-  async login(@Res({ passthrough: true }) res: Response, @Body() loginAuthDto: LoginDto) {
+  async login(
+    @Res({ passthrough: true }) res: Response,
+    @Body() loginAuthDto: LoginDto,
+  ) {
     try {
       const result = await this.authService.login(loginAuthDto);
       // set cookie to the response
@@ -42,10 +45,13 @@ export class AuthController {
   @Post("logout")
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  async logout(@Res({ passthrough: true }) res: Response, @GetVerifiedUser() user: TUser) {
+  async logout(
+    @Res({ passthrough: true }) res: Response,
+    @GetVerifiedUser() user: TUser,
+  ) {
     try {
       await this.authService.logout(user.email);
-      cookieHandler(res, "clear")
+      cookieHandler(res, "clear");
       return successResponse(null, "Logout successful!");
     } catch (err) {
       return err;
