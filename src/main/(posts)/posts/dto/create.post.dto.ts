@@ -105,7 +105,8 @@ class CreatePost {
     description: "From where you are doing your post",
     required: false,
   })
-  postFrom?: PostForm;
+  @IsEnum(postFrom)
+  postFrom: PostForm;
 }
 
 export class CreatePostDto extends IntersectionType(CreatePost) {}

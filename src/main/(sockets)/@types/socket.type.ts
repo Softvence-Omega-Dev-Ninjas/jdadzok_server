@@ -10,16 +10,16 @@ export type SocketUser = {
   role: Role;
   status: UserStatus;
   joinedAt: Date;
-}
+};
 
 export type SocketRoom = {
   id: string;
   name: string;
-  type: 'chat' | 'post' | 'call' | 'private';
+  type: "chat" | "post" | "call" | "private";
   users: SocketUser[];
   createdAt: Date;
   metadata?: Record<string, any>;
-}
+};
 
 // Utility type for extracting event data type
 export type EventData<T extends keyof SocketEventMap> = SocketEventMap[T];

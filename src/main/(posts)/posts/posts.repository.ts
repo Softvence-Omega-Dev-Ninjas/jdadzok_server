@@ -39,7 +39,7 @@ export class PostRepository {
 
   async store(input: CreatePostDto) {
     const { metadata, taggedUserIds, ...postData } = input;
-    return this.prisma.$transaction(async (tx) => {
+    return await this.prisma.$transaction(async (tx) => {
       let metadataId = input.metadataId;
 
       if (metadata && !metadataId) {

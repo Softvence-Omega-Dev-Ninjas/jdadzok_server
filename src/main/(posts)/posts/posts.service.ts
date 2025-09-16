@@ -14,7 +14,7 @@ export class PostService {
   constructor(
     private readonly repository: PostRepository,
     private readonly followRepository: FollowRepository,
-  ) { }
+  ) {}
 
   async create(input: CreatePostDto) {
     const post = await this.repository.store(input);
@@ -23,20 +23,21 @@ export class PostService {
     const followers = await this.followRepository.findManyFollowerId(
       post?.authorId,
     );
+    console.info(followers);
 
     // send notification to the all followers
-    for (const follower of followers) {
-      // TODO: have to handle on the gateway not on endpoint
-      //   this.postGetway.emit("post:new", {
-      //     data: post,
-      //     type: "notification",
-      //     from: post.authorId,
-      //     to: follower.followerId,
-      //     meta: {
-      //       message: `${post.author.profile?.name} add a new post`,
-      //     },
-      //   });
-    }
+    // for (const follower of followers) {
+    //   // TODO: have to handle on the gateway not on endpoint
+    //   //   this.postGetway.emit("post:new", {
+    //   //     data: post,
+    //   //     type: "notification",
+    //   //     from: post.authorId,
+    //   //     to: follower.followerId,
+    //   //     meta: {
+    //   //       message: `${post.author.profile?.name} add a new post`,
+    //   //     },
+    //   //   });
+    // }
   }
 
   async index(options?: PostQueryDto) {
