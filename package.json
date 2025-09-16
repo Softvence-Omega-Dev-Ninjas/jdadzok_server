@@ -1,7 +1,7 @@
 {
   "name": "jdadzok_server",
   "displayName": "JdadZok Server",
-  "version": "0.4.8",
+  "version": "0.3.8",
   "description": "This is backend for jdadzok social media application",
   "author": "Vision 360",
   "private": true,
@@ -70,6 +70,7 @@
     "dotenv-expand": "^12.0.3",
     "firebase-admin": "^13.4.0",
     "google-auth-library": "^9.15.1",
+    "ioredis": "^5.7.0",
     "keyv": "^5.5.0",
     "mime-types": "^3.0.1",
     "multer": "^2.0.1",

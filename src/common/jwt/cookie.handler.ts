@@ -1,17 +1,24 @@
+import { NotFoundException } from "@nestjs/common";
 import { CookieOptions, Request, Response } from "express";
 import { RequestWithUser } from "./jwt.interface";
 
 export const COOKIE_KEY = "accessToken";
-export function cookieHandler(ctx: RequestWithUser, mode: "get"): any;
+export function cookieHandler(
+  ctx: RequestWithUser,
+  mode: "get",
+  token?: string,
+): any;
 export function cookieHandler(
   ctx: Response,
   mode: "set" | "clear",
+  token?: string,
   options?: CookieOptions,
 ): void;
 
 export function cookieHandler(
   ctx: RequestWithUser | Response,
   mode: "set" | "get" | "clear",
+  token?: string,
   options: CookieOptions = {},
 ) {
   const defaultOptions: CookieOptions = {
@@ -23,15 +30,21 @@ export function cookieHandler(
   const margedOptions = { ...defaultOptions, ...options };
 
   switch (mode) {
-    case "set":
-      (ctx as Response).cookie(COOKIE_KEY, margedOptions);
+    case "set": {
+      if (!token) throw new NotFoundException("Cookie required!");
+      (ctx as Response).cookie(COOKIE_KEY, token, margedOptions);
       break;
+    }
     case "clear":
       (ctx as Response).clearCookie(COOKIE_KEY, margedOptions);
       break;
-    case "get":
-      return (ctx as Request).cookies[COOKIE_KEY];
+    case "get": {
+      const cookie =
+        (ctx as Request).cookies ||
+        ((ctx as Request).headers["cookie"] as string);
+      return cookie.split(`${COOKIE_KEY}=`)[1];
+    }
     default:
-      break;
+      throw new NotFoundException("Invalid mode for cookieHandler");
   }
 }

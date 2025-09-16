@@ -92,7 +92,7 @@ check_health() {
     
     log_info "Checking health for container: $container_name"
     
-    while [ $attempt -le $max_attempts ]; do
+    while [ $attempt -le "$max_attempts" ]; do
         log_info "Health check attempt $attempt/$max_attempts"
         
         # Check if container is running first
@@ -161,86 +161,74 @@ deploy_version() {
     local image_tag="${DOCKER_USERNAME}/${PACKAGE_NAME}:${version}"
     local new_container="${PACKAGE_NAME}_api"
     local old_container="${PACKAGE_NAME}_api_old"
-    
+
     log_info "Starting deployment of version $version"
     log_info "Image: $image_tag"
-    
-    # Check if image exists locally or pull it
+
+    # Try pulling image
     if ! docker image inspect "$image_tag" > /dev/null 2>&1; then
-        log_info "Pulling image: $image_tag"
+        log_info "Image not found locally. Trying to pull image: $image_tag"
         if ! docker pull "$image_tag"; then
-            log_error "Failed to pull image: $image_tag"
-            return 1
+            log_warning "Image not found in registry. Proceeding to build locally using docker-compose"
+            # Update .env with version before building
+            if [ -f .env ]; then
+                sed -i "s/PACKAGE_VERSION=.*/PACKAGE_VERSION=\"$version\"/" .env
+                log_info "Updated .env file with version $version"
+            fi
+            # Attempt local build and start
+            if ! docker compose --profile prod up -d app; then
+                log_error "Local build and startup failed"
+                return 1
+            fi
+            log_success "Local build and container started successfully"
         fi
     fi
-    
-    # Rename current container to old if it exists
+
+    # Rename current container to backup if it exists
     if docker ps --filter "name=${new_container}" --format "{{.Names}}" | grep -q "^${new_container}$"; then
         log_info "Renaming current container to backup"
         docker rename "$new_container" "$old_container" 2>/dev/null || true
     fi
-    
-    # Update .env file with new version
-    if [ -f .env ]; then
-        sed -i "s/PACKAGE_VERSION=.*/PACKAGE_VERSION=\"$version\"/" .env
-        log_info "Updated .env file with version $version"
-    fi
-    
-    # Start new container
-    log_info "Starting new container with version $version"
-    if docker compose --profile prod up -d app; then
-        log_success "New container started successfully"
-    else
-        log_error "Failed to start new container"
-        # Restore old container if it exists
-        if docker ps -a --filter "name=${old_container}" --format "{{.Names}}" | grep -q "^${old_container}$"; then
-            log_info "Restoring previous container"
-            docker rename "$old_container" "$new_container" 2>/dev/null || true
-            docker start "$new_container" 2>/dev/null || true
-        fi
-        return 1
-    fi
-    
-    # Wait a bit for container to initialize
+
+    # Wait for container to initialize
     log_info "Waiting for new container to initialize..."
     sleep 15
-    
-    # Perform simple health check
+
+    # Health check
     if check_health "$new_container"; then
         log_success "New container is healthy"
-        
+
         # Clean up old container
         cleanup_container "$old_container"
-        
+
         # Save version to history
         save_version_to_history "$version"
-        
+
         log_success "Deployment of version $version completed successfully"
         return 0
     else
-        log_error "New container failed health check, rolling back"
-        
-        # Stop and remove failed container
+        log_error "New container failed health check. Rolling back"
+
+        # Remove broken container
         cleanup_container "$new_container"
-        
-        # Restore old container if it exists
+
+        # Restore old container
         if docker ps -a --filter "name=${old_container}" --format "{{.Names}}" | grep -q "^${old_container}$"; then
             log_info "Restoring previous container"
             docker rename "$old_container" "$new_container"
             docker start "$new_container"
-            
-            # Quick check on restored container
             sleep 10
             if curl -f -s --connect-timeout 5 --max-time 10 "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
                 log_success "Previous container restored successfully"
             else
-                log_warning "Previous container restored but health check uncertain"
+                log_warning "Previous container restored, but health check failed or uncertain"
             fi
         fi
-        
+
         return 1
     fi
 }
+
 
 # Function to show deployment status
 show_status() {
@@ -281,6 +269,7 @@ show_status() {
 }
 
 # Main script logic
+# Main script logic
 case "$1" in
     --version)
         if [ -z "$2" ]; then
@@ -288,7 +277,10 @@ case "$1" in
             show_usage
             exit 1
         fi
-        deploy_version "$2"
+        deploy_version "$2" || {
+            log_warning "Deployment failed — attempting rollback..."
+            perform_rollback
+        }
         ;;
     --rollback)
         perform_rollback

@@ -35,7 +35,7 @@ export class AuthController {
     try {
       const result = await this.authService.login(loginAuthDto);
       // set cookie to the response
-      cookieHandler(res, "set");
+      cookieHandler(res, "set", result["accessToken"]);
       return successResponse(result, "Login successfull!");
     } catch (err) {
       return err;
