@@ -32,6 +32,7 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
+
 RUN ls -la prisma/schema
 
 

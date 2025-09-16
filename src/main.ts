@@ -62,7 +62,7 @@ async function bootstrap() {
   await app.listen(
     port,
     "localhost",
-    () => console.info(`PORT=${port}`),
+    () => console.info(`PORT=${port}`)
   );
 }
 

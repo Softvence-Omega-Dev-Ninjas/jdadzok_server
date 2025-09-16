@@ -10,7 +10,10 @@ import {
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
+import { JwtServices } from "@project/services/jwt.service";
 import { cookieHandler } from "./cookie.handler";
 import { RequestWithUser } from "./jwt.interface";
 
@@ -42,21 +45,31 @@ export const GetVerifiedUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
-    if (!cookieHandler(request, "get"))
-      throw new UnauthorizedException("Cookies not found on request");
+    const token = cookieHandler(request, "get");
+    if (!token) throw new NotFoundException("Request User not found!");
+
+    // verify token
+    const jwt = new JwtService();
+    const configService = new ConfigService();
+    const jwtService = new JwtServices(jwt, configService);
+    const isVerifyToken = await jwtService.verifyAsync(token);
+    if (!isVerifyToken?.email)
+      throw new UnauthorizedException("Invalid token your are unauthorized");
 
     if (!user || !user.userId)
       throw new NotFoundException("Request User not found!");
 
     const prisma = new PrismaService();
-    const IsVerified = await prisma.user.findFirst({
+    const isUser = await prisma.user.findFirst({
       where: { OR: [{ id: user.userId }, { email: user.email }] },
       select: {
         isVerified: true,
       },
     });
+    if (!isUser) throw new NotFoundException("Request User not found!");
+
     // check user verified or not
-    if (!IsVerified?.isVerified)
+    if (!isUser.isVerified)
       throw new UnauthorizedException("Please verify your account first");
 
     return key ? user?.[key] : user;

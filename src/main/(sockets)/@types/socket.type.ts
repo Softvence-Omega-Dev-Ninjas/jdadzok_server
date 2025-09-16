@@ -1,10 +1,39 @@
-export type PayloadType = "text" | "image" | "video" | "call" | "notification";
+import { Role } from "@project/constants/enums";
+import { SocketEventMap } from "./socket.event.map";
+import { UserStatus } from "./user.event";
 
-export type SocketPayload<T = any> = {
-  from?: string; // userId or system
-  to?: string | string[]; // receivers
-  roomId?: string; // for group chatting or group calling
-  type: PayloadType; // "text" | "image" | "video" | "call" | "notification"
-  data: T; // payload of socket event data
-  meta?: Record<string, any>; // otpional metadata if need then we can pass as key value paris
+export type SocketUser = {
+  id: string;
+  socketId: string;
+  username?: string;
+  avatar?: string;
+  role: Role;
+  status: UserStatus;
+  joinedAt: Date;
 };
+
+export type SocketRoom = {
+  id: string;
+  name: string;
+  type: "chat" | "post" | "call" | "private";
+  users: SocketUser[];
+  createdAt: Date;
+  metadata?: Record<string, any>;
+};
+
+// Utility type for extracting event data type
+export type EventData<T extends keyof SocketEventMap> = SocketEventMap[T];
+
+// Rate limiting configuration
+export interface RateLimitConfig {
+  windowMs: number;
+  maxRequests: number;
+  blockDuration?: number;
+}
+
+export const RATE_LIMITS = {
+  CHAT_MESSAGE: { windowMs: 1000, maxRequests: 5 },
+  POST_CREATE: { windowMs: 60000, maxRequests: 10 },
+  CALL_INITIATE: { windowMs: 30000, maxRequests: 3 },
+  ROOM_JOIN: { windowMs: 10000, maxRequests: 5 },
+} as const;
