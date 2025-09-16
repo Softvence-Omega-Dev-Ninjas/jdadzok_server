@@ -3,8 +3,8 @@ FROM node:20 AS builder
 
 WORKDIR /app
 
-# Install curl
-RUN apk update && apk add --no-cache curl
+# Install curl using apt-get
+RUN apt-get update && apt-get install -y curl
 
 # Copy package files
 COPY package*.json ./
@@ -28,8 +28,8 @@ RUN npm run build
 FROM node:20-alpine
 
 WORKDIR /app
-# Install curl
-RUN apk update && apk add --no-cache curl
+# Install curl using apt-get
+RUN apt-get update && apt-get install -y curl
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
