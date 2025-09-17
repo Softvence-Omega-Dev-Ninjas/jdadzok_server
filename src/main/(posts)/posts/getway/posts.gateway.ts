@@ -1,3 +1,6 @@
+import { PostComment, PostEvent, PostReaction, RATE_LIMITS } from "@module/(sockets)/@types";
+import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
+import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
 import {
   ConnectedSocket,
   MessageBody,
@@ -5,9 +8,6 @@ import {
   WebSocketGateway,
 } from "@nestjs/websockets";
 import { Socket } from "socket.io";
-import { PostComment, PostEvent, PostReaction, RATE_LIMITS } from "../@types";
-import { SOCKET_EVENTS } from "../constants/socket-events.constant";
-import { BaseSocketGateway } from "../shared/gateways/base-socket.gateway";
 
 @WebSocketGateway()
 export class PostGateway extends BaseSocketGateway {
@@ -16,6 +16,9 @@ export class PostGateway extends BaseSocketGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: Omit<PostEvent, "eventId" | "timestamp" | "userId">,
   ) {
+    console.log('body: ', data)
+    console.log('client post: ', client)
+
     const userId = this.getUserId(client.id);
     if (!userId) {
       client.emit(

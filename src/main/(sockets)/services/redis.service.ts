@@ -16,7 +16,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private redisSubscriber: Redis;
   private redisPublisher: Redis;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   async onModuleInit() {
     await this.connect();
@@ -95,6 +95,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       id: user.id,
       socketId: user.socketId,
       username: user.username || "",
+      role: user.role,
       avatar: user.avatar || "",
       status: user.status,
       joinedAt: user.joinedAt.toISOString(),

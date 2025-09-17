@@ -74,3 +74,4 @@ export const SOCKET_EVENTS = {
     SERVER_ERROR: "error:server",
   },
 } as const;
+export type T_SOCKET_EVENTS = typeof SOCKET_EVENTS

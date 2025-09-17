@@ -1,6 +1,6 @@
-import { RedisService } from "@common/redis/redis.service";
-import { RedisKey } from "@constants/redis.key";
+
 import { TTL } from "@constants/ttl.constants";
+import { RedisService } from "@module/(sockets)/services/redis.service";
 import { ForbiddenException, Injectable } from "@nestjs/common";
 import { uniqueID } from "dev-unique-id";
 import {
@@ -10,10 +10,11 @@ import {
   OtpType,
   OtpVerifyPayload,
 } from "./otp.types";
+import { RedisKey } from "ioredis";
 
 @Injectable()
 export class OptService {
-  constructor(private readonly redisService: RedisService) {}
+  constructor(private readonly redisService: RedisService) { }
 
   private getRedisKeyByType(type: OtpType): RedisKey {
     switch (type) {
@@ -34,7 +35,7 @@ export class OptService {
     const { ttl = "5m", length = 6 } = options;
 
     const redisKey = this.getRedisKeyByType(type);
-    const existing = await this.redisService.get<OtpRedisData>(
+    const existing = await this.redisService.(
       redisKey,
       userId,
     );
