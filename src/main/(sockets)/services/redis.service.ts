@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { TTL, TTLKey } from "@project/constants/ttl.constants";
-import Redis from "ioredis";
+import Redis, { RedisOptions } from "ioredis";
 import { SocketRoom, SocketUser, UserStatus } from "../@types";
 
 @Injectable()
@@ -29,17 +29,20 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   private async connect() {
     try {
-      const redisConfig = {
+      const redisConfig: RedisOptions = {
         host: this.configService.getOrThrow(ENVEnum.REDIS_HOST),
         port: this.configService.getOrThrow(ENVEnum.REDIS_PORT),
         password: this.configService.get(ENVEnum.REDIS_PASS) || "",
+        username: this.configService.get(ENVEnum.REDIS_USER) || "",
         db: parseInt(process.env.REDIS_DB || "0"),
-        retryDelayOnFailover: 100,
         enableReadyCheck: true,
         maxRetriesPerRequest: 3,
         lazyConnect: true,
         keepAlive: 30000,
-      };
+        tls: {
+          rejectUnauthorized: false
+        }
+      }
 
       // Main Redis client for general operations
       this.redisClient = new Redis(redisConfig);

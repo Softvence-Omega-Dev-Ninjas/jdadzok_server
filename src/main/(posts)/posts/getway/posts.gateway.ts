@@ -1,4 +1,4 @@
-import { PostComment, PostEvent, PostReaction, RATE_LIMITS } from "@module/(sockets)/@types";
+import { PostComment, PostEvent, PostReaction } from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
 import {
@@ -8,9 +8,14 @@ import {
   WebSocketGateway,
 } from "@nestjs/websockets";
 import { Socket } from "socket.io";
+import { PostService } from "../posts.service";
 
 @WebSocketGateway()
 export class PostGateway extends BaseSocketGateway {
+  constructor(private readonly postService: PostService) {
+    super()
+  }
+
   @SubscribeMessage(SOCKET_EVENTS.POST.CREATE)
   async handlePostCreate(
     @ConnectedSocket() client: Socket,
@@ -19,30 +24,30 @@ export class PostGateway extends BaseSocketGateway {
     console.log('body: ', data)
     console.log('client post: ', client)
 
-    const userId = this.getUserId(client.id);
-    if (!userId) {
-      client.emit(
-        SOCKET_EVENTS.ERROR.UNAUTHORIZED,
-        this.createResponse(false, null, "User not authenticated"),
-      );
-      return;
-    }
+    // const userId = this.getUserId(client.id);
+    // if (!userId) {
+    //   client.emit(
+    //     SOCKET_EVENTS.ERROR.UNAUTHORIZED,
+    //     this.createResponse(false, null, "User not authenticated"),
+    //   );
+    //   return;
+    // }
 
-    if (
-      !this.checkRateLimit(`post_create:${userId}`, RATE_LIMITS.POST_CREATE)
-    ) {
-      client.emit(
-        SOCKET_EVENTS.ERROR.RATE_LIMIT,
-        this.createResponse(false, null, "Too many posts. Please wait."),
-      );
-      return;
-    }
+    // if (
+    //   !this.checkRateLimit(`post_create:${userId}`, RATE_LIMITS.POST_CREATE)
+    // ) {
+    //   client.emit(
+    //     SOCKET_EVENTS.ERROR.RATE_LIMIT,
+    //     this.createResponse(false, null, "Too many posts. Please wait."),
+    //   );
+    //   return;
+    // }
 
     const postEvent: PostEvent = {
       ...data,
       eventId: `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date(),
-      userId,
+      userId: "",
       action: "create",
     };
 
@@ -60,7 +65,7 @@ export class PostGateway extends BaseSocketGateway {
       SOCKET_EVENTS.POST.CREATE,
       this.createResponse(true, postEvent),
     );
-    this.logger.log(`Post created by user ${userId}: ${data.postId}`);
+    // this.logger.log(`Post created by user ${userId}: ${data.postId}`);
   }
 
   @SubscribeMessage(SOCKET_EVENTS.POST.LIKE)
