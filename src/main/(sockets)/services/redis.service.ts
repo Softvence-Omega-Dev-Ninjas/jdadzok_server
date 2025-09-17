@@ -32,7 +32,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       const redisConfig = {
         host: this.configService.getOrThrow(ENVEnum.REDIS_HOST),
         port: this.configService.getOrThrow(ENVEnum.REDIS_PORT),
-        password: process.env.REDIS_PASSWORD || "",
+        password: this.configService.get(ENVEnum.REDIS_PASS) || "",
         db: parseInt(process.env.REDIS_DB || "0"),
         retryDelayOnFailover: 100,
         enableReadyCheck: true,
