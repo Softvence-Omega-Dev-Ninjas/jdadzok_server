@@ -269,7 +269,6 @@ show_status() {
 }
 
 # Main script logic
-# Main script logic
 case "$1" in
     --version)
         if [ -z "$2" ]; then

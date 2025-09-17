@@ -75,11 +75,11 @@ services:
       - "${PG_PORT}:${PG_PORT}"
     # Add health check for database
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d jdadzok_db"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "curl -f http://localhost:$PORT/ || exit 1"]
+      interval: 30s
+      timeout: 15s
       retries: 5
-      start_period: 10s
+      start_period: 40s
     # Add resource limits
     deploy:
       resources:
