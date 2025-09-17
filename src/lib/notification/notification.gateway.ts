@@ -19,8 +19,7 @@ import { PrismaService } from "../prisma/prisma.service";
 })
 @Injectable()
 export class NotificationGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(NotificationGateway.name);
   private readonly clients = new Map<string, Set<Socket>>();
 
@@ -28,13 +27,13 @@ export class NotificationGateway
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   @WebSocketServer()
   server: Server;
 
   afterInit(server: Server) {
-    this.logger.log("Socket.IO server initialized", server);
+    this.logger.log("Socket.IO server initialized for Notification Gateway", server.adapter.name);
   }
 
   async handleConnection(client: Socket) {

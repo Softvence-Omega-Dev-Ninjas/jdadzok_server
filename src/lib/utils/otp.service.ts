@@ -8,20 +8,19 @@ import {
   OtpPayload,
   OtpRedisData,
   OtpType,
-  OtpVerifyPayload,
+  OtpVerifyPayload
 } from "./otp.types";
-import { RedisKey } from "ioredis";
 
 @Injectable()
 export class OptService {
   constructor(private readonly redisService: RedisService) { }
 
-  private getRedisKeyByType(type: OtpType): RedisKey {
+  private getRedisKeyByType(type: OtpType, suffix: string) {
     switch (type) {
       case "RESET_PASSWORD":
-        return "RESET_PASSWORD_TOKEN";
+        return suffix ? `RESET_PASSWORD_TOKEN:${suffix}` : "RESET_PASSWORD_TOKEN";
       case "EMAIL_VERIFICATION":
-        return "EMAIL_VERIFICATION_TOKEN";
+        return suffix ? `EMAIL_VERIFICATION_TOKEN:${suffix}` : "EMAIL_VERIFICATION_TOKEN";
       default:
         throw new Error(`Unsupported OTP type: ${type}`);
     }
@@ -32,13 +31,10 @@ export class OptService {
     options: OtpOptions = { ttl: "5m", length: 6 },
   ): Promise<OtpRedisData> {
     const { userId, email, type } = payload;
-    const { ttl = "5m", length = 6 } = options;
+    const { ttl = "30s", length = 6 } = options; // TODO: need to be add 5s
 
-    const redisKey = this.getRedisKeyByType(type);
-    const existing = await this.redisService.(
-      redisKey,
-      userId,
-    );
+    const redisKey = this.getRedisKeyByType(type, userId);
+    const existing = await this.redisService.get(redisKey);
 
     if (existing)
       throw new ForbiddenException(
@@ -58,7 +54,7 @@ export class OptService {
       email,
     };
 
-    await this.redisService.set(redisKey, data, ttl, userId);
+    await this.redisService.set(redisKey, data);
     return data;
   }
 
@@ -68,8 +64,8 @@ export class OptService {
   ): Promise<boolean> {
     const { userId, token, type } = input;
 
-    const redisKey = this.getRedisKeyByType(type);
-    const data = await this.redisService.get<OtpRedisData>(redisKey, userId);
+    const redisKey = this.getRedisKeyByType(type, userId);
+    const data = await this.redisService.get<OtpRedisData>(redisKey);
 
     if (!data) {
       throw new ForbiddenException("OTP expired or not found");
@@ -90,27 +86,23 @@ export class OptService {
           ...data,
           attempt: data.attempt + 1,
         },
-        new Date(data.expireAt).getTime() - Date.now(),
-        userId,
+        "1m" // TODO: need to be add minimum 10m
       ); // Keep the remaining TTL
 
       throw new ForbiddenException("Wrong OTP");
     }
-    if (isDelete) await this.redisService.delete(redisKey, input.userId);
+    if (isDelete) await this.redisService.del(redisKey);
     return true;
   }
 
   async getToken(payload: Omit<OtpVerifyPayload, "token">) {
-    const redisKey = this.getRedisKeyByType(payload.type);
-    const data = await this.redisService.get<OtpRedisData>(
-      redisKey,
-      payload.userId,
-    );
+    const redisKey = this.getRedisKeyByType(payload.type, payload.userId);
+    const data = await this.redisService.get<OtpRedisData>(redisKey);
     return data;
   }
 
   async delete(payload: Omit<OtpVerifyPayload, "token">) {
-    const redisKey = this.getRedisKeyByType(payload.type);
-    await this.redisService.delete(redisKey, payload.userId);
+    const redisKey = this.getRedisKeyByType(payload.type, payload.userId);
+    await this.redisService.del(redisKey);
   }
 }

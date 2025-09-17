@@ -18,6 +18,10 @@ export const SOCKET_EVENTS = {
     MESSAGE_EDIT: "chat:message:edit",
   },
 
+  MARKETPLACE: {
+    CREATE_PRODUCT: "create:product"
+  },
+
   // Post Events
   POST: {
     CREATE: "post:create",

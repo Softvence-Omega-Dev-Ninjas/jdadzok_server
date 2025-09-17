@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { RedisService } from "@project/common/redis/redis.service";
 import { MailService } from "@project/lib/mail/mail.service";
 import { OptService } from "@project/lib/utils/otp.service";
 import { JwtServices } from "@project/services/jwt.service";
@@ -12,7 +11,6 @@ import { UserService } from "./users.service";
 @Module({
   controllers: [UserController],
   providers: [
-    RedisService,
     JwtService,
     UserRepository,
     UserService,
@@ -23,4 +21,4 @@ import { UserService } from "./users.service";
   ],
   exports: [UserRepository, UserService],
 })
-export class UserModule {}
+export class UserModule { }
