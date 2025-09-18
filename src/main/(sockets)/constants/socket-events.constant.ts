@@ -19,7 +19,7 @@ export const SOCKET_EVENTS = {
   },
 
   MARKETPLACE: {
-    CREATE_PRODUCT: "create:product"
+    CREATE_PRODUCT: "create:product",
   },
 
   // Post Events
@@ -78,4 +78,4 @@ export const SOCKET_EVENTS = {
     SERVER_ERROR: "error:server",
   },
 } as const;
-export type T_SOCKET_EVENTS = typeof SOCKET_EVENTS
+export type T_SOCKET_EVENTS = typeof SOCKET_EVENTS;

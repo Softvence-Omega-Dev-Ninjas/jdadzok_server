@@ -59,9 +59,6 @@ model User {
   reviewedVerifications NgoVerification[] @relation("VerificationReviewer")
   issuedBans            Ban[]             @relation("BanIssuer")
 
-  // User choices
-  userChoices UserChoice[]
-
   // File uploads
   uploadedFiles FileInstance[] @relation("UploadedFiles")
 
@@ -90,6 +87,7 @@ model User {
 
   // payment methods -> a user can has multiple payment methods
   PaymentMethods PaymentMethods[]
+  UserChoice     UserChoice[]
 
   @@index([email])
   @@index([capLevel])

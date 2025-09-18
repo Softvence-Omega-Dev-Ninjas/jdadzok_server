@@ -1,6 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller } from "@nestjs/common";
 
-@Controller('product-category')
-export class ProductCategoryController {
-
-}
+@Controller("product-category")
+export class ProductCategoryController {}

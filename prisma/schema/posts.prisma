@@ -1,53 +1,53 @@
 model Post {
   id String @id @default(uuid())
-  
+
   // Author information
   authorId String
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  
+
   // Post content
   text      String    @db.Text
   mediaUrl  String?
   mediaType MediaType @default(TEXT)
-  
+
   // Post settings
   visibility PostVisibility @default(PUBLIC)
   postFrom   PostFrom       @default(REGULAR_PROFILE)
-  
+
   // Content category (one of the 10 main areas)
   categoryId String?
   category   PostCategory? @relation("PostCategory", fields: [categoryId], references: [id], onDelete: SetNull)
-  
+
   // Community/NGO association
   communityId String?
   community   Community? @relation("CommunityPosts", fields: [communityId], references: [id], onDelete: SetNull)
-  
+
   ngoId String?
-  ngo   Ngo?   @relation("NgoPosts", fields: [ngoId], references: [id], onDelete: SetNull)
-  
+  ngo   Ngo?    @relation("NgoPosts", fields: [ngoId], references: [id], onDelete: SetNull)
+
   // Post metadata
   metadataId String?
   metadata   PostMetadata? @relation(fields: [metadataId], references: [id], onDelete: SetNull)
-  
+
   // ---- INTERACTIONS ----
   comments Comment[]
   likes    Like[]
   shares   Share[]
-  
+
   // User tags
   taggedUsers PostTagUser[]
-  
+
   // Post metrics
   metrics PostMetrics? @relation("PostMetrics")
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  @@map("posts")
+
   @@index([authorId])
   @@index([createdAt])
   @@index([communityId])
   @@index([ngoId])
   @@index([visibility])
   @@index([categoryId])
+  @@map("posts")
 }

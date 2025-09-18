@@ -389,16 +389,7 @@ export class PostRepository {
         ...(authorIds ? { authorId: { in: authorIds } } : {}),
       },
       include: {
-        author: {
-          include: {
-            userChoices: {
-              include: {
-                choice: true,
-                user: true,
-              },
-            },
-          },
-        },
+        author: true,
         likes: true,
         shares: true,
       },

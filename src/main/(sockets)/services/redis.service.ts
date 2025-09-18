@@ -17,7 +17,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private redisSubscriber: Redis;
   private redisPublisher: Redis;
 
-  constructor(private readonly configService: ConfigService) { }
+  constructor(private readonly configService: ConfigService) {}
 
   async onModuleInit() {
     await this.connect();
@@ -40,22 +40,22 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         lazyConnect: true,
         keepAlive: 30000,
         tls: {
-          rejectUnauthorized: false
-        }
-      }
+          rejectUnauthorized: false,
+        },
+      };
 
       // Main Redis client for general operations
-      this.redisClient = new Redis(redisConfig);
+      this.redisClient = new Redis();
 
       // Separate clients for pub/sub (recommended by Redis)
       this.redisSubscriber = new Redis(redisConfig);
       this.redisPublisher = new Redis(redisConfig);
 
-      await Promise.all([
-        this.redisClient.connect(),
-        this.redisSubscriber.connect(),
-        this.redisPublisher.connect(),
-      ]);
+      // await Promise.all([
+      //   // await this.redisClient.connect(),
+      //   this.redisSubscriber.connect(),
+      //   this.redisPublisher.connect(),
+      // ]);
 
       this.logger.log("Redis connected successfully");
 
@@ -344,11 +344,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async get<T = any>(key: string): Promise<T | null> {
     const data = await this.redisClient.get(key);
     if (!data) return null;
-    return JSON.parse(data)
+    return JSON.parse(data);
   }
 
   async set<T = any>(key: string, value: T, ttlKey?: TTLKey) {
-    await this.redisClient.set(key, JSON.stringify(value))
+    await this.redisClient.set(key, JSON.stringify(value));
 
     if (ttlKey) {
       await this.redisClient.expire(key, TTL[ttlKey]); // Convert ms to seconds for Redis

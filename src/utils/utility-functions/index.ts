@@ -76,5 +76,5 @@ export const getUserFromSocket = (
 };
 
 export function generateRedisKey<T extends string>(key: T, suffix?: string) {
-  return suffix ? `${key}:${suffix}` : key
+  return suffix ? `${key}:${suffix}` : key;
 }

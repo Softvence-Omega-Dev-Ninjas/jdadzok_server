@@ -5,7 +5,7 @@ import {
   SocketUser,
 } from "@module/(sockets)/@types";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
-import { BadGatewayException, Logger } from "@nestjs/common";
+import { BadGatewayException, Logger, UseGuards } from "@nestjs/common";
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -15,6 +15,7 @@ import {
 } from "@nestjs/websockets";
 import { JwtServices } from "@project/services/jwt.service";
 import { Server, Socket } from "socket.io";
+import { SocketAuthGuard } from "../guards/socket-auth.guard";
 
 @WebSocketGateway({
   cors: {
@@ -26,9 +27,10 @@ import { Server, Socket } from "socket.io";
   pingTimeout: 60000,
   pingInterval: 25000,
 })
-
+@UseGuards(SocketAuthGuard)
 export abstract class BaseSocketGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer() protected server: Server;
   protected readonly logger = new Logger(this.constructor.name);
 
@@ -42,7 +44,7 @@ export abstract class BaseSocketGateway
     { count: number; resetTime: number }
   >();
 
-  constructor(private readonly jwtService: JwtServices) { }
+  constructor(private readonly jwtService: JwtServices) {}
 
   afterInit() {
     this.logger.log("Socket Gateway initialized");
@@ -53,8 +55,9 @@ export abstract class BaseSocketGateway
 
   async handleConnection(client: Socket) {
     try {
-      const socketUser = await this.extractUserFromSocket(client);
-      console.log(socketUser)
+      console.info("cliented connected");
+      // const socketUser = await this.extractUserFromSocket(client);
+      // console.log(socketUser)
       // if (!socketUser?.id) {
       //   client.disconnect(true);
       //   return;
@@ -145,12 +148,12 @@ export abstract class BaseSocketGateway
 
     if (!token) {
       this.logger.warn(`No auth token provided for socket ${client.id}`);
-      throw new BadGatewayException("Unauthorized")
+      throw new BadGatewayException("Unauthorized");
     }
 
     try {
-      const user = await this.jwtService.verifyAsync(token)
-      console.log('verify: ', user)
+      const user = await this.jwtService.verifyAsync(token);
+      console.info("verify: ", user);
       // we have to find user from db by their id and return it but for now let's return dammy
       return {
         id: "0",
