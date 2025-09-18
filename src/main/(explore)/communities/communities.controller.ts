@@ -80,7 +80,7 @@ export class CommunitiesController {
 
   // user----community followers.
 
-  @Post(":communityId/follow")
+  @Post(":communityId/follower")
   userFollowCommunity(
     @GetUser("userId") userId: string,
     @Param("communityId") communityId: string,
@@ -101,4 +101,17 @@ export class CommunitiesController {
       "User Following a Community Successfull",
     );
   }
+
+  // community following another community ...
+//  @Post("/community/:followingId")
+//   communityFollow(
+//     @GetUser("userId") userId: string,
+//     @Param("followingId") followingId: string,
+//   ) {
+//     return handleRequest(
+//       () => this.service.userFollowCommunity(userId, followingId),
+//       "Community Following a Community Successfull",
+//     );
+//   }
+
 }
