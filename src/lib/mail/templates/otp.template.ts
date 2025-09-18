@@ -2,7 +2,7 @@ import { TTLKey } from "@constants/ttl.constants";
 import generateBaseLayout from "./base-layout";
 
 export const generateOtpEmail = (
-  otp: number,
+  otp: string,
   expire: TTLKey = "5m",
 ): string => {
   const content = `

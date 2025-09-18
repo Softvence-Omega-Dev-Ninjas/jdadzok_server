@@ -47,7 +47,7 @@ export class OptService {
     ).toISOString();
 
     const data: OtpRedisData = {
-      token: Number(token),
+      token: JSON.stringify(token),
       attempt: 0,
       expireAt,
       userId,

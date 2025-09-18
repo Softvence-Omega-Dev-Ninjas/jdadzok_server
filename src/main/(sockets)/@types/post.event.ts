@@ -3,10 +3,8 @@ import { BaseSocketEvent } from "./base.types";
 
 // Post Events
 export interface PostEvent extends BaseSocketEvent {
-  postId: string;
   action: "create" | "update" | "delete";
   content?: CreatePostDto;
-  media?: string[];
 }
 
 export interface PostReaction extends BaseSocketEvent {
