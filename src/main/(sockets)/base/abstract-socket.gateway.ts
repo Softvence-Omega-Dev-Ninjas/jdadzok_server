@@ -5,7 +5,7 @@ import {
   SocketUser,
 } from "@module/(sockets)/@types";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
-import { Logger } from "@nestjs/common";
+import { BadGatewayException, Logger } from "@nestjs/common";
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -13,6 +13,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
+import { JwtServices } from "@project/services/jwt.service";
 import { Server, Socket } from "socket.io";
 
 @WebSocketGateway({
@@ -25,6 +26,7 @@ import { Server, Socket } from "socket.io";
   pingTimeout: 60000,
   pingInterval: 25000,
 })
+
 export abstract class BaseSocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() protected server: Server;
@@ -40,9 +42,11 @@ export abstract class BaseSocketGateway
     { count: number; resetTime: number }
   >();
 
+  constructor(private readonly jwtService: JwtServices) { }
+
   afterInit() {
     this.logger.log("Socket Gateway initialized");
-    this.setupRedis();
+    // this.setupRedis();
     this.setupRateLimiting();
     this.setupHeartbeat();
   }
@@ -50,51 +54,52 @@ export abstract class BaseSocketGateway
   async handleConnection(client: Socket) {
     try {
       const socketUser = await this.extractUserFromSocket(client);
-      if (!socketUser?.id) {
-        client.disconnect(true);
-        return;
-      }
+      console.log(socketUser)
+      // if (!socketUser?.id) {
+      //   client.disconnect(true);
+      //   return;
+      // }
 
-      const user: SocketUser = {
-        id: socketUser.id,
-        socketId: client.id,
-        status: "online",
-        role: socketUser.role,
-        joinedAt: new Date(),
-      };
+      // const user: SocketUser = {
+      //   id: socketUser.id,
+      //   socketId: client.id,
+      //   status: "online",
+      //   role: socketUser.role,
+      //   joinedAt: new Date(),
+      // };
 
-      // Handle reconnection
-      const existingSocketId = this.userSockets.get(socketUser.id);
-      if (existingSocketId && existingSocketId !== client.id) {
-        // Disconnect old socket
-        const oldSocket = this.server.sockets.sockets.get(existingSocketId);
-        if (oldSocket) {
-          oldSocket.disconnect(true);
-        }
-      }
+      // // Handle reconnection
+      // const existingSocketId = this.userSockets.get(socketUser.id);
+      // if (existingSocketId && existingSocketId !== client.id) {
+      //   // Disconnect old socket
+      //   const oldSocket = this.server.sockets.sockets.get(existingSocketId);
+      //   if (oldSocket) {
+      //     oldSocket.disconnect(true);
+      //   }
+      // }
 
-      this.connectedUsers.set(client.id, user);
-      this.userSockets.set(socketUser.id, client.id);
-      this.socketUsers.set(client.id, socketUser.id);
+      // this.connectedUsers.set(client.id, user);
+      // this.userSockets.set(socketUser.id, client.id);
+      // this.socketUsers.set(client.id, socketUser.id);
 
-      // Join user to their personal room
-      await client.join(`user:${socketUser.id}`);
+      // // Join user to their personal room
+      // await client.join(`user:${socketUser.id}`);
 
-      this.logger.log(
-        `User ${socketUser.id} connected with socket ${client.id}`,
-      );
+      // this.logger.log(
+      //   `User ${socketUser.id} connected with socket ${client.id}`,
+      // );
 
-      // Notify others about user joining
-      client.broadcast.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
+      // // Notify others about user joining
+      // client.broadcast.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
 
-      // Send connection success response
-      client.emit(
-        SOCKET_EVENTS.CONNECTION.CONNECT,
-        this.createResponse(true, {
-          user,
-          serverTime: new Date(),
-        }),
-      );
+      // // Send connection success response
+      // client.emit(
+      //   SOCKET_EVENTS.CONNECTION.CONNECT,
+      //   this.createResponse(true, {
+      //     user,
+      //     serverTime: new Date(),
+      //   }),
+      // );
     } catch (error) {
       this.logger.error(`Connection error: ${error.message}`);
       client.disconnect(true);
@@ -140,11 +145,12 @@ export abstract class BaseSocketGateway
 
     if (!token) {
       this.logger.warn(`No auth token provided for socket ${client.id}`);
-      return null;
+      throw new BadGatewayException("Unauthorized")
     }
 
     try {
-      // Implement your JWT/auth validation here
+      const user = await this.jwtService.verifyAsync(token)
+      console.log('verify: ', user)
       // we have to find user from db by their id and return it but for now let's return dammy
       return {
         id: "0",
@@ -312,7 +318,7 @@ export abstract class BaseSocketGateway
   }
 
   // Abstract methods to be implemented by derived classes
-  protected abstract setupRedis(): void;
+  // protected abstract setupRedis(): void;
 
   private setupRateLimiting(): void {
     // Clean up rate limit store every 5 minutes

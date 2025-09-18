@@ -57,10 +57,7 @@ async function bootstrap() {
 
   const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5056", 10);
 
-  await app.listen(
-    port,
-    () => console.info(`PORT=${port}`),
-  );
+  await app.listen(port);
 }
 
 void bootstrap();

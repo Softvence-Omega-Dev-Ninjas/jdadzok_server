@@ -14,7 +14,7 @@ export type OtpOptions = {
 };
 
 export type OtpRedisData = {
-  token: number;
+  token: string;
   attempt: number;
   expireAt: string;
   userId: string;
@@ -24,5 +24,5 @@ export type OtpRedisData = {
 export type OtpVerifyPayload = {
   userId: string;
   type: OtpType;
-  token: number;
+  token: string;
 };

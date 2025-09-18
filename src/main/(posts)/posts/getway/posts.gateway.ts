@@ -1,26 +1,34 @@
 import { PostComment, PostEvent, PostReaction } from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
+import { Injectable } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
 } from "@nestjs/websockets";
+import { JwtServices } from "@project/services/jwt.service";
 import { Socket } from "socket.io";
 import { PostService } from "../posts.service";
 
-@WebSocketGateway()
+@WebSocketGateway(
+  {
+    namespace: "/posts"
+  }
+)
+@Injectable()
 export class PostGateway extends BaseSocketGateway {
-  constructor(private readonly postService: PostService) {
-    super()
+  constructor(private readonly postService: PostService, private readonly jwt: JwtServices) {
+    super(jwt)
   }
 
   @SubscribeMessage(SOCKET_EVENTS.POST.CREATE)
   async handlePostCreate(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: Omit<PostEvent, "eventId" | "timestamp" | "userId">,
+    @MessageBody() data: PostEvent,
   ) {
+    this.handleConnection(client);
     console.log('body: ', data)
     console.log('client post: ', client)
 
@@ -52,20 +60,21 @@ export class PostGateway extends BaseSocketGateway {
     };
 
     // Create a room for this post for comments and reactions
-    const postRoomId = `post:${data.postId}`;
-    await this.joinRoom(client, postRoomId, {
-      name: `Post ${data.postId}`,
-      type: "post",
-    });
+    // const postRoomId = `post:${data.postId}`;
+    // await this.joinRoom(client, postRoomId, {
+    //   name: `Post ${data.postId}`,
+    //   type: "post",
+    // });
 
-    // Broadcast new post to all users
-    this.broadcastToAll(SOCKET_EVENTS.POST.CREATE, postEvent, client.id);
+    // // Broadcast new post to all users
+    // this.broadcastToAll(SOCKET_EVENTS.POST.CREATE, postEvent, client.id);
 
-    client.emit(
-      SOCKET_EVENTS.POST.CREATE,
-      this.createResponse(true, postEvent),
-    );
+    // client.emit(
+    //   SOCKET_EVENTS.POST.CREATE,
+    //   this.createResponse(true, postEvent),
+    // );
     // this.logger.log(`Post created by user ${userId}: ${data.postId}`);
+    this.logger.log(`Post created by`);
   }
 
   @SubscribeMessage(SOCKET_EVENTS.POST.LIKE)
@@ -139,9 +148,5 @@ export class PostGateway extends BaseSocketGateway {
       this.createResponse(true, commentEvent),
     );
     this.logger.log(`Comment added to post ${data.postId} by user ${userId}`);
-  }
-
-  protected setupRedis(): void {
-    this.logger.log("Setting up Redis for post gateway");
   }
 }
