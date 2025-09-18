@@ -21,4 +21,4 @@ import { PostModule } from "./posts/posts.module";
   providers: [],
   exports: [],
 })
-export class PostsGroupModule { }
+export class PostsGroupModule {}

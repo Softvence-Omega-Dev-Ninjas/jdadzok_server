@@ -9,4 +9,4 @@ import { CommentService } from "./comment.service";
   providers: [CommentRepository, CommentService],
   exports: [CommentRepository],
 })
-export class CommentModule { }
+export class CommentModule {}

@@ -28,8 +28,8 @@ import { PostService } from "./posts.service";
     UserRepository,
     UserProfileRepository,
     FollowRepository,
-    PostGateway
+    PostGateway,
   ],
   exports: [PostRepository],
 })
-export class PostModule { }
+export class PostModule {}

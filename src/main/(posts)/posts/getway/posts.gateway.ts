@@ -12,15 +12,16 @@ import { JwtServices } from "@project/services/jwt.service";
 import { Socket } from "socket.io";
 import { PostService } from "../posts.service";
 
-@WebSocketGateway(
-  {
-    namespace: "/posts"
-  }
-)
+@WebSocketGateway({
+  namespace: "/posts",
+})
 @Injectable()
 export class PostGateway extends BaseSocketGateway {
-  constructor(private readonly postService: PostService, private readonly jwt: JwtServices) {
-    super(jwt)
+  constructor(
+    private readonly postService: PostService,
+    private readonly jwt: JwtServices,
+  ) {
+    super(jwt);
   }
 
   @SubscribeMessage(SOCKET_EVENTS.POST.CREATE)
@@ -29,8 +30,8 @@ export class PostGateway extends BaseSocketGateway {
     @MessageBody() data: PostEvent,
   ) {
     this.handleConnection(client);
-    console.log('body: ', data)
-    console.log('client post: ', client)
+
+    console.info(data);
 
     // const userId = this.getUserId(client.id);
     // if (!userId) {
@@ -51,13 +52,13 @@ export class PostGateway extends BaseSocketGateway {
     //   return;
     // }
 
-    const postEvent: PostEvent = {
-      ...data,
-      eventId: `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date(),
-      userId: "",
-      action: "create",
-    };
+    // const postEvent: PostEvent = {
+    //   ...data,
+    //   eventId: `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    //   timestamp: new Date(),
+    //   userId: "",
+    //   action: "create",
+    // };
 
     // Create a room for this post for comments and reactions
     // const postRoomId = `post:${data.postId}`;

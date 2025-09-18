@@ -89,8 +89,8 @@ export class S3Service {
 
       // Store in Redis if small file
       if (isSmallFile && fileHash) {
-        const key = generateRedisKey("S3FileHash", fileHash)
-        await this.redisService.set(key, result, "1d")
+        const key = generateRedisKey("S3FileHash", fileHash);
+        await this.redisService.set(key, result, "1d");
       }
 
       return result;

@@ -32,4 +32,4 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
   ],
   exports: [AuthRepository, AuthService, JwtModule, JwtStrategy],
 })
-export class AuthModule { }
+export class AuthModule {}

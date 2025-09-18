@@ -77,7 +77,6 @@ export class UserRepository {
         posts: true,
         products: true,
         wishlist: true,
-        userChoices: true,
       },
     });
   }

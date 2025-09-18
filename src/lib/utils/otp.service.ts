@@ -1,4 +1,3 @@
-
 import { TTL } from "@constants/ttl.constants";
 import { RedisService } from "@module/(sockets)/services/redis.service";
 import { ForbiddenException, Injectable } from "@nestjs/common";
@@ -8,19 +7,23 @@ import {
   OtpPayload,
   OtpRedisData,
   OtpType,
-  OtpVerifyPayload
+  OtpVerifyPayload,
 } from "./otp.types";
 
 @Injectable()
 export class OptService {
-  constructor(private readonly redisService: RedisService) { }
+  constructor(private readonly redisService: RedisService) {}
 
   private getRedisKeyByType(type: OtpType, suffix: string) {
     switch (type) {
       case "RESET_PASSWORD":
-        return suffix ? `RESET_PASSWORD_TOKEN:${suffix}` : "RESET_PASSWORD_TOKEN";
+        return suffix
+          ? `RESET_PASSWORD_TOKEN:${suffix}`
+          : "RESET_PASSWORD_TOKEN";
       case "EMAIL_VERIFICATION":
-        return suffix ? `EMAIL_VERIFICATION_TOKEN:${suffix}` : "EMAIL_VERIFICATION_TOKEN";
+        return suffix
+          ? `EMAIL_VERIFICATION_TOKEN:${suffix}`
+          : "EMAIL_VERIFICATION_TOKEN";
       default:
         throw new Error(`Unsupported OTP type: ${type}`);
     }
@@ -47,14 +50,14 @@ export class OptService {
     ).toISOString();
 
     const data: OtpRedisData = {
-      token: JSON.stringify(token),
+      token: token.toString(),
       attempt: 0,
       expireAt,
       userId,
       email,
     };
 
-    await this.redisService.set(redisKey, data);
+    await this.redisService.set(redisKey, data, "1m");
     return data;
   }
 
@@ -86,7 +89,7 @@ export class OptService {
           ...data,
           attempt: data.attempt + 1,
         },
-        "1m" // TODO: need to be add minimum 10m
+        "1m", // TODO: need to be add minimum 10m
       ); // Keep the remaining TTL
 
       throw new ForbiddenException("Wrong OTP");

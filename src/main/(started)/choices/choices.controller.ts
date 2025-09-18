@@ -3,34 +3,27 @@ import {
   GetVerifiedUser,
   MakePublic,
 } from "@common/jwt/jwt.decorator";
-import { successResponse } from "@common/utils/response.util";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiOperation } from "@nestjs/swagger";
+import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
+import { successResponse } from "@project/common/utils/response.util";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth";
+import { CreateUserChoiceDto } from "../user-choice/dto/user-choice.dto";
 import { ChoicesService } from "./choices.service";
-import { CreateChoiceDto } from "./dto/choices.create.dto";
-import { choicesBodyOptions } from "./example";
 
 @Controller("choices")
 export class ChoicesController {
   constructor(private readonly choicesService: ChoicesService) {}
 
   @ApiBearerAuth()
-  @ApiBody(choicesBodyOptions)
   @Post()
   @UseGuards(JwtAuthGuard)
-  async assignChoices(@GetUser() user: TUser, @Body() dtos: CreateChoiceDto[]) {
+  async assignChoices(
+    @GetUser() user: TUser,
+    @Body() dtos: CreateUserChoiceDto,
+  ) {
     try {
-      const choice = await this.choicesService.assignChoices(user.userId, dtos);
+      const choice = await this.choicesService.assignChoices(dtos, user.userId);
       return successResponse(choice, "Your choice accepted");
     } catch (err) {
       return err;
@@ -48,17 +41,17 @@ export class ChoicesController {
     }
   }
 
-  @ApiBearerAuth()
-  @Delete(":slug")
-  @UseGuards(JwtAuthGuard)
-  async removeChoice(@GetUser() user: TUser, @Param("slug") slug: string) {
-    try {
-      await this.choicesService.removeChoice(user.userId, slug);
-      return "Choice delete success";
-    } catch (err) {
-      return err;
-    }
-  }
+  // @ApiBearerAuth()
+  // @Delete(":slug")
+  // @UseGuards(JwtAuthGuard)
+  // async removeChoice(@GetUser() user: TUser, @Param("slug") slug: string) {
+  //   try {
+  //     await this.choicesService.removeChoice(user.userId, slug);
+  //     return "Choice delete success";
+  //   } catch (err) {
+  //     return err;
+  //   }
+  // }
 
   @ApiOperation({ summary: "Get all choices for user selection" })
   @MakePublic()
