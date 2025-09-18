@@ -6,7 +6,8 @@ import {
   OnModuleInit,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import Redis from "ioredis";
+import { TTL, TTLKey } from "@project/constants/ttl.constants";
+import Redis, { RedisOptions } from "ioredis";
 import { SocketRoom, SocketUser, UserStatus } from "../@types";
 
 @Injectable()
@@ -16,7 +17,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private redisSubscriber: Redis;
   private redisPublisher: Redis;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   async onModuleInit() {
     await this.connect();
@@ -28,17 +29,20 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   private async connect() {
     try {
-      const redisConfig = {
+      const redisConfig: RedisOptions = {
         host: this.configService.getOrThrow(ENVEnum.REDIS_HOST),
         port: this.configService.getOrThrow(ENVEnum.REDIS_PORT),
-        password: process.env.REDIS_PASSWORD || "",
+        password: this.configService.get(ENVEnum.REDIS_PASS) || "",
+        username: this.configService.get(ENVEnum.REDIS_USER) || "",
         db: parseInt(process.env.REDIS_DB || "0"),
-        retryDelayOnFailover: 100,
         enableReadyCheck: true,
         maxRetriesPerRequest: 3,
         lazyConnect: true,
         keepAlive: 30000,
-      };
+        tls: {
+          rejectUnauthorized: false
+        }
+      }
 
       // Main Redis client for general operations
       this.redisClient = new Redis(redisConfig);
@@ -95,6 +99,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       id: user.id,
       socketId: user.socketId,
       username: user.username || "",
+      role: user.role,
       avatar: user.avatar || "",
       status: user.status,
       joinedAt: user.joinedAt.toISOString(),
@@ -336,8 +341,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     await this.redisClient.setex(key, expirySeconds, value);
   }
 
-  async get(key: string): Promise<string | null> {
-    return await this.redisClient.get(key);
+  async get<T = any>(key: string): Promise<T | null> {
+    const data = await this.redisClient.get(key);
+    if (!data) return null;
+    return JSON.parse(data)
+  }
+
+  async set<T = any>(key: string, value: T, ttlKey?: TTLKey) {
+    await this.redisClient.set(key, JSON.stringify(value))
+
+    if (ttlKey) {
+      await this.redisClient.expire(key, TTL[ttlKey]); // Convert ms to seconds for Redis
+    }
   }
 
   async del(key: string): Promise<void> {

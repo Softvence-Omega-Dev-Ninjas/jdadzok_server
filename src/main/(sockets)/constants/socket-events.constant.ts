@@ -18,6 +18,10 @@ export const SOCKET_EVENTS = {
     MESSAGE_EDIT: "chat:message:edit",
   },
 
+  MARKETPLACE: {
+    CREATE_PRODUCT: "create:product"
+  },
+
   // Post Events
   POST: {
     CREATE: "post:create",
@@ -74,3 +78,4 @@ export const SOCKET_EVENTS = {
     SERVER_ERROR: "error:server",
   },
 } as const;
+export type T_SOCKET_EVENTS = typeof SOCKET_EVENTS

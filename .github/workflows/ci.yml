@@ -1,4 +1,5 @@
 name: CI Pipeline
+
 on:
   push:
     branches:
@@ -72,7 +73,7 @@ jobs:
         run: npm install
 
       - name: 🧹 Run Lint
-        run: npm run lint
+        run: npm run lint $USERNAME
 
       - name: ✅ Format Check
         run: npm run format

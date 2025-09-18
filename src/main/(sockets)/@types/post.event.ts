@@ -1,11 +1,10 @@
+import { CreatePostDto } from "@project/main/(posts)/posts/dto/create.post.dto";
 import { BaseSocketEvent } from "./base.types";
 
 // Post Events
 export interface PostEvent extends BaseSocketEvent {
-  postId: string;
   action: "create" | "update" | "delete";
-  content?: string;
-  media?: string[];
+  content?: CreatePostDto;
 }
 
 export interface PostReaction extends BaseSocketEvent {

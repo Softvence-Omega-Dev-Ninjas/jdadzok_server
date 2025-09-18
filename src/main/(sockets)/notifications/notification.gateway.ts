@@ -6,8 +6,8 @@ import {
 } from "@nestjs/websockets";
 import { Socket } from "socket.io";
 import { NotificationEvent } from "../@types";
+import { BaseSocketGateway } from "../base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "../constants/socket-events.constant";
-import { BaseSocketGateway } from "../shared/gateways/base-socket.gateway";
 
 @WebSocketGateway()
 export class NotificationGateway extends BaseSocketGateway {
