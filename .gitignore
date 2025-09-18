@@ -84,3 +84,4 @@ jdadzok.pem
 
 jdadzok deploy.pem
 nginx
+.env.production

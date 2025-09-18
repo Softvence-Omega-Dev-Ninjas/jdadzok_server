@@ -73,22 +73,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "${PG_PORT}:${PG_PORT}"
-    # Add health check for database
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:$PORT/ || exit 1"]
-      interval: 30s
-      timeout: 15s
-      retries: 5
-      start_period: 40s
-    # Add resource limits
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 256M
     # Add logging
     logging:
       driver: "json-file"
