@@ -2,6 +2,7 @@ services:
   app:
     profiles:
       - prod
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile
