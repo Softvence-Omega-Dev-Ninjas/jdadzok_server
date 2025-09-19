@@ -29,7 +29,6 @@ class FeedAlgorithm {
     const hoursAgo =
       (Date.now() - new Date(post.createdAt).getTime()) / (1000 * 60 * 60);
     score -= Math.floor(hoursAgo / 2); // lose 1 point every 2 hours
-
     return score;
   }
 }
