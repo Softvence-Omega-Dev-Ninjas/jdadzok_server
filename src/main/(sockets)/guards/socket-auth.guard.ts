@@ -18,7 +18,7 @@ export class SocketAuthGuard implements CanActivate {
   public static validateToken(client: Socket) {
     // validate token
     const auth = client.handshake.auth ?? client.handshake.headers;
-    console.info("auth: ", auth)
+    console.info("auth: ", auth);
 
     // extract token validate token here and then return the payload/decoded data
   }
