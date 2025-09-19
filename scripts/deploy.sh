@@ -60,7 +60,8 @@ health_check() {
       ok "Container $container is healthy"; return 0
     fi
     warn "Attempt $attempt/$HEALTH_RETRIES failed, retrying in ${HEALTH_TIMEOUT}s..."
-    sleep "$HEALTH_TIMEOUT"; attempt=$((attempt+1))
+    sleep "$HEALTH_TIMEOUT"
+    attempt=$((attempt+1))
   done
   err "Health check failed"; return 1
 }
@@ -68,12 +69,15 @@ health_check() {
 cleanup() {
   local c=$1
   if docker ps -a --format "{{.Names}}" | grep -q "^$c$"; then
-    log "Stopping/removing $c"; docker stop "$c" || true; docker rm "$c" || true
+    log "Stopping/removing $c"
+    docker stop "$c" || true
+    docker rm "$c" || true
   fi
 }
 
 rollback() {
-  local cur=$(current_version) prev=$(previous_version)
+  local cur=$(current_version)
+  local prev=$(previous_version)
   [ "$prev" = "none" ] && { err "No previous version"; return 1; }
   warn "Rolling back $cur → $prev"
   cleanup "${PACKAGE_NAME}_api"
@@ -81,36 +85,45 @@ rollback() {
 }
 
 deploy() {
-  local v=$1 image="${DOCKER_USERNAME}/${PACKAGE_NAME}:${v}"
-  local new="${PACKAGE_NAME}_api" old="${PACKAGE_NAME}_api_old"
+  local v="${1:?No version specified}"  # ensures v is never empty
+  local image="${DOCKER_USERNAME}/${PACKAGE_NAME}:${v}"
+  local new="${PACKAGE_NAME}_api"
+  local old="${PACKAGE_NAME}_api_old"
 
   log "Deploying version $v (image=$image)"
 
-  # pull or build
+  # Pull from registry or build locally
   if ! docker pull "$image"; then
-    warn "Image not in registry, building with docker compose..."
+    warn "Image not found in registry, building with docker compose..."
     [ -f .env ] && sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=$v/" .env
     docker compose --profile prod up -d app || { err "Local build failed"; return 1; }
-    save_version "$v"; return 0
+    save_version "$v"
+    return 0
   fi
 
-  # rename running → old
+  # Rename running container → old
   if docker ps --format "{{.Names}}" | grep -q "^$new$"; then
-    log "Renaming $new → $old"; docker rename "$new" "$old" || true
+    log "Renaming $new → $old"
+    docker rename "$new" "$old" || true
   fi
 
-  # run new
+  # Run new container
   docker run -d --name "$new" -p "$PORT:$PORT" --env-file .env "$image"
 
   sleep 10
   if health_check "$new"; then
-    cleanup "$old"; save_version "$v"; ok "Deployment $v successful"
+    cleanup "$old"
+    save_version "$v"
+    ok "Deployment $v successful"
   else
     err "New version unhealthy, rolling back..."
     cleanup "$new"
-    [ "$(docker ps -a --format "{{.Names}}" | grep -q "^$old$" && echo yes)" = "yes" ] && {
-      log "Restoring $old → $new"; docker rename "$old" "$new"; docker start "$new"; sleep 5
-    }
+    if docker ps -a --format "{{.Names}}" | grep -q "^$old$"; then
+      log "Restoring $old → $new"
+      docker rename "$old" "$new"
+      docker start "$new"
+      sleep 5
+    fi
     return 1
   fi
 }
@@ -119,8 +132,10 @@ status() {
   echo "=== Deployment Status ==="
   echo "Current: $(current_version)"
   echo "Previous: $(previous_version)"
-  echo "Containers:"; docker ps --filter "name=${PACKAGE_NAME}" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
-  echo "Health:"; curl -fs "$HEALTH_ENDPOINT" | grep -q '"status":"ok"' && echo "✅ ok" || echo "❌ fail"
+  echo "Containers:"
+  docker ps --filter "name=${PACKAGE_NAME}" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+  echo "Health:"
+  curl -fs "$HEALTH_ENDPOINT" | grep -q '"status":"ok"' && echo "✅ ok" || echo "❌ fail"
   [ -f "$VERSION_FILE" ] && { echo "History:"; tail -n5 "$VERSION_FILE" | nl -s'. '; }
 }
 
@@ -128,8 +143,19 @@ status() {
 # CLI entrypoint
 # ================================
 case "${1:-}" in
-  --version) [ -z "${2:-}" ] && usage; deploy "$2" || rollback ;;
-  --rollback) rollback ;;
-  status) status ;;
-  *) usage ;;
+  --version)
+    if [ -z "${2:-}" ]; then
+      usage
+    fi
+    deploy "$2"
+    ;;
+  --rollback)
+    rollback
+    ;;
+  status)
+    status
+    ;;
+  *)
+    usage
+    ;;
 esac
