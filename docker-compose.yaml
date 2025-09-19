@@ -68,19 +68,23 @@ services:
       POSTGRES_USER: ${PG_USERNAME}
       POSTGRES_PASSWORD: ${PG_PASSWORD}
       POSTGRES_DB: ${PG_DATABASE}
-      # Add these for better performance
       POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "${PG_PORT}:${PG_PORT}"
-    # Add logging
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-
+    healthcheck:
+      test:
+        ["CMD", "pg_isready", "-U", "${PG_USERNAME}", "-d", "${PG_DATABASE}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
   redis:
     image: redis:7-alpine # Use Alpine version for smaller size
     container_name: ${REDIS_CONTAINER}
