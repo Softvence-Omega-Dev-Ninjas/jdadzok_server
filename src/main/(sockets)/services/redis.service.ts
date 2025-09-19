@@ -30,8 +30,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private async connect() {
     try {
       const redisConfig: RedisOptions = {
-        host: this.configService.getOrThrow(ENVEnum.REDIS_HOST),
-        port: this.configService.getOrThrow(ENVEnum.REDIS_PORT),
+        host: "redis",
+        port: 6379,
         password: this.configService.get(ENVEnum.REDIS_PASS) || "",
         username: this.configService.get(ENVEnum.REDIS_USER) || "",
         db: parseInt(process.env.REDIS_DB || "0"),
@@ -45,7 +45,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       };
 
       // Main Redis client for general operations
-      this.redisClient = new Redis(6379, 'redis');
+      this.redisClient = new Redis(6379, "redis");
 
       // Separate clients for pub/sub (recommended by Redis)
       this.redisSubscriber = new Redis(redisConfig);
