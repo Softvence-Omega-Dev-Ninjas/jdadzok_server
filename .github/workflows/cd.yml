@@ -63,32 +63,21 @@ jobs:
           echo "Docker image: $IMAGE_TAG"
           echo "✅ Environment variables are accessible"
 
-      - name: Verify Build Outputs 🔍
-        run: |
-          echo "🔍 Verifying build job outputs..."
-          echo "=== BUILD JOB OUTPUTS ==="
-          echo "package_name: '$PACKAGE_NAME'"
-          echo "package_version: '$PACKAGE_VERSION'"
-          echo "image_tag: '$IMAGE_TAG'"
-          if [ -z "$PACKAGE_TAG" ]; then
-            echo "⚠️ IMAGE_TAG is empty, using hardcoded fallback in deployment"
-          else
-            echo "✅ IMAGE_TAG is set to '$PACKAGE_TAG'"
-          fi
-          echo "========================="
-
       - name: Setup SSH 🔐
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
+          # Write private key
           echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-          ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
+          # Add server host key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-          cat <<EOF > ~/.ssh/config
+          # Clean SSH config
+          cat > ~/.ssh/config <<EOF
           Host deploy-server
             HostName ${{ secrets.VPS_HOST }}
             User ${{ secrets.VPS_USER }}
@@ -98,22 +87,19 @@ jobs:
 
           chmod 600 ~/.ssh/config
 
-      - name: Test SSH Connection
+      - name: Test SSH Connection ✅
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo '✅ SSH Connected'"
+          ssh deploy-server "echo '🎉 SSH Connected Successfully!'"
 
       - name: Copy Files to Server 📦
         run: |
           echo "Creating directories..."
-          chmod 600 ~/.ssh/deploy_key
           ssh deploy-server "mkdir -p ~/$PACKAGE_NAME/scripts"
           echo "Copying files..."
-
-          scp -i ~/.ssh/deploy_key docker-compose.yaml $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
-          scp -i ~/.ssh/deploy_key .env  $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
-          scp -i ~/.ssh/deploy_key Dockerfile $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
-          scp -i ~/.ssh/deploy_key -r scripts $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
-
+          scp docker-compose.yaml deploy-server:~/$PACKAGE_NAME/
+          scp .env deploy-server:~/$PACKAGE_NAME/
+          scp Dockerfile deploy-server:~/$PACKAGE_NAME/
+          scp -r scripts deploy-server:~/$PACKAGE_NAME/
           echo "✅ Files copied successfully"
 
       - name: Fix permissions on server 🌋
@@ -122,22 +108,10 @@ jobs:
 
       - name: Deploy Application 🚀
         run: |
-          echo "Starting deployment..."
-          echo "Package: ${{secrets.PACKAGE_NAME}}"
-          echo "Version: ${{secrets.PACKAGE_VERSION}}"
-          echo "Image Tag: ${{secrets.IMAGE_TAG}}"
-          cat .env  # Debug: show .env contents
-
-          chmod 600 ~/.ssh/deploy_key
-
           ssh deploy-server bash << 'DEPLOY_EOF'
           set -e
 
           echo "=== DEPLOYMENT STARTED ==="
-          echo "Package:  ${{secrets.PACKAGE_NAME}}"
-          echo "Version:  ${{secrets.PACKAGE_NAME}}"
-          echo "=============================="
-
           cd ~/${{secrets.PACKAGE_NAME}}
 
           # Install Docker Compose if needed
@@ -149,13 +123,11 @@ jobs:
           fi
 
           # Login to Docker Hub
-          echo "Logging into Docker Hub..."
           echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
 
           # Source environment variables
           if [ -f .env ]; then
             echo "Sourcing .env file..."
-            cat .env  # Debug: show .env contents on server
             source .env
           else
             echo "❌ .env file not found"
@@ -167,11 +139,10 @@ jobs:
           if ./scripts/deploy.sh --version "${{secrets.PACKAGE_VERSION}}"; then
             echo "✅ Deployment successful"
           else
-            echo "❌ Deployment failed - automatic rollback should have occurred"
+            echo "❌ Deployment failed"
             exit 1
           fi
 
-          # Cleanup
           docker logout
           docker image prune -f
 
@@ -180,7 +151,6 @@ jobs:
 
       - name: Verify Deployment ✅
         run: |
-          echo "Verifying deployment..."
           ssh deploy-server bash << 'VERIFY_EOF'
           cd ~/${{secrets.PACKAGE_NAME}}
 
@@ -195,7 +165,6 @@ jobs:
             exit 1
           fi
 
-          echo "=== Final verification ==="
           echo "Deployment verified successfully!"
           VERIFY_EOF
 
