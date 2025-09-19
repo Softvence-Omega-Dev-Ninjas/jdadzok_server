@@ -82,7 +82,7 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          echo "${{secrets.VPS_SSH_PRIVATE_KEY}}" > ~/.ssh/deploy_key
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
           ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
@@ -90,18 +90,17 @@ jobs:
 
           cat <<EOF > ~/.ssh/config
           Host deploy-server
-            HostName $VPS_HOST
-            User $VPS_USER
+            HostName ${{ secrets.VPS_HOST }}
+            User ${{ secrets.VPS_USER }}
             IdentityFile ~/.ssh/deploy_key
             StrictHostKeyChecking no
           EOF
+
           chmod 600 ~/.ssh/config
 
-      - name: Debug SSH key
+      - name: Test SSH Connection
         run: |
-          echo "-----BEGIN KEY-----"
-          head -n 10 ~/.ssh/deploy_key
-          echo "-----END KEY-----"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo '✅ SSH Connected'"
 
       - name: Copy Files to Server 📦
         run: |
