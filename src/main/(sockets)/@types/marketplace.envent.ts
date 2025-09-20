@@ -6,3 +6,5 @@ export interface marketplaceEvent extends BaseSocketEvent {
     content: CreateProductDto,
     userId: string
 }
+
+

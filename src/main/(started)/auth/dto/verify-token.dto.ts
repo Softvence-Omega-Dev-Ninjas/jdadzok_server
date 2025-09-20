@@ -14,4 +14,4 @@ class VerifyToken {
   @IsUUID()
   userId: string;
 }
-export class VerifyTokenDto extends IntersectionType(VerifyToken) { }
+export class VerifyTokenDto extends IntersectionType(VerifyToken) {}

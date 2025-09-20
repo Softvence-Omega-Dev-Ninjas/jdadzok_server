@@ -1,9 +1,9 @@
 model CommunityFollower {
   id String @id @default(uuid())
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   communityId String
 
   createdAt DateTime @default(now())

@@ -31,3 +31,4 @@ export class ProductCategoryService {
     //     return await this.prisma.productCategory.delete({where:{id}})
     // }
 }
+

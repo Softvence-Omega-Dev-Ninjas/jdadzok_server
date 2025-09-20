@@ -1,29 +1,29 @@
 model Message {
   id String @id @default(uuid())
-  
+
   // Chat this message belongs to
   chatId String
   chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  
+
   // Message sender
   senderId String
   sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  
+
   // Message content
-  content   String?   @db.Text // Text content
-  mediaUrl  String?   // Attached media URL
+  content   String?    @db.Text // Text content
+  mediaUrl  String? // Attached media URL
   mediaType MediaType? // Type of attached media
-  
+
   status MessageStatus @default(SENT) // Message delivery status
-  
+
   // Message read receipts
   readBy MessageRead[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  @@map("messages")
+
   @@index([chatId])
   @@index([senderId])
   @@index([createdAt])
+  @@map("messages")
 }

@@ -88,14 +88,19 @@ jobs:
         if: always()
         run: rm -f "${{ github.workspace }}/.env"
 
-  build-test:
-    name: 🧪 Docker Image Build
-    runs-on: ubuntu-latest
+  build-and-push:
+    name: Build & Push Docker Image 🏗️
     needs: lint-test
+    runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout Code 📥
         uses: actions/checkout@v4
+
+      - name: Set up NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
 
       - name: 🔧 Setup and load environment
         uses: ./.github/actions/setup-and-load-env
@@ -136,6 +141,7 @@ jobs:
           GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
 
       - name: 📋 Verify environment variables
         run: |
@@ -144,11 +150,33 @@ jobs:
           echo "Docker image: $IMAGE_TAG"
           echo "✅ Environment variables are accessible"
 
-      - name: 🐳 Build Docker Image
+      - name: Log in to Docker Hub 🔑
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          docker compose --profile prod build
-          echo "✅ Docker image build with version v$PACKAGE_VERSION success 🤝!"
+          echo "🔑 Logging into Docker Hub..."
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          echo "✅ Successfully logged into Docker Hub"
 
-      - name: 🧹 Clean up .env
-        if: always()
-        run: rm -f "${{ github.workspace }}/.env"
+      - name: Build Docker Image 🔨
+        run: |
+          echo "Building Docker image: $IMAGE_TAG"
+          docker compose --profile prod build
+          if [ $? -eq 0 ]; then
+            echo "✅ Docker image built successfully"
+          else
+            echo "❌ Failed to build Docker image"
+            exit 1
+          fi
+
+      - name: Push Docker Image 🚀
+        run: |
+          echo "Pushing Docker image: $IMAGE_TAG"
+          docker compose --profile prod push
+          if [ $? -eq 0 ]; then
+            echo "✅ Docker image $IMAGE_TAG pushed successfully!"
+          else
+            echo "❌ Failed to push Docker image"
+            exit 1
+          fi
