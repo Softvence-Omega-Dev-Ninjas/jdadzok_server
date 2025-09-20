@@ -7,27 +7,30 @@ import {
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateProductDto, updateProductDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
-import { error } from "console";
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
   // create product new product
   async create(userId: string, dto: CreateProductDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      throw new BadRequestException("Unauthorized Access")
+      throw new BadRequestException("Unauthorized Access");
     }
-    const product = await this.prisma.product.findFirst({ where: { title: dto.title } })
+    const product = await this.prisma.product.findFirst({
+      where: { title: dto.title },
+    });
     if (product) {
-      throw new BadRequestException("This Product Already Exist.")
+      throw new BadRequestException("This Product Already Exist.");
     }
     const category = await this.prisma.productCategory.findUnique({
       where: { id: dto.categoryId },
     });
 
     if (!category) {
-      throw new BadRequestException("Invalid categoryId, category does not exist.");
+      throw new BadRequestException(
+        "Invalid categoryId, category does not exist.",
+      );
     }
     const { categoryId, ...rest } = dto;
     return await this.prisma.product.create({
@@ -43,9 +46,9 @@ export class ProductService {
   }
   // get all product...
   async findAll(userId: string, query?: ProductQueryDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      throw new BadRequestException("Unauthorized Access")
+      throw new BadRequestException("Unauthorized Access");
     }
     return this.prisma.product.findMany({
       where: {
@@ -66,9 +69,9 @@ export class ProductService {
   }
   // get a single product by id.
   async findOne(userId: string, id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      throw new BadRequestException("Unauthorized Access")
+      throw new BadRequestException("Unauthorized Access");
     }
     const product = await this.prisma.product.findUnique({
       where: { id },
@@ -85,31 +88,31 @@ export class ProductService {
 
   // update product with id
   async update(userId: string, id: string, dto: updateProductDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      throw new BadRequestException("Unauthorized Access")
+      throw new BadRequestException("Unauthorized Access");
     }
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
     if (product.sellerId !== userId) {
-      throw new ForbiddenException("Unauthorized Access.")
+      throw new ForbiddenException("Unauthorized Access.");
     }
     return this.prisma.product.update({
       where: { id },
       data: {
         sellerId: userId,
-        ...dto
+        ...dto,
       },
     });
   }
 
   // delete product...
   async remove(id: string, userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      throw new BadRequestException("Unauthorized Access")
+      throw new BadRequestException("Unauthorized Access");
     }
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) {
@@ -125,5 +128,4 @@ export class ProductService {
       where: { id },
     });
   }
-
 }

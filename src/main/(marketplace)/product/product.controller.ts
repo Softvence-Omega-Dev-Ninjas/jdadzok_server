@@ -13,7 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { GetUser } from "@project/common/jwt/jwt.decorator";
 import { handleRequest } from "@project/common/utils/handle.request.util";
 import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
-import { CreateProductDto,updateProductDto } from "./dto/product.dto";
+import { CreateProductDto, updateProductDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
 import { ProductService } from "./product.service";
 @ApiBearerAuth()
@@ -37,7 +37,10 @@ export class ProductController {
   @Get("/")
   @ApiOperation({ summary: "Get all products with filters" })
   @ApiResponse({ status: 200, description: "List of products" })
-  async findAll(@GetUser("userId") userId:string,@Query() query?: ProductQueryDto) {
+  async findAll(
+    @GetUser("userId") userId: string,
+    @Query() query?: ProductQueryDto,
+  ) {
     return handleRequest(
       () => this.service.findAll(userId, query),
       "Products fetched successfully",
@@ -47,18 +50,25 @@ export class ProductController {
   @Get(":id")
   @ApiOperation({ summary: "Get a single product by ID" })
   @ApiResponse({ status: 200, description: "Product details" })
-  async findOne(@GetUser("userId") userId:string,@Param("id") id: string) {
+  async findOne(@GetUser("userId") userId: string, @Param("id") id: string) {
     return handleRequest(
-      () => this.service.findOne(userId,id),
+      () => this.service.findOne(userId, id),
       "Get Single Product Successfully",
     );
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update a product by ID' })
-  @ApiResponse({ status: 200, description: 'Product updated successfully' })
-  async update(@GetUser("userId") userId:string,@Param('id') id: string, @Body() dto: updateProductDto) {
-      return handleRequest(() => this.service.update(userId, id, dto), 'Product updated successfully');
+  @Patch(":id")
+  @ApiOperation({ summary: "Update a product by ID" })
+  @ApiResponse({ status: 200, description: "Product updated successfully" })
+  async update(
+    @GetUser("userId") userId: string,
+    @Param("id") id: string,
+    @Body() dto: updateProductDto,
+  ) {
+    return handleRequest(
+      () => this.service.update(userId, id, dto),
+      "Product updated successfully",
+    );
   }
 
   @Delete(":id")
@@ -70,7 +80,6 @@ export class ProductController {
       "Product deleted successfully",
     );
   }
- 
 
   // Todo--------
   // # Marketplaces
