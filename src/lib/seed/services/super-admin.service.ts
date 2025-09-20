@@ -42,9 +42,7 @@ export class SuperAdminService implements OnModuleInit {
     if (!superAdminExists) {
       await this.createSuperAdminUser();
     } else {
-      this.logger.log(
-        chalk.bgGreen.white.bold(`🚀 Super Admin already exists`),
-      );
+      this.logger.log(`🚀 Super Admin already exists`);
     }
   }
 
@@ -75,7 +73,7 @@ export class SuperAdminService implements OnModuleInit {
       },
     });
 
-    this.logger.log(chalk.bgGreen.white.bold(`🚀 Super Admin created.`));
+    this.logger.debug(`🚀 Super Admin created.`);
   }
 
   private async hashPassword(password: string): Promise<string> {
@@ -91,9 +89,7 @@ export class SuperAdminService implements OnModuleInit {
     if (existingUsersCount <= 1) {
       await this.createUsers();
     } else {
-      console.info(
-        chalk.bgYellow.white.bold("⚠️ Users already exist, skipping seeding."),
-      );
+      this.logger.warn("⚠️ Users already exist, skipping seeding.");
     }
   }
 
