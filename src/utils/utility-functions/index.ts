@@ -1,3 +1,5 @@
+import { plainToInstance } from "class-transformer";
+import { validate, ValidationError } from "class-validator";
 import slug from "slugify";
 import { Socket } from "socket.io";
 import { ZodError, ZodSchema } from "zod";
@@ -77,4 +79,23 @@ export const getUserFromSocket = (
 
 export function generateRedisKey<T extends string>(key: T, suffix?: string) {
   return suffix ? `${key}:${suffix}` : key;
+}
+
+// ============ socket =========== //
+type SafeParseResult<D> =
+  | { success: true; data: D }
+  | { success: false; errors: ValidationError[] };
+
+export async function safeParseAsync<D extends object, I = unknown>(
+  dtoClass: new () => D,
+  input: I,
+): Promise<SafeParseResult<D>> {
+  const dtoInstance = plainToInstance(dtoClass, input);
+  const errors = await validate(dtoInstance);
+
+  if (errors.length > 0) {
+    return { success: false, errors };
+  }
+
+  return { success: true, data: dtoInstance };
 }

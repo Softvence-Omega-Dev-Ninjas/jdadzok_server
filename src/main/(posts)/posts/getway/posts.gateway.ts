@@ -1,80 +1,73 @@
-import { PostComment, PostEvent, PostReaction } from "@module/(sockets)/@types";
+import {
+  PostComment,
+  PostEvent,
+  PostReaction,
+  SocketUser,
+} from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
 import { Injectable } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
 } from "@nestjs/websockets";
+import { GetSocketUser } from "@project/main/(sockets)/ecorators/rate-limit.decorator";
+import { SocketMiddleware } from "@project/main/(sockets)/middleware/socket.middleware";
 import { JwtServices } from "@project/services/jwt.service";
+import { safeParseAsync } from "@project/utils";
 import { Socket } from "socket.io";
+import { CreatePostDto } from "../dto/create.post.dto";
 import { PostService } from "../posts.service";
 
 @WebSocketGateway({
   namespace: "/posts",
 })
 @Injectable()
-export class PostGateway extends BaseSocketGateway {
+export class PostGateway extends BaseSocketGateway implements OnGatewayInit {
   constructor(
     private readonly postService: PostService,
     private readonly jwt: JwtServices,
+    private readonly socketMiddleware: SocketMiddleware,
   ) {
     super(jwt);
   }
 
+  afterInit() {
+    this.server.use(this.socketMiddleware.authenticate());
+    this.server.use(this.socketMiddleware.rateLimit(1000, 10));
+    this.server.use(this.socketMiddleware.logging());
+  }
+
   @SubscribeMessage(SOCKET_EVENTS.POST.CREATE)
   async handlePostCreate(
+    @GetSocketUser() user: SocketUser,
     @ConnectedSocket() client: Socket,
     @MessageBody() data: PostEvent,
   ) {
-    this.handleConnection(client);
+    console.info("user: ", user);
+    const postEvent: PostEvent = {
+      ...data,
+      eventId: SOCKET_EVENTS.POST.CREATE,
+      timestamp: new Date(),
+      userId: user.id,
+      action: "create",
+    };
 
-    console.info(data);
+    // create post here...
+    const parse = await safeParseAsync(CreatePostDto, data);
+    console.info("parse: ", parse);
 
-    // const userId = this.getUserId(client.id);
-    // if (!userId) {
-    //   client.emit(
-    //     SOCKET_EVENTS.ERROR.UNAUTHORIZED,
-    //     this.createResponse(false, null, "User not authenticated"),
-    //   );
-    //   return;
-    // }
+    // Broadcast new post to all users (who is the follower)
+    this.broadcastToAll(SOCKET_EVENTS.POST.CREATE, postEvent, client.id);
 
-    // if (
-    //   !this.checkRateLimit(`post_create:${userId}`, RATE_LIMITS.POST_CREATE)
-    // ) {
-    //   client.emit(
-    //     SOCKET_EVENTS.ERROR.RATE_LIMIT,
-    //     this.createResponse(false, null, "Too many posts. Please wait."),
-    //   );
-    //   return;
-    // }
-
-    // const postEvent: PostEvent = {
-    //   ...data,
-    //   eventId: `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    //   timestamp: new Date(),
-    //   userId: "",
-    //   action: "create",
-    // };
-
-    // Create a room for this post for comments and reactions
-    // const postRoomId = `post:${data.postId}`;
-    // await this.joinRoom(client, postRoomId, {
-    //   name: `Post ${data.postId}`,
-    //   type: "post",
-    // });
-
-    // // Broadcast new post to all users
-    // this.broadcastToAll(SOCKET_EVENTS.POST.CREATE, postEvent, client.id);
-
-    // client.emit(
-    //   SOCKET_EVENTS.POST.CREATE,
-    //   this.createResponse(true, postEvent),
-    // );
-    // this.logger.log(`Post created by user ${userId}: ${data.postId}`);
+    client.emit(
+      SOCKET_EVENTS.POST.CREATE,
+      this.createResponse(true, postEvent),
+    );
+    this.logger.log(`Post created by user ${user.id}: HERE WILL BE POST ID`);
     this.logger.log(`Post created by`);
   }
 

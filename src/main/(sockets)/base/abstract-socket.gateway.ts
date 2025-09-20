@@ -5,7 +5,7 @@ import {
   SocketUser,
 } from "@module/(sockets)/@types";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
-import { BadGatewayException, Logger, UseGuards } from "@nestjs/common";
+import { Logger, UseGuards } from "@nestjs/common";
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -15,6 +15,7 @@ import {
 } from "@nestjs/websockets";
 import { JwtServices } from "@project/services/jwt.service";
 import { Server, Socket } from "socket.io";
+import { GetSocketUser } from "../ecorators/rate-limit.decorator";
 import { SocketAuthGuard } from "../guards/socket-auth.guard";
 
 @WebSocketGateway({
@@ -53,59 +54,56 @@ export abstract class BaseSocketGateway
     this.setupHeartbeat();
   }
 
-  async handleConnection(client: Socket) {
+  async handleConnection(@GetSocketUser() user: SocketUser, client: Socket) {
     try {
-      console.info("cliented connected");
-      // const socketUser = await this.extractUserFromSocket(client);
-      // console.log(socketUser)
-      // if (!socketUser?.id) {
-      //   client.disconnect(true);
-      //   return;
-      // }
+      if (!user?.id) {
+        client.disconnect(true);
+        return;
+      }
 
-      // const user: SocketUser = {
-      //   id: socketUser.id,
-      //   socketId: client.id,
-      //   status: "online",
-      //   role: socketUser.role,
-      //   joinedAt: new Date(),
-      // };
+      const socketUser: SocketUser = {
+        id: user.id,
+        socketId: client.id,
+        email: user.email,
+        status: "online",
+        role: user.role,
+        joinedAt: new Date(),
+      };
 
-      // // Handle reconnection
-      // const existingSocketId = this.userSockets.get(socketUser.id);
-      // if (existingSocketId && existingSocketId !== client.id) {
-      //   // Disconnect old socket
-      //   const oldSocket = this.server.sockets.sockets.get(existingSocketId);
-      //   if (oldSocket) {
-      //     oldSocket.disconnect(true);
-      //   }
-      // }
+      // Handle reconnection
+      const existingSocketId = this.userSockets.get(socketUser.id);
+      if (existingSocketId && existingSocketId !== client.id) {
+        // Disconnect old socket
+        const oldSocket = this.server.sockets.sockets.get(existingSocketId);
+        if (oldSocket) {
+          oldSocket.disconnect(true);
+        }
+      }
 
-      // this.connectedUsers.set(client.id, user);
-      // this.userSockets.set(socketUser.id, client.id);
-      // this.socketUsers.set(client.id, socketUser.id);
+      this.connectedUsers.set(client.id, user);
+      this.userSockets.set(socketUser.id, client.id);
+      this.socketUsers.set(client.id, socketUser.id);
 
-      // // Join user to their personal room
-      // await client.join(`user:${socketUser.id}`);
+      // Join user to their personal room
+      await client.join(`user:${socketUser.id}`);
 
-      // this.logger.log(
-      //   `User ${socketUser.id} connected with socket ${client.id}`,
-      // );
+      this.logger.log(
+        `User ${socketUser.email} connected with socket ${client.id}`,
+      );
 
-      // // Notify others about user joining
-      // client.broadcast.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
+      // Notify others about user joining
+      client.broadcast.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
 
-      // // Send connection success response
-      // client.emit(
-      //   SOCKET_EVENTS.CONNECTION.CONNECT,
-      //   this.createResponse(true, {
-      //     user,
-      //     serverTime: new Date(),
-      //   }),
-      // );
+      // Send connection success response
+      client.emit(
+        SOCKET_EVENTS.CONNECTION.CONNECT,
+        this.createResponse(true, {
+          user,
+          serverTime: new Date(),
+        }),
+      );
     } catch (error) {
       this.logger.error(`Connection error: ${error.message}`);
-      client.disconnect(true);
     }
   }
 
@@ -135,37 +133,6 @@ export abstract class BaseSocketGateway
       userId,
       reason: "disconnect",
     });
-  }
-
-  // Protected utility methods
-  protected async extractUserFromSocket(
-    client: Socket,
-  ): Promise<SocketUser | null> {
-    // Extract user ID from auth token, session, etc.
-    const token =
-      client.handshake.auth?.accessToken ||
-      client.handshake.headers?.authorization;
-
-    if (!token) {
-      this.logger.warn(`No auth token provided for socket ${client.id}`);
-      throw new BadGatewayException("Unauthorized");
-    }
-
-    try {
-      const user = await this.jwtService.verifyAsync(token);
-      console.info("verify: ", user);
-      // we have to find user from db by their id and return it but for now let's return dammy
-      return {
-        id: "0",
-        role: "USER",
-        socketId: client.id,
-        status: "online",
-        joinedAt: new Date(),
-      };
-    } catch (error) {
-      this.logger.error(`Auth validation failed: ${error.message}`);
-      return null;
-    }
   }
 
   protected createResponse<T>(

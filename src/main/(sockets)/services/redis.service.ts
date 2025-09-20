@@ -102,7 +102,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     pipeline.hset(`socket:${socketId}`, {
       id: user.id,
       socketId: user.socketId,
-      username: user.username || "",
+      email: user.email || "",
       role: user.role,
       avatar: user.avatar || "",
       status: user.status,
@@ -164,7 +164,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return {
       id: userData.id,
       socketId: userData.socketId,
-      username: userData.username,
+      email: userData.email,
       avatar: userData.avatar,
       role: userData.role,
       status: userData.status as UserStatus,
