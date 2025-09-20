@@ -46,6 +46,7 @@ export const GetVerifiedUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
 
     const token = cookieHandler(request, "get");
+    console.log('token: ', token)
     if (!token || !token.length)
       throw new NotFoundException("Request User not found!");
 
