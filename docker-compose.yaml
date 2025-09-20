@@ -39,8 +39,7 @@ services:
     restart: unless-stopped
     # Enhanced health check for better zero-downtime deployment
     healthcheck:
-      test:
-        ["CMD-SHELL", "curl -f http://localhost:${PORT}/api/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:5056/ || exit 1"]
       interval: 15s # check every 15s
       timeout: 10s # give curl 10s to respond
       retries: 12 # fail only after 5 retries
