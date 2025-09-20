@@ -5,7 +5,7 @@ import { UserStatus } from "./user.event";
 export type SocketUser = {
   id: string;
   socketId: string;
-  username?: string;
+  email: string;
   avatar?: string;
   role: Role;
   status: UserStatus;

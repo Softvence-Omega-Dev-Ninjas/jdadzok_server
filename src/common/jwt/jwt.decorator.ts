@@ -47,7 +47,7 @@ export const GetVerifiedUser = createParamDecorator(
 
     const token = cookieHandler(request, "get");
     if (!token || !token.length)
-      throw new NotFoundException("Request User Or headers not found!");
+      throw new NotFoundException("Request User not found!");
 
     // verify token
     const jwt = new JwtService();

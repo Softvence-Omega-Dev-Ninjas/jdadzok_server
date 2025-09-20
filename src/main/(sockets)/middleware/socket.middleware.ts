@@ -1,5 +1,6 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadGatewayException, Injectable, Logger } from "@nestjs/common";
 import { Socket } from "socket.io";
+import { SocketAuthGuard } from "../guards/socket-auth.guard";
 import { SocketUtils } from "../utils/socket.utils";
 
 @Injectable()
@@ -10,23 +11,16 @@ export class SocketMiddleware {
   authenticate() {
     return async (socket: Socket, next: (err?: any) => void) => {
       try {
-        const token = socket.handshake.auth?.token;
-
-        if (!token) {
-          return next(new Error("Authentication error: No token provided"));
-        }
-
-        // Validate token (implement your logic here)
-        // const user = await this.validateToken(token);
-        // socket.data.user = user;
-
+        const user = await SocketAuthGuard.validateToken(socket);
+        socket.data.user = user;
+        socket.join(user.id);
         this.logger.log(`Socket ${socket.id} authenticated successfully`);
         next();
       } catch (error) {
         this.logger.error(
           `Authentication failed for socket ${socket.id}: ${error.message}`,
         );
-        next(new Error("Authentication error"));
+        next(new BadGatewayException("Authentication error"));
       }
     };
   }
