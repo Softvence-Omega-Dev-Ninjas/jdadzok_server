@@ -7,34 +7,33 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install deps
-RUN npm i -g pnpm@latest 
-
-RUN pnpm i
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# Important! Copy the prisma folder
+# Copy prisma folder
 COPY prisma ./prisma
 
 # Generate Prisma client
-RUN pnpm prisma:generate 
+RUN npx prisma generate
 
-# Build the app (NestJS / TS etc.)
-RUN pnpm run build 
+# Build the app
+RUN npm run build
 
 # Stage 2: Run
 FROM node:20-alpine
 
 WORKDIR /app
 
+# Copy build output & dependencies
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
-
+# Set production env
 ENV NODE_ENV=production
 EXPOSE 5056
 
