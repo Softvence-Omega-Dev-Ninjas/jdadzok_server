@@ -50,20 +50,21 @@ save_version() {
 }
 
 health_check() {
-  local attempt=1
-  log "Checking health @ $HEALTH_ENDPOINT"
-  while [ $attempt -le "$HEALTH_RETRIES" ]; do
-    if curl -fs --connect-timeout 5 --max-time 10 "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
-      ok "Service is healthy"
+  local service="${PACKAGE_NAME}_api"
+  log "Waiting for $service to be healthy..."
+  for i in {1..12}; do  # wait up to 6 minutes
+    status=$(docker inspect --format='{{.State.Health.Status}}' "$service" 2>/dev/null || echo "unknown")
+    if [ "$status" = "healthy" ]; then
+      ok "$service is healthy"
       return 0
     fi
-    warn "Attempt $attempt/$HEALTH_RETRIES failed, retrying in ${HEALTH_TIMEOUT}s..."
-    sleep "$HEALTH_TIMEOUT"
-    attempt=$((attempt+1))
+    warn "Attempt $i/12: status=$status, retrying in 30s..."
+    sleep 30
   done
-  err "Health check failed"
+  err "$service failed to become healthy"
   return 1
 }
+
 
 rollback() {
   local cur=$(current_version)
