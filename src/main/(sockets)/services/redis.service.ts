@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { TTL, TTLKey } from "@project/constants/ttl.constants";
-import Redis, { RedisOptions } from "ioredis";
+import Redis from "ioredis";
 import { SocketRoom, SocketUser, UserStatus } from "../@types";
 
 @Injectable()
@@ -29,27 +29,32 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   private async connect() {
     try {
-      const redisConfig: RedisOptions = {
-        host: "redis",
-        port: 6379,
-        password: this.configService.get(ENVEnum.REDIS_PASS) || "",
-        username: this.configService.get(ENVEnum.REDIS_USER) || "",
-        db: parseInt(process.env.REDIS_DB || "0"),
-        enableReadyCheck: true,
-        maxRetriesPerRequest: 3,
-        lazyConnect: true,
-        keepAlive: 30000,
-        tls: {
-          rejectUnauthorized: false,
-        },
-      };
+      // const redisConfig: RedisOptions = {
+      //   host: "redis",
+      //   port: 6379,
+      //   password: this.configService.get(ENVEnum.REDIS_PASS) || "",
+      //   username: this.configService.get(ENVEnum.REDIS_USER) || "",
+      //   db: parseInt(process.env.REDIS_DB || "0"),
+      //   enableReadyCheck: true,
+      //   maxRetriesPerRequest: 3,
+      //   lazyConnect: true,
+      //   keepAlive: 30000,
+      //   tls: {
+      //     rejectUnauthorized: false,
+      //   },
+      // };
+
+      const REDIS_PORT =
+        Number(this.configService.getOrThrow(ENVEnum.REDIS_PORT)) || 6379;
+      const REDIS_HOST =
+        this.configService.getOrThrow(ENVEnum.REDIS_HOST) || "redis";
 
       // Main Redis client for general operations
-      this.redisClient = new Redis(6379, "redis");
+      this.redisClient = new Redis(REDIS_PORT, REDIS_HOST);
 
       // Separate clients for pub/sub (recommended by Redis)
-      this.redisSubscriber = new Redis(redisConfig);
-      this.redisPublisher = new Redis(redisConfig);
+      this.redisSubscriber = new Redis(REDIS_PORT, REDIS_HOST);
+      this.redisPublisher = new Redis(REDIS_PORT, REDIS_HOST);
 
       // await Promise.all([
       //   // await this.redisClient.connect(),
