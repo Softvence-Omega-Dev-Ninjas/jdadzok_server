@@ -45,7 +45,7 @@ export function cookieHandler(
         (ctx as Request).headers.authorization;
       if (!cookie)
         throw new UnauthorizedException("Unauthorized user, can't find token");
-      return cookie.split(`${COOKIE_KEY}=`)[1];
+      return cookie.split(`${COOKIE_KEY}=`)[1] || cookie.split("Bearer ")[1];
     }
     default:
       throw new NotFoundException("Invalid mode for cookieHandler");
