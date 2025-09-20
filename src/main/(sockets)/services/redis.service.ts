@@ -17,7 +17,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private redisSubscriber: Redis;
   private redisPublisher: Redis;
 
-  constructor(private readonly configService: ConfigService) { }
+  constructor(private readonly configService: ConfigService) {}
 
   async onModuleInit() {
     await this.connect();
@@ -46,8 +46,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
       const REDIS_PORT =
         Number(this.configService.get(ENVEnum.REDIS_PORT)) || 6379;
-      const REDIS_HOST =
-        this.configService.get(ENVEnum.REDIS_HOST) || "redis";
+      const REDIS_HOST = this.configService.get(ENVEnum.REDIS_HOST) || "redis";
 
       // Main Redis client for general operations
       this.redisClient = new Redis(REDIS_PORT, REDIS_HOST);
