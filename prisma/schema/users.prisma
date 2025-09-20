@@ -94,4 +94,6 @@ model User {
   @@index([role])
   @@index([createdAt])
   @@map("users")
+
+
 }

@@ -12,3 +12,15 @@
 //   @@unique([followerId, followingId])
 //   @@map("community_to_community_follows")
 // }
+// model CommunityFollow {
+//     id String @id @default(uuid())
+
+//     user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+//     userId      String
+//     community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+//     communityId String
+//     createdAt   DateTime  @default(now())
+
+//    // prevent duplicates
+//     @@map("community_follows")
+// }

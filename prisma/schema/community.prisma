@@ -31,9 +31,17 @@ model Community {
   updatedAt         DateTime            @updatedAt
   CommunityFollower CommunityFollower[]
 
+
+  // followingCommunities CommunityFollow[] @relation("CommunityFollowing")
+  // followersCommunities CommunityFollow[] @relation("CommunityFollowers")
+
+
   @@index([ownerId])
   @@index([communityType])
   @@index([capLevel])
   @@index([isVerified])
   @@map("communities")
+
+
 }
+
