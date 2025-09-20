@@ -1,4 +1,4 @@
-import { NotFoundException } from "@nestjs/common";
+import { NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { CookieOptions, Request, Response } from "express";
 import { RequestWithUser } from "./jwt.interface";
 
@@ -42,6 +42,8 @@ export function cookieHandler(
       const cookie =
         (ctx as Request).cookies ||
         ((ctx as Request).headers["cookie"] as string);
+      if (!cookie)
+        throw new UnauthorizedException("Unauthorized user, can't find token");
       return cookie.split(`${COOKIE_KEY}=`)[1];
     }
     default:

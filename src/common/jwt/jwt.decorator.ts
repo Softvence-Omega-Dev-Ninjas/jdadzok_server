@@ -14,6 +14,7 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { JwtServices } from "@project/services/jwt.service";
+import { omit } from "@project/utils";
 import { cookieHandler } from "./cookie.handler";
 import { RequestWithUser } from "./jwt.interface";
 
@@ -43,10 +44,10 @@ export const GetUser = createParamDecorator(
 export const GetVerifiedUser = createParamDecorator(
   async (key: string | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
-    const user = request.user;
 
     const token = cookieHandler(request, "get");
-    if (!token) throw new NotFoundException("Request User not found!");
+    if (!token || !token.length)
+      throw new NotFoundException("Request User Or headers not found!");
 
     // verify token
     const jwt = new JwtService();
@@ -56,14 +57,10 @@ export const GetVerifiedUser = createParamDecorator(
     if (!isVerifyToken?.email)
       throw new UnauthorizedException("Invalid token your are unauthorized");
 
-    if (!user || !user.userId)
-      throw new NotFoundException("Request User not found!");
-
     const prisma = new PrismaService();
     const isUser = await prisma.user.findFirst({
-      where: { OR: [{ id: user.userId }, { email: user.email }] },
-      select: {
-        isVerified: true,
+      where: {
+        OR: [{ id: isVerifyToken.sub }, { email: isVerifyToken.email }],
       },
     });
     if (!isUser) throw new NotFoundException("Request User not found!");
@@ -72,7 +69,7 @@ export const GetVerifiedUser = createParamDecorator(
     if (!isUser.isVerified)
       throw new UnauthorizedException("Please verify your account first");
 
-    return key ? user?.[key] : user;
+    return omit(isUser, ["password"]);
   },
 );
 
