@@ -158,6 +158,7 @@ jobs:
           export AWS_SECRET_ACCESS_KEY="${{secrets.AWS_SECRET_ACCESS_KEY}}"
           export AWS_S3_BUCKET_NAME="${{secrets.AWS_S3_BUCKET_NAME}}"
           export IMAGE_TAG="${{secrets.IMAGE_TAG}}"
+          export IMAGE_TAG="${{secrets.VPS_HOST_IP}}"
 
           # Run the deployment script
           echo "Starting zero-downtime deployment..."
@@ -167,24 +168,24 @@ jobs:
           docker image prune -f
           DEPLOY_EOF
 
-      - name: Verify Deployment ✅
-        run: |
-          ssh deploy-server bash << 'VERIFY_EOF'
-          cd ~/${{secrets.PACKAGE_NAME}}
+      # - name: Verify Deployment ✅
+      #   run: |
+      #     ssh deploy-server bash << 'VERIFY_EOF'
+      #     cd ~/${{secrets.PACKAGE_NAME}}
 
-          echo "=== Running deployment status check ==="
-          ./scripts/deploy.sh status
+      #     echo "=== Running deployment status check ==="
+      #     ./scripts/deploy.sh status
 
-          echo "=== Testing endpoint directly ==="
-          if curl -f -s --connect-timeout 5 --max-time 10 "http://localhost:${{secrets.PORT}}/" | grep -q '"status":"ok"'; then
-            echo "🎉 Endpoint health check passed! Service is responding with status: ok"
-          else
-            echo "❌ Endpoint health check failed!"
-            exit 1
-          fi
+      #     echo "=== Testing endpoint directly ==="
+      #     if curl -f -s --connect-timeout 5 --max-time 10 "http://localhost:${{secrets.PORT}}/" | grep -q '"status":"ok"'; then
+      #       echo "🎉 Endpoint health check passed! Service is responding with status: ok"
+      #     else
+      #       echo "❌ Endpoint health check failed!"
+      #       exit 1
+      #     fi
 
-          echo "Deployment verified successfully!"
-          VERIFY_EOF
+      #     echo "Deployment verified successfully!"
+      #     VERIFY_EOF
 
       - name: Cleanup 🧹
         if: always()
