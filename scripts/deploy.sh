@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Zero Downtime Deployment Script
+# Zero Downtime Deployment Script (docker compose version)
 # Usage: ./deploy.sh --version <version> | --rollback | status
 
 set -euo pipefail
@@ -37,7 +37,7 @@ usage() {
 }
 
 current_version() {
-  docker ps --filter "name=${PACKAGE_NAME}_api" --format "{{.Image}}" | cut -d':' -f2 | head -n1 || echo "none"
+  [ -f "$VERSION_FILE" ] && tail -n1 "$VERSION_FILE" || echo "none"
 }
 
 previous_version() {
@@ -50,29 +50,19 @@ save_version() {
 }
 
 health_check() {
-  local container=$1 attempt=1
-  log "Checking health of $container @ $HEALTH_ENDPOINT"
+  local attempt=1
+  log "Checking health @ $HEALTH_ENDPOINT"
   while [ $attempt -le "$HEALTH_RETRIES" ]; do
-    if ! docker ps --format "{{.Names}}" | grep -q "^$container$"; then
-      err "Container $container not running"; return 1
-    fi
     if curl -fs --connect-timeout 5 --max-time 10 "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
-      ok "Container $container is healthy"; return 0
+      ok "Service is healthy"
+      return 0
     fi
     warn "Attempt $attempt/$HEALTH_RETRIES failed, retrying in ${HEALTH_TIMEOUT}s..."
     sleep "$HEALTH_TIMEOUT"
     attempt=$((attempt+1))
   done
-  err "Health check failed"; return 1
-}
-
-cleanup() {
-  local c=$1
-  if docker ps -a --format "{{.Names}}" | grep -q "^$c$"; then
-    log "Stopping/removing $c"
-    docker stop "$c" || true
-    docker rm "$c" || true
-  fi
+  err "Health check failed"
+  return 1
 }
 
 rollback() {
@@ -80,51 +70,31 @@ rollback() {
   local prev=$(previous_version)
   [ "$prev" = "none" ] && { err "No previous version"; return 1; }
   warn "Rolling back $cur → $prev"
-  cleanup "${PACKAGE_NAME}_api"
   deploy "$prev"
 }
 
 deploy() {
-  local v="${1:?No version specified}"  # ensures v is never empty
+  local v="${1:?No version specified}"
   local image="${DOCKER_USERNAME}/${PACKAGE_NAME}:${v}"
-  local new="${PACKAGE_NAME}_api"
-  local old="${PACKAGE_NAME}_api_old"
 
   log "Deploying version $v (image=$image)"
 
-  # Pull from registry or build locally
-  if ! docker pull "$image"; then
-    warn "Image not found in registry, building with docker compose..."
-    [ -f .env ] && sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=$v/" .env
-    docker compose --profile prod up -d app || { err "Local build failed"; return 1; }
-    save_version "$v"
-    return 0
-  fi
+  # Pull new image
+  docker pull "$image" || warn "Image not in registry, will build locally"
 
-  # Rename running container → old
-  if docker ps --format "{{.Names}}" | grep -q "^$new$"; then
-    log "Renaming $new → $old"
-    docker rename "$new" "$old" || true
-  fi
+  # Update .env with new version
+  [ -f .env ] && sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=$v/" .env
 
-  # Run new container
-  docker run -d --name "$new" -p "$PORT:$PORT" --env-file .env "$image"
+  # Recreate service with compose (ensures networks/volumes are correct)
+  docker compose --profile prod up -d app
 
   sleep 10
-  if health_check "$new"; then
-    cleanup "$old"
+  if health_check; then
     save_version "$v"
     ok "Deployment $v successful"
   else
     err "New version unhealthy, rolling back..."
-    cleanup "$new"
-    if docker ps -a --format "{{.Names}}" | grep -q "^$old$"; then
-      log "Restoring $old → $new"
-      docker rename "$old" "$new"
-      docker start "$new"
-      sleep 5
-    fi
-    return 1
+    rollback
   fi
 }
 
@@ -133,7 +103,7 @@ status() {
   echo "Current: $(current_version)"
   echo "Previous: $(previous_version)"
   echo "Containers:"
-  docker ps --filter "name=${PACKAGE_NAME}" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+  docker compose ps
   echo "Health:"
   curl -fs "$HEALTH_ENDPOINT" | grep -q '"status":"ok"' && echo "✅ ok" || echo "❌ fail"
   [ -f "$VERSION_FILE" ] && { echo "History:"; tail -n5 "$VERSION_FILE" | nl -s'. '; }
@@ -144,9 +114,7 @@ status() {
 # ================================
 case "${1:-}" in
   --version)
-    if [ -z "${2:-}" ]; then
-      usage
-    fi
+    [ -z "${2:-}" ] && usage
     deploy "$2"
     ;;
   --rollback)
