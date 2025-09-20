@@ -27,16 +27,6 @@ export class CreateOrderDto {
     totalPrice: number;
 
     @ApiProperty({
-        description: "Current status of the order",
-        enum: OrderStatus,
-        example: OrderStatus.PENDING,
-        default: OrderStatus.PENDING,
-    })
-    @IsEnum(OrderStatus)
-    @IsOptional()
-    status?: OrderStatus;
-
-    @ApiProperty({
         description: "Full shipping address for delivery",
         example: "123 Main Street, Dhaka, Bangladesh",
         required: false,

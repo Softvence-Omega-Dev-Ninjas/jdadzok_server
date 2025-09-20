@@ -10,8 +10,8 @@ export class OrderService {
 
     // added new order.
     async add(userId: string, dto: CreateOrderDto) {
-        const user = await this.prisma.user.findUnique({where:{id:userId}})
-        if(!user?.isVerified){
+        const user = await this.prisma.user.findUnique({ where: { id: userId } })
+        if (!user?.isVerified) {
             throw new BadRequestException("Please Verify your email.")
         }
         const product = await this.prisma.product.findUnique({ where: { id: dto.productId } })
@@ -22,10 +22,17 @@ export class OrderService {
             throw new Error("Product price is missing, cannot calculate order total.");
         }
         const productPrice = product?.price * dto.quantity;
-
-        if ( productPrice !== dto.totalPrice) {
-           throw new BadRequestException("Please Enter Valid Price.")
+        if (product.availability <= dto.quantity) {
+            throw new BadRequestException("Invalid Order.")
         }
+        const productQuantity = product.availability - dto.quantity;
+
+        await this.prisma.product.update({where:{id:dto.productId}, data:{availability:productQuantity}})
+
+        if (productPrice !== dto.totalPrice) {
+            throw new BadRequestException("Please Enter Valid Price.")
+        }
+
         const order = await this.prisma.order.create({
             data: {
                 buyerId: userId,
@@ -46,9 +53,9 @@ export class OrderService {
     }
 
     // get a single order by id
-    async findOne(id: string, userId:string) {
-        const orderOwner = await this.prisma.order.findFirst({where:{buyerId:userId}})
-        if(!orderOwner){
+    async findOne(id: string, userId: string) {
+        const orderOwner = await this.prisma.order.findFirst({ where: { buyerId: userId } })
+        if (!orderOwner) {
             throw new ForbiddenException("Unauthorized Access.")
         }
         const order = await this.prisma.order.findUnique({
@@ -64,9 +71,9 @@ export class OrderService {
         return order;
     }
     // delete order
-    async remove(id: string, userId:string) {
-        const orderOwner = await this.prisma.order.findFirst({where:{buyerId:userId}})
-        if(!orderOwner){
+    async remove(id: string, userId: string) {
+        const orderOwner = await this.prisma.order.findFirst({ where: { buyerId: userId } })
+        if (!orderOwner) {
             throw new ForbiddenException("Unauthorized Access.")
         }
         const order = await this.prisma.order.findUnique({ where: { id } });

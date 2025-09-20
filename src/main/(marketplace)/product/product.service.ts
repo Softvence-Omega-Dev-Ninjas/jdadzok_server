@@ -1,38 +1,52 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { CreateProductDto, OfferDto } from "./dto/product.dto";
+import { CreateProductDto, updateProductDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
+import { error } from "console";
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
   // create product new product
   async create(userId: string, dto: CreateProductDto) {
-    try {
-      return await this.prisma.product.create({
-        data: {
-          sellerId: userId,
-          description: dto.description,
-          price: dto.price,
-          title: dto.title,
-          categoryId: dto.categoryId,
-          location: dto.location,
-          availability: dto.availability,
-        },
-        include: {
-          seller: true,
-        },
-      });
-    } catch (err) {
-      return err;
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      throw new BadRequestException("Unauthorized Access")
     }
+    const product = await this.prisma.product.findFirst({ where: { title: dto.title } })
+    if (product) {
+      throw new BadRequestException("This Product Already Exist.")
+    }
+    const category = await this.prisma.productCategory.findUnique({
+      where: { id: dto.categoryId },
+    });
+
+    if (!category) {
+      throw new BadRequestException("Invalid categoryId, category does not exist.");
+    }
+    const { categoryId, ...rest } = dto;
+    return await this.prisma.product.create({
+      data: {
+        ...rest,
+        sellerId: userId,
+        categoryId,
+      },
+      include: {
+        seller: true,
+      },
+    });
   }
   // get all product...
-  async findAll(query?: ProductQueryDto) {
+  async findAll(userId: string, query?: ProductQueryDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      throw new BadRequestException("Unauthorized Access")
+    }
     return this.prisma.product.findMany({
       where: {
         title: query?.search
@@ -51,7 +65,11 @@ export class ProductService {
     });
   }
   // get a single product by id.
-  async findOne(id: string) {
+  async findOne(userId: string, id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      throw new BadRequestException("Unauthorized Access")
+    }
     const product = await this.prisma.product.findUnique({
       where: { id },
       include: {
@@ -66,25 +84,36 @@ export class ProductService {
   }
 
   // update product with id
-  // async update(id: string, dto: updateProductDto) {
-  //     const product = await this.prisma.product.findUnique({ where: { id } });
-  //     if (!product) {
-  //         throw new NotFoundException(`Product with ID ${id} not found`);
-  //     }
-  //     return this.prisma.product.update({
-  //         where: { id },
-  //         data: {
-  //             ...dto
-  //         },
-  //     });
-  // }
+  async update(userId: string, id: string, dto: updateProductDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      throw new BadRequestException("Unauthorized Access")
+    }
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+    if (product.sellerId !== userId) {
+      throw new ForbiddenException("Unauthorized Access.")
+    }
+    return this.prisma.product.update({
+      where: { id },
+      data: {
+        sellerId: userId,
+        ...dto
+      },
+    });
+  }
 
   // delete product...
   async remove(id: string, userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      throw new BadRequestException("Unauthorized Access")
+    }
     const product = await this.prisma.product.findUnique({ where: { id } });
-
     if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
+      throw new NotFoundException(`Product is not found`);
     }
     const seller = await this.prisma.product.findFirst({
       where: { sellerId: userId },
@@ -97,18 +126,4 @@ export class ProductService {
     });
   }
 
-  // offer
-  async offer(id: string, dto: OfferDto) {
-    const product = await this.prisma.product.findUnique({
-      where: { id },
-    });
-    if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
-    }
-    if (product.price <= 0) return 0;
-
-    const discountAmount = (product.price * dto.discount) / 100;
-    const finalPrice = product.price - discountAmount;
-    return finalPrice.toFixed(2);
-  }
 }
