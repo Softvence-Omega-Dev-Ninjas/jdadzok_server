@@ -12,10 +12,12 @@ PACKAGE_NAME="${PACKAGE_NAME:?PACKAGE_NAME not set}"
 DOCKER_USERNAME="${DOCKER_USERNAME:?DOCKER_USERNAME not set}"
 PACKAGE_VERSION="${PACKAGE_VERSION:-latest}"
 PORT="${PORT:-5056}"
-BASE_URL="${BASE_URL:-http://0.0.0.0}"
+# VPS host comes from GitHub secret
+VPS_HOST_IP="${VPS_HOST_IP:?VPS_HOST_IP not set}"
+BASE_URL="http://$VPS_HOST_IP"
 HEALTH_ENDPOINT="${HEALTH_ENDPOINT:-$BASE_URL:$PORT/}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-15}"
-HEALTH_RETRIES="${HEALTH_RETRIES:-6}"
+HEALTH_RETRIES="${HEALTH_RETRIES:-12}" # up to 2 minutes
 VERSION_FILE="./deployment_versions.txt"
 
 # ================================
@@ -49,22 +51,20 @@ save_version() {
   tail -n 10 "$VERSION_FILE" > "${VERSION_FILE}.tmp" && mv "${VERSION_FILE}.tmp" "$VERSION_FILE"
 }
 
+# Replace docker healthcheck with external curl check
 health_check() {
-  local service="${PACKAGE_NAME}_api"
-  log "Waiting for $service to be healthy..."
-  for i in {1..12}; do  # wait up to 6 minutes
-    status=$(docker inspect --format='{{.State.Health.Status}}' "$service" 2>/dev/null || echo "unknown")
-    if [ "$status" = "healthy" ]; then
-      ok "$service is healthy"
+  log "Waiting for API to respond at $HEALTH_ENDPOINT..."
+  for i in $(seq 1 $HEALTH_RETRIES); do
+    if curl -fs --max-time $HEALTH_TIMEOUT "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
+      ok "API is up and responding"
       return 0
     fi
-    warn "Attempt $i/12: status=$status, retrying in 30s..."
-    sleep 30
+    warn "Attempt $i/$HEALTH_RETRIES: not ready, retrying in 10s..."
+    sleep 10
   done
-  err "$service failed to become healthy"
+  err "API did not respond in time"
   return 1
 }
-
 
 rollback() {
   local cur=$(current_version)
@@ -89,12 +89,12 @@ deploy() {
   # Recreate service with compose (ensures networks/volumes are correct)
   docker compose --profile prod up -d app
 
-  sleep 10
+  sleep 5
   if health_check; then
     save_version "$v"
     ok "Deployment $v successful"
   else
-    err "New version unhealthy, rolling back..."
+    err "New version not responding, rolling back..."
     rollback
   fi
 }
@@ -105,8 +105,12 @@ status() {
   echo "Previous: $(previous_version)"
   echo "Containers:"
   docker compose ps
-  echo "Health:"
-  curl -fs "$HEALTH_ENDPOINT" | grep -q '"status":"ok"' && echo "✅ ok" || echo "❌ fail"
+  echo "Health check via $HEALTH_ENDPOINT:"
+  if curl -fs "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
+    echo "✅ ok"
+  else
+    echo "❌ fail"
+  fi
   [ -f "$VERSION_FILE" ] && { echo "History:"; tail -n5 "$VERSION_FILE" | nl -s'. '; }
 }
 
