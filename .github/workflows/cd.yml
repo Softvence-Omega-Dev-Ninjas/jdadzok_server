@@ -158,7 +158,8 @@ jobs:
           export AWS_SECRET_ACCESS_KEY="${{secrets.AWS_SECRET_ACCESS_KEY}}"
           export AWS_S3_BUCKET_NAME="${{secrets.AWS_S3_BUCKET_NAME}}"
           export IMAGE_TAG="${{secrets.IMAGE_TAG}}"
-          export IMAGE_TAG="${{secrets.VPS_HOST_IP}}"
+          export VPS_HOST_IP="${{secrets.VPS_HOST_IP}}"
+
 
           # Run the deployment script
           echo "Starting zero-downtime deployment..."
