@@ -9,11 +9,15 @@ COPY package*.json ./
 # Install deps
 RUN npm install
 
+# Copy prisma folder
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+
 # Copy source code
 COPY . .
 
 # Copy prisma folder
-COPY prisma ./prisma
+# COPY prisma ./prisma
 
 # Generate Prisma client
 RUN npx prisma generate
