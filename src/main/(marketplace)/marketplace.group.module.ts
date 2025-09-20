@@ -9,14 +9,6 @@ import { OrderModule } from "./order/order.module";
 @Module({
 
   imports: [ProductModule, FavouritelistModule, HideModule, ProductCategoryModule, OrderModule],
-
-  imports: [
-    ProductModule,
-    FavouritelistModule,
-    HideModule,
-    ProductCategoryModule,
-  ],
-
   controllers: [],
   providers: [],
   exports: [],
