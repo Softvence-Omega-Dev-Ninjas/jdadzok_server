@@ -103,15 +103,14 @@ export class CommunitiesController {
   }
 
   // community following another community ...
-//  @Post("/community/:followingId")
-//   communityFollow(
-//     @GetUser("userId") userId: string,
-//     @Param("followingId") followingId: string,
-//   ) {
-//     return handleRequest(
-//       () => this.service.userFollowCommunity(userId, followingId),
-//       "Community Following a Community Successfull",
-//     );
-//   }
-
+  //  @Post("/community/:followingId")
+  //   communityFollow(
+  //     @GetUser("userId") userId: string,
+  //     @Param("followingId") followingId: string,
+  //   ) {
+  //     return handleRequest(
+  //       () => this.service.userFollowCommunity(userId, followingId),
+  //       "Community Following a Community Successfull",
+  //     );
+  //   }
 }

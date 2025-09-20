@@ -4,7 +4,6 @@ import {
   Controller,
   Post,
   Res,
-  UseGuards,
   UsePipes,
   ValidationPipe,
 } from "@nestjs/common";
@@ -19,7 +18,6 @@ import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { VerifyTokenDto } from "./dto/verify-token.dto";
-import { JwtAuthGuard } from "./guards/jwt-auth";
 
 @Controller("auth")
 export class AuthController {
@@ -42,9 +40,9 @@ export class AuthController {
     }
   }
 
-  @Post("logout")
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @Post("logout")
+  // @UseGuards(JwtAuthGuard)
   async logout(
     @Res({ passthrough: true }) res: Response,
     @GetVerifiedUser() user: TUser,

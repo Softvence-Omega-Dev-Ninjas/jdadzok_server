@@ -1,5 +1,4 @@
-import { Optional } from "@nestjs/common";
-import { ApiProperty, OmitType, PartialType } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
 import {
   IsBoolean,
   IsNotEmpty,
@@ -155,7 +154,6 @@ export class CreateProductDto {
 //   location: string;
 // }
 
-
 export class updateProductDto extends PartialType(CreateProductDto) {
   @ApiProperty({
     example: "Updated Wireless Bluetooth Headphones",
@@ -166,4 +164,3 @@ export class updateProductDto extends PartialType(CreateProductDto) {
   @IsNotEmpty()
   title: string;
 }
-

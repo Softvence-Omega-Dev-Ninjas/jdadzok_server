@@ -1,4 +1,3 @@
-
 // import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 // import { Injectable } from "@nestjs/common";
 // import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from "@nestjs/websockets";
@@ -7,7 +6,6 @@
 // import { JwtServices } from "@project/services/jwt.service";
 // import { Socket } from "socket.io";
 // import { ProductService } from "../product.service";
-
 
 // @WebSocketGateway(
 //     {
@@ -63,4 +61,3 @@ export class ProductGateway extends BaseSocketGateway {
     this.logger.log("Setting up Redis for post gateway");
   }
 }
-
