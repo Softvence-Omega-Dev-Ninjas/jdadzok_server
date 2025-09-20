@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -11,6 +12,10 @@ export class NgoService {
 
   // create new ngo......
   async createNgo(userId: string, dto: CreateNgoDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new ForbiddenException("Unauthorized Access.");
+    }
     const ngo = await this.prisma.ngo.findFirst({
       where: {
         ownerId: userId,
@@ -22,7 +27,7 @@ export class NgoService {
       },
     });
     if (ngo) {
-      throw new BadRequestException("Community Already Exist.");
+      throw new BadRequestException("NGO Already Exist.");
     }
 
     return await this.prisma.ngo.create({
@@ -119,5 +124,111 @@ export class NgoService {
       throw new NotFoundException("Ngo Not Found");
     }
     return ngo;
+  }
+
+  // following ngo.
+  async followNgo(userId: string, ngoId: string) {
+    await this.prisma.ngo.update({
+      where: { id: ngoId },
+      data: {
+        followers: {
+          connect: { id: userId },
+        },
+      },
+    });
+    const count = await this.prisma.ngo.count({
+      where: {
+        id: ngoId,
+        followers: {
+          some: {},
+        },
+      },
+    });
+
+    const result = await this.prisma.ngoProfile.update({
+      where: { ngoId },
+      data: { followersCount: count },
+    });
+    return result;
+  }
+  // unfollowing ngo.
+  async unfollowNgo(userId: string, ngoId: string) {
+    await this.prisma.ngo.update({
+      where: { id: ngoId },
+      data: {
+        followers: {
+          disconnect: { id: userId },
+        },
+      },
+    });
+
+    const count = await this.prisma.ngo.count({
+      where: {
+        id: ngoId,
+        followers: {
+          some: {},
+        },
+      },
+    });
+
+    const result = await this.prisma.ngoProfile.update({
+      where: { ngoId },
+      data: { followersCount: count },
+    });
+
+    return result;
+  }
+
+  // like ngo
+  async likeNgo(userId: string, ngoId: string) {
+    await this.prisma.ngo.update({
+      where: { id: ngoId },
+      data: { likers: { connect: { id: userId } } },
+    });
+
+    const likes = await this.prisma.ngo.count({
+      where: { id: ngoId, likers: { some: {} } },
+    });
+
+    await this.prisma.ngo.update({
+      where: { id: ngoId },
+      data: { likes },
+    });
+
+    return { success: true, likes };
+  }
+
+  // unlike ngo
+  async unlikeNgo(userId: string, ngoId: string) {
+    await this.prisma.ngo.update({
+      where: { id: ngoId },
+      data: { likers: { disconnect: { id: userId } } },
+    });
+    const likes = await this.prisma.ngo.count({
+      where: { id: ngoId, likers: { some: {} } },
+    });
+    await this.prisma.ngo.update({
+      where: { id: ngoId },
+      data: { likes },
+    });
+    return { success: true, likes };
+  }
+
+  // Get ngo likes and followers counts.
+  async getNgoCounts(ngoId: string) {
+    const profile = await this.prisma.ngoProfile.findUnique({
+      where: { ngoId },
+      select: { followersCount: true },
+    });
+
+    const ngo = await this.prisma.ngo.findUnique({
+      where: { id: ngoId },
+      select: { likes: true },
+    });
+
+    return {
+      followersCount: profile?.followersCount ?? 0,
+      likes: ngo?.likes ?? 0,
+    };
   }
 }
