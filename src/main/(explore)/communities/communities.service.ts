@@ -182,6 +182,7 @@ export class CommunitiesService {
   }
 
   // community follow another community..
+
   // async communityFollowCommunity(followerId: string, followingId: string) {
   //   if (followerId === followingId) {
   //     throw new BadRequestException("A community cannot follow itself");
@@ -213,4 +214,60 @@ export class CommunitiesService {
 
   //   return { message: "Community followed another community" };
   // }
+
+  // ----------LIKE ----------
+  async likeCommunity(userId: string, communityId: string) {
+    await this.prisma.community.update({
+      where: { id: communityId },
+      data: { likers: { connect: { id: userId } } },
+    });
+
+    const likes = await this.prisma.community.count({
+      where: { id: communityId, likers: { some: {} } },
+    });
+
+    await this.prisma.community.update({
+      where: { id: communityId },
+      data: { likes },
+    });
+
+    return { success: true, likes };
+  }
+
+  // ------UNLIKE--------
+  async unlikeCommunity(userId: string, communityId: string) {
+    await this.prisma.community.update({
+      where: { id: communityId },
+      data: { likers: { disconnect: { id: userId } } },
+    });
+
+    const likes = await this.prisma.community.count({
+      where: { id: communityId, likers: { some: {} } },
+    });
+
+    await this.prisma.community.update({
+      where: { id: communityId },
+      data: { likes },
+    });
+
+    return { success: true, likes };
+  }
+
+  // -------Count Likes and Followers----
+  async getCommunityCounts(communityId: string) {
+    const profile = await this.prisma.communityProfile.findUnique({
+      where: { communityId },
+      select: { followersCount: true },
+    });
+
+    const community = await this.prisma.community.findUnique({
+      where: { id: communityId },
+      select: { likes: true },
+    });
+
+    return {
+      followersCount: profile?.followersCount ?? 0,
+      likes: community?.likes ?? 0,
+    };
+  }
 }

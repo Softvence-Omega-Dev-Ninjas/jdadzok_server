@@ -23,7 +23,7 @@ export class OrderService {
       where: { id: dto.productId },
     });
     if (product?.sellerId === userId) {
-      throw new BadRequestException("This Provide is unavailable for you.");
+      throw new BadRequestException("This Product is unavailable for you.");
     }
     if (product?.price === undefined) {
       throw new Error(
@@ -31,7 +31,7 @@ export class OrderService {
       );
     }
     const productPrice = product?.price * dto.quantity;
-    if (product.availability <= dto.quantity) {
+    if (product.availability < dto.quantity) {
       throw new BadRequestException("Invalid Order.");
     }
     const productQuantity = product.availability - dto.quantity;
@@ -41,7 +41,7 @@ export class OrderService {
       data: { availability: productQuantity },
     });
 
-    if (productPrice !== dto.totalPrice) {
+    if (productPrice > dto.totalPrice) {
       throw new BadRequestException("Please Enter Valid Price.");
     }
 
