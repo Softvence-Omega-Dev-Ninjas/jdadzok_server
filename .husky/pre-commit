@@ -1,2 +1,11 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
 node ./scripts/ci-hooks.js
-bash ./scripts/scripts.productions.sh
+
+if [ "$PRODUCTION" = "true" ]; then
+  echo "🚀 Running production script"
+  bash ./scripts/scripts.productions.sh
+else
+  echo "⚡ Skipping production script"
+fi

@@ -32,7 +32,8 @@
     "prisma:format": "npx prisma format",
     "prod": "bash ./scripts.sh",
     "db:seed": "tsx prisma/seed.ts",
-    "seed:cap": "tsx src/scripts/seed-cap-requirements.ts"
+    "seed:cap": "tsx src/scripts/seed-cap-requirements.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@anatine/zod-nestjs": "^2.0.12",
