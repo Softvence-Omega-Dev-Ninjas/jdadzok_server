@@ -95,7 +95,7 @@ class CreatePost {
     required: false,
   })
   @IsOptional()
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => CreatePostMetadataDto)
   metadata?: CreatePostMetadataDto;
 

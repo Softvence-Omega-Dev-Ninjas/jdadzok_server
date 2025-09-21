@@ -27,7 +27,9 @@ class CreatePostMetadata {
     required: false,
   })
   @IsOptional()
-  @ValidateNested()
+  @ValidateNested({
+    each: true,
+  })
   @Type(() => CreateLocationDto)
   checkIn?: CreateLocationDto;
 
@@ -42,7 +44,7 @@ class CreatePostMetadata {
     required: false,
   })
   @IsOptional()
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => CreateGifDto)
   gif?: CreateGifDto;
 

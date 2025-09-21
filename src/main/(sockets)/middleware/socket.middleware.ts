@@ -1,7 +1,6 @@
 import { BadGatewayException, Injectable, Logger } from "@nestjs/common";
 import { Socket } from "socket.io";
 import { SocketAuthGuard } from "../guards/socket-auth.guard";
-import { SocketUtils } from "../utils/socket.utils";
 
 @Injectable()
 export class SocketMiddleware {
@@ -13,6 +12,10 @@ export class SocketMiddleware {
       try {
         const user = await SocketAuthGuard.validateToken(socket);
         socket.data.user = user;
+        if (!user)
+          throw new BadGatewayException(
+            "To join the socket server user must need to be login!",
+          );
         socket.join(user.id);
         this.logger.log(`Socket ${socket.id} authenticated successfully`);
         next();
@@ -26,49 +29,49 @@ export class SocketMiddleware {
   }
 
   // Rate limiting middleware
-  rateLimit(windowMs = 1000, maxRequests = 10) {
-    const requests = new Map<string, number[]>();
+  // rateLimit(windowMs = 1000, maxRequests = 10) {
+  //   const requests = new Map<string, number[]>();
 
-    return (socket: Socket, next: (err?: any) => void) => {
-      const clientId = SocketUtils.getClientIP(socket);
-      const now = Date.now();
+  //   return (socket: Socket, next: (err?: any) => void) => {
+  //     const clientId = SocketUtils.getClientIP(socket);
+  //     const now = Date.now();
 
-      if (!requests.has(clientId)) {
-        requests.set(clientId, []);
-      }
+  //     if (!requests.has(clientId)) {
+  //       requests.set(clientId, []);
+  //     }
 
-      const clientRequests = requests.get(clientId)!;
+  //     const clientRequests = requests.get(clientId)!;
 
-      // Remove old requests outside the window
-      const validRequests = clientRequests.filter(
-        (time) => now - time < windowMs,
-      );
+  //     // Remove old requests outside the window
+  //     const validRequests = clientRequests.filter(
+  //       (time) => now - time < windowMs,
+  //     );
 
-      if (validRequests.length >= maxRequests) {
-        return next(new Error("Rate limit exceeded"));
-      }
+  //     if (validRequests.length >= maxRequests) {
+  //       return next(new Error("Rate limit exceeded"));
+  //     }
 
-      validRequests.push(now);
-      requests.set(clientId, validRequests);
+  //     validRequests.push(now);
+  //     requests.set(clientId, validRequests);
 
-      next();
-    };
-  }
+  //     next();
+  //   };
+  // }
 
-  // Logging middleware
-  logging() {
-    return (socket: Socket, next: (err?: any) => void) => {
-      const ip = SocketUtils.getClientIP(socket);
-      const userAgent = SocketUtils.getUserAgent(socket);
+  // // Logging middleware
+  // logging() {
+  //   return (socket: Socket, next: (err?: any) => void) => {
+  //     const ip = SocketUtils.getClientIP(socket);
+  //     const userAgent = SocketUtils.getUserAgent(socket);
 
-      this.logger.log(`New socket connection: ${socket.id} from ${ip}`);
-      this.logger.debug(`User Agent: ${userAgent}`);
+  //     this.logger.log(`New socket connection: ${socket.id} from ${ip}`);
+  //     this.logger.debug(`User Agent: ${userAgent}`);
 
-      socket.on("disconnect", (reason) => {
-        this.logger.log(`Socket ${socket.id} disconnected: ${reason}`);
-      });
+  //     socket.on("disconnect", (reason) => {
+  //       this.logger.log(`Socket ${socket.id} disconnected: ${reason}`);
+  //     });
 
-      next();
-    };
-  }
+  //     next();
+  //   };
+  // }
 }

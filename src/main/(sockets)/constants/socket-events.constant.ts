@@ -1,8 +1,8 @@
 export const SOCKET_EVENTS = {
   // Connection Events
   CONNECTION: {
-    CONNECT: "connect",
-    DISCONNECT: "disconnect",
+    CONNECT: "user:connect",
+    DISCONNECT: "user:disconnect",
     USER_JOINED: "user:joined",
     USER_LEFT: "user:left",
     USER_STATUS: "user:status",

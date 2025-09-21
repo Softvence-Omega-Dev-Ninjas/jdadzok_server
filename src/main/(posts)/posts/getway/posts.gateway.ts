@@ -6,7 +6,7 @@ import {
 } from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
-import { Injectable } from "@nestjs/common";
+import { BadGatewayException, Injectable } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -37,8 +37,8 @@ export class PostGateway extends BaseSocketGateway implements OnGatewayInit {
 
   afterInit() {
     this.server.use(this.socketMiddleware.authenticate());
-    this.server.use(this.socketMiddleware.rateLimit(1000, 10));
-    this.server.use(this.socketMiddleware.logging());
+    // this.server.use(this.socketMiddleware.rateLimit(1000, 10));
+    // this.server.use(this.socketMiddleware.logging());
   }
 
   @SubscribeMessage(SOCKET_EVENTS.POST.CREATE)
@@ -47,18 +47,26 @@ export class PostGateway extends BaseSocketGateway implements OnGatewayInit {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: PostEvent,
   ) {
-    console.info("user: ", user);
+    const parse = await safeParseAsync(CreatePostDto, data);
+    if (!parse.success)
+      throw new BadGatewayException(
+        "Fail to parse data please give valid input",
+      );
+
+    const post = await this.postService.create({
+      ...parse.data,
+      authorId: user.id,
+    });
     const postEvent: PostEvent = {
-      ...data,
       eventId: SOCKET_EVENTS.POST.CREATE,
       timestamp: new Date(),
       userId: user.id,
       action: "create",
+      content: {
+        message: "Post Created successfully",
+        post,
+      },
     };
-
-    // create post here...
-    const parse = await safeParseAsync(CreatePostDto, data);
-    console.info("parse: ", parse);
 
     // Broadcast new post to all users (who is the follower)
     this.broadcastToAll(SOCKET_EVENTS.POST.CREATE, postEvent, client.id);

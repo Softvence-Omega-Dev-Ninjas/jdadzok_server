@@ -25,6 +25,7 @@ export class PostService {
     );
     console.info(followers);
 
+    return post;
     // send notification to the all followers
     // for (const follower of followers) {
     //   // TODO: have to handle on the gateway not on endpoint

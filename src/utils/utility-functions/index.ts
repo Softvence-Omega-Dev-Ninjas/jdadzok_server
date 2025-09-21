@@ -90,8 +90,14 @@ export async function safeParseAsync<D extends object, I = unknown>(
   dtoClass: new () => D,
   input: I,
 ): Promise<SafeParseResult<D>> {
-  const dtoInstance = plainToInstance(dtoClass, input);
-  const errors = await validate(dtoInstance);
+  const dtoInstance = plainToInstance(dtoClass, input, {
+    enableImplicitConversion: true, // ✅ helps with type conversion
+  });
+
+  const errors = await validate(dtoInstance, {
+    whitelist: true, // ✅ strips unknown properties
+    forbidNonWhitelisted: true, // ✅ throws if unknown props exist
+  });
 
   if (errors.length > 0) {
     return { success: false, errors };
