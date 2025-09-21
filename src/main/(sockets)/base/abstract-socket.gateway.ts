@@ -15,7 +15,6 @@ import {
 } from "@nestjs/websockets";
 import { JwtServices } from "@project/services/jwt.service";
 import { Server, Socket } from "socket.io";
-import { GetSocketUser } from "../ecorators/rate-limit.decorator";
 import { SocketAuthGuard } from "../guards/socket-auth.guard";
 
 @WebSocketGateway({
@@ -54,7 +53,8 @@ export abstract class BaseSocketGateway
     this.setupHeartbeat();
   }
 
-  async handleConnection(@GetSocketUser() user: SocketUser, client: Socket) {
+  async handleConnection(client: Socket) {
+    const user = client.data.user;
     try {
       if (!user?.id) {
         client.disconnect(true);

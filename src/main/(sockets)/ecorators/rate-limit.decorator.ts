@@ -14,7 +14,7 @@ export const SocketRateLimit = (config: RateLimitConfig) =>
 export const GetSocketUser = createParamDecorator(
   (data: unknown, context: ExecutionContext) => {
     const client: Socket = context.switchToWs().getClient();
-    const user = client.user ?? (client.data as SocketUser);
+    const user = client.user || (client.data.user as SocketUser);
     if (!user) throw new BadGatewayException("Client user not found!");
     return user;
   },
