@@ -54,8 +54,8 @@ save_version() {
 # Replace docker healthcheck with external curl check
 health_check() {
   log "Waiting for API to respond at $HEALTH_ENDPOINT..."
-  for i in $(seq 1 $HEALTH_RETRIES); do
-    if curl -fs --max-time $HEALTH_TIMEOUT "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
+  for i in $(seq 1 "$HEALTH_RETRIES"); do
+    if curl -fs --max-time "$HEALTH_TIMEOUT" "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
       ok "API is up and responding"
       return 0
     fi
