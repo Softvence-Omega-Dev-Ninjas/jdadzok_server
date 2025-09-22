@@ -91,12 +91,12 @@ export async function safeParseAsync<D extends object, I = unknown>(
   input: I,
 ): Promise<SafeParseResult<D>> {
   const dtoInstance = plainToInstance(dtoClass, input, {
-    enableImplicitConversion: true, // ✅ helps with type conversion
+    enableImplicitConversion: true,
   });
 
   const errors = await validate(dtoInstance, {
     whitelist: true, // ✅ strips unknown properties
-    forbidNonWhitelisted: true, // ✅ throws if unknown props exist
+    // forbidNonWhitelisted: true, // ✅ throws if unknown props exist
   });
 
   if (errors.length > 0) {

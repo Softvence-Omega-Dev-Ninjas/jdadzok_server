@@ -6,9 +6,9 @@ model Post {
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   // Post content
-  text      String    @db.Text
-  mediaUrl  String?
-  mediaType MediaType @default(TEXT)
+  text      String?    @db.Text
+  mediaUrls String[]   @default([])
+  mediaType MediaType? @default(IMAGE)
 
   // Post settings
   visibility PostVisibility @default(PUBLIC)
@@ -39,6 +39,10 @@ model Post {
 
   // Post metrics
   metrics PostMetrics? @relation("PostMetrics")
+
+  // additional options
+  acceptVolunteer Boolean? @default(false)
+  acceptDonation  Boolean? @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

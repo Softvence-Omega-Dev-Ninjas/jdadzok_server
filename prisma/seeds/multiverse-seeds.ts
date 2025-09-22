@@ -27,4 +27,39 @@ export class Seeds {
       skipDuplicates: true,
     });
   };
+  public aboutUs = async () => {
+    const exists = await this.prisma.aboutUs.findFirst();
+    if (exists) return; // Skip if already seeded
+
+    const data: Prisma.AboutUsCreateInput = {
+      about: faker.lorem.paragraphs(2),
+      photos: [
+        faker.image.urlLoremFlickr({ category: "nature" }),
+        faker.image.urlLoremFlickr({ category: "city" }),
+      ],
+    };
+
+    await this.prisma.aboutUs.create({ data });
+  };
+  public privacyPolicy = async () => {
+    const exists = await this.prisma.privacyPolicy.findFirst();
+    if (exists) return;
+
+    await this.prisma.privacyPolicy.create({
+      data: {
+        text: `# Privacy Policy\n\n${faker.lorem.paragraphs(3)}`,
+      },
+    });
+  };
+
+  public termsAndConditions = async () => {
+    const exists = await this.prisma.termsAndConditions.findFirst();
+    if (exists) return;
+
+    await this.prisma.termsAndConditions.create({
+      data: {
+        text: `# Terms and Conditions\n\n${faker.lorem.paragraphs(3)}`,
+      },
+    });
+  };
 }

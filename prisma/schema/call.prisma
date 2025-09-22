@@ -1,0 +1,22 @@
+model Call {
+    id String @id @default(uuid())
+
+    type   CallType   @default(AUDIO) // call type video for audio
+    status CallStatus @default(CALLING)
+
+    creator   User   @relation("creator", fields: [creatorId], references: [id], onDelete: Cascade)
+    creatorId String
+
+    startedAt DateTime?
+    endedAt   DateTime?
+    metadata  Json?
+
+    participants Participant[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([creatorId])
+    @@index([status])
+    @@map("call")
+}

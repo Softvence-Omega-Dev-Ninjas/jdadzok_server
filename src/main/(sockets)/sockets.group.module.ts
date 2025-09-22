@@ -4,10 +4,11 @@ import { APP_GUARD } from "@nestjs/core";
 import { SocketAuthGuard } from "./guards/socket-auth.guard";
 import { SocketMiddleware } from "./middleware/socket.middleware";
 import { RedisService } from "./services/redis.service";
+import { CallsModule } from "./calls/calls.module";
 
 @Global()
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true })],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), CallsModule],
   controllers: [],
   providers: [
     RedisService,

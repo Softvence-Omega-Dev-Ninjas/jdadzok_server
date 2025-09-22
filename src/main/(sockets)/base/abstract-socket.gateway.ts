@@ -259,9 +259,9 @@ export abstract class BaseSocketGateway
     }
   }
 
-  protected broadcastToAll(
+  protected broadcastToAll<D = any>(
     event: string,
-    data: any,
+    data: D,
     excludeSocketId?: string,
   ): void {
     if (excludeSocketId) {

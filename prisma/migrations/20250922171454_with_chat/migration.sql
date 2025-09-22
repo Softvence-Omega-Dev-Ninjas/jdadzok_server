@@ -5,10 +5,16 @@ CREATE TYPE "public"."ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECT
 CREATE TYPE "public"."AuthProvider" AS ENUM ('GOOGLE', 'APPLE', 'EMAIL', 'FACEBOOK');
 
 -- CreateEnum
+CREATE TYPE "public"."CallStatus" AS ENUM ('CALLING', 'RINING', 'ACTIVE', 'END', 'MISSED', 'DECLINED');
+
+-- CreateEnum
+CREATE TYPE "public"."CallType" AS ENUM ('AUDIO', 'VIDEO');
+
+-- CreateEnum
 CREATE TYPE "public"."CapLevel" AS ENUM ('NONE', 'GREEN', 'YELLOW', 'RED', 'BLACK', 'OSTRICH_FEATHER');
 
 -- CreateEnum
-CREATE TYPE "public"."ChatType" AS ENUM ('DIRECT', 'GROUP');
+CREATE TYPE "public"."ChatType" AS ENUM ('TEXT', 'MEDIA', 'CALL');
 
 -- CreateEnum
 CREATE TYPE "public"."CommunityRole" AS ENUM ('ADMIN', 'MODERATOR', 'MEMBER');
@@ -26,7 +32,7 @@ CREATE TYPE "public"."Gender" AS ENUM ('MALE', 'FEMALE', 'TRANSGENDER', 'GENDERQ
 CREATE TYPE "public"."IdentityVerificationType" AS ENUM ('GOVERMENT_ID_OR_PASSPORT', 'BUSINESS_CERTIFIED_OR_LICENSE');
 
 -- CreateEnum
-CREATE TYPE "public"."MediaType" AS ENUM ('TEXT', 'IMAGE', 'VIDEO');
+CREATE TYPE "public"."MediaType" AS ENUM ('IMAGE', 'VIDEO', 'GIF');
 
 -- CreateEnum
 CREATE TYPE "public"."MembershipStatus" AS ENUM ('PENDING', 'APPROVED', 'BANNED');
@@ -88,6 +94,17 @@ CREATE TABLE "public"."about" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."about-us" (
+    "id" TEXT NOT NULL,
+    "photos" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "about" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "about-us_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."ad_revenue_shares" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -129,6 +146,21 @@ CREATE TABLE "public"."bans" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."call" (
+    "id" TEXT NOT NULL,
+    "type" "public"."CallType" NOT NULL DEFAULT 'AUDIO',
+    "status" "public"."CallStatus" NOT NULL DEFAULT 'CALLING',
+    "creatorId" TEXT NOT NULL,
+    "startedAt" TIMESTAMP(3),
+    "endedAt" TIMESTAMP(3),
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "call_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."cap_requirements" (
     "id" TEXT NOT NULL,
     "capLevel" "public"."CapLevel" NOT NULL,
@@ -163,7 +195,7 @@ CREATE TABLE "public"."chat_participants" (
 -- CreateTable
 CREATE TABLE "public"."chats" (
     "id" TEXT NOT NULL,
-    "type" "public"."ChatType" NOT NULL DEFAULT 'DIRECT',
+    "type" "public"."ChatType" NOT NULL DEFAULT 'TEXT',
     "name" TEXT,
     "createdById" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -177,8 +209,6 @@ CREATE TABLE "public"."choices" (
     "id" TEXT NOT NULL,
     "text" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
-    "category" TEXT,
-    "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -192,7 +222,7 @@ CREATE TABLE "public"."comments" (
     "authorId" TEXT NOT NULL,
     "text" TEXT NOT NULL,
     "mediaUrl" TEXT,
-    "mediaType" "public"."MediaType" NOT NULL DEFAULT 'TEXT',
+    "mediaType" "public"."MediaType" NOT NULL DEFAULT 'IMAGE',
     "parentCommentId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -483,6 +513,21 @@ CREATE TABLE "public"."orders" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."Participant" (
+    "id" TEXT NOT NULL,
+    "callId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "accepted" BOOLEAN NOT NULL DEFAULT false,
+    "joinedAt" TIMESTAMP(3),
+    "leftAt" TIMESTAMP(3),
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Participant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."payment-methods" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -572,19 +617,31 @@ CREATE TABLE "public"."post_metadata" (
 CREATE TABLE "public"."posts" (
     "id" TEXT NOT NULL,
     "authorId" TEXT NOT NULL,
-    "text" TEXT NOT NULL,
-    "mediaUrl" TEXT,
-    "mediaType" "public"."MediaType" NOT NULL DEFAULT 'TEXT',
+    "text" TEXT,
+    "mediaUrls" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "mediaType" "public"."MediaType" DEFAULT 'IMAGE',
     "visibility" "public"."PostVisibility" NOT NULL DEFAULT 'PUBLIC',
     "postFrom" "public"."PostFrom" NOT NULL DEFAULT 'REGULAR_PROFILE',
     "categoryId" TEXT,
     "communityId" TEXT,
     "ngoId" TEXT,
     "metadataId" TEXT,
+    "acceptVolunteer" BOOLEAN DEFAULT false,
+    "acceptDonation" BOOLEAN DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "posts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."privacy-policy" (
+    "id" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "privacy-policy_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -680,6 +737,16 @@ CREATE TABLE "public"."subscriptions" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "subscriptions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."terms-and-conditions" (
+    "id" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "terms-and-conditions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -834,6 +901,12 @@ CREATE INDEX "bans_isActive_idx" ON "public"."bans"("isActive");
 CREATE INDEX "bans_expiresAt_idx" ON "public"."bans"("expiresAt");
 
 -- CreateIndex
+CREATE INDEX "call_creatorId_idx" ON "public"."call"("creatorId");
+
+-- CreateIndex
+CREATE INDEX "call_status_idx" ON "public"."call"("status");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "cap_requirements_capLevel_key" ON "public"."cap_requirements"("capLevel");
 
 -- CreateIndex
@@ -859,9 +932,6 @@ CREATE UNIQUE INDEX "choices_slug_key" ON "public"."choices"("slug");
 
 -- CreateIndex
 CREATE INDEX "choices_slug_idx" ON "public"."choices"("slug");
-
--- CreateIndex
-CREATE INDEX "choices_category_idx" ON "public"."choices"("category");
 
 -- CreateIndex
 CREATE INDEX "comments_postId_idx" ON "public"."comments"("postId");
@@ -1042,6 +1112,15 @@ CREATE INDEX "orders_status_idx" ON "public"."orders"("status");
 
 -- CreateIndex
 CREATE INDEX "orders_createdAt_idx" ON "public"."orders"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "Participant_userId_idx" ON "public"."Participant"("userId");
+
+-- CreateIndex
+CREATE INDEX "Participant_callId_idx" ON "public"."Participant"("callId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Participant_callId_userId_key" ON "public"."Participant"("callId", "userId");
 
 -- CreateIndex
 CREATE INDEX "payment-methods_userId_idx" ON "public"."payment-methods"("userId");
@@ -1242,6 +1321,9 @@ ALTER TABLE "public"."bans" ADD CONSTRAINT "bans_userId_fkey" FOREIGN KEY ("user
 ALTER TABLE "public"."bans" ADD CONSTRAINT "bans_issuedById_fkey" FOREIGN KEY ("issuedById") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."call" ADD CONSTRAINT "call_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."chat_participants" ADD CONSTRAINT "chat_participants_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "public"."chats"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1345,6 +1427,12 @@ ALTER TABLE "public"."orders" ADD CONSTRAINT "orders_buyerId_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "public"."orders" ADD CONSTRAINT "orders_productId_fkey" FOREIGN KEY ("productId") REFERENCES "public"."products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Participant" ADD CONSTRAINT "Participant_callId_fkey" FOREIGN KEY ("callId") REFERENCES "public"."call"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Participant" ADD CONSTRAINT "Participant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."payment-methods" ADD CONSTRAINT "payment-methods_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
