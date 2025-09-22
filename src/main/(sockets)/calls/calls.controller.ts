@@ -1,9 +1,8 @@
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Body, Controller, Post, Req } from "@nestjs/common";
 import { CallsService } from "./calls.service";
 import { CreateCallDto } from "./dto/create-calls.dto";
 
-
-@Controller('calls')
+@Controller("calls")
 export class CallsController {
   constructor(private serv: CallsService) {}
 
@@ -12,4 +11,3 @@ export class CallsController {
     return this.serv.createCall(req.user.id, dto.type, dto.to);
   }
 }
-

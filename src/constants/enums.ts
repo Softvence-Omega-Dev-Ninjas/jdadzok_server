@@ -58,7 +58,14 @@ export type ChatType = (typeof chatType)[number];
 
 export const callType = ["AUDIO", "VIDEO"] as const;
 export type CallType = (typeof callType)[number];
-export const callStatus = ["CALLING", "RINING", "ACTIVE", "END", "MISSED", "DECLINED"] as const;
+export const callStatus = [
+  "CALLING",
+  "RINING",
+  "ACTIVE",
+  "END",
+  "MISSED",
+  "DECLINED",
+] as const;
 export type CallStatus = (typeof callStatus)[number];
 
 export const messageStatus = ["SENT", "DELIVERED", "READ"] as const;

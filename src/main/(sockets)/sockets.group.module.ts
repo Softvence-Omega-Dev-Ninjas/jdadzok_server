@@ -8,7 +8,7 @@ import { CallsModule } from "./calls/calls.module";
 
 @Global()
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), CallsModule ],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), CallsModule],
   controllers: [],
   providers: [
     RedisService,

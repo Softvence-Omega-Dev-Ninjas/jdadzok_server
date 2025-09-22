@@ -4,10 +4,9 @@ import { CallsService } from "./calls.service";
 import { CallsGateway } from "./calls.gateway";
 
 @Module({
-    imports: [],
-    controllers: [ CallsController ],
-    providers: [ CallsService, CallsGateway ],
-    exports: [],
+  imports: [],
+  controllers: [CallsController],
+  providers: [CallsService, CallsGateway],
+  exports: [],
 })
-
 export class CallsModule {}

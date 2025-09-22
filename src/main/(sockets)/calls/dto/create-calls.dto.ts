@@ -1,10 +1,10 @@
-import { IsUUID, IsIn } from 'class-validator';
+import { IsUUID, IsIn } from "class-validator";
 import { CallType, callType } from "@constants/enums";
 
 export class CreateCallDto {
-    @IsIn(callType)
-    type: CallType;
+  @IsIn(callType)
+  type: CallType;
 
-    @IsUUID()
-    to: string[];
+  @IsUUID()
+  to: string[];
 }

@@ -33,7 +33,7 @@ model User {
   messageReads    MessageRead[]
 
   // Call system
-  callsCreated Call[]      @relation("creator")
+  callsCreated Call[]        @relation("creator")
   participants Participant[]
 
   // Marketplace
