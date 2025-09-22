@@ -13,7 +13,7 @@ model Comment {
   text      String    @db.Text
   // post could be string/video/image
   mediaUrl  String? // URL for attached media
-  mediaType MediaType @default(TEXT)
+  mediaType MediaType @default(IMAGE)
 
   // Nested comments (replies)
   parentCommentId String?

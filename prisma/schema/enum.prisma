@@ -92,9 +92,9 @@ enum IdentityVerificationType {
 }
 
 enum MediaType {
-  TEXT
   IMAGE
   VIDEO
+  GIF
 }
 
 enum MembershipStatus {

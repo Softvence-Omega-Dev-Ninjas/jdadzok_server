@@ -14,7 +14,7 @@ export const capLevel = [
 ] as const;
 export type CapLevel = (typeof capLevel)[number];
 
-export const mediaType = ["TEXT", "IMAGE", "VIDEO"] as const;
+export const mediaType = ["IMAGE", "VIDEO", "GIF"] as const;
 export type MediaType = (typeof mediaType)[number];
 
 export const postVisibility = ["PUBLIC", "FOLLOWERS", "PRIVATE"] as const;

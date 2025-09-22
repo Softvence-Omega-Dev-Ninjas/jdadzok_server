@@ -15,7 +15,9 @@ async function main() {
   // ============LIST OF SEED START============= //
   await seed.user();
   await seed.choice();
-
+  await seed.aboutUs();
+  await seed.privacyPolicy();
+  await seed.termsAndConditions();
   // ============LIST OF SEED END============= //
 
   console.info(chalk.bgYellow.white.bold("🌱 Database Seed successfully 😍"));
