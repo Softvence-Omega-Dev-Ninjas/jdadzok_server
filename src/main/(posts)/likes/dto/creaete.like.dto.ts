@@ -2,10 +2,11 @@ import {
   ApiHideProperty,
   ApiProperty,
   IntersectionType,
+  PartialType,
 } from "@nestjs/swagger";
 import { IsOptional, IsUUID } from "class-validator";
 
-export class CreateLike {
+class CreateLike {
   @ApiHideProperty()
   @IsUUID()
   @IsOptional()
@@ -30,3 +31,4 @@ export class CreateLike {
 }
 
 export class CreateLikeDto extends IntersectionType(CreateLike) {}
+export class UpdateLikeDto extends IntersectionType(PartialType(CreateLike)) {}
