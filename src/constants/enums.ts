@@ -53,8 +53,13 @@ export type ReportTargetType = (typeof reportTargetType)[number];
 export const reportStatus = ["PENDING", "REVIEWED"] as const;
 export type ReportStatus = (typeof reportStatus)[number];
 
-export const chatType = ["DIRECT", "GROUP"] as const;
+export const chatType = ["TEXT", "MEDIA", "CALL"] as const;
 export type ChatType = (typeof chatType)[number];
+
+export const callType = ["AUDIO", "VIDEO"] as const;
+export type CallType = (typeof callType)[number];
+export const callStatus = ["CALLING", "RINING", "ACTIVE", "END", "MISSED", "DECLINED"] as const;
+export type CallStatus = (typeof callStatus)[number];
 
 export const messageStatus = ["SENT", "DELIVERED", "READ"] as const;
 export type MessageStatus = (typeof messageStatus)[number];
