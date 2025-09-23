@@ -15,7 +15,7 @@ import { CreateCallDto } from "./dto/create-calls.dto";
 import { SignalDto } from "./dto/signal.dto";
 
 @WebSocketGateway({
-  namespace: "calls",
+  namespace: "/calls",
   cors: { origin: true, credentials: true },
 })
 export class CallsGateway implements OnGatewayInit {
@@ -24,13 +24,13 @@ export class CallsGateway implements OnGatewayInit {
   constructor(
     private readonly svc: CallsService,
     private readonly socketMiddleware: SocketMiddleware,
-  ) {}
+  ) { }
 
   afterInit() {
     this.server.use(this.socketMiddleware.authenticate());
   }
 
-  @SubscribeMessage("call.create")
+  @SubscribeMessage("calls.create")
   async socketCreate(
     @GetSocketUser() user: SocketUser,
     @ConnectedSocket() client: Socket,

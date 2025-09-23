@@ -1,3 +1,4 @@
+import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { JwtModule, JwtService } from "@nestjs/jwt";
@@ -14,6 +15,7 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
 
 @Module({
   imports: [
+    BullModule.registerQueue({ name: 'users' }),
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
     // ...refresh and google i mean rest of the config
@@ -32,4 +34,4 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
   ],
   exports: [AuthRepository, AuthService, JwtModule, JwtStrategy],
 })
-export class AuthModule {}
+export class AuthModule { }
