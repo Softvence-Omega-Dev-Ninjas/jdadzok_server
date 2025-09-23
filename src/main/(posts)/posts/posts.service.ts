@@ -7,7 +7,6 @@ import {
 import { FollowRepository } from "@project/main/(users)/follow/follow.repository";
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
-import { PostGateway } from "./getway/post.gateway";
 import { PostRepository } from "./posts.repository";
 
 @Injectable()
@@ -15,7 +14,6 @@ export class PostService {
   constructor(
     private readonly repository: PostRepository,
     private readonly followRepository: FollowRepository,
-    private readonly postGetway: PostGateway,
   ) {}
 
   async create(input: CreatePostDto) {
@@ -25,19 +23,22 @@ export class PostService {
     const followers = await this.followRepository.findManyFollowerId(
       post?.authorId,
     );
+    console.info(followers);
 
+    return post;
     // send notification to the all followers
-    for (const follower of followers) {
-      this.postGetway.emit("post:new", {
-        data: post,
-        type: "notification",
-        from: post.authorId,
-        to: follower.followerId,
-        meta: {
-          message: `${post.author.profile?.name} add a new post`,
-        },
-      });
-    }
+    // for (const follower of followers) {
+    //   // TODO: have to handle on the gateway not on endpoint
+    //   //   this.postGetway.emit("post:new", {
+    //   //     data: post,
+    //   //     type: "notification",
+    //   //     from: post.authorId,
+    //   //     to: follower.followerId,
+    //   //     meta: {
+    //   //       message: `${post.author.profile?.name} add a new post`,
+    //   //     },
+    //   //   });
+    // }
   }
 
   async index(options?: PostQueryDto) {

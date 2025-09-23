@@ -10,7 +10,11 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
-import { GetUser, MakePublic } from "@project/common/jwt/jwt.decorator";
+import {
+  GetUser,
+  GetVerifiedUser,
+  MakePublic,
+} from "@project/common/jwt/jwt.decorator";
 import { successResponse } from "@project/common/utils/response.util";
 import { VerifyTokenDto } from "@project/main/(started)/auth/dto/verify-token.dto";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
@@ -27,9 +31,13 @@ export class UserController {
   async register(@Body() body: CreateUserDto) {
     try {
       const result = await this.service.register(body);
-      if (result["verificaiton"])
-        return successResponse(result, "Please check your mail to verify OTP");
-      return successResponse(result, "Registration successfull!");
+      if (result.hasAccount) {
+        return successResponse(
+          result,
+          "Already have account with this email, check your mail to verify OTP",
+        );
+      }
+      return successResponse(result, "Please check your mail to verify OTP");
     } catch (err) {
       return err;
     }
@@ -89,10 +97,10 @@ export class UserController {
   @Delete("delete")
   @UsePipes(ValidationPipe)
   @UseGuards(JwtAuthGuard)
-  async delete(@GetUser() user: TUser) {
+  async delete(@GetVerifiedUser() user: TUser) {
     try {
       const result = await this.service.deleteAcount(user.userId);
-      return successResponse(result, "User profile delete success");
+      return successResponse(result, "User account deleted success");
     } catch (err) {
       return err;
     }

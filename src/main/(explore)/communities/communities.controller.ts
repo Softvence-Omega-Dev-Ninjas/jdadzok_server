@@ -80,7 +80,7 @@ export class CommunitiesController {
 
   // user----community followers.
 
-  @Post(":communityId/follow")
+  @Post(":communityId/follower")
   userFollowCommunity(
     @GetUser("userId") userId: string,
     @Param("communityId") communityId: string,
@@ -99,6 +99,53 @@ export class CommunitiesController {
     return handleRequest(
       () => this.service.userUnfollowCommunity(userId, communityId),
       "User Following a Community Successfull",
+    );
+  }
+
+  // community following another community ...
+  //  @Post("/community/:followingId")
+  //   communityFollow(
+  //     @GetUser("userId") userId: string,
+  //     @Param("followingId") followingId: string,
+  //   ) {
+  //     return handleRequest(
+  //       () => this.service.userFollowCommunity(userId, followingId),
+  //       "Community Following a Community Successfull",
+  //     );
+  //   }
+
+  // ----- LIKE -----
+  @Post(":communityId/like")
+  @ApiOperation({ summary: "Like a community" })
+  async likeCommunity(
+    @GetUser("userId") userId: string,
+    @Param("communityId") communityId: string,
+  ) {
+    return handleRequest(
+      () => this.service.likeCommunity(userId, communityId),
+      "Likes Successfull",
+    );
+  }
+
+  @Delete(":communityId/unlike")
+  @ApiOperation({ summary: "Unlike a community" })
+  async unlikeCommunity(
+    @GetUser("userId") userId: string,
+    @Param("communityId") communityId: string,
+  ) {
+    return handleRequest(
+      () => this.service.unlikeCommunity(userId, communityId),
+      "Unlikes Successfully",
+    );
+  }
+
+  // ----- COUNTS -----
+  @Get(":communityId/counts")
+  @ApiOperation({ summary: "Get followers and likes count of a community" })
+  async getCommunityCounts(@Param("communityId") communityId: string) {
+    return handleRequest(
+      () => this.service.getCommunityCounts(communityId),
+      "Get Count Likes and Followers Successfully",
     );
   }
 }

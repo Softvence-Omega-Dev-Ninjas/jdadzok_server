@@ -1,7 +1,8 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { RedisService } from "@common/redis/redis.service";
+import { RedisService } from "@module/(sockets)/services/redis.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { generateRedisKey } from "@project/utils";
 import { createHash } from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 import { S3ResponseDto } from "./dto/s3.dto";
@@ -55,11 +56,9 @@ export class S3Service {
       // Generate file hash
       fileHash = createHash("sha256").update(file.buffer).digest("hex");
 
+      const key = generateRedisKey("S3FileHash", fileHash);
       // Check Redis for existing URL
-      const cached = await this.redisService.get<S3ResponseDto>(
-        "S3FileHash",
-        fileHash,
-      );
+      const cached = await this.redisService.get<S3ResponseDto>(key);
 
       if (cached) return cached; // Skip upload
     }
@@ -90,7 +89,8 @@ export class S3Service {
 
       // Store in Redis if small file
       if (isSmallFile && fileHash) {
-        await this.redisService.set("S3FileHash", result, "1d", fileHash);
+        const key = generateRedisKey("S3FileHash", fileHash);
+        await this.redisService.set(key, result, "1d");
       }
 
       return result;

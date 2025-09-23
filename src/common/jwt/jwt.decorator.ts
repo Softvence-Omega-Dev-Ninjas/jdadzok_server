@@ -10,7 +10,12 @@ import {
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
+import { JwtServices } from "@project/services/jwt.service";
+import { omit } from "@project/utils";
+import { cookieHandler } from "./cookie.handler";
 import { RequestWithUser } from "./jwt.interface";
 
 export const ROLES_KEY = "roles";
@@ -27,21 +32,44 @@ export const GetUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
+    if (!cookieHandler(request, "get"))
+      throw new UnauthorizedException("Cookies not found on request");
+
     if (!user || !user.userId)
       throw new NotFoundException("Request User not found!");
+    return key ? user?.[key] : user;
+  },
+);
+
+export const GetVerifiedUser = createParamDecorator(
+  async (key: string | undefined, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<RequestWithUser>();
+
+    const token = cookieHandler(request, "get");
+    if (!token || !token.length)
+      throw new NotFoundException("Request User not found!");
+
+    // verify token
+    const jwt = new JwtService();
+    const configService = new ConfigService();
+    const jwtService = new JwtServices(jwt, configService);
+    const isVerifyToken = await jwtService.verifyAsync(token);
+    if (!isVerifyToken?.email)
+      throw new UnauthorizedException("Invalid token your are unauthorized");
 
     const prisma = new PrismaService();
-    const IsVerified = await prisma.user.findFirst({
-      where: { OR: [{ id: user.userId }, { email: user.email }] },
-      select: {
-        isVerified: true,
+    const isUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ id: isVerifyToken.sub }, { email: isVerifyToken.email }],
       },
     });
+    if (!isUser) throw new NotFoundException("Request User not found!");
+
     // check user verified or not
-    if (!IsVerified?.isVerified)
+    if (!isUser.isVerified)
       throw new UnauthorizedException("Please verify your account first");
 
-    return key ? user?.[key] : user;
+    return omit(isUser, ["password"]);
   },
 );
 

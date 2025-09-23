@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ENVEnum } from "@project/common/enum/env.enum";
 import { UserEnum } from "@project/common/enum/user.enum";
@@ -9,6 +9,7 @@ import chalk from "chalk";
 
 @Injectable()
 export class SuperAdminService implements OnModuleInit {
+  private readonly logger = new Logger(SuperAdminService.name);
   private superAdminEmail: string;
   private superAdminPass: string;
 
@@ -41,11 +42,7 @@ export class SuperAdminService implements OnModuleInit {
     if (!superAdminExists) {
       await this.createSuperAdminUser();
     } else {
-      console.info(
-        chalk.bgGreen.white.bold(
-          `🚀 Super Admin user already exists with email: ${this.superAdminEmail}`,
-        ),
-      );
+      this.logger.log(`🚀 Super Admin already exists`);
     }
   }
 
@@ -76,11 +73,7 @@ export class SuperAdminService implements OnModuleInit {
       },
     });
 
-    console.info(
-      chalk.bgGreen.white.bold(
-        `🚀 Super Admin user created with email: ${this.superAdminEmail}`,
-      ),
-    );
+    this.logger.debug(`🚀 Super Admin created.`);
   }
 
   private async hashPassword(password: string): Promise<string> {
@@ -96,9 +89,7 @@ export class SuperAdminService implements OnModuleInit {
     if (existingUsersCount <= 1) {
       await this.createUsers();
     } else {
-      console.info(
-        chalk.bgYellow.white.bold("⚠️ Users already exist, skipping seeding."),
-      );
+      this.logger.warn("⚠️ Users already exist, skipping seeding.");
     }
   }
 

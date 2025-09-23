@@ -14,7 +14,7 @@ export const capLevel = [
 ] as const;
 export type CapLevel = (typeof capLevel)[number];
 
-export const mediaType = ["TEXT", "IMAGE", "VIDEO"] as const;
+export const mediaType = ["IMAGE", "VIDEO", "GIF"] as const;
 export type MediaType = (typeof mediaType)[number];
 
 export const postVisibility = ["PUBLIC", "FOLLOWERS", "PRIVATE"] as const;
@@ -53,8 +53,20 @@ export type ReportTargetType = (typeof reportTargetType)[number];
 export const reportStatus = ["PENDING", "REVIEWED"] as const;
 export type ReportStatus = (typeof reportStatus)[number];
 
-export const chatType = ["DIRECT", "GROUP"] as const;
+export const chatType = ["TEXT", "MEDIA", "CALL"] as const;
 export type ChatType = (typeof chatType)[number];
+
+export const callType = ["AUDIO", "VIDEO"] as const;
+export type CallType = (typeof callType)[number];
+export const callStatus = [
+  "CALLING",
+  "RINING",
+  "ACTIVE",
+  "END",
+  "MISSED",
+  "DECLINED",
+] as const;
+export type CallStatus = (typeof callStatus)[number];
 
 export const messageStatus = ["SENT", "DELIVERED", "READ"] as const;
 export type MessageStatus = (typeof messageStatus)[number];

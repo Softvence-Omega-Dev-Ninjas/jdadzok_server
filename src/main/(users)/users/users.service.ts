@@ -1,3 +1,4 @@
+import { InjectQueue } from "@nestjs/bullmq";
 import {
   BadRequestException,
   ConflictException,
@@ -8,8 +9,11 @@ import { TUser } from "@project/@types";
 import { MailService } from "@project/lib/mail/mail.service";
 import { OptService } from "@project/lib/utils/otp.service";
 import { UtilsService } from "@project/lib/utils/utils.service";
+import { QUEUE_JOB_NAME } from "@project/main/(buill-queue)/constants";
 import { VerifyTokenDto } from "@project/main/(started)/auth/dto/verify-token.dto";
 import { JwtServices } from "@project/services/jwt.service";
+import { omit } from "@utils/index";
+import { Queue } from "bullmq";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserRepository } from "./users.repository";
@@ -17,6 +21,7 @@ import { UserRepository } from "./users.repository";
 @Injectable()
 export class UserService {
   constructor(
+    @InjectQueue("users") private readonly userQueue: Queue,
     private readonly repository: UserRepository,
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
@@ -40,28 +45,32 @@ export class UserService {
     const createdUser = await this.repository.store(body);
     if (!createdUser.isVerified) {
       // send otp again
-      const otp = await this.sendOtpMail({
+      this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
         email: body.email,
         userId: createdUser.id,
       });
+      // return with mail verification
       return {
-        verificaiton: otp,
+        hasAccount: true,
+        user: createdUser,
       };
     }
 
-    const otp = await this.sendOtpMail({
-      email: createdUser.email,
+    this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
+      email: body.email,
       userId: createdUser.id,
     });
+
     const accessToken = await this.jwtService.signAsync({
       email: createdUser.email,
       sub: createdUser.id,
       roles: createdUser.role,
     });
+
     return {
       accessToken,
       user: createdUser,
-      verificaiton: otp,
+      hasAccount: false,
     };
   }
 
@@ -78,7 +87,16 @@ export class UserService {
     });
 
     // Update DB
-    return await this.repository.update(input.userId, { isVerified: true });
+    const updatedUser = await this.repository.update(input.userId, {
+      isVerified: true,
+    });
+    // when user account verified then we will have to send create a token and send it to as response
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      roles: user.role,
+      email: user.email,
+    });
+    return { user: omit(updatedUser, ["password"]), accessToken };
   }
 
   async resnetOtp(input: ResentOtpDto) {
@@ -111,7 +129,7 @@ export class UserService {
     return await this.repository.findById(userId);
   }
 
-  private async sendOtpMail(user: Omit<TUser, "role">) {
+  async sendOtpMail(user: Omit<TUser, "role">) {
     // make same innital email validation for send email
     if (!user.email.endsWith("@gmail.com"))
       throw new BadRequestException("Email must end with @gmail.com");

@@ -32,6 +32,10 @@ model User {
   createdChats    Chat[]
   messageReads    MessageRead[]
 
+  // Call system
+  callsCreated Call[]        @relation("creator")
+  participants Participant[]
+
   // Marketplace
   products Product[]
   orders   Order[]    @relation("UserOrders")
@@ -58,9 +62,6 @@ model User {
   reviewedReports       Report[]          @relation("ReportReviewer")
   reviewedVerifications NgoVerification[] @relation("VerificationReviewer")
   issuedBans            Ban[]             @relation("BanIssuer")
-
-  // User choices
-  userChoices UserChoice[]
 
   // File uploads
   uploadedFiles FileInstance[] @relation("UploadedFiles")
@@ -90,10 +91,13 @@ model User {
 
   // payment methods -> a user can has multiple payment methods
   PaymentMethods PaymentMethods[]
+  UserChoice     UserChoice[]
 
   @@index([email])
   @@index([capLevel])
   @@index([role])
   @@index([createdAt])
   @@map("users")
+
+
 }

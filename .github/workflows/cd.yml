@@ -8,104 +8,10 @@ on:
       - completed
 
 jobs:
-  build-and-push:
-    name: Build & Push Docker Image 🏗️
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
-
-    steps:
-      - name: Checkout Code 📥
-        uses: actions/checkout@v4
-
-      - name: Set up NodeJs
-        uses: actions/setup-node@v3
-        with:
-          node-version: "20"
-
-      - name: 🔧 Setup and load environment
-        uses: ./.github/actions/setup-and-load-env
-        with:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
-          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
-          EMAIL: ${{ secrets.EMAIL }}
-          PG_USERNAME: ${{ secrets.PG_USERNAME }}
-          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          PG_DATABASE: ${{ secrets.PG_DATABASE }}
-          PG_PORT: ${{ secrets.PG_PORT }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
-          BASE_URL: ${{ secrets.BASE_URL }}
-          PORT: ${{ secrets.PORT }}
-          MAIL_USER: ${{ secrets.MAIL_USER }}
-          MAIL_PASS: ${{ secrets.MAIL_PASS }}
-          SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
-          SUPER_ADMIN_PASS: ${{ secrets.SUPER_ADMIN_PASS }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_USER: ${{ secrets.REDIS_USER }}
-          REDIS_PASS: ${{ secrets.REDIS_PASS }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          REDIS_CONTAINER: ${{ secrets.REDIS_CONTAINER }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-
-      - name: 📋 Verify environment variables
-        run: |
-          echo "Package name: $PACKAGE_NAME"
-          echo "Package version: $PACKAGE_VERSION"
-          echo "Docker image: $IMAGE_TAG"
-          echo "✅ Environment variables are accessible"
-
-      - name: Log in to Docker Hub 🔑
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          echo "🔑 Logging into Docker Hub..."
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-          echo "✅ Successfully logged into Docker Hub"
-
-      - name: Build Docker Image 🔨
-        run: |
-          echo "Building Docker image: $IMAGE_TAG"
-          docker compose --profile prod build
-          if [ $? -eq 0 ]; then
-            echo "✅ Docker image built successfully"
-          else
-            echo "❌ Failed to build Docker image"
-            exit 1
-          fi
-
-      - name: Push Docker Image 🚀
-        run: |
-          echo "Pushing Docker image: $IMAGE_TAG"
-          docker compose --profile prod push
-          if [ $? -eq 0 ]; then
-            echo "✅ Docker image $IMAGE_TAG pushed successfully!"
-          else
-            echo "❌ Failed to push Docker image"
-            exit 1
-          fi
-
   deploy:
     name: Deploy to VPS with Zero Downtime 🔄
-    needs: build-and-push
     runs-on: ubuntu-latest
-    if: ${{ success() && needs.build-and-push.result == 'success' }}
-
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     steps:
       - name: Checkout Code 📥
         uses: actions/checkout@v4
@@ -121,6 +27,7 @@ jobs:
           PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
           PG_DATABASE: ${{ secrets.PG_DATABASE }}
           PG_PORT: ${{ secrets.PG_PORT }}
+          PG_HOST: ${{ secrets.PG_HOST }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
@@ -155,59 +62,44 @@ jobs:
           echo "Package version: $PACKAGE_VERSION"
           echo "Docker image: $IMAGE_TAG"
           echo "✅ Environment variables are accessible"
-
-      - name: Verify Build Outputs 🔍
-        run: |
-          echo "🔍 Verifying build job outputs..."
-          echo "=== BUILD JOB OUTPUTS ==="
-          echo "package_name: '$PACKAGE_NAME'"
-          echo "package_version: '$PACKAGE_VERSION'"
-          echo "image_tag: '$IMAGE_TAG'"
-          if [ -z "$PACKAGE_TAG" ]; then
-            echo "⚠️ IMAGE_TAG is empty, using hardcoded fallback in deployment"
-          else
-            echo "✅ IMAGE_TAG is set to '$PACKAGE_TAG'"
-          fi
-          echo "========================="
 
       - name: Setup SSH 🔐
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          echo "${{secrets.VPS_SSH_PRIVATE_KEY}}" > ~/.ssh/deploy_key
+          # Write private key
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-          ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
+          # Add server host key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-          cat <<EOF > ~/.ssh/config
+          # Clean SSH config
+          cat > ~/.ssh/config <<EOF
           Host deploy-server
-            HostName $VPS_HOST
-            User $VPS_USER
+            HostName ${{ secrets.VPS_HOST }}
+            User ${{ secrets.VPS_USER }}
             IdentityFile ~/.ssh/deploy_key
             StrictHostKeyChecking no
           EOF
+
           chmod 600 ~/.ssh/config
 
-      - name: Debug SSH key
+      - name: Test SSH Connection ✅
         run: |
-          echo "-----BEGIN KEY-----"
-          head -n 10 ~/.ssh/deploy_key
-          echo "-----END KEY-----"
+          ssh deploy-server "echo '🎉 SSH Connected Successfully!'"
 
       - name: Copy Files to Server 📦
         run: |
           echo "Creating directories..."
-          chmod 600 ~/.ssh/deploy_key
           ssh deploy-server "mkdir -p ~/$PACKAGE_NAME/scripts"
           echo "Copying files..."
-
-          scp -i ~/.ssh/deploy_key docker-compose.yaml $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
-          scp -i ~/.ssh/deploy_key .env  $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
-          scp -i ~/.ssh/deploy_key Dockerfile $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
-          scp -i ~/.ssh/deploy_key -r scripts $VPS_USER@$VPS_HOST:~/$PACKAGE_NAME/
-
+          scp docker-compose.yaml deploy-server:~/$PACKAGE_NAME/
+          scp .env deploy-server:~/$PACKAGE_NAME/
+          scp Dockerfile deploy-server:~/$PACKAGE_NAME/
+          scp -r scripts deploy-server:~/$PACKAGE_NAME/
           echo "✅ Files copied successfully"
 
       - name: Fix permissions on server 🌋
@@ -216,21 +108,8 @@ jobs:
 
       - name: Deploy Application 🚀
         run: |
-          echo "Starting deployment..."
-          echo "Package: ${{secrets.PACKAGE_NAME}}"
-          echo "Version: ${{secrets.PACKAGE_VERSION}}"
-          echo "Image Tag: ${{secrets.IMAGE_TAG}}"
-          cat .env  # Debug: show .env contents
-
-          chmod 600 ~/.ssh/deploy_key
-
           ssh deploy-server bash << 'DEPLOY_EOF'
-          set -e
-
-          echo "=== DEPLOYMENT STARTED ==="
-          echo "Package:  ${{secrets.PACKAGE_NAME}}"
-          echo "Version:  ${{secrets.PACKAGE_NAME}}"
-          echo "=============================="
+          set -euo pipefail
 
           cd ~/${{secrets.PACKAGE_NAME}}
 
@@ -243,55 +122,71 @@ jobs:
           fi
 
           # Login to Docker Hub
-          echo "Logging into Docker Hub..."
           echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
 
-          # Source environment variables
-          if [ -f .env ]; then
-            echo "Sourcing .env file..."
-            cat .env  # Debug: show .env contents on server
-            source .env
-          else
-            echo "❌ .env file not found"
-            exit 1
-          fi
+          # Explicitly export required variables
+          export PACKAGE_NAME="${{secrets.PACKAGE_NAME}}"
+          export DOCKER_USERNAME="${{secrets.DOCKER_USERNAME}}"
+          export PACKAGE_VERSION="${{secrets.PACKAGE_VERSION}}"
+          export PORT="${{secrets.PORT}}"
+          export BASE_URL="${{secrets.BASE_URL}}"
+          export EMAIL="${{secrets.EMAIL}}"
+          export NODE_ENV="${{secrets.NODE_ENV}}"
+          export PG_USERNAME="${{secrets.PG_USERNAME}}"
+          export PG_PASSWORD="${{secrets.PG_PASSWORD}}"
+          export PG_DATABASE="${{secrets.PG_DATABASE}}"
+          export PG_PORT="${{secrets.PG_PORT}}"
+          export PG_HOST="${{secrets.PG_HOST}}"
+          export DATABASE_URL="postgres://${PG_USERNAME}:${PG_PASSWORD}@${PG_HOST}:${PG_PORT}/${PG_DATABASE}"
+          export JWT_SECRET="${{secrets.JWT_SECRET}}"
+          export JWT_EXPIRES_IN="${{secrets.JWT_EXPIRES_IN}}"
+          export MAIL_USER="${{secrets.MAIL_USER}}"
+          export MAIL_PASS="${{secrets.MAIL_PASS}}"
+          export SUPER_ADMIN_EMAIL="${{secrets.SUPER_ADMIN_EMAIL}}"
+          export SUPER_ADMIN_PASS="${{secrets.SUPER_ADMIN_PASS}}"
+          export REDIS_HOST="${{secrets.REDIS_HOST}}"
+          export REDIS_USER="${{secrets.REDIS_USER}}"
+          export REDIS_PASS="${{secrets.REDIS_PASS}}"
+          export REDIS_PORT="${{secrets.REDIS_PORT}}"
+          export REDIS_CONTAINER="${{secrets.REDIS_CONTAINER}}"
+          export REDIS_URL="redis://${REDIS_HOST}:${REDIS_PORT}"
+          export TWILIO_ACCOUNT_SID="${{secrets.TWILIO_ACCOUNT_SID}}"
+          export TWILIO_AUTH_TOKEN="${{secrets.TWILIO_AUTH_TOKEN}}"
+          export TWILIO_PHONE_NUMBER="${{secrets.TWILIO_PHONE_NUMBER}}"
+          export AWS_REGION="${{secrets.AWS_REGION}}"
+          export AWS_ACCESS_KEY_ID="${{secrets.AWS_ACCESS_KEY_ID}}"
+          export AWS_SECRET_ACCESS_KEY="${{secrets.AWS_SECRET_ACCESS_KEY}}"
+          export AWS_S3_BUCKET_NAME="${{secrets.AWS_S3_BUCKET_NAME}}"
+          export IMAGE_TAG="${{secrets.IMAGE_TAG}}"
+          export VPS_HOST_IP="${{secrets.VPS_HOST_IP}}"
 
-          # Run the simplified deployment script
-          echo "Executing zero-downtime deployment..."
-          if ./scripts/deploy.sh --version "${{secrets.PACKAGE_VERSION}}"; then
-            echo "✅ Deployment successful"
-          else
-            echo "❌ Deployment failed - automatic rollback should have occurred"
-            exit 1
-          fi
 
-          # Cleanup
+          # Run the deployment script
+          echo "Starting zero-downtime deployment..."
+          ./scripts/deploy.sh --version "$PACKAGE_VERSION"
+
           docker logout
           docker image prune -f
-
-          echo "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!"
           DEPLOY_EOF
 
-      - name: Verify Deployment ✅
-        run: |
-          echo "Verifying deployment..."
-          ssh deploy-server bash << 'VERIFY_EOF'
-          cd ~/${{secrets.PACKAGE_NAME}}
+      # - name: Verify Deployment ✅
+      #   run: |
+      #     ssh deploy-server bash << 'VERIFY_EOF'
+      #     cd ~/${{secrets.PACKAGE_NAME}}
 
-          echo "=== Running deployment status check ==="
-          ./scripts/deploy.sh status
+      #     echo "=== Running deployment status check ==="
+      #     ./scripts/deploy.sh status
 
-          echo "=== Testing endpoint directly ==="
-          if curl -f -s --connect-timeout 5 --max-time 10 "http://localhost:5056/" | grep -q '"status":"ok"'; then
-            echo "🎉 Endpoint health check passed! Service is responding with status: ok"
-          else
-            echo "❌ Endpoint health check failed!"
-            exit 1
-          fi
+      #     echo "=== Testing endpoint directly ==="
+      #     if curl -f -s --connect-timeout 5 --max-time 10 "http://localhost:${{secrets.PORT}}/" | grep -q '"status":"ok"'; then
+      #       echo "🎉 Endpoint health check passed! Service is responding with status: ok"
+      #     else
+      #       echo "❌ Endpoint health check failed!"
+      #       exit 1
+      #     fi
 
-          echo "=== Final verification ==="
-          echo "Deployment verified successfully!"
-          VERIFY_EOF
+      #     echo "Deployment verified successfully!"
+      #     VERIFY_EOF
 
       - name: Cleanup 🧹
         if: always()

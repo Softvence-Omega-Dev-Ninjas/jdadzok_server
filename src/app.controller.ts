@@ -7,6 +7,7 @@ import appMetadata from "./app-metadata/app-metadata";
 export class AppController {
   @ApiOkResponse({
     description: "Returns service health status",
+    example: "hello",
   })
   @Get()
   async getHealth() {

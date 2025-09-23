@@ -1,22 +1,23 @@
+import { cookieHandler } from "@common/jwt/cookie.handler";
 import {
   Body,
   Controller,
   Post,
-  UseGuards,
+  Res,
   UsePipes,
   ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser } from "@project/@types";
-import { GetUser, MakePublic } from "@project/common/jwt/jwt.decorator";
+import { GetVerifiedUser, MakePublic } from "@project/common/jwt/jwt.decorator";
 import { successResponse } from "@project/common/utils/response.util";
 import { ResentOtpDto } from "@project/main/(users)/users/dto/resent-otp.dto";
+import { Response } from "express";
 import { AuthService } from "./auth.service";
 import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { VerifyTokenDto } from "./dto/verify-token.dto";
-import { JwtAuthGuard } from "./guards/jwt-auth";
 
 @Controller("auth")
 export class AuthController {
@@ -25,21 +26,30 @@ export class AuthController {
   @MakePublic()
   @Post("login")
   @UsePipes(ValidationPipe)
-  async login(@Body() loginAuthDto: LoginDto) {
+  async login(
+    @Res({ passthrough: true }) res: Response,
+    @Body() loginAuthDto: LoginDto,
+  ) {
     try {
       const result = await this.authService.login(loginAuthDto);
+      // set cookie to the response
+      cookieHandler(res, "set", result["accessToken"]);
       return successResponse(result, "Login successfull!");
     } catch (err) {
       return err;
     }
   }
 
-  @Post("logout")
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  async logout(@GetUser() user: TUser) {
+  @Post("logout")
+  // @UseGuards(JwtAuthGuard)
+  async logout(
+    @Res({ passthrough: true }) res: Response,
+    @GetVerifiedUser() user: TUser,
+  ) {
     try {
       await this.authService.logout(user.email);
+      cookieHandler(res, "clear");
       return successResponse(null, "Logout successful!");
     } catch (err) {
       return err;

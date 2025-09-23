@@ -1,3 +1,4 @@
+// some utils or parseChoiceInput file
 import { slugify } from "@project/utils";
 import { CreateChoiceDto } from "../dto/choices.create.dto";
 
@@ -5,15 +6,11 @@ export const parseChoiceInput = (
   userId: string,
   input: CreateChoiceDto[],
 ): CreateChoiceDto[] => {
-  return input
-    .map((choice: any) => {
-      if (!choice.text || typeof choice.text !== "string") return null;
-
-      return {
-        ...choice,
-        slug: slugify(choice.text),
-        userId,
-      };
-    })
-    .filter(Boolean);
+  return input.map((dto) => {
+    return {
+      text: dto.text, // assume dto has `text`
+      slug: slugify(dto.text), // generate slug same way as in constants
+      userId,
+    };
+  });
 };

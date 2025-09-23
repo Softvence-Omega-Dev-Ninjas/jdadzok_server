@@ -77,13 +77,12 @@ export class UserRepository {
         posts: true,
         products: true,
         wishlist: true,
-        userChoices: true,
       },
     });
   }
 
   async update(id: string, data: Partial<UpdateUserDto>) {
-    await this.prisma.user.update({
+    return await this.prisma.user.update({
       where: { id },
       data: {
         ...data,

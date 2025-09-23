@@ -1,26 +1,26 @@
 model NgoProfile {
   id String @id @default(uuid())
-  
+
   // Link to NGO
   ngoId String @unique
   ngo   Ngo    @relation(fields: [ngoId], references: [id], onDelete: Cascade)
-  
+
   // Profile information
-  name           String
-  username       String  @unique
-  title          String? // NGO tagline
-  bio            String? @db.Text
-  avatarUrl      String? // NGO logo
-  coverUrl       String? // Cover image
-  location       String? // NGO location
-  
+  name      String
+  username  String  @unique
+  title     String? // NGO tagline
+  bio       String? @db.Text
+  avatarUrl String? // NGO logo
+  coverUrl  String? // Cover image
+  location  String? // NGO location
+
   // Social metrics
   followersCount Int @default(0)
   followingCount Int @default(0)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  @@map("ngo_profiles")
+
   @@index([username])
+  @@map("ngo_profiles")
 }

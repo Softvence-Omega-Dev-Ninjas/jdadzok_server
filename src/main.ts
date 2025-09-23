@@ -12,7 +12,6 @@ import appMetadata from "./app-metadata/app-metadata";
 import { AppModule } from "./app.module";
 import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
-// import { GlobalExceptionFilter } from "./common/filter/http-exception.filter";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 async function bootstrap() {
@@ -58,11 +57,7 @@ async function bootstrap() {
 
   const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5056", 10);
 
-  await app.listen(
-    port,
-    process.env.NODE_ENV !== "production" ? "localhost" : "0.0.0.0",
-    () => console.info(`PORT=${port}`),
-  );
+  await app.listen(port);
 }
 
 void bootstrap();

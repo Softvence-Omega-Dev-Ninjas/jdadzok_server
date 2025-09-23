@@ -76,4 +76,66 @@ export class NgoController {
       "Get Single Ngo Successfull",
     );
   }
+
+  // Ngo Follow
+  @Post(":ngoId/follow")
+  @ApiOperation({ summary: "Following Ngo" })
+  async followNgo(
+    @GetUser("userId") userId: string,
+    @Param("ngoId") ngoId: string,
+  ) {
+    return handleRequest(
+      () => this.service.followNgo(userId, ngoId),
+      "Followed successfully",
+    );
+  }
+
+  // Ngo Unfollow
+  @Delete(":ngoId/unfollow")
+  @ApiOperation({ summary: "UnFollowing Ngo" })
+  async unfollowNgo(
+    @GetUser("userId") userId: string,
+    @Param("ngoId") ngoId: string,
+  ) {
+    return handleRequest(
+      () => this.service.unfollowNgo(userId, ngoId),
+      "Unfollowed successfully",
+    );
+  }
+
+  // Ngo Like
+  @Post(":ngoId/like")
+  @ApiOperation({ summary: "Like an Ngo" })
+  async likeNgo(
+    @GetUser("userId") userId: string,
+    @Param("ngoId") ngoId: string,
+  ) {
+    return handleRequest(
+      () => this.service.likeNgo(userId, ngoId),
+      "Like successfully",
+    );
+  }
+
+  // Ngo unlike
+  @Delete(":ngoId/like")
+  @ApiOperation({ summary: "Unlike an Ngo" })
+  async unlikeNgo(
+    @GetUser("userId") userId: string,
+    @Param("ngoId") ngoId: string,
+  ) {
+    return handleRequest(
+      () => this.service.unlikeNgo(userId, ngoId),
+      "Unlike successfully",
+    );
+  }
+
+  // GET COUNTS Likes and Followers
+  @Get(":ngoId/counts")
+  @ApiOperation({ summary: "Get followers and likes count of an NGO" })
+  async getNgoCounts(@Param("ngoId") ngoId: string) {
+    return handleRequest(
+      () => this.service.getNgoCounts(ngoId),
+      "Get Counts Likes and Followers.",
+    );
+  }
 }

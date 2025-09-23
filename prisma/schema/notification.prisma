@@ -1,26 +1,26 @@
 model Notification {
   id String @id @default(uuid())
-  
+
   // User receiving notification
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   // Notification details
   type     NotificationType
-  title    String           // Notification title
+  title    String // Notification title
   message  String           @db.Text // Notification message
-  entityId String?          // ID of related entity (post, comment, etc.)
+  entityId String? // ID of related entity (post, comment, etc.)
   read     Boolean          @default(false)
-  
+
   // Additional data as JSON
   metadata Json? // Extra notification data
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  @@map("notifications")
+
   @@index([userId])
   @@index([type])
   @@index([read])
   @@index([createdAt])
+  @@map("notifications")
 }

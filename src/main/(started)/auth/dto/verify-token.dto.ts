@@ -1,12 +1,12 @@
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
-import { IsNumber, IsUUID } from "class-validator";
+import { IsString, IsUUID } from "class-validator";
 
 class VerifyToken {
   @ApiProperty({
-    example: 234222,
+    example: "234222",
   })
-  @IsNumber()
-  token: number;
+  @IsString()
+  token: string;
 
   @ApiProperty({
     example: "user uuid",

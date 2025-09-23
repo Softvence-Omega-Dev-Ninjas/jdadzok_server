@@ -34,7 +34,10 @@ export class NotificationGateway
   server: Server;
 
   afterInit(server: Server) {
-    this.logger.log("Socket.IO server initialized", server);
+    this.logger.log(
+      "Socket.IO server initialized for Notification Gateway",
+      server.adapter.name,
+    );
   }
 
   async handleConnection(client: Socket) {

@@ -27,3 +27,4 @@ Dockerfile
 .gitignore
 README.md
 nginx
+.env.production
