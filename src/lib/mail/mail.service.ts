@@ -20,6 +20,9 @@ export class MailService {
         user: this.configService.getOrThrow<string>(ENVEnum.MAIL_USER),
         pass: this.configService.getOrThrow<string>(ENVEnum.MAIL_PASS),
       },
+    }, {
+      debug: true,
+      logger: true,
     });
   }
 
