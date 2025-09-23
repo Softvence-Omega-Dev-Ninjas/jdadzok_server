@@ -31,9 +31,13 @@ export class UserController {
   async register(@Body() body: CreateUserDto) {
     try {
       const result = await this.service.register(body);
-      if (result["verificaiton"])
-        return successResponse(result, "Please check your mail to verify OTP");
-      return successResponse(result, "Registration successfull!");
+      if (result.hasAccount) {
+        return successResponse(
+          result,
+          "Already have account with this email, check your mail to verify OTP",
+        );
+      }
+      return successResponse(result, "Please check your mail to verify OTP");
     } catch (err) {
       return err;
     }
