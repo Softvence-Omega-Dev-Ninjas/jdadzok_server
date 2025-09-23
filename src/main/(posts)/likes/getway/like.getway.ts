@@ -1,6 +1,7 @@
 import { SocketUser } from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 import { GetSocketUser } from "@module/(sockets)/ecorators/rate-limit.decorator";
+import { BadGatewayException } from "@nestjs/common";
 import {
   MessageBody,
   SubscribeMessage,
@@ -26,12 +27,13 @@ export class LikeGetway extends BaseSocketGateway {
     @GetSocketUser() user: SocketUser,
     @MessageBody() body: CreateLikeDto,
   ) {
+    if (!body.postId)
+      throw new BadGatewayException("PostID is required to like a post!");
     try {
       const like = await this.likeService.likePost(user.id, body);
       console.info("postlike: ", like);
-      this.server.emit(SOCKET_LIKE_EVENT.LIKE, {
-        message: "Post like created",
-      });
+      // send notificaiton the the owner of the post && if owner not in online then send a mail to the user
+      // and broadcast the event for the all tagged user
     } catch (err) {
       return err;
     }
@@ -41,7 +43,18 @@ export class LikeGetway extends BaseSocketGateway {
     @GetSocketUser() user: SocketUser,
     @MessageBody() body: UpdateLikeDto,
   ) {
-    console.info(user);
-    console.info(body);
+    if (!body.postId)
+      throw new BadGatewayException("PostID is required to like a post!");
+    try {
+      const disLike = await this.likeService.likePost(user.id, {
+        postId: body.postId!,
+        userId: user.id,
+      });
+      console.info("postdisLike: ", disLike);
+      // send notificaiton the the owner of the post && if owner not in online then send a mail to the user
+      // and broadcast the event for the all tagged user
+    } catch (err) {
+      return err;
+    }
   }
 }

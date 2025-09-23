@@ -13,14 +13,20 @@ export class MailService {
   private logger = new Logger(MailService.name);
 
   constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransport({
-      service: "gmail",
+    this.transporter = nodemailer.createTransport(
+      {
+        service: "gmail",
 
-      auth: {
-        user: this.configService.getOrThrow<string>(ENVEnum.MAIL_USER),
-        pass: this.configService.getOrThrow<string>(ENVEnum.MAIL_PASS),
+        auth: {
+          user: this.configService.getOrThrow<string>(ENVEnum.MAIL_USER),
+          pass: this.configService.getOrThrow<string>(ENVEnum.MAIL_PASS),
+        },
       },
-    });
+      {
+        debug: true,
+        logger: true,
+      },
+    );
   }
 
   public async sendMail(
