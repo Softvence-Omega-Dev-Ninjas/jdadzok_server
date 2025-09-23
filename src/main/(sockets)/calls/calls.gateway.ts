@@ -24,7 +24,7 @@ export class CallsGateway implements OnGatewayInit {
   constructor(
     private readonly svc: CallsService,
     private readonly socketMiddleware: SocketMiddleware,
-  ) { }
+  ) {}
 
   afterInit() {
     this.server.use(this.socketMiddleware.authenticate());

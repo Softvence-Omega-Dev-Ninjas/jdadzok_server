@@ -20,4 +20,4 @@ import { RedisService } from "./services/redis.service";
   ],
   exports: [SocketMiddleware, RedisService],
 })
-export class SocketsGroupModule { }
+export class SocketsGroupModule {}

@@ -9,8 +9,8 @@ import { ChatMessage, ChatTyping, RATE_LIMITS } from "../@types";
 import { BaseSocketGateway } from "../base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "../constants/socket-events.constant";
 @WebSocketGateway({
-  namespace: '/chats',
-  cors: { origin: true, credentials: true }
+  namespace: "/chats",
+  cors: { origin: true, credentials: true },
 })
 export class ChatGateway extends BaseSocketGateway {
   @SubscribeMessage(SOCKET_EVENTS.CHAT.MESSAGE_SEND)

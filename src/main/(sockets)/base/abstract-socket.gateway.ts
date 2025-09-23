@@ -29,7 +29,8 @@ import { SocketAuthGuard } from "../guards/socket-auth.guard";
 })
 @UseGuards(SocketAuthGuard)
 export abstract class BaseSocketGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer() protected server: Server;
   protected readonly logger = new Logger(this.constructor.name);
 
@@ -43,7 +44,7 @@ export abstract class BaseSocketGateway
     { count: number; resetTime: number }
   >();
 
-  constructor(private readonly jwtService: JwtServices) { }
+  constructor(private readonly jwtService: JwtServices) {}
 
   afterInit() {
     this.logger.log("Socket Gateway initialized");

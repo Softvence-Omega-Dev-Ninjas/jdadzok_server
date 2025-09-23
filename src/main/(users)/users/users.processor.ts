@@ -6,26 +6,24 @@ import { UserService } from "./users.service";
 
 @Processor("users")
 export class UsersProcessor extends WorkerHost {
-    private readonly logger = new Logger(UsersProcessor.name);
-    constructor(
-        private readonly service: UserService,
-    ) {
-        super()
-    }
-    async process(job: Job): Promise<any> {
-        switch (job.name) {
-            case QUEUE_JOB_NAME.MAIL.SEND_OTP:
-                try {
-                    await this.service.sendOtpMail({
-                        email: job.data.email,
-                        userId: job.data.userId
-                    });
-                } catch (error: any) {
-                    this.logger.error("Could not send opt", error);
-                }
-                return {}
-            case QUEUE_JOB_NAME.MAIL.POST_MAIL:
-                return new Promise((resolv) => resolv("Hello"))
+  private readonly logger = new Logger(UsersProcessor.name);
+  constructor(private readonly service: UserService) {
+    super();
+  }
+  async process(job: Job): Promise<any> {
+    switch (job.name) {
+      case QUEUE_JOB_NAME.MAIL.SEND_OTP:
+        try {
+          await this.service.sendOtpMail({
+            email: job.data.email,
+            userId: job.data.userId,
+          });
+        } catch (error: any) {
+          this.logger.error("Could not send opt", error);
         }
+        return {};
+      case QUEUE_JOB_NAME.MAIL.POST_MAIL:
+        return new Promise((resolv) => resolv("Hello"));
     }
+  }
 }

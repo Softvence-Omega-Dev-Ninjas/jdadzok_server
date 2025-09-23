@@ -21,13 +21,13 @@ import { UserRepository } from "./users.repository";
 @Injectable()
 export class UserService {
   constructor(
-    @InjectQueue('users') private readonly userQueue: Queue,
+    @InjectQueue("users") private readonly userQueue: Queue,
     private readonly repository: UserRepository,
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
     private readonly otpService: OptService,
     private readonly mailService: MailService,
-  ) { }
+  ) {}
 
   async register(body: CreateUserDto) {
     // has password if provider is email
@@ -47,18 +47,18 @@ export class UserService {
       // send otp again
       this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
         email: body.email,
-        userId: createdUser.id
+        userId: createdUser.id,
       });
       // return with mail verification
       return {
         hasAccount: true,
         user: createdUser,
-      }
+      };
     }
 
     this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
       email: body.email,
-      userId: createdUser.id
+      userId: createdUser.id,
     });
 
     const accessToken = await this.jwtService.signAsync({
