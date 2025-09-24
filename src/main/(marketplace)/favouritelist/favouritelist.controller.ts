@@ -9,27 +9,27 @@ import { FavouritelistService } from "./favoritelist.service";
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class FavouritelistController {
-  constructor(private readonly service: FavouritelistService) {}
+    constructor(private readonly service: FavouritelistService) {}
 
-  @Post(":productId")
-  async addToFavouritelist(
-    @Param("productId") productId: string,
-    @GetUser("userId") userId: string,
-  ) {
-    return handleRequest(
-      () => this.service.addToFavouritelist(userId, productId),
-      "Save to favourite list",
-    );
-  }
+    @Post(":productId")
+    async addToFavouritelist(
+        @Param("productId") productId: string,
+        @GetUser("userId") userId: string,
+    ) {
+        return handleRequest(
+            () => this.service.addToFavouritelist(userId, productId),
+            "Save to favourite list",
+        );
+    }
 
-  @Delete(":productId")
-  async removeFromFavouritelist(
-    @Param("productId") productId: string,
-    @GetUser("userId") userId: string,
-  ) {
-    return handleRequest(
-      () => this.service.removeFromFavouritelist(userId, productId),
-      "Remove from favourite list",
-    );
-  }
+    @Delete(":productId")
+    async removeFromFavouritelist(
+        @Param("productId") productId: string,
+        @GetUser("userId") userId: string,
+    ) {
+        return handleRequest(
+            () => this.service.removeFromFavouritelist(userId, productId),
+            "Remove from favourite list",
+        );
+    }
 }

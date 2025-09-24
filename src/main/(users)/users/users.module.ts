@@ -11,18 +11,18 @@ import { UserRepository } from "./users.repository";
 import { UserService } from "./users.service";
 
 @Module({
-  imports: [BullModule.registerQueue({ name: "users" })],
-  controllers: [UserController],
-  providers: [
-    UsersProcessor,
-    JwtService,
-    UserRepository,
-    UserService,
-    JwtServices,
-    UserProfileRepository,
-    OptService,
-    MailService,
-  ],
-  exports: [UserRepository, UserService],
+    imports: [BullModule.registerQueue({ name: "users" })],
+    controllers: [UserController],
+    providers: [
+        UsersProcessor,
+        JwtService,
+        UserRepository,
+        UserService,
+        JwtServices,
+        UserProfileRepository,
+        OptService,
+        MailService,
+    ],
+    exports: [UserRepository, UserService],
 })
 export class UserModule {}

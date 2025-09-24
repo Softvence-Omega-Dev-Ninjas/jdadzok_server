@@ -9,119 +9,115 @@ import chalk from "chalk";
 
 @Injectable()
 export class SuperAdminService implements OnModuleInit {
-  private readonly logger = new Logger(SuperAdminService.name);
-  private superAdminEmail: string;
-  private superAdminPass: string;
+    private readonly logger = new Logger(SuperAdminService.name);
+    private superAdminEmail: string;
+    private superAdminPass: string;
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly utils: UtilsService,
-    private readonly configService: ConfigService,
-  ) {
-    this.superAdminEmail = this.configService.getOrThrow<string>(
-      ENVEnum.SUPER_ADMIN_EMAIL,
-    );
-    this.superAdminPass = this.configService.getOrThrow<string>(
-      ENVEnum.SUPER_ADMIN_PASS,
-    );
-  }
-
-  async onModuleInit() {
-    // Seed super admin if it doesn't exist
-    await this.seedSuperAdminUser();
-    // Seed regular users only if no users exist
-    await this.seedUsersOnce();
-  }
-
-  /**
-   * Check if the Super Admin user exists. If not, create it.
-   */
-  private async seedSuperAdminUser(): Promise<void> {
-    const superAdminExists = await this.checkIfUserExists(this.superAdminEmail);
-
-    if (!superAdminExists) {
-      await this.createSuperAdminUser();
-    } else {
-      this.logger.log(`🚀 Super Admin already exists`);
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly utils: UtilsService,
+        private readonly configService: ConfigService,
+    ) {
+        this.superAdminEmail = this.configService.getOrThrow<string>(ENVEnum.SUPER_ADMIN_EMAIL);
+        this.superAdminPass = this.configService.getOrThrow<string>(ENVEnum.SUPER_ADMIN_PASS);
     }
-  }
 
-  /**
-   * Checks if a user already exists by their email.
-   * @param email - The email of the user to check.
-   * @returns {Promise<boolean>}
-   */
-  private async checkIfUserExists(email: string): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-    return Boolean(user); // Returns true if user exists, false otherwise
-  }
-
-  /**
-   * Create the Super Admin user.
-   */
-  private async createSuperAdminUser(): Promise<void> {
-    const password = await this.hashPassword(this.superAdminPass);
-
-    await this.prisma.user.create({
-      data: {
-        email: this.superAdminEmail,
-        password,
-        authProvider: "EMAIL",
-        role: UserEnum.SUPER_ADMIN,
-      },
-    });
-
-    this.logger.debug(`🚀 Super Admin created.`);
-  }
-
-  private async hashPassword(password: string): Promise<string> {
-    return await this.utils.hash(password);
-  }
-
-  /**
-   * Seed regular users if no users exist.
-   */
-  private async seedUsersOnce(): Promise<void> {
-    const existingUsersCount = await this.prisma.user.count();
-
-    if (existingUsersCount <= 1) {
-      await this.createUsers();
-    } else {
-      this.logger.warn("⚠️ Users already exist, skipping seeding.");
+    async onModuleInit() {
+        // Seed super admin if it doesn't exist
+        await this.seedSuperAdminUser();
+        // Seed regular users only if no users exist
+        await this.seedUsersOnce();
     }
-  }
 
-  /**
-   * Creates multiple regular users.
-   */
-  private async createUsers(): Promise<void> {
-    const users = await this.generateRandomUsers(5); // Generate 5 random users
+    /**
+     * Check if the Super Admin user exists. If not, create it.
+     */
+    private async seedSuperAdminUser(): Promise<void> {
+        const superAdminExists = await this.checkIfUserExists(this.superAdminEmail);
 
-    // Bulk create users with password hashing
-    await this.prisma.user.createMany({
-      data: users,
-      skipDuplicates: true,
-    });
+        if (!superAdminExists) {
+            await this.createSuperAdminUser();
+        } else {
+            this.logger.log(`🚀 Super Admin already exists`);
+        }
+    }
 
-    console.info(chalk.bgBlue.white.bold("🚀 Regular users seeded!"));
-  }
+    /**
+     * Checks if a user already exists by their email.
+     * @param email - The email of the user to check.
+     * @returns {Promise<boolean>}
+     */
+    private async checkIfUserExists(email: string): Promise<boolean> {
+        const user = await this.prisma.user.findUnique({
+            where: { email },
+        });
+        return Boolean(user); // Returns true if user exists, false otherwise
+    }
 
-  /**
-   * Generates an array of random user objects.
-   * @param count - The number of users to generate.
-   */
-  private async generateRandomUsers(count: number): Promise<any[]> {
-    // Use Promise.all to ensure all promises are resolved before returning the result
-    const users = await Promise.all(
-      Array.from({ length: count }, async () => ({
-        email: faker.internet.email(),
-        password: await this.hashPassword("pass123"), // Hashing passwords
-        authProvider: faker.helpers.arrayElement(["EMAIL"] as const),
-      })),
-    );
+    /**
+     * Create the Super Admin user.
+     */
+    private async createSuperAdminUser(): Promise<void> {
+        const password = await this.hashPassword(this.superAdminPass);
 
-    return users;
-  }
+        await this.prisma.user.create({
+            data: {
+                email: this.superAdminEmail,
+                password,
+                authProvider: "EMAIL",
+                role: UserEnum.SUPER_ADMIN,
+            },
+        });
+
+        this.logger.debug(`🚀 Super Admin created.`);
+    }
+
+    private async hashPassword(password: string): Promise<string> {
+        return await this.utils.hash(password);
+    }
+
+    /**
+     * Seed regular users if no users exist.
+     */
+    private async seedUsersOnce(): Promise<void> {
+        const existingUsersCount = await this.prisma.user.count();
+
+        if (existingUsersCount <= 1) {
+            await this.createUsers();
+        } else {
+            this.logger.warn("⚠️ Users already exist, skipping seeding.");
+        }
+    }
+
+    /**
+     * Creates multiple regular users.
+     */
+    private async createUsers(): Promise<void> {
+        const users = await this.generateRandomUsers(5); // Generate 5 random users
+
+        // Bulk create users with password hashing
+        await this.prisma.user.createMany({
+            data: users,
+            skipDuplicates: true,
+        });
+
+        console.info(chalk.bgBlue.white.bold("🚀 Regular users seeded!"));
+    }
+
+    /**
+     * Generates an array of random user objects.
+     * @param count - The number of users to generate.
+     */
+    private async generateRandomUsers(count: number): Promise<any[]> {
+        // Use Promise.all to ensure all promises are resolved before returning the result
+        const users = await Promise.all(
+            Array.from({ length: count }, async () => ({
+                email: faker.internet.email(),
+                password: await this.hashPassword("pass123"), // Hashing passwords
+                authProvider: faker.helpers.arrayElement(["EMAIL"] as const),
+            })),
+        );
+
+        return users;
+    }
 }

@@ -4,7 +4,7 @@ import { TermsAndConditionsRepository } from "./terms-and-conditions.repository"
 import { TermsAndConditionsService } from "./terms-and-conditions.service";
 
 @Module({
-  controllers: [TermsAndConditionsController],
-  providers: [TermsAndConditionsRepository, TermsAndConditionsService],
+    controllers: [TermsAndConditionsController],
+    providers: [TermsAndConditionsRepository, TermsAndConditionsService],
 })
 export class TermsAndConditionsModule {}

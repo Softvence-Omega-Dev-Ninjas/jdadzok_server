@@ -1,6 +1,6 @@
 export type NotificationEvents = {
-  "notification:new": {
-    userId: string;
-    message: string;
-  };
+    "notification:new": {
+        userId: string;
+        message: string;
+    };
 };

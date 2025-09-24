@@ -5,12 +5,12 @@ import { JwtServices } from "./jwt.service";
 import { ApplicationLogger } from "./logger.service";
 
 @Module({
-  providers: [
-    JwtServices,
-    SimpleBaseQueryDto,
-    { provide: Logger, useClass: ApplicationLogger },
-    SocketMiddleware,
-  ],
-  exports: [JwtServices, SimpleBaseQueryDto],
+    providers: [
+        JwtServices,
+        SimpleBaseQueryDto,
+        { provide: Logger, useClass: ApplicationLogger },
+        SocketMiddleware,
+    ],
+    exports: [JwtServices, SimpleBaseQueryDto],
 })
 export class ServiceModule {}
