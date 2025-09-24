@@ -4,19 +4,21 @@ model Call {
     type   CallType   @default(AUDIO) // call type video for audio
     status CallStatus @default(CALLING)
 
-    creator   User   @relation("creator", fields: [creatorId], references: [id], onDelete: Cascade)
-    creatorId String
+    fromId String
+    from  User   @relation("outgoingcall", fields: [fromId], references: [id], onDelete: Cascade)
+
+    toId String
+    to   User   @relation("incommingcall", fields: [toId], references: [id], onDelete: Cascade)
 
     startedAt DateTime?
     endedAt   DateTime?
     metadata  Json?
 
-    participants Participant[]
-
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@index([creatorId])
+    @@index([fromId])
+    @@index([toId])
     @@index([status])
     @@map("call")
 }

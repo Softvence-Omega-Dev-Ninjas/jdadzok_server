@@ -27,7 +27,6 @@ export type SocketEventMap = {
   // Call Events
   [SOCKET_EVENTS.CALL.INITIATE]: CallEvent;
   [SOCKET_EVENTS.CALL.ACCEPT]: CallEvent;
-  [SOCKET_EVENTS.CALL.SDP_OFFER]: CallEvent;
 
   // Room Events
   [SOCKET_EVENTS.ROOM.JOIN]: RoomEvent;

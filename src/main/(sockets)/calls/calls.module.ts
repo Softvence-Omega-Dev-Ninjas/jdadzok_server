@@ -1,11 +1,10 @@
 import { Module } from "@nestjs/common";
-import { CallsController } from "./calls.controller";
 import { CallsService } from "./calls.service";
 import { CallsGateway } from "./calls.gateway";
 
 @Module({
   imports: [],
-  controllers: [CallsController],
+  controllers: [],
   providers: [CallsService, CallsGateway],
   exports: [],
 })

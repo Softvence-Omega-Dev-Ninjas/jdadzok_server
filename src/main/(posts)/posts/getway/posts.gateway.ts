@@ -16,7 +16,6 @@ import {
 } from "@nestjs/websockets";
 import { GetSocketUser } from "@project/main/(sockets)/ecorators/rate-limit.decorator";
 import { SocketMiddleware } from "@project/main/(sockets)/middleware/socket.middleware";
-import { JwtServices } from "@project/services/jwt.service";
 import { safeParseAsync } from "@project/utils";
 import { Socket } from "socket.io";
 import { CreatePostDto } from "../dto/create.post.dto";
@@ -29,16 +28,9 @@ import { PostService } from "../posts.service";
 export class PostGateway extends BaseSocketGateway implements OnGatewayInit {
   constructor(
     private readonly postService: PostService,
-    private readonly jwt: JwtServices,
-    private readonly socketMiddleware: SocketMiddleware,
+    private readonly sockMiddleware: SocketMiddleware,
   ) {
-    super(jwt);
-  }
-
-  afterInit() {
-    this.server.use(this.socketMiddleware.authenticate());
-    // this.server.use(this.socketMiddleware.rateLimit(1000, 10));
-    // this.server.use(this.socketMiddleware.logging());
+    super(sockMiddleware);
   }
 
   @SubscribeMessage(SOCKET_EVENTS.POST.CREATE)
