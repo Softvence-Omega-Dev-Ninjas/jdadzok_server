@@ -17,12 +17,14 @@ import { Queue } from "bullmq";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserRepository } from "./users.repository";
+import { PrismaService } from "@project/lib/prisma/prisma.service";
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectQueue("users") private readonly userQueue: Queue,
     private readonly repository: UserRepository,
+    private readonly prisma: PrismaService,
     private readonly utilsService: UtilsService,
     private readonly jwtService: JwtServices,
     private readonly otpService: OptService,
@@ -147,5 +149,105 @@ export class UserService {
     );
 
     return otp;
+  }
+
+  async followUser(followerId: string, followedId: string) {
+    if (followerId === followedId) {
+      throw new Error("Cannot follow userself");
+    }
+
+    const [follower, following] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: followerId } }),
+      this.prisma.user.findUnique({ where: { id: followedId } }),
+    ]);
+
+    // Check user exis with id
+    if (!follower || !following) {
+      throw new Error("Invalid user");
+    }
+
+    // Check already follow
+    const userFollow = await this.prisma.userFollow.findUnique({
+      where: {
+        followerId_followedId: {
+          followerId,
+          followedId,
+        },
+      },
+    });
+
+    if (userFollow) {
+      throw new Error("already following...");
+    }
+
+    return await this.prisma.$transaction([
+      this.prisma.userFollow.create({
+        data: {
+          followerId,
+          followedId,
+        },
+
+        select: {
+          follower: { select: { id: true } },
+          followed: { select: { id: true } },
+          createdAt: true,
+        },
+      }),
+      this.prisma.profile.update({
+        where: { userId: followerId },
+        data: {
+          followingCount: { increment: 1 },
+        },
+      }),
+      this.prisma.profile.update({
+        where: {
+          userId: followerId,
+        },
+        data: {
+          followersCount: { increment: 1 },
+        },
+      }),
+    ]);
+  }
+  async unfollowUser(followerId: string, followedId: string) {
+    const userFollow = await this.prisma.userFollow.findUnique({
+      where: {
+        followerId_followedId: {
+          followerId,
+          followedId,
+        },
+      },
+    });
+
+    if (!userFollow) {
+      throw new Error("Unknown user");
+    }
+
+    return await this.prisma.$transaction([
+      this.prisma.userFollow.delete({
+        where: {
+          followerId_followedId: {
+            followerId,
+            followedId,
+          },
+        },
+      }),
+      this.prisma.profile.update({
+        where: {
+          userId: followerId,
+        },
+        data: {
+          followingCount: { decrement: 1 },
+        },
+      }),
+      this.prisma.profile.update({
+        where: {
+          userId: followedId,
+        },
+        data: {
+          followersCount: { decrement: 1 },
+        },
+      }),
+    ]);
   }
 }
