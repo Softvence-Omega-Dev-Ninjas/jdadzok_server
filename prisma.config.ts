@@ -7,16 +7,16 @@ import type { PrismaConfig } from "prisma";
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
 export default {
-  schema: path.join("prisma", "schema"),
+    schema: path.join("prisma", "schema"),
 
-  migrations: {
-    path: path.join("prisma", "migrations"),
-    seed: "tsx prisma/seed.ts", // optional
-  },
-  views: {
-    path: path.join("prisma", "views"),
-  },
-  typedSql: {
-    path: path.join("prisma", "queries"),
-  },
+    migrations: {
+        path: path.join("prisma", "migrations"),
+        seed: "tsx prisma/seed.ts", // optional
+    },
+    views: {
+        path: path.join("prisma", "views"),
+    },
+    typedSql: {
+        path: path.join("prisma", "queries"),
+    },
 } satisfies PrismaConfig;

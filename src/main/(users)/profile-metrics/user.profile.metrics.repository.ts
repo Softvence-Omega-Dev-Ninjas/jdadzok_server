@@ -2,9 +2,9 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class UserProfileMetricsRepository {
-  constructor() {}
+    constructor() {}
 
-  async create() {}
-  async update() {}
-  async delete() {}
+    async create() {}
+    async update() {}
+    async delete() {}
 }

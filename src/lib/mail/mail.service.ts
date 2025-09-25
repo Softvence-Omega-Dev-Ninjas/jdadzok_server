@@ -9,56 +9,59 @@ import { generateOtpEmail } from "./templates/otp.template";
 
 @Injectable()
 export class MailService {
-  private transporter: nodemailer.Transporter;
-  private logger = new Logger(MailService.name);
+    private transporter: nodemailer.Transporter;
+    private logger = new Logger(MailService.name);
 
-  constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransport({
-      service: "gmail",
+    constructor(private configService: ConfigService) {
+        this.transporter = nodemailer.createTransport(
+            {
+                service: "gmail",
 
-      auth: {
-        user: this.configService.getOrThrow<string>(ENVEnum.MAIL_USER),
-        pass: this.configService.getOrThrow<string>(ENVEnum.MAIL_PASS),
-      },
-    });
-  }
-
-  public async sendMail(
-    to: string,
-    subject: string,
-    type: MailTemplateType,
-    context: MailContext = {},
-  ): Promise<void> {
-    const html = this.renderTemplate(type, context);
-
-    const mailOptions = {
-      from: `"${appMetadata.displayName}" <${this.configService.get<string>(ENVEnum.MAIL_USER)}>`,
-      to,
-      subject,
-      html,
-    };
-
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`✅ Email sent to ${to} with subject "${subject}"`);
-    } catch (error) {
-      this.logger.error(`❌ Failed to send email to ${to}`, error.stack);
-      throw new BadGatewayException(`❌ Failed to send email to ${to}`);
-    }
-  }
-
-  private renderTemplate(type: MailTemplateType, context: MailContext): string {
-    switch (type) {
-      case "otp":
-        return generateOtpEmail(context.otp!);
-      case "friend-request":
-        return generateFriendRequestEmail(
-          context.senderName!,
-          context.avatarUrl!,
+                auth: {
+                    user: this.configService.getOrThrow<string>(ENVEnum.MAIL_USER),
+                    pass: this.configService.getOrThrow<string>(ENVEnum.MAIL_PASS),
+                },
+            },
+            {
+                debug: true,
+                logger: true,
+            },
         );
-      // if we have then make case here...
-      default:
-        throw new Error(`Unknown email template type: ${type}`);
     }
-  }
+
+    public async sendMail(
+        to: string,
+        subject: string,
+        type: MailTemplateType,
+        context: MailContext = {},
+    ): Promise<void> {
+        const html = this.renderTemplate(type, context);
+
+        const mailOptions = {
+            from: `"${appMetadata.displayName}" <${this.configService.get<string>(ENVEnum.MAIL_USER)}>`,
+            to,
+            subject,
+            html,
+        };
+
+        try {
+            await this.transporter.sendMail(mailOptions);
+            this.logger.log(`✅ Email sent to ${to} with subject "${subject}"`);
+        } catch (error) {
+            this.logger.error(`❌ Failed to send email to ${to}`, error.stack);
+            throw new BadGatewayException(`❌ Failed to send email to ${to}`);
+        }
+    }
+
+    private renderTemplate(type: MailTemplateType, context: MailContext): string {
+        switch (type) {
+            case "otp":
+                return generateOtpEmail(context.otp!);
+            case "friend-request":
+                return generateFriendRequestEmail(context.senderName!, context.avatarUrl!);
+            // if we have then make case here...
+            default:
+                throw new Error(`Unknown email template type: ${type}`);
+        }
+    }
 }

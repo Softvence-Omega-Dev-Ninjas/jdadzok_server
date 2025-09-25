@@ -15,49 +15,49 @@ import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
+    const app = await NestFactory.create(AppModule);
+    const configService = app.get(ConfigService);
 
-  // CORS configuration
-  app.enableCors({
-    origin: "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    credentials: true,
-  });
+    // CORS configuration
+    app.enableCors({
+        origin: "*",
+        methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+        credentials: true,
+    });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-      forbidNonWhitelisted: true,
-    }),
-  );
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            transform: true,
+            transformOptions: {
+                enableImplicitConversion: true,
+            },
+            forbidNonWhitelisted: true,
+        }),
+    );
 
-  app.useGlobalFilters(new AllExceptionsFilter());
-  // app.useGlobalFilters(new GlobalExceptionFilter());
+    app.useGlobalFilters(new AllExceptionsFilter());
+    // app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // ✅ Swagger config with Bearer Auth
-  extendZodWithOpenApi(z);
-  const config = new DocumentBuilder()
-    .setTitle(appMetadata.displayName)
-    .setDescription(appMetadata.description)
-    .setVersion(appMetadata.version)
-    .addBearerAuth()
-    .build();
+    // ✅ Swagger config with Bearer Auth
+    extendZodWithOpenApi(z);
+    const config = new DocumentBuilder()
+        .setTitle(appMetadata.displayName)
+        .setDescription(appMetadata.description)
+        .setVersion(appMetadata.version)
+        .addBearerAuth()
+        .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("docs", app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup("docs", app, document, {
+        swaggerOptions: {
+            persistAuthorization: true,
+        },
+    });
 
-  const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5056", 10);
+    const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5056", 10);
 
-  await app.listen(port);
+    await app.listen(port);
 }
 
 void bootstrap();

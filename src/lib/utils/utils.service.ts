@@ -8,32 +8,32 @@ import { plainToInstance } from "class-transformer";
 
 @Injectable()
 export class UtilsService {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-  ) {}
+    constructor(
+        private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
+    ) {}
 
-  sanitizedResponse(sto: any, data: any) {
-    return plainToInstance(sto, data, { excludeExtraneousValues: true });
-  }
+    sanitizedResponse(sto: any, data: any) {
+        return plainToInstance(sto, data, { excludeExtraneousValues: true });
+    }
 
-  removeDuplicateIds(ids: string[]) {
-    return Array.from(new Set(ids));
-  }
+    removeDuplicateIds(ids: string[]) {
+        return Array.from(new Set(ids));
+    }
 
-  // * AUTH UTILS
-  async hash(value: string): Promise<string> {
-    return bcrypt.hash(value);
-  }
+    // * AUTH UTILS
+    async hash(value: string): Promise<string> {
+        return bcrypt.hash(value);
+    }
 
-  async compare(hash: string, value: string): Promise<boolean> {
-    return bcrypt.verify(hash, value);
-  }
+    async compare(hash: string, value: string): Promise<boolean> {
+        return bcrypt.verify(hash, value);
+    }
 
-  generateToken(payload: JWTPayload): string {
-    return this.jwtService.sign(payload, {
-      secret: this.configService.get<string>(ENVEnum.JWT_SECRET),
-      expiresIn: this.configService.get<string>(ENVEnum.JWT_EXPIRES_IN),
-    });
-  }
+    generateToken(payload: JWTPayload): string {
+        return this.jwtService.sign(payload, {
+            secret: this.configService.get<string>(ENVEnum.JWT_SECRET),
+            expiresIn: this.configService.get<string>(ENVEnum.JWT_EXPIRES_IN),
+        });
+    }
 }

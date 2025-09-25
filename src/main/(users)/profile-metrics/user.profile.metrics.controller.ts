@@ -9,17 +9,14 @@ import { UserProfileMetricsService } from "./user.profile.metrics.service";
 @ApiBearerAuth()
 @Controller("user-profile-metrics")
 export class UserProfileMetricsController {
-  constructor(private readonly profileService: UserProfileMetricsService) {}
-  @Post()
-  async createMetrics(
-    @GetUser() user: TUser,
-    @Body() body: CreateUserProfileMetricsDto,
-  ) {
-    try {
-      const profile = await this.profileService.create(user.userId, body);
-      return successResponse(profile, "Profile update successfully");
-    } catch (err) {
-      return err;
+    constructor(private readonly profileService: UserProfileMetricsService) {}
+    @Post()
+    async createMetrics(@GetUser() user: TUser, @Body() body: CreateUserProfileMetricsDto) {
+        try {
+            const profile = await this.profileService.create(user.userId, body);
+            return successResponse(profile, "Profile update successfully");
+        } catch (err) {
+            return err;
+        }
     }
-  }
 }

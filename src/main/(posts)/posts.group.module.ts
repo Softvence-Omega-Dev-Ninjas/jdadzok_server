@@ -8,17 +8,17 @@ import { PostMetadataModule } from "./post-metadata/post.metadata.module";
 import { PostModule } from "./posts/posts.module";
 
 @Module({
-  imports: [
-    PostModule,
-    CategoryModule,
-    PostMetadataModule,
-    GifModule,
-    LocationModule,
-    LikeModule,
-    CommentModule,
-  ],
-  controllers: [],
-  providers: [],
-  exports: [],
+    imports: [
+        PostModule,
+        CategoryModule,
+        PostMetadataModule,
+        GifModule,
+        LocationModule,
+        LikeModule,
+        CommentModule,
+    ],
+    controllers: [],
+    providers: [],
+    exports: [],
 })
 export class PostsGroupModule {}

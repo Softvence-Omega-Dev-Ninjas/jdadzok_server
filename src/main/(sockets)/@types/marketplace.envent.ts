@@ -2,7 +2,7 @@ import { CreateProductDto } from "@project/main/(marketplace)/product/dto/produc
 import { BaseSocketEvent } from "./base.types";
 
 export interface marketplaceEvent extends BaseSocketEvent {
-  action: "create" | "update" | "delete";
-  content: CreateProductDto;
-  userId: string;
+    action: "create" | "update" | "delete";
+    content: CreateProductDto;
+    userId: string;
 }

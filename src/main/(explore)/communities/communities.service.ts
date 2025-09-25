@@ -1,273 +1,264 @@
 import { PrismaService } from "@project/lib/prisma/prisma.service";
 
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
 
 @Injectable()
 export class CommunitiesService {
-  constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) {}
 
-  // create new community......
-  async createCommunity(userId: string, dto: CreateCommunityDto) {
-    const communitity = await this.prisma.community.findFirst({
-      where: {
-        ownerId: userId,
-        profile: {
-          is: {
-            title: dto.profile?.title,
-          },
-        },
-      },
-    });
-    if (communitity) {
-      throw new BadRequestException("Community Already Exist.");
+    // create new community......
+    async createCommunity(userId: string, dto: CreateCommunityDto) {
+        const communitity = await this.prisma.community.findFirst({
+            where: {
+                ownerId: userId,
+                profile: {
+                    is: {
+                        title: dto.profile?.title,
+                    },
+                },
+            },
+        });
+        if (communitity) {
+            throw new BadRequestException("Community Already Exist.");
+        }
+
+        return await this.prisma.community.create({
+            data: {
+                owner: {
+                    connect: { id: userId },
+                },
+                communityType: dto.communityType,
+                foundationDate: dto.foundationDate,
+                about: {
+                    create: {
+                        ...dto.about,
+                    },
+                },
+                profile: {
+                    create: dto.profile,
+                },
+            },
+            include: {
+                about: true,
+                profile: true,
+            },
+        });
+    }
+    // find All data....
+    async findAll() {
+        const community = await this.prisma.community.findMany({
+            include: {
+                profile: true,
+                about: true,
+            },
+        });
+        return community;
     }
 
-    return await this.prisma.community.create({
-      data: {
-        owner: {
-          connect: { id: userId },
-        },
-        communityType: dto.communityType,
-        foundationDate: dto.foundationDate,
-        about: {
-          create: {
-            ...dto.about,
-          },
-        },
-        profile: {
-          create: dto.profile,
-        },
-      },
-      include: {
-        about: true,
-        profile: true,
-      },
-    });
-  }
-  // find All data....
-  async findAll() {
-    const community = await this.prisma.community.findMany({
-      include: {
-        profile: true,
-        about: true,
-      },
-    });
-    return community;
-  }
-
-  // find one community
-  async findOne(communityId: string) {
-    const community = await this.prisma.community.findUnique({
-      where: { id: communityId },
-      include: { profile: true, about: true, memberships: true },
-    });
-    if (!community) {
-      throw new NotFoundException("Community Not Found");
+    // find one community
+    async findOne(communityId: string) {
+        const community = await this.prisma.community.findUnique({
+            where: { id: communityId },
+            include: { profile: true, about: true, memberships: true },
+        });
+        if (!community) {
+            throw new NotFoundException("Community Not Found");
+        }
+        return community;
     }
-    return community;
-  }
-  // Delete community
-  async deleteCommunity(userId: string, communityId: string) {
-    const isExistCommunity = await this.prisma.community.findFirst({
-      where: {
-        id: communityId,
-        ownerId: userId,
-      },
-    });
-    if (!isExistCommunity) {
-      throw new NotFoundException("Community is not found.");
+    // Delete community
+    async deleteCommunity(userId: string, communityId: string) {
+        const isExistCommunity = await this.prisma.community.findFirst({
+            where: {
+                id: communityId,
+                ownerId: userId,
+            },
+        });
+        if (!isExistCommunity) {
+            throw new NotFoundException("Community is not found.");
+        }
+
+        return this.prisma.community.delete({
+            where: { id: communityId },
+        });
     }
 
-    return this.prisma.community.delete({
-      where: { id: communityId },
-    });
-  }
+    // update community
+    async updateCommunity(userId: string, communityid: string, dto: UpdateCommunityDto) {
+        const isExistCommunity = await this.prisma.community.findUnique({
+            where: { id: communityid },
+        });
+        if (!isExistCommunity) {
+            throw new NotFoundException("Community is Not Found.");
+        }
+        const user = await this.prisma.community.findFirst({
+            where: { ownerId: userId },
+        });
+        if (!user) {
+            throw new NotFoundException("Unauthorized Access.");
+        }
 
-  // update community
-  async updateCommunity(
-    userId: string,
-    communityid: string,
-    dto: UpdateCommunityDto,
-  ) {
-    const isExistCommunity = await this.prisma.community.findUnique({
-      where: { id: communityid },
-    });
-    if (!isExistCommunity) {
-      throw new NotFoundException("Community is Not Found.");
+        return this.prisma.community.update({
+            where: { id: communityid },
+            data: {
+                communityType: dto.communityType,
+                about: {
+                    update: {
+                        ...dto.about,
+                    },
+                },
+                profile: {
+                    update: {
+                        ...dto.profile,
+                    },
+                },
+            },
+            include: {
+                about: true,
+                profile: true,
+            },
+        });
     }
-    const user = await this.prisma.community.findFirst({
-      where: { ownerId: userId },
-    });
-    if (!user) {
-      throw new NotFoundException("Unauthorized Access.");
+
+    // user----community followers.
+
+    async userFollowCommunity(userId: string, communityId: string) {
+        // 1️⃣ Check if the user exists
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException(`User with id ${userId} not found`);
+
+        // 2️⃣ Check if the community exists
+        const community = await this.prisma.community.findUnique({
+            where: { id: communityId },
+        });
+        if (!community) throw new NotFoundException(`Community with id ${communityId} not found`);
+
+        // 3️⃣ Check if already following
+        const exists = await this.prisma.communityFollower.findUnique({
+            where: { userId_communityId: { userId, communityId } },
+        });
+        if (exists) throw new BadRequestException("Already following");
+
+        // 4️⃣ Create follow and increment followers count
+        await this.prisma.$transaction([
+            this.prisma.communityFollower.create({
+                data: { userId, communityId },
+            }),
+            this.prisma.communityProfile.update({
+                where: { communityId },
+                data: { followersCount: { increment: 1 } },
+            }),
+        ]);
+
+        return { message: "User followed community" };
     }
 
-    return this.prisma.community.update({
-      where: { id: communityid },
-      data: {
-        communityType: dto.communityType,
-        about: {
-          update: {
-            ...dto.about,
-          },
-        },
-        profile: {
-          update: {
-            ...dto.profile,
-          },
-        },
-      },
-      include: {
-        about: true,
-        profile: true,
-      },
-    });
-  }
+    async userUnfollowCommunity(userId: string, communityId: string) {
+        const follow = await this.prisma.communityFollower.findUnique({
+            where: { userId_communityId: { userId, communityId } },
+        });
+        if (!follow) throw new BadRequestException("Not following");
 
-  // user----community followers.
+        await this.prisma.$transaction([
+            this.prisma.communityFollower.delete({ where: { id: follow.id } }),
 
-  async userFollowCommunity(userId: string, communityId: string) {
-    // 1️⃣ Check if the user exists
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException(`User with id ${userId} not found`);
+            this.prisma.communityProfile.update({
+                where: { communityId },
+                data: { followersCount: { decrement: 1 } },
+            }),
+        ]);
 
-    // 2️⃣ Check if the community exists
-    const community = await this.prisma.community.findUnique({
-      where: { id: communityId },
-    });
-    if (!community)
-      throw new NotFoundException(`Community with id ${communityId} not found`);
+        return { message: "User unfollowed community" };
+    }
 
-    // 3️⃣ Check if already following
-    const exists = await this.prisma.communityFollower.findUnique({
-      where: { userId_communityId: { userId, communityId } },
-    });
-    if (exists) throw new BadRequestException("Already following");
+    // community follow another community..
 
-    // 4️⃣ Create follow and increment followers count
-    await this.prisma.$transaction([
-      this.prisma.communityFollower.create({
-        data: { userId, communityId },
-      }),
-      this.prisma.communityProfile.update({
-        where: { communityId },
-        data: { followersCount: { increment: 1 } },
-      }),
-    ]);
+    // async communityFollowCommunity(followerId: string, followingId: string) {
+    //   if (followerId === followingId) {
+    //     throw new BadRequestException("A community cannot follow itself");
+    //   }
 
-    return { message: "User followed community" };
-  }
+    //   const exists = await this.prisma.communityFollow.findUnique({
+    //     where: {
+    //       followerId_followingId: {
+    //         followerId,
+    //         followingId,
+    //       },
+    //     },
+    //   });
+    //   if (exists) throw new BadRequestException("Already following");
 
-  async userUnfollowCommunity(userId: string, communityId: string) {
-    const follow = await this.prisma.communityFollower.findUnique({
-      where: { userId_communityId: { userId, communityId } },
-    });
-    if (!follow) throw new BadRequestException("Not following");
+    //   await this.prisma.$transaction([
+    //     this.prisma.communityFollow.create({
+    //       data: { followerId, followingId },
+    //     }),
+    //     this.prisma.communityProfile.update({
+    //       where: { communityId: followingId },
+    //       data: { followersCount: { increment: 1 } },
+    //     }),
+    //     this.prisma.communityProfile.update({
+    //       where: { communityId: followerId },
+    //       data: { followingCount: { increment: 1 } },
+    //     }),
+    //   ]);
 
-    await this.prisma.$transaction([
-      this.prisma.communityFollower.delete({ where: { id: follow.id } }),
+    //   return { message: "Community followed another community" };
+    // }
 
-      this.prisma.communityProfile.update({
-        where: { communityId },
-        data: { followersCount: { decrement: 1 } },
-      }),
-    ]);
+    // ----------LIKE ----------
+    async likeCommunity(userId: string, communityId: string) {
+        await this.prisma.community.update({
+            where: { id: communityId },
+            data: { likers: { connect: { id: userId } } },
+        });
 
-    return { message: "User unfollowed community" };
-  }
+        const likes = await this.prisma.community.count({
+            where: { id: communityId, likers: { some: {} } },
+        });
 
-  // community follow another community..
+        await this.prisma.community.update({
+            where: { id: communityId },
+            data: { likes },
+        });
 
-  // async communityFollowCommunity(followerId: string, followingId: string) {
-  //   if (followerId === followingId) {
-  //     throw new BadRequestException("A community cannot follow itself");
-  //   }
+        return { success: true, likes };
+    }
 
-  //   const exists = await this.prisma.communityFollow.findUnique({
-  //     where: {
-  //       followerId_followingId: {
-  //         followerId,
-  //         followingId,
-  //       },
-  //     },
-  //   });
-  //   if (exists) throw new BadRequestException("Already following");
+    // ------UNLIKE--------
+    async unlikeCommunity(userId: string, communityId: string) {
+        await this.prisma.community.update({
+            where: { id: communityId },
+            data: { likers: { disconnect: { id: userId } } },
+        });
 
-  //   await this.prisma.$transaction([
-  //     this.prisma.communityFollow.create({
-  //       data: { followerId, followingId },
-  //     }),
-  //     this.prisma.communityProfile.update({
-  //       where: { communityId: followingId },
-  //       data: { followersCount: { increment: 1 } },
-  //     }),
-  //     this.prisma.communityProfile.update({
-  //       where: { communityId: followerId },
-  //       data: { followingCount: { increment: 1 } },
-  //     }),
-  //   ]);
+        const likes = await this.prisma.community.count({
+            where: { id: communityId, likers: { some: {} } },
+        });
 
-  //   return { message: "Community followed another community" };
-  // }
+        await this.prisma.community.update({
+            where: { id: communityId },
+            data: { likes },
+        });
 
-  // ----------LIKE ----------
-  async likeCommunity(userId: string, communityId: string) {
-    await this.prisma.community.update({
-      where: { id: communityId },
-      data: { likers: { connect: { id: userId } } },
-    });
+        return { success: true, likes };
+    }
 
-    const likes = await this.prisma.community.count({
-      where: { id: communityId, likers: { some: {} } },
-    });
+    // -------Count Likes and Followers----
+    async getCommunityCounts(communityId: string) {
+        const profile = await this.prisma.communityProfile.findUnique({
+            where: { communityId },
+            select: { followersCount: true },
+        });
 
-    await this.prisma.community.update({
-      where: { id: communityId },
-      data: { likes },
-    });
+        const community = await this.prisma.community.findUnique({
+            where: { id: communityId },
+            select: { likes: true },
+        });
 
-    return { success: true, likes };
-  }
-
-  // ------UNLIKE--------
-  async unlikeCommunity(userId: string, communityId: string) {
-    await this.prisma.community.update({
-      where: { id: communityId },
-      data: { likers: { disconnect: { id: userId } } },
-    });
-
-    const likes = await this.prisma.community.count({
-      where: { id: communityId, likers: { some: {} } },
-    });
-
-    await this.prisma.community.update({
-      where: { id: communityId },
-      data: { likes },
-    });
-
-    return { success: true, likes };
-  }
-
-  // -------Count Likes and Followers----
-  async getCommunityCounts(communityId: string) {
-    const profile = await this.prisma.communityProfile.findUnique({
-      where: { communityId },
-      select: { followersCount: true },
-    });
-
-    const community = await this.prisma.community.findUnique({
-      where: { id: communityId },
-      select: { likes: true },
-    });
-
-    return {
-      followersCount: profile?.followersCount ?? 0,
-      likes: community?.likes ?? 0,
-    };
-  }
+        return {
+            followersCount: profile?.followersCount ?? 0,
+            likes: community?.likes ?? 0,
+        };
+    }
 }

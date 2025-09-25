@@ -8,23 +8,23 @@ import { Seeds } from "./seeds/multiverse-seeds";
 // Explicitly load environment variables
 const prisma = new PrismaClient();
 async function main() {
-  expand(config({ path: path.resolve(process.cwd(), ".env") }));
-  console.info(chalk.bgYellow.white.bold("🌱 Database Seed start "));
-  const seed = new Seeds(prisma);
+    expand(config({ path: path.resolve(process.cwd(), ".env") }));
+    console.info(chalk.bgYellow.white.bold("🌱 Database Seed start "));
+    const seed = new Seeds(prisma);
 
-  // ============LIST OF SEED START============= //
-  await seed.user();
-  await seed.choice();
-  await seed.aboutUs();
-  await seed.privacyPolicy();
-  await seed.termsAndConditions();
-  // ============LIST OF SEED END============= //
+    // ============LIST OF SEED START============= //
+    await seed.user();
+    await seed.choice();
+    await seed.aboutUs();
+    await seed.privacyPolicy();
+    await seed.termsAndConditions();
+    // ============LIST OF SEED END============= //
 
-  console.info(chalk.bgYellow.white.bold("🌱 Database Seed successfully 😍"));
+    console.info(chalk.bgYellow.white.bold("🌱 Database Seed successfully 😍"));
 }
 
 main()
-  .catch((e) => console.error(e))
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+    .catch((e) => console.error(e))
+    .finally(async () => {
+        await prisma.$disconnect();
+    });

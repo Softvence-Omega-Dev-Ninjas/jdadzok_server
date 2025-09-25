@@ -4,11 +4,11 @@ import { HideService } from "./hide.service";
 
 @Controller("hide")
 export class HideController {
-  constructor(private readonly service: HideService) {}
+    constructor(private readonly service: HideService) {}
 
-  //  Toggle product visibility..
-  @Patch(":productId/toggle")
-  async toggle(@Param("productId") productId: string) {
-    return handleRequest(() => this.service.toggleVisibility(productId), "");
-  }
+    //  Toggle product visibility..
+    @Patch(":productId/toggle")
+    async toggle(@Param("productId") productId: string) {
+        return handleRequest(() => this.service.toggleVisibility(productId), "");
+    }
 }

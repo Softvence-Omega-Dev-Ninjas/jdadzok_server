@@ -5,8 +5,8 @@ import { buillQueueConfig } from "../config";
 import { BuillMqService } from "./buill-mq.service";
 
 @Module({
-  imports: [ConfigModule.forRoot(), BullModule.forRootAsync(buillQueueConfig)],
-  providers: [BuillMqService],
-  exports: [BuillMqService],
+    imports: [ConfigModule.forRoot(), BullModule.forRootAsync(buillQueueConfig)],
+    providers: [BuillMqService],
+    exports: [BuillMqService],
 })
 export class BuillMqModule {}

@@ -5,7 +5,7 @@ import { UtilsService } from "./utils.service";
 
 @Global()
 @Module({
-  providers: [UtilsService, OptService, JwtService],
-  exports: [UtilsService, OptService],
+    providers: [UtilsService, OptService, JwtService],
+    exports: [UtilsService, OptService],
 })
 export class UtilsModule {}

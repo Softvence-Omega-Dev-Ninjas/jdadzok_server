@@ -1,9 +1,9 @@
 import { UserRepository } from "@module/(users)/users/users.repository";
 import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
 } from "@nestjs/common";
 import { TUser } from "@project/@types";
 import { MailService } from "@project/lib/mail/mail.service";
@@ -19,114 +19,107 @@ import { VerifyTokenDto } from "./dto/verify-token.dto";
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly utilsService: UtilsService,
-    private readonly jwtService: JwtServices,
-    private readonly mailService: MailService,
-    private readonly otpService: OptService,
-  ) {}
+    constructor(
+        private readonly userRepository: UserRepository,
+        private readonly utilsService: UtilsService,
+        private readonly jwtService: JwtServices,
+        private readonly mailService: MailService,
+        private readonly otpService: OptService,
+    ) {}
 
-  async login(input: LoginDto) {
-    const user = await this.userRepository.findByEmail(input.email);
-    if (!user)
-      throw new NotFoundException("User not found, Please sign up first");
+    async login(input: LoginDto) {
+        const user = await this.userRepository.findByEmail(input.email);
+        if (!user) throw new NotFoundException("User not found, Please sign up first");
 
-    // compoare password if auth provider is email
-    if (user.authProvider === "EMAIL" && user.password) {
-      const isMatch = await this.utilsService.compare(
-        user.password,
-        input.password!,
-      );
-      if (!isMatch) throw new ForbiddenException("Email or Password Invalid!");
+        // compoare password if auth provider is email
+        if (user.authProvider === "EMAIL" && user.password) {
+            const isMatch = await this.utilsService.compare(user.password, input.password!);
+            if (!isMatch) throw new ForbiddenException("Email or Password Invalid!");
+        }
+
+        const accessToken = await this.jwtService.signAsync({
+            sub: user.id,
+            roles: user.role,
+            email: user.email,
+        });
+
+        return {
+            accessToken,
+            user: omit(user, ["password"]),
+        };
     }
 
-    const accessToken = await this.jwtService.signAsync({
-      sub: user.id,
-      roles: user.role,
-      email: user.email,
-    });
+    async forgetPassword(input: ForgetPasswordDto) {
+        const user = await this.userRepository.findByEmail(input.email);
+        if (!user) throw new NotFoundException("User not found");
 
-    return {
-      accessToken,
-      user: omit(user, ["password"]),
-    };
-  }
+        const otp = await this.sendOtpMail({ email: user.email, userId: user.id });
+        return otp;
+    }
 
-  async forgetPassword(input: ForgetPasswordDto) {
-    const user = await this.userRepository.findByEmail(input.email);
-    if (!user) throw new NotFoundException("User not found");
+    async verify(input: VerifyTokenDto) {
+        await this.otpService.verifyOtp(
+            {
+                userId: input.userId,
+                token: input.token,
+                type: "RESET_PASSWORD",
+            },
+            false,
+        );
 
-    const otp = await this.sendOtpMail({ email: user.email, userId: user.id });
-    return otp;
-  }
+        return {
+            message: "OTP verified, continue to reset password",
+        };
+    }
 
-  async verify(input: VerifyTokenDto) {
-    await this.otpService.verifyOtp(
-      {
-        userId: input.userId,
-        token: input.token,
-        type: "RESET_PASSWORD",
-      },
-      false,
-    );
+    async resnetOtp(input: ResentOtpDto) {
+        const user = await this.userRepository.findByEmail(input.email);
+        if (!user) throw new NotFoundException("User not found with that email");
 
-    return {
-      message: "OTP verified, continue to reset password",
-    };
-  }
+        // again send their otp
+        const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
+        return otp;
+    }
 
-  async resnetOtp(input: ResentOtpDto) {
-    const user = await this.userRepository.findByEmail(input.email);
-    if (!user) throw new NotFoundException("User not found with that email");
+    async resetPassword(input: ResetPasswordDto) {
+        const user = await this.userRepository.findById(input.userId);
+        if (!user) throw new NotFoundException("User not found with that ID");
 
-    // again send their otp
-    const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
-    return otp;
-  }
+        const otp = await this.otpService.getToken({
+            type: "RESET_PASSWORD",
+            userId: user.id,
+        });
+        if (!otp) throw new BadRequestException("OTP invalid or expire please verify OTP first");
 
-  async resetPassword(input: ResetPasswordDto) {
-    const user = await this.userRepository.findById(input.userId);
-    if (!user) throw new NotFoundException("User not found with that ID");
+        const hash = await this.utilsService.hash(input.password);
 
-    const otp = await this.otpService.getToken({
-      type: "RESET_PASSWORD",
-      userId: user.id,
-    });
-    if (!otp)
-      throw new BadRequestException(
-        "OTP invalid or expire please verify OTP first",
-      );
+        // update the user password with that hash password
+        const updatedUser = await this.userRepository.update(user.id, {
+            password: hash,
+        });
+        await this.otpService.delete({ type: "RESET_PASSWORD", userId: user.id });
+        return updatedUser;
+    }
 
-    const hash = await this.utilsService.hash(input.password);
+    async logout(email: string) {
+        const user = await this.userRepository.findByEmail(email);
+        if (!user) throw new NotFoundException("User not found");
+        return user;
+    }
 
-    // update the user password with that hash password
-    const updatedUser = await this.userRepository.update(user.id, {
-      password: hash,
-    });
-    await this.otpService.delete({ type: "RESET_PASSWORD", userId: user.id });
-    return updatedUser;
-  }
+    private async sendOtpMail(user: Omit<TUser, "role">) {
+        const otp = await this.otpService.generateOtp({
+            userId: user.userId,
+            email: user.email,
+            type: "RESET_PASSWORD",
+        });
 
-  async logout(email: string) {
-    const user = await this.userRepository.findByEmail(email);
-    if (!user) throw new NotFoundException("User not found");
-    return user;
-  }
-
-  private async sendOtpMail(user: Omit<TUser, "role">) {
-    const otp = await this.otpService.generateOtp({
-      userId: user.userId,
-      email: user.email,
-      type: "RESET_PASSWORD",
-    });
-
-    await this.mailService.sendMail(
-      user.email,
-      "Please verify token to reset password",
-      "otp",
-      { otp: otp.token },
-    );
-    return otp;
-  }
+        await this.mailService.sendMail(
+            user.email,
+            "Please verify token to reset password",
+            "otp",
+            { otp: otp.token },
+        );
+        return otp;
+    }
 }
