@@ -13,9 +13,9 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
-import { JwtServices } from "@project/services/jwt.service";
 import { Server, Socket } from "socket.io";
 import { SocketAuthGuard } from "../guards/socket-auth.guard";
+import { SocketMiddleware } from "../middleware/socket.middleware";
 
 @WebSocketGateway({
   cors: {
@@ -44,10 +44,11 @@ export abstract class BaseSocketGateway
     { count: number; resetTime: number }
   >();
 
-  constructor(private readonly jwtService: JwtServices) {}
+  constructor(private readonly socketMiddleware: SocketMiddleware) {}
 
   afterInit() {
     this.logger.log("Socket Gateway initialized");
+    this.server.use(this.socketMiddleware.authenticate());
     // this.setupRedis();
     this.setupRateLimiting();
     this.setupHeartbeat();
@@ -277,6 +278,15 @@ export abstract class BaseSocketGateway
     return room ? [...room.users] : [];
   }
 
+  // Get user by user ID
+  protected getUserById(userId: string): SocketUser | undefined {
+    const socketId = this.getSocketIdByUserId(userId);
+    if (!socketId) {
+      return undefined;
+    }
+    return this.getUser(socketId);
+  }
+
   // Get user by socket ID
   protected getUser(socketId: string): SocketUser | undefined {
     return this.connectedUsers.get(socketId);
@@ -285,6 +295,11 @@ export abstract class BaseSocketGateway
   // Get user ID by socket ID
   protected getUserId(socketId: string): string | undefined {
     return this.socketUsers.get(socketId);
+  }
+
+  // Get socket ID by user ID
+  protected getSocketIdByUserId(userId: string): string | undefined {
+    return this.userSockets.get(userId);
   }
 
   // Abstract methods to be implemented by derived classes

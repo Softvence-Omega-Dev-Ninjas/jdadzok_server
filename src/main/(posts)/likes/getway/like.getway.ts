@@ -11,6 +11,7 @@ import { JwtServices } from "@project/services/jwt.service";
 import { CreateLikeDto, UpdateLikeDto } from "../dto/creaete.like.dto";
 import { SOCKET_LIKE_EVENT } from "../events";
 import { LikeService } from "../like.service";
+import { SocketMiddleware } from "@project/main/(sockets)/middleware/socket.middleware";
 
 @WebSocketGateway({
   namespace: "posts/like",
@@ -18,9 +19,9 @@ import { LikeService } from "../like.service";
 export class LikeGetway extends BaseSocketGateway {
   constructor(
     private readonly likeService: LikeService,
-    private readonly jwtServices: JwtServices,
+    private readonly sockMiddleare: SocketMiddleware,
   ) {
-    super(jwtServices);
+    super(sockMiddleare);
   }
   @SubscribeMessage(SOCKET_LIKE_EVENT.LIKE)
   async handleLike(
