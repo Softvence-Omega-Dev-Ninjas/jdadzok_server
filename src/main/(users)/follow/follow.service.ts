@@ -9,17 +9,20 @@ export class FollowService {
     if (followerId === followedId) {
       throw new Error("Cannot follow userself");
     }
-    return this.prisma.userFollow.create({
-      data: {
-        followerId,
-        followedId,
-      },
-      select: {
-        follower: { select: { id: true } },
-        followed: { select: { id: true } },
-        createdAt: true,
-      },
-    });
+
+    return await this.prisma.$transaction([
+      this.prisma.userFollow.create({
+        data: {
+          followerId,
+          followedId,
+        },
+        select: {
+          follower: { select: { id: true } },
+          followed: { select: { id: true } },
+          createdAt: true,
+        },
+      }),
+    ]);
   }
 
   async unfollowUser(followerId: string, followedId: string) {
@@ -32,6 +35,7 @@ export class FollowService {
       },
     });
   }
+
   async followCommunity(userId: string, communityId: string) {
     return this.prisma.user.update({
       where: { id: userId },
