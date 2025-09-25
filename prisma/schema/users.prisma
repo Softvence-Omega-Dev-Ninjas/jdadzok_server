@@ -76,9 +76,6 @@ model User {
   // Users following this user
   followedBy UserFollow[] @relation("followedBy")
 
-  // Communities this user follows
-  followedCommunities Community[] @relation("UserFollowsCommunity")
-
   // Community interactions
   communityMemberships CommunitiesMembership[]
   likedCommunities     Community[]             @relation("CommunityLikers")
