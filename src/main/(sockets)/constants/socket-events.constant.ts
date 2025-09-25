@@ -37,22 +37,6 @@ export const SOCKET_EVENTS = {
         REACTION_REMOVE: "post:reaction:remove",
     },
 
-<<<<<<< HEAD
-  // Call Events
-  CALL: {
-    INITIATE: "call.initiate",
-    INCOMING: "call.incoming",
-    ACCEPT: "call.accept",
-    DECLINE: "call.decline",
-    OFFER: "call.offer",
-    ANSWER: "call.answer",
-    ICE_CANDIDATE: "call.ice-candidate",
-    END: "call.end",
-    REJOIN: "call.rejoin",
-    STATUS: "call.status",
-    ERROR: "call.error",
-  },
-=======
     // Call Events
     CALL: {
         INITIATE: "call:initiate",
@@ -67,7 +51,6 @@ export const SOCKET_EVENTS = {
         MUTE_AUDIO: "call:mute:audio",
         MUTE_VIDEO: "call:mute:video",
     },
->>>>>>> sabbir
 
     // Room Events
     ROOM: {

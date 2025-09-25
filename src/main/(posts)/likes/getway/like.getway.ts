@@ -3,44 +3,20 @@ import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gatewa
 import { GetSocketUser } from "@module/(sockets)/ecorators/rate-limit.decorator";
 import { BadGatewayException } from "@nestjs/common";
 import { MessageBody, SubscribeMessage, WebSocketGateway } from "@nestjs/websockets";
-import { JwtServices } from "@project/services/jwt.service";
+import { SocketMiddleware } from "@project/main/(sockets)/middleware/socket.middleware";
 import { CreateLikeDto, UpdateLikeDto } from "../dto/creaete.like.dto";
 import { SOCKET_LIKE_EVENT } from "../events";
 import { LikeService } from "../like.service";
-import { SocketMiddleware } from "@project/main/(sockets)/middleware/socket.middleware";
 
 @WebSocketGateway({
     namespace: "posts/like",
 })
 export class LikeGetway extends BaseSocketGateway {
-<<<<<<< HEAD
-  constructor(
-    private readonly likeService: LikeService,
-    private readonly sockMiddleare: SocketMiddleware,
-  ) {
-    super(sockMiddleare);
-  }
-  @SubscribeMessage(SOCKET_LIKE_EVENT.LIKE)
-  async handleLike(
-    @GetSocketUser() user: SocketUser,
-    @MessageBody() body: CreateLikeDto,
-  ) {
-    if (!body.postId)
-      throw new BadGatewayException("PostID is required to like a post!");
-    try {
-      const like = await this.likeService.likePost(user.id, body);
-      console.info("postlike: ", like);
-      // send notificaiton the the owner of the post && if owner not in online then send a mail to the user
-      // and broadcast the event for the all tagged user
-    } catch (err) {
-      return err;
-=======
     constructor(
         private readonly likeService: LikeService,
-        private readonly jwtServices: JwtServices,
+        private readonly sockMiddleare: SocketMiddleware,
     ) {
-        super(jwtServices);
->>>>>>> sabbir
+        super(sockMiddleare);
     }
     @SubscribeMessage(SOCKET_LIKE_EVENT.LIKE)
     async handleLike(@GetSocketUser() user: SocketUser, @MessageBody() body: CreateLikeDto) {
@@ -54,6 +30,7 @@ export class LikeGetway extends BaseSocketGateway {
             return err;
         }
     }
+
     @SubscribeMessage(SOCKET_LIKE_EVENT.DISLIKE)
     async handleDislike(@GetSocketUser() user: SocketUser, @MessageBody() body: UpdateLikeDto) {
         if (!body.postId) throw new BadGatewayException("PostID is required to like a post!");

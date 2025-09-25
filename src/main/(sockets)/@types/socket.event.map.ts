@@ -24,16 +24,9 @@ export type SocketEventMap = {
     [SOCKET_EVENTS.POST.LIKE]: PostReaction;
     [SOCKET_EVENTS.POST.COMMENT_ADD]: PostComment;
 
-<<<<<<< HEAD
-  // Call Events
-  [SOCKET_EVENTS.CALL.INITIATE]: CallEvent;
-  [SOCKET_EVENTS.CALL.ACCEPT]: CallEvent;
-=======
     // Call Events
     [SOCKET_EVENTS.CALL.INITIATE]: CallEvent;
     [SOCKET_EVENTS.CALL.ACCEPT]: CallEvent;
-    [SOCKET_EVENTS.CALL.SDP_OFFER]: CallEvent;
->>>>>>> sabbir
 
     // Room Events
     [SOCKET_EVENTS.ROOM.JOIN]: RoomEvent;

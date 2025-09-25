@@ -35,27 +35,15 @@ export abstract class BaseSocketGateway
     protected socketUsers = new Map<string, string>(); // socketId -> userId
     protected rooms = new Map<string, SocketRoom>();
     protected rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-<<<<<<< HEAD
-  constructor(private readonly socketMiddleware: SocketMiddleware) {}
-
-  afterInit() {
-    this.logger.log("Socket Gateway initialized");
-    this.server.use(this.socketMiddleware.authenticate());
-    // this.setupRedis();
-    this.setupRateLimiting();
-    this.setupHeartbeat();
-  }
-=======
-    constructor(private readonly jwtService: JwtServices) {}
+    constructor(private readonly socketMiddleware: SocketMiddleware) {}
 
     afterInit() {
         this.logger.log("Socket Gateway initialized");
+        this.server.use(this.socketMiddleware.authenticate());
         // this.setupRedis();
         this.setupRateLimiting();
         this.setupHeartbeat();
     }
->>>>>>> sabbir
 
     async handleConnection(client: Socket) {
         const user = client.data.user;
@@ -206,39 +194,6 @@ export abstract class BaseSocketGateway
         if (room) {
             room.users = room.users.filter((u) => u.id !== userId);
 
-<<<<<<< HEAD
-  // Get user by user ID
-  protected getUserById(userId: string): SocketUser | undefined {
-    const socketId = this.getSocketIdByUserId(userId);
-    if (!socketId) {
-      return undefined;
-    }
-    return this.getUser(socketId);
-  }
-
-  // Get user by socket ID
-  protected getUser(socketId: string): SocketUser | undefined {
-    return this.connectedUsers.get(socketId);
-  }
-
-  // Get user ID by socket ID
-  protected getUserId(socketId: string): string | undefined {
-    return this.socketUsers.get(socketId);
-  }
-
-  // Get socket ID by user ID
-  protected getSocketIdByUserId(userId: string): string | undefined {
-    return this.userSockets.get(userId);
-  }
-
-  // Abstract methods to be implemented by derived classes
-  // protected abstract setupRedis(): void;
-
-  private setupRateLimiting(): void {
-    // Clean up rate limit store every 5 minutes
-    setInterval(
-      () => {
-=======
             // Remove empty rooms (except permanent ones)
             if (room.users.length === 0 && room.type !== "post") {
                 this.rooms.delete(roomId);
@@ -247,7 +202,6 @@ export abstract class BaseSocketGateway
     }
 
     protected checkRateLimit(key: string, config: RateLimitConfig): boolean {
->>>>>>> sabbir
         const now = Date.now();
         const record = this.rateLimitStore.get(key);
 
