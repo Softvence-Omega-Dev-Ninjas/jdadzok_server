@@ -4,14 +4,7 @@ export type Role = (typeof role)[number];
 export const authProvider = ["GOOGLE", "APPLE", "EMAIL", "FACEBOOK"] as const;
 export type AuthProvider = (typeof authProvider)[number];
 
-export const capLevel = [
-  "NONE",
-  "GREEN",
-  "YELLOW",
-  "RED",
-  "BLACK",
-  "OSTRICH_FEATHER",
-] as const;
+export const capLevel = ["NONE", "GREEN", "YELLOW", "RED", "BLACK", "OSTRICH_FEATHER"] as const;
 export type CapLevel = (typeof capLevel)[number];
 
 export const mediaType = ["IMAGE", "VIDEO", "GIF"] as const;
@@ -26,24 +19,19 @@ export type VolunteerStatus = (typeof volunteerStatus)[number];
 export const applicationStatus = ["PENDING", "ACCEPTED", "REJECTED"] as const;
 export type ApplicationStatus = (typeof applicationStatus)[number];
 
-export const orderStatus = [
-  "PENDING",
-  "PAID",
-  "DELIVERED",
-  "CANCELED",
-] as const;
+export const orderStatus = ["PENDING", "PAID", "DELIVERED", "CANCELED"] as const;
 export type OrderStatus = (typeof orderStatus)[number];
 
 export const paymentMethod = ["STRIPE", "PAYPAL"] as const;
 export type PaymentMethod = (typeof paymentMethod)[number];
 
 export const notificationType = [
-  "LIKE",
-  "COMMENT",
-  "FOLLOW",
-  "SHARE",
-  "MENTION",
-  "EARNINGS",
+    "LIKE",
+    "COMMENT",
+    "FOLLOW",
+    "SHARE",
+    "MENTION",
+    "EARNINGS",
 ] as const;
 export type NotificationType = (typeof notificationType)[number];
 
@@ -58,14 +46,7 @@ export type ChatType = (typeof chatType)[number];
 
 export const callType = ["AUDIO", "VIDEO"] as const;
 export type CallType = (typeof callType)[number];
-export const callStatus = [
-  "CALLING",
-  "RINING",
-  "ACTIVE",
-  "END",
-  "MISSED",
-  "DECLINED",
-] as const;
+export const callStatus = ["CALLING", "RINING", "ACTIVE", "END", "MISSED", "DECLINED"] as const;
 export type CallStatus = (typeof callStatus)[number];
 
 export const messageStatus = ["SENT", "DELIVERED", "READ"] as const;
@@ -74,48 +55,43 @@ export type MessageStatus = (typeof messageStatus)[number];
 export const payOutStatus = ["PENDING", "PAID"] as const;
 export type PayOutStatus = (typeof payOutStatus)[number];
 
-export const subscriptionStatus = [
-  "PENDING",
-  "ACTIVE",
-  "INACTIVE",
-  "CANCELED",
-] as const;
+export const subscriptionStatus = ["PENDING", "ACTIVE", "INACTIVE", "CANCELED"] as const;
 export type SubscriptionStatus = (typeof subscriptionStatus)[number];
 
 export const feelings = [
-  "HAPPY",
-  "SAD",
-  "ANGRY",
-  "AMAZED",
-  "AMUSED",
-  "SCARED",
-  "PROUD",
-  "TIRED",
-  "CONFUSED",
-  "RELAXED",
-  "EXCITED",
-  "WORRIED",
-  "LOVED",
-  "GRATEFUL",
-  "BLESSED",
-  "HUNGRY",
-  "HOPEFUL",
-  "LONELY",
-  "SILLY",
-  "THANKFUL",
-  "AWESOME",
-  "BORED",
-  "COOL",
-  "DETERMINED",
-  "IN_LOVE",
-  "INSPIRED",
-  "MOTIVATED",
-  "SICK",
-  "SLEEPY",
-  "STRESSED",
-  "STRONG",
-  "FUNNY",
-  "MEH",
+    "HAPPY",
+    "SAD",
+    "ANGRY",
+    "AMAZED",
+    "AMUSED",
+    "SCARED",
+    "PROUD",
+    "TIRED",
+    "CONFUSED",
+    "RELAXED",
+    "EXCITED",
+    "WORRIED",
+    "LOVED",
+    "GRATEFUL",
+    "BLESSED",
+    "HUNGRY",
+    "HOPEFUL",
+    "LONELY",
+    "SILLY",
+    "THANKFUL",
+    "AWESOME",
+    "BORED",
+    "COOL",
+    "DETERMINED",
+    "IN_LOVE",
+    "INSPIRED",
+    "MOTIVATED",
+    "SICK",
+    "SLEEPY",
+    "STRESSED",
+    "STRONG",
+    "FUNNY",
+    "MEH",
 ] as const;
 export type Feelings = (typeof feelings)[number];
 
@@ -129,11 +105,10 @@ export const membershipStatus = ["PENDING", "APPROVED", "BANNED"] as const;
 export type MembershipStatus = (typeof membershipStatus)[number];
 
 export const identityVerificationType = [
-  "GOVERMENT_ID_OR_PASSPORT",
-  "BUSINESS_CERTIFIED_OR_LICENSE",
+    "GOVERMENT_ID_OR_PASSPORT",
+    "BUSINESS_CERTIFIED_OR_LICENSE",
 ] as const;
-export type IdentityVerificationType =
-  (typeof identityVerificationType)[number];
+export type IdentityVerificationType = (typeof identityVerificationType)[number];
 
 export const postFrom = ["COMMUNITY", "NGO", "REGULAR_PROFILE"] as const;
 export type PostForm = (typeof postFrom)[number];
@@ -145,13 +120,13 @@ export const membershipTier = ["SILVER", "GOLD", "PLATINUM"] as const;
 export type MembershipTier = (typeof membershipTier)[number];
 
 export const gender = [
-  "MALE",
-  "FEMALE",
-  "TRANSGENDER",
-  "GENDERQUEER",
-  "GENDERFLUID",
-  "AGENDER",
-  "BIGENDER",
-  "PANGENDER",
+    "MALE",
+    "FEMALE",
+    "TRANSGENDER",
+    "GENDERQUEER",
+    "GENDERFLUID",
+    "AGENDER",
+    "BIGENDER",
+    "PANGENDER",
 ] as const;
 export type Gender = (typeof gender)[number];

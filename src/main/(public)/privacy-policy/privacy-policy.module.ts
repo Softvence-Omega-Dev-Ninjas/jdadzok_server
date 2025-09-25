@@ -4,8 +4,8 @@ import { PrivacyPolicyRepository } from "./privacy-policy.repository";
 import { PrivacyPolicyService } from "./privacy-policy.service";
 
 @Module({
-  controllers: [PrivacyPolicyController],
-  providers: [PrivacyPolicyRepository, PrivacyPolicyService],
-  exports: [],
+    controllers: [PrivacyPolicyController],
+    providers: [PrivacyPolicyRepository, PrivacyPolicyService],
+    exports: [],
 })
 export class PrivacyPolicyModule {}

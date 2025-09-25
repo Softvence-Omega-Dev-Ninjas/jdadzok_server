@@ -4,8 +4,8 @@ import { PaymentMethodRepository } from "./payment-method.repository";
 import { PaymentMethodService } from "./payment-method.service";
 
 @Module({
-  controllers: [PaymentMethodController],
-  providers: [PaymentMethodRepository, PaymentMethodService],
-  exports: [PaymentMethodService, PaymentMethodRepository],
+    controllers: [PaymentMethodController],
+    providers: [PaymentMethodRepository, PaymentMethodService],
+    exports: [PaymentMethodService, PaymentMethodRepository],
 })
 export class PaymentMethodModule {}

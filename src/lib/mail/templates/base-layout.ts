@@ -1,7 +1,7 @@
 import appMetadata from "@project/app-metadata/app-metadata";
 
 const generateBaseLayout = (subject: string, body: string): string => {
-  return `
+    return `
   <!DOCTYPE html>
   <html>
   <head>

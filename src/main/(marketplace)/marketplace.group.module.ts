@@ -7,15 +7,9 @@ import { ProductCategoryModule } from "./product-category/product-category.modul
 import { ProductModule } from "./product/product.module";
 import { OrderModule } from "./order/order.module";
 @Module({
-  imports: [
-    ProductModule,
-    FavouritelistModule,
-    HideModule,
-    ProductCategoryModule,
-    OrderModule,
-  ],
-  controllers: [],
-  providers: [],
-  exports: [],
+    imports: [ProductModule, FavouritelistModule, HideModule, ProductCategoryModule, OrderModule],
+    controllers: [],
+    providers: [],
+    exports: [],
 })
 export class MarketplacesGroupModule {}

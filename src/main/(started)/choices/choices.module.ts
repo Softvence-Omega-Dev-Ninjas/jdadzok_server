@@ -5,9 +5,9 @@ import { ChoicesRepository } from "./choices.repository";
 import { ChoicesService } from "./choices.service";
 
 @Module({
-  imports: [UserChoicesModule],
-  controllers: [ChoicesController],
-  providers: [ChoicesRepository, ChoicesService],
-  exports: [ChoicesRepository],
+    imports: [UserChoicesModule],
+    controllers: [ChoicesController],
+    providers: [ChoicesRepository, ChoicesService],
+    exports: [ChoicesRepository],
 })
 export class ChoicesModule {}

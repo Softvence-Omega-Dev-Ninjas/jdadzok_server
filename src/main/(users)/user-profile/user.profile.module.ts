@@ -5,9 +5,9 @@ import { UserProfileRepository } from "./user.profile.repository";
 import { UserProfileService } from "./user.profile.service";
 
 @Module({
-  imports: [],
-  controllers: [UserProfileController],
-  providers: [UserProfileRepository, UserProfileService, UserRepository],
-  exports: [UserProfileRepository, UserProfileService],
+    imports: [],
+    controllers: [UserProfileController],
+    providers: [UserProfileRepository, UserProfileService, UserRepository],
+    exports: [UserProfileRepository, UserProfileService],
 })
 export class UserProfileModule {}

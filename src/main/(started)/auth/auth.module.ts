@@ -14,24 +14,24 @@ import jwtConfig from "./config/jwt.config";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 
 @Module({
-  imports: [
-    BullModule.registerQueue({ name: "users" }),
-    JwtModule.registerAsync(jwtConfig.asProvider()),
-    ConfigModule.forFeature(jwtConfig),
-    // ...refresh and google i mean rest of the config
-  ],
-  controllers: [AuthController],
-  providers: [
-    AuthService,
-    AuthRepository,
-    JwtServices,
-    JwtService,
-    JwtStrategy,
-    UserProfileRepository,
-    OptService,
-    UserRepository,
-    UserService,
-  ],
-  exports: [AuthRepository, AuthService, JwtModule, JwtStrategy],
+    imports: [
+        BullModule.registerQueue({ name: "users" }),
+        JwtModule.registerAsync(jwtConfig.asProvider()),
+        ConfigModule.forFeature(jwtConfig),
+        // ...refresh and google i mean rest of the config
+    ],
+    controllers: [AuthController],
+    providers: [
+        AuthService,
+        AuthRepository,
+        JwtServices,
+        JwtService,
+        JwtStrategy,
+        UserProfileRepository,
+        OptService,
+        UserRepository,
+        UserService,
+    ],
+    exports: [AuthRepository, AuthService, JwtModule, JwtStrategy],
 })
 export class AuthModule {}

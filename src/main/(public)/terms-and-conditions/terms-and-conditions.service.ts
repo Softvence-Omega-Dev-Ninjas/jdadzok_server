@@ -4,13 +4,13 @@ import { TermsAndConditionsRepository } from "./terms-and-conditions.repository"
 
 @Injectable()
 export class TermsAndConditionsService {
-  constructor(private readonly termsRepo: TermsAndConditionsRepository) {}
+    constructor(private readonly termsRepo: TermsAndConditionsRepository) {}
 
-  async getTermsAndConditions() {
-    return this.termsRepo.find();
-  }
+    async getTermsAndConditions() {
+        return this.termsRepo.find();
+    }
 
-  async upsertTermsAndConditions(input: UpdateTermsAndConditionsDto) {
-    return this.termsRepo.update(input);
-  }
+    async upsertTermsAndConditions(input: UpdateTermsAndConditionsDto) {
+        return this.termsRepo.update(input);
+    }
 }

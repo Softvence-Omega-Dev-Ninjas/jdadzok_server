@@ -4,9 +4,9 @@ import { ChoicesModule } from "./choices/choices.module";
 import { UserChoicesModule } from "./user-choice/user.choice.module";
 
 @Module({
-  imports: [AuthModule, ChoicesModule, UserChoicesModule],
-  controllers: [],
-  providers: [],
-  exports: [],
+    imports: [AuthModule, ChoicesModule, UserChoicesModule],
+    controllers: [],
+    providers: [],
+    exports: [],
 })
 export class StartedGroupModule {}

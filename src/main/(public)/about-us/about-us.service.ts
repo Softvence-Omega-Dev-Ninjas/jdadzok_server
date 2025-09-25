@@ -4,13 +4,13 @@ import { UpdateAboutUsDto } from "./dto/about-us.dto";
 
 @Injectable()
 export class AboutUsService {
-  constructor(private readonly aboutUsRepo: AboutUsRepository) {}
+    constructor(private readonly aboutUsRepo: AboutUsRepository) {}
 
-  async getAboutUs() {
-    return this.aboutUsRepo.find();
-  }
+    async getAboutUs() {
+        return this.aboutUsRepo.find();
+    }
 
-  async upsertAboutUs(input: UpdateAboutUsDto) {
-    return this.aboutUsRepo.update(input);
-  }
+    async upsertAboutUs(input: UpdateAboutUsDto) {
+        return this.aboutUsRepo.update(input);
+    }
 }

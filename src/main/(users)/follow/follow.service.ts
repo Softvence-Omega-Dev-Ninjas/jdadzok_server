@@ -3,7 +3,7 @@ import { PrismaService } from "@project/lib/prisma/prisma.service";
 
 @Injectable()
 export class FollowService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async followUser(followerId: string, followedId: string) {
     if (followerId === followedId) {

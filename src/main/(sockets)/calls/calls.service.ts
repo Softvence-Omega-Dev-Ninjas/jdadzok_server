@@ -5,6 +5,7 @@ import { Call, CallStatus, CallType } from "@prisma/client";
 
 @Injectable()
 export class CallsService {
+<<<<<<< HEAD
   constructor(private readonly prisma: PrismaService) {}
 
   async createCall(fromId: string, payload: CreateCallDto): Promise<Call> {
@@ -126,4 +127,60 @@ export class CallsService {
       throw new BadRequestException(`Failed to end call: ${error?.message}`);
     }
   }
+=======
+    constructor(private prisma: PrismaService) {}
+
+    async createCall(creatorId: string, type: CallType, to: string[]) {
+        const call = await this.prisma.call.create({
+            data: {
+                type: type,
+                status: "CALLING",
+                creatorId,
+                participants: { create: to.map((u) => ({ userId: u })) },
+            },
+            include: { participants: true },
+        });
+        return call;
+    }
+
+    async setAccepted(callId: string, userId: string) {
+        // const p = await this.prisma.chatParticipant.updateMany({
+        //   where: { userId, chatId },
+        //   data: { : true, joinedAt: new Date() },
+        // });
+        const call = await this.prisma.call.findUnique({
+            where: { id: callId, creatorId: userId },
+            include: { participants: true },
+        });
+        return call;
+    }
+
+    async setStarted(callId: string) {
+        return await this.prisma.call.update({
+            where: { id: callId },
+            data: { status: "ACTIVE", startedAt: new Date() },
+        });
+    }
+
+    async endCall(callId: string) {
+        return await this.prisma.call.update({
+            where: { id: callId },
+            data: { status: "END", endedAt: new Date() },
+        });
+    }
+
+    async declinedCall(callId: string) {
+        return await this.prisma.call.update({
+            where: { id: callId },
+            data: { status: "DECLINED" },
+        });
+    }
+
+    async getCall(callId: string) {
+        return this.prisma.call.findUnique({
+            where: { id: callId },
+            include: { participants: true },
+        });
+    }
+>>>>>>> sabbir
 }

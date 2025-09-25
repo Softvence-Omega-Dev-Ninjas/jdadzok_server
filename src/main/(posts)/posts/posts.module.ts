@@ -14,22 +14,22 @@ import { PostRepository } from "./posts.repository";
 import { PostService } from "./posts.service";
 
 @Module({
-  imports: [],
-  controllers: [PostController],
-  providers: [
-    JwtServices,
-    JwtService,
-    PostService,
-    PostRepository,
-    PostTagsRepository,
-    LocationRepository,
-    GifRepository,
-    PostMetadataRepository,
-    UserRepository,
-    UserProfileRepository,
-    FollowRepository,
-    PostGateway,
-  ],
-  exports: [PostRepository],
+    imports: [],
+    controllers: [PostController],
+    providers: [
+        JwtServices,
+        JwtService,
+        PostService,
+        PostRepository,
+        PostTagsRepository,
+        LocationRepository,
+        GifRepository,
+        PostMetadataRepository,
+        UserRepository,
+        UserProfileRepository,
+        FollowRepository,
+        PostGateway,
+    ],
+    exports: [PostRepository],
 })
 export class PostModule {}

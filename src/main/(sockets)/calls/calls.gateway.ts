@@ -1,9 +1,18 @@
 import { SocketUser } from "@module/(sockets)/@types";
 import {
+<<<<<<< HEAD
   ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
+=======
+    ConnectedSocket,
+    MessageBody,
+    OnGatewayInit,
+    SubscribeMessage,
+    WebSocketGateway,
+    WebSocketServer,
+>>>>>>> sabbir
 } from "@nestjs/websockets";
 import { GetSocketUser } from "@project/main/(sockets)/ecorators/rate-limit.decorator";
 import { SocketMiddleware } from "@project/main/(sockets)/middleware/socket.middleware";
@@ -16,9 +25,10 @@ import { SOCKET_EVENTS } from "../constants/socket-events.constant";
 import { BadRequestException, UsePipes, ValidationPipe } from "@nestjs/common";
 
 @WebSocketGateway({
-  namespace: "/calls",
-  cors: { origin: true, credentials: true },
+    namespace: "/calls",
+    cors: { origin: true, credentials: true },
 })
+<<<<<<< HEAD
 export class CallsGateway extends BaseSocketGateway {
   private readonly CALL_TIMEOUT_MS = 30 * 1000; // 30 secounds timeout for call acceptance
 
@@ -106,9 +116,21 @@ export class CallsGateway extends BaseSocketGateway {
         message: "Failed to initiate call",
       });
       throw new BadRequestException("Call initiation failed");
-    }
-  }
+=======
+export class CallsGateway implements OnGatewayInit {
+    @WebSocketServer() server: Server;
 
+    constructor(
+        private readonly svc: CallsService,
+        private readonly socketMiddleware: SocketMiddleware,
+    ) {}
+
+    afterInit() {
+        this.server.use(this.socketMiddleware.authenticate());
+>>>>>>> sabbir
+    }
+
+<<<<<<< HEAD
   @SubscribeMessage(SOCKET_EVENTS.CALL.ACCEPT)
   @UsePipes(new ValidationPipe({ transform: true }))
   async hanndleCallAccept(
@@ -146,9 +168,34 @@ export class CallsGateway extends BaseSocketGateway {
         callId: payload.callId,
         message: "Failed to accept call",
       });
-    }
-  }
+=======
+    @SubscribeMessage("calls.create")
+    async socketCreate(
+        @GetSocketUser() user: SocketUser,
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: CreateCallDto,
+    ) {
+        // Create call with userId type and call to
+        const call = await this.svc.createCall(user.id, payload.type, payload.to);
 
+        // Send notification to target call user
+        // TODO(coderboysobuj) verify payload.to socket user exist in redis
+        if (call) {
+            this.server
+                .to(payload.to)
+                .emit("call.calling", { callId: call.id, turn: this.getTurnConfig() });
+            // TODO(coderboysobuj) Check if user online send caller to ringing call status
+            // Otherwise notify the user to that user is offline
+            // For now let notify user that call is created
+            // then handle call created event
+            this.server
+                .to(client.id)
+                .emit("call.created", { callId: call.id, turn: this.getTurnConfig() });
+        }
+>>>>>>> sabbir
+    }
+
+<<<<<<< HEAD
   @SubscribeMessage(SOCKET_EVENTS.CALL.DECLINE)
   @UsePipes(new ValidationPipe({ transform: true }))
   async handleCallDecline(
@@ -348,4 +395,87 @@ export class CallsGateway extends BaseSocketGateway {
       });
     }
   }
+=======
+    @SubscribeMessage("call.accept")
+    async socketAccept(
+        @GetSocketUser() user: SocketUser,
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: { callId: string },
+    ) {
+        const call = await this.svc.setAccepted(payload.callId, user.id);
+        if (call) {
+            this.server.to(call.creatorId).emit("call.accepted", {
+                callId: call.id,
+                from: user.id,
+                turn: this.getTurnConfig(),
+            });
+        }
+    }
+
+    @SubscribeMessage("call.reject")
+    async socketReject(
+        @GetSocketUser() user: SocketUser,
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: { callId: string },
+    ) {
+        this.server.to(client.id).emit("call.rejected", { callId: payload.callId, from: user.id });
+    }
+
+    @SubscribeMessage("call.offer")
+    async socketOffer(
+        @GetSocketUser() user: SocketUser,
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: SignalDto,
+    ) {
+        this.server.to(payload.targetId).emit("call.offer", {
+            callId: payload.callId,
+            from: user.id,
+            sdp: payload.payload,
+        });
+    }
+
+    @SubscribeMessage("call.answer")
+    async socketAnswer(
+        @GetSocketUser() user: SocketUser,
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: SignalDto,
+    ) {
+        this.server.to(payload.targetId).emit("call.answer", {
+            callId: payload.callId,
+            from: user.id,
+            sdp: payload.payload,
+        });
+    }
+
+    @SubscribeMessage("call.ice")
+    async socketIce(
+        @GetSocketUser() user: SocketUser,
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: SignalDto,
+    ) {
+        this.server.to(payload.targetId).emit("call.ice", {
+            callId: payload.callId,
+            from: user.id,
+            candidate: payload.payload,
+        });
+    }
+
+    @SubscribeMessage("call.hangup")
+    async socketHangup(
+        @GetSocketUser() user: SocketUser,
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: { callId: string },
+    ) {
+        await this.svc.endCall(payload.callId);
+        this.server.emit("call.hangup", { callId: payload.callId, from: user.id });
+    }
+
+    private getTurnConfig() {
+        return {
+            urls: [process.env.TURN_URL],
+            username: process.env.TURN_USER,
+            credential: process.env.TURN_PASS,
+        };
+    }
+>>>>>>> sabbir
 }
