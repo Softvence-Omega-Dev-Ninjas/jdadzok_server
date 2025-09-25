@@ -8,7 +8,8 @@ export class UserMetricsService {
     constructor(private readonly userMetricsRepository: UserMetricsRepository) {}
 
     async create(createUserMetricsDto: CreateUserMetricsDto): Promise<UserMetrics> {
-        return this.userMetricsRepository.create(createUserMetricsDto);
+        // logic to create user metrics
+        return await this.userMetricsRepository.create(createUserMetricsDto);
     }
 
     async findOne(userId: string): Promise<UserMetrics> {

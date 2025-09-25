@@ -8,23 +8,23 @@ export class UserMetricsRepository {
     constructor(private readonly prisma: PrismaService) {}
 
     async create(createUserMetricsDto: CreateUserMetricsDto): Promise<UserMetrics> {
-        return this.prisma.userMetrics.create({
+        return await this.prisma.userMetrics.create({
             data: createUserMetricsDto,
         });
     }
 
     async findOne(userId: string): Promise<UserMetrics | null> {
-        return this.prisma.userMetrics.findUnique({
+        return await this.prisma.userMetrics.findUnique({
             where: { userId },
         });
     }
 
     async findAll(): Promise<UserMetrics[]> {
-        return this.prisma.userMetrics.findMany();
+        return await this.prisma.userMetrics.findMany();
     }
 
     async update(userId: string, updateUserMetricsDto: UpdateUserMetricsDto): Promise<UserMetrics> {
-        return this.prisma.userMetrics.update({
+        return await this.prisma.userMetrics.update({
             where: { userId },
             data: updateUserMetricsDto,
         });
