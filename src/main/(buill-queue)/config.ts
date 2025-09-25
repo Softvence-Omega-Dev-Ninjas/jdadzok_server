@@ -3,15 +3,15 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ENVEnum } from "@project/common/enum/env.enum";
 
 export const buillQueueConfig: SharedBullAsyncConfiguration = {
-  imports: [ConfigModule],
-  inject: [ConfigService],
-  useFactory: async (configService: ConfigService) => ({
-    connection: {
-      host: configService.get(ENVEnum.REDIS_HOST) || "redis",
-      port: configService.get(ENVEnum.REDIS_PORT) || 6379,
-    },
-    defaultJobOptions: {
-      attempts: 3,
-    },
-  }),
+    imports: [ConfigModule],
+    inject: [ConfigService],
+    useFactory: async (configService: ConfigService) => ({
+        connection: {
+            host: configService.get(ENVEnum.REDIS_HOST) || "redis",
+            port: configService.get(ENVEnum.REDIS_PORT) || 6379,
+        },
+        defaultJobOptions: {
+            attempts: 3,
+        },
+    }),
 };

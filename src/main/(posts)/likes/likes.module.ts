@@ -4,9 +4,9 @@ import { LikeRepository } from "./like.repository";
 import { LikeService } from "./like.service";
 
 @Module({
-  imports: [],
-  controllers: [LikeController],
-  providers: [LikeRepository, LikeService],
-  exports: [LikeRepository],
+    imports: [],
+    controllers: [LikeController],
+    providers: [LikeRepository, LikeService],
+    exports: [LikeRepository],
 })
 export class LikeModule {}

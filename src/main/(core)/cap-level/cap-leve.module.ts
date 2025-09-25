@@ -24,20 +24,15 @@ import { CapLevelController } from "./cap-level.controller";
  * - Integration with user engagement systems
  */
 @Module({
-  imports: [],
-  controllers: [CapLevelController, RevenueController],
-  providers: [
-    CapLevelRepository,
-    CapLevelService,
-    UserMetricsService,
-    AdRevenueService,
-    VolunteerTrackingService,
-  ],
-  exports: [
-    CapLevelService,
-    UserMetricsService,
-    AdRevenueService,
-    VolunteerTrackingService,
-  ],
+    imports: [],
+    controllers: [CapLevelController, RevenueController],
+    providers: [
+        CapLevelRepository,
+        CapLevelService,
+        UserMetricsService,
+        AdRevenueService,
+        VolunteerTrackingService,
+    ],
+    exports: [CapLevelService, UserMetricsService, AdRevenueService, VolunteerTrackingService],
 })
 export class CapLevelModule {}

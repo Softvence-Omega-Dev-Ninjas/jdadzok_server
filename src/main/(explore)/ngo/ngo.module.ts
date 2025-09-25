@@ -3,9 +3,9 @@ import { NgoController } from "./ngo.controller";
 import { NgoService } from "./ngo.service";
 
 @Module({
-  imports: [],
-  controllers: [NgoController],
-  providers: [NgoService],
-  exports: [],
+    imports: [],
+    controllers: [NgoController],
+    providers: [NgoService],
+    exports: [],
 })
 export class NgoModule {}

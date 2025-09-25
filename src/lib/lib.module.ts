@@ -7,15 +7,8 @@ import { SeedModule } from "./seed/seed.module";
 import { UtilsModule } from "./utils/utils.module";
 
 @Module({
-  imports: [
-    PrismaModule,
-    SeedModule,
-    MailModule,
-    UtilsModule,
-    FileModule,
-    NotificationModule,
-  ],
-  exports: [],
-  providers: [],
+    imports: [PrismaModule, SeedModule, MailModule, UtilsModule, FileModule, NotificationModule],
+    exports: [],
+    providers: [],
 })
 export class LibModule {}

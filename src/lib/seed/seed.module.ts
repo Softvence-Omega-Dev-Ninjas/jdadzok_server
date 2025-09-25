@@ -5,8 +5,8 @@ import { CapRequirementsSeedService } from "./services/cap-requirements.seed.ser
 
 @Global()
 @Module({
-  imports: [],
-  providers: [FileService, SuperAdminService, CapRequirementsSeedService],
-  exports: [FileService, SuperAdminService, CapRequirementsSeedService],
+    imports: [],
+    providers: [FileService, SuperAdminService, CapRequirementsSeedService],
+    exports: [FileService, SuperAdminService, CapRequirementsSeedService],
 })
 export class SeedModule {}

@@ -4,6 +4,7 @@ import { BuillQueueModule } from "./(buill-queue)/buill-queue.module";
 import { CoreGroupModule } from "./(core)/core.group.module";
 import { ExploreGroupModule } from "./(explore)/explore.group.module";
 import { MarketplacesGroupModule } from "./(marketplace)/marketplace.group.module";
+import { MetricsGroupModule } from "./(metrics)/metrics.group.module";
 import { PayGroupModule } from "./(pay)/pay.group.module";
 import { PostsGroupModule } from "./(posts)/posts.group.module";
 import { PublicGroupModule } from "./(public)/public.group.module";
@@ -14,22 +15,23 @@ import { UserGroupModule } from "./(users)/users.group.module";
 
 @Global()
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    SocketsGroupModule,
-    CoreGroupModule,
-    StartedGroupModule,
-    UserGroupModule,
-    SharedGroupModule,
-    PostsGroupModule,
-    MarketplacesGroupModule,
-    ExploreGroupModule,
-    PayGroupModule,
-    BuillQueueModule,
-    PublicGroupModule,
-  ],
-  controllers: [],
-  providers: [],
-  exports: [],
+    imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        SocketsGroupModule,
+        CoreGroupModule,
+        StartedGroupModule,
+        UserGroupModule,
+        SharedGroupModule,
+        PostsGroupModule,
+        MarketplacesGroupModule,
+        ExploreGroupModule,
+        PayGroupModule,
+        BuillQueueModule,
+        PublicGroupModule,
+        MetricsGroupModule,
+    ],
+    controllers: [],
+    providers: [],
+    exports: [],
 })
 export class MainModule {}

@@ -7,17 +7,17 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(config: ConfigService) {
-    const jwtSecret = config.getOrThrow<string>(ENVEnum.JWT_SECRET);
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: jwtSecret,
-      ignoreExpiration: false,
-    });
-  }
+    constructor(config: ConfigService) {
+        const jwtSecret = config.getOrThrow<string>(ENVEnum.JWT_SECRET);
+        super({
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            secretOrKey: jwtSecret,
+            ignoreExpiration: false,
+        });
+    }
 
-  validate(payload: JWTPayload) {
-    // send user from the db
-    return { userId: payload.sub, email: payload.email, roles: payload.roles };
-  }
+    validate(payload: JWTPayload) {
+        // send user from the db
+        return { userId: payload.sub, email: payload.email, roles: payload.roles };
+    }
 }
