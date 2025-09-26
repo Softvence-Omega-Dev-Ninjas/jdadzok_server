@@ -10,6 +10,4 @@ model UserFollow {
   @@id([followerId, followedId])
   @@index([followerId])
   @@index([followedId])
-
-  @@map("user_follow")
 }

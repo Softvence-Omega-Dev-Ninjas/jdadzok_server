@@ -150,7 +150,8 @@ CREATE TABLE "public"."call" (
     "id" TEXT NOT NULL,
     "type" "public"."CallType" NOT NULL DEFAULT 'AUDIO',
     "status" "public"."CallStatus" NOT NULL DEFAULT 'CALLING',
-    "creatorId" TEXT NOT NULL,
+    "fromId" TEXT NOT NULL,
+    "toId" TEXT NOT NULL,
     "startedAt" TIMESTAMP(3),
     "endedAt" TIMESTAMP(3),
     "metadata" JSONB,
@@ -513,21 +514,6 @@ CREATE TABLE "public"."orders" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."Participant" (
-    "id" TEXT NOT NULL,
-    "callId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "accepted" BOOLEAN NOT NULL DEFAULT false,
-    "joinedAt" TIMESTAMP(3),
-    "leftAt" TIMESTAMP(3),
-    "metadata" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Participant_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "public"."payment-methods" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -796,6 +782,15 @@ CREATE TABLE "public"."user_metrics" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."UserFollow" (
+    "followerId" TEXT NOT NULL,
+    "followedId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "UserFollow_pkey" PRIMARY KEY ("followerId","followedId")
+);
+
+-- CreateTable
 CREATE TABLE "public"."users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -901,7 +896,10 @@ CREATE INDEX "bans_isActive_idx" ON "public"."bans"("isActive");
 CREATE INDEX "bans_expiresAt_idx" ON "public"."bans"("expiresAt");
 
 -- CreateIndex
-CREATE INDEX "call_creatorId_idx" ON "public"."call"("creatorId");
+CREATE INDEX "call_fromId_idx" ON "public"."call"("fromId");
+
+-- CreateIndex
+CREATE INDEX "call_toId_idx" ON "public"."call"("toId");
 
 -- CreateIndex
 CREATE INDEX "call_status_idx" ON "public"."call"("status");
@@ -1114,15 +1112,6 @@ CREATE INDEX "orders_status_idx" ON "public"."orders"("status");
 CREATE INDEX "orders_createdAt_idx" ON "public"."orders"("createdAt");
 
 -- CreateIndex
-CREATE INDEX "Participant_userId_idx" ON "public"."Participant"("userId");
-
--- CreateIndex
-CREATE INDEX "Participant_callId_idx" ON "public"."Participant"("callId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Participant_callId_userId_key" ON "public"."Participant"("callId", "userId");
-
--- CreateIndex
 CREATE INDEX "payment-methods_userId_idx" ON "public"."payment-methods"("userId");
 
 -- CreateIndex
@@ -1255,6 +1244,12 @@ CREATE INDEX "trending_topics_keyword_idx" ON "public"."trending_topics"("keywor
 CREATE UNIQUE INDEX "user_metrics_userId_key" ON "public"."user_metrics"("userId");
 
 -- CreateIndex
+CREATE INDEX "UserFollow_followerId_idx" ON "public"."UserFollow"("followerId");
+
+-- CreateIndex
+CREATE INDEX "UserFollow_followedId_idx" ON "public"."UserFollow"("followedId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
 
 -- CreateIndex
@@ -1321,7 +1316,10 @@ ALTER TABLE "public"."bans" ADD CONSTRAINT "bans_userId_fkey" FOREIGN KEY ("user
 ALTER TABLE "public"."bans" ADD CONSTRAINT "bans_issuedById_fkey" FOREIGN KEY ("issuedById") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."call" ADD CONSTRAINT "call_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."call" ADD CONSTRAINT "call_fromId_fkey" FOREIGN KEY ("fromId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."call" ADD CONSTRAINT "call_toId_fkey" FOREIGN KEY ("toId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."chat_participants" ADD CONSTRAINT "chat_participants_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "public"."chats"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1429,12 +1427,6 @@ ALTER TABLE "public"."orders" ADD CONSTRAINT "orders_buyerId_fkey" FOREIGN KEY (
 ALTER TABLE "public"."orders" ADD CONSTRAINT "orders_productId_fkey" FOREIGN KEY ("productId") REFERENCES "public"."products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Participant" ADD CONSTRAINT "Participant_callId_fkey" FOREIGN KEY ("callId") REFERENCES "public"."call"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."Participant" ADD CONSTRAINT "Participant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "public"."payment-methods" ADD CONSTRAINT "payment-methods_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1508,6 +1500,12 @@ ALTER TABLE "public"."user_choices" ADD CONSTRAINT "user_choices_choiceId_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "public"."user_metrics" ADD CONSTRAINT "user_metrics_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."UserFollow" ADD CONSTRAINT "UserFollow_followerId_fkey" FOREIGN KEY ("followerId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."UserFollow" ADD CONSTRAINT "UserFollow_followedId_fkey" FOREIGN KEY ("followedId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."volunteer_applications" ADD CONSTRAINT "volunteer_applications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
