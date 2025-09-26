@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { TUser } from "@project/@types";
 import { MailService } from "@project/lib/mail/mail.service";
+import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { OptService } from "@project/lib/utils/otp.service";
 import { UtilsService } from "@project/lib/utils/utils.service";
 import { QUEUE_JOB_NAME } from "@project/main/(buill-queue)/constants";
@@ -17,20 +18,18 @@ import { Queue } from "bullmq";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserRepository } from "./users.repository";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 
 @Injectable()
 export class UserService {
-
-  constructor(
-    @InjectQueue("users") private readonly userQueue: Queue,
-    private readonly repository: UserRepository,
-    private readonly prisma: PrismaService,
-    private readonly utilsService: UtilsService,
-    private readonly jwtService: JwtServices,
-    private readonly otpService: OptService,
-    private readonly mailService: MailService,
-  ) {}
+    constructor(
+        @InjectQueue("users") private readonly userQueue: Queue,
+        private readonly repository: UserRepository,
+        private readonly prisma: PrismaService,
+        private readonly utilsService: UtilsService,
+        private readonly jwtService: JwtServices,
+        private readonly otpService: OptService,
+        private readonly mailService: MailService,
+    ) {}
 
     async register(body: CreateUserDto) {
         // has password if provider is email
@@ -117,198 +116,6 @@ export class UserService {
         return await this.repository.update(userId, input);
     }
 
-    this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
-      email: body.email,
-      userId: createdUser.id,
-    });
-
-    const accessToken = await this.jwtService.signAsync({
-      email: createdUser.email,
-      sub: createdUser.id,
-      roles: createdUser.role,
-    });
-
-    return {
-      accessToken,
-      user: createdUser,
-      hasAccount: false,
-    };
-  }
-
-  async verifyOpt(input: VerifyTokenDto) {
-    const user = await this.repository.findById(input.userId);
-    if (!user) throw new NotFoundException("User not found with that ID");
-
-    if (user.isVerified)
-      throw new ConflictException("Account already verified!");
-    await this.otpService.verifyOtp({
-      userId: user.id,
-      token: input.token,
-      type: "EMAIL_VERIFICATION",
-    });
-
-    // Update DB
-    const updatedUser = await this.repository.update(input.userId, {
-      isVerified: true,
-    });
-    // when user account verified then we will have to send create a token and send it to as response
-    const accessToken = await this.jwtService.signAsync({
-      sub: user.id,
-      roles: user.role,
-      email: user.email,
-    });
-    return { user: omit(updatedUser, ["password"]), accessToken };
-  }
-
-  async resnetOtp(input: ResentOtpDto) {
-    const user = await this.repository.findByEmail(input.email);
-    if (!user) throw new NotFoundException("User not found with that email");
-
-    // again send their otp
-    const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
-    return otp;
-  }
-
-  async updateUser(userId: string, input: UpdateUserDto) {
-    const user = await this.repository.findById(userId);
-    if (!user) throw new NotFoundException("User not found!"); // not required for all the time
-    // if update input has password then hash it
-    if (input.password)
-      input.password = await this.utilsService.hash(input.password!);
-
-    return await this.repository.update(userId, input);
-  }
-
-  async deleteAcount(userId: string) {
-    const user = await this.repository.findById(userId);
-    if (!user) throw new NotFoundException("User not found!");
-
-    await this.repository.delete(userId);
-  }
-
-  async getMe(userId: string) {
-    return await this.repository.findById(userId);
-  }
-
-  async sendOtpMail(user: Omit<TUser, "role">) {
-    // make same innital email validation for send email
-    if (!user.email.endsWith("@gmail.com"))
-      throw new BadRequestException("Email must end with @gmail.com");
-    const otp = await this.otpService.generateOtp({
-      userId: user.userId,
-      email: user.email,
-      type: "EMAIL_VERIFICATION",
-    });
-
-    await this.mailService.sendMail(
-      user.email,
-      "Please verify your email with that otp",
-      "otp",
-      { otp: otp.token },
-    );
-
-    return otp;
-  }
-
-  async followUser(followerId: string, followedId: string) {
-    if (followerId === followedId) {
-      throw new Error("Cannot follow userself");
-    }
-
-    const [follower, following] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: followerId } }),
-      this.prisma.user.findUnique({ where: { id: followedId } }),
-    ]);
-
-    // Check user exis with id
-    if (!follower || !following) {
-      throw new Error("Invalid user");
-    }
-
-    // Check already follow
-    const userFollow = await this.prisma.userFollow.findUnique({
-      where: {
-        followerId_followedId: {
-          followerId,
-          followedId,
-        },
-      },
-    });
-
-    if (userFollow) {
-      throw new Error("already following...");
-    }
-
-    return await this.prisma.$transaction([
-      this.prisma.userFollow.create({
-        data: {
-          followerId,
-          followedId,
-        },
-
-        select: {
-          follower: { select: { id: true } },
-          followed: { select: { id: true } },
-          createdAt: true,
-        },
-      }),
-      this.prisma.profile.update({
-        where: { userId: followerId },
-        data: {
-          followingCount: { increment: 1 },
-        },
-      }),
-      this.prisma.profile.update({
-        where: {
-          userId: followerId,
-        },
-        data: {
-          followersCount: { increment: 1 },
-        },
-      }),
-    ]);
-  }
-  async unfollowUser(followerId: string, followedId: string) {
-    const userFollow = await this.prisma.userFollow.findUnique({
-      where: {
-        followerId_followedId: {
-          followerId,
-          followedId,
-        },
-      },
-    });
-
-    if (!userFollow) {
-      throw new Error("Unknown user");
-    }
-
-    return await this.prisma.$transaction([
-      this.prisma.userFollow.delete({
-        where: {
-          followerId_followedId: {
-            followerId,
-            followedId,
-          },
-        },
-      }),
-      this.prisma.profile.update({
-        where: {
-          userId: followerId,
-        },
-        data: {
-          followingCount: { decrement: 1 },
-        },
-      }),
-      this.prisma.profile.update({
-        where: {
-          userId: followedId,
-        },
-        data: {
-          followersCount: { decrement: 1 },
-        },
-      }),
-    ]);
-  }
     async deleteAcount(userId: string) {
         const user = await this.repository.findById(userId);
         if (!user) throw new NotFoundException("User not found!");
@@ -340,4 +147,103 @@ export class UserService {
         return otp;
     }
 
+    async followUser(followerId: string, followedId: string) {
+        if (followerId === followedId) {
+            throw new Error("Cannot follow userself");
+        }
+
+        const [follower, following] = await Promise.all([
+            this.prisma.user.findUnique({ where: { id: followerId } }),
+            this.prisma.user.findUnique({ where: { id: followedId } }),
+        ]);
+
+        // Check user exis with id
+        if (!follower || !following) {
+            throw new Error("Invalid user");
+        }
+
+        // Check already follow
+        const userFollow = await this.prisma.userFollow.findUnique({
+            where: {
+                followerId_followedId: {
+                    followerId,
+                    followedId,
+                },
+            },
+        });
+
+        if (userFollow) {
+            throw new Error("already following...");
+        }
+
+        return await this.prisma.$transaction([
+            this.prisma.userFollow.create({
+                data: {
+                    followerId,
+                    followedId,
+                },
+
+                select: {
+                    follower: { select: { id: true } },
+                    followed: { select: { id: true } },
+                    createdAt: true,
+                },
+            }),
+            this.prisma.profile.update({
+                where: { userId: followerId },
+                data: {
+                    followingCount: { increment: 1 },
+                },
+            }),
+            this.prisma.profile.update({
+                where: {
+                    userId: followerId,
+                },
+                data: {
+                    followersCount: { increment: 1 },
+                },
+            }),
+        ]);
+    }
+    async unfollowUser(followerId: string, followedId: string) {
+        const userFollow = await this.prisma.userFollow.findUnique({
+            where: {
+                followerId_followedId: {
+                    followerId,
+                    followedId,
+                },
+            },
+        });
+
+        if (!userFollow) {
+            throw new Error("Unknown user");
+        }
+
+        return await this.prisma.$transaction([
+            this.prisma.userFollow.delete({
+                where: {
+                    followerId_followedId: {
+                        followerId,
+                        followedId,
+                    },
+                },
+            }),
+            this.prisma.profile.update({
+                where: {
+                    userId: followerId,
+                },
+                data: {
+                    followingCount: { decrement: 1 },
+                },
+            }),
+            this.prisma.profile.update({
+                where: {
+                    userId: followedId,
+                },
+                data: {
+                    followersCount: { decrement: 1 },
+                },
+            }),
+        ]);
+    }
 }

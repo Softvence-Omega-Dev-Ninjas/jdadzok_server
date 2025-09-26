@@ -21,9 +21,6 @@ model Community {
   // Community posts
   posts Post[] @relation("CommunityPosts")
 
-  // users following this community
-  followers User[] @relation("UserFollowsCommunity")
-
   // Community memberships
   memberships CommunitiesMembership[]
 
