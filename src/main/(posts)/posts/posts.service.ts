@@ -1,10 +1,10 @@
+import { FollowRepository } from "@module/(users)/follow/follow.repository";
 import {
     BadRequestException,
     ForbiddenException,
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { FollowRepository } from "@project/main/(users)/follow/follow.repository";
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
 import { PostRepository } from "./posts.repository";
@@ -13,8 +13,8 @@ import { PostRepository } from "./posts.repository";
 export class PostService {
     constructor(
         private readonly repository: PostRepository,
-        private readonly followRepository: FollowRepository,
-    ) {}
+        private readonly followRepository: FollowRepository
+    ) { }
 
     async create(input: CreatePostDto) {
         const post = await this.repository.store(input);

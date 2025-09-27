@@ -7,4 +7,4 @@ import { FollowRepository } from "./follow.repository";
     providers: [PrismaService, FollowRepository],
     exports: [FollowRepository],
 })
-export class FollowModule {}
+export class FollowModule { }

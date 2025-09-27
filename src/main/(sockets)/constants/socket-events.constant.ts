@@ -39,17 +39,17 @@ export const SOCKET_EVENTS = {
 
     // Call Events
     CALL: {
-        INITIATE: "call:initiate",
-        ACCEPT: "call:accept",
-        DECLINE: "call:decline",
-        END: "call:end",
-        JOIN: "call:join",
-        LEAVE: "call:leave",
-        SDP_OFFER: "call:sdp:offer",
-        SDP_ANSWER: "call:sdp:answer",
-        ICE_CANDIDATE: "call:ice:candidate",
-        MUTE_AUDIO: "call:mute:audio",
-        MUTE_VIDEO: "call:mute:video",
+        INITIATE: "call.initiate",
+        INCOMING: "call.incoming",
+        ACCEPT: "call.accept",
+        DECLINE: "call.decline",
+        OFFER: "call.offer",
+        ANSWER: "call.answer",
+        ICE_CANDIDATE: "call.ice-candidate",
+        END: "call.end",
+        REJOIN: "call.rejoin",
+        STATUS: "call.status",
+        ERROR: "call.error",
     },
 
     // Room Events

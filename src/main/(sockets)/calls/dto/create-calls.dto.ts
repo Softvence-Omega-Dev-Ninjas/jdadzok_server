@@ -6,5 +6,7 @@ export class CreateCallDto {
     type: CallType;
 
     @IsUUID()
-    to: string[];
+    to: string;
+
+    offer: any;
 }
