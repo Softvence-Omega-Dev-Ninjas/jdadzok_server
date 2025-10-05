@@ -83,11 +83,11 @@ jobs:
             - name: ✅ Format Check
               run: pnpm format
 
-            - name: 🏗 Build Project
-              run: pnpm build
-
             - name: 🔄 Generate Prisma Client
               run: pnpm prisma:generate
+
+            - name: 🏗 Build Project
+              run: pnpm build
 
             - name: 🧹 Clean up .env
               if: always()
