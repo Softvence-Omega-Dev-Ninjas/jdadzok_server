@@ -69,8 +69,13 @@ jobs:
                   echo "Docker image: $IMAGE_TAG"
                   echo "✅ Environment variables are accessible"
 
-            - name: 📦 Install dependencies
-              run: npm i pnpm@latest && pnpm i
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 10
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
             - name: 🧹 Run Lint
               run: pnpm ci:fix
