@@ -1,61 +1,129 @@
-import { Injectable } from "@nestjs/common";
-import { CallType } from "@prisma/client";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { Call, CallStatus, CallType } from "@prisma/client";
 import { PrismaService } from "@project/lib/prisma/prisma.service";
+import { CreateCallDto } from "./dto/create-calls.dto";
 
 @Injectable()
 export class CallsService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
-    async createCall(creatorId: string, type: CallType, to: string[]) {
-        const call = await this.prisma.call.create({
-            data: {
-                type: type,
-                status: "CALLING",
-                creatorId,
-                participants: { create: to.map((u) => ({ userId: u })) },
-            },
-            include: { participants: true },
-        });
-        return call;
+    async createCall(fromId: string, payload: CreateCallDto): Promise<Call> {
+        try {
+            // Validate that fromId and toId are different
+            if (fromId === payload.to) {
+                throw new BadRequestException("Cannot create call to self");
+            }
+
+            // Check if both users exist
+            const [fromUser, toUser] = await Promise.all([
+                this.prisma.user.findUnique({ where: { id: fromId } }),
+                this.prisma.user.findUnique({ where: { id: payload.to } }),
+            ]);
+
+            if (!fromUser || !toUser) {
+                throw new BadRequestException("Invalid user IDs");
+            }
+
+            // Create new call record
+            return await this.prisma.call.create({
+                data: {
+                    type: payload.type || CallType.AUDIO,
+                    status: CallStatus.CALLING,
+                    fromId,
+                    toId: payload.to,
+                    metadata: payload.offer ? { offer: payload.offer } : undefined,
+                },
+            });
+        } catch (error: any) {
+            throw new BadRequestException(`Failed to create call: ${error?.message}`);
+        }
     }
 
-    async setAccepted(callId: string, userId: string) {
-        // const p = await this.prisma.chatParticipant.updateMany({
-        //   where: { userId, chatId },
-        //   data: { : true, joinedAt: new Date() },
-        // });
-        const call = await this.prisma.call.findUnique({
-            where: { id: callId, creatorId: userId },
-            include: { participants: true },
-        });
-        return call;
+    async getCall(callId: string): Promise<Call | null> {
+        try {
+            return await this.prisma.call.findUnique({
+                where: { id: callId },
+            });
+        } catch (error: any) {
+            throw new BadRequestException(`Failed to fetch call: ${error?.message}`);
+        }
     }
 
-    async setStarted(callId: string) {
-        return await this.prisma.call.update({
-            where: { id: callId },
-            data: { status: "ACTIVE", startedAt: new Date() },
-        });
+    async markAsAccepted(callId: string, userId: string): Promise<Call | null> {
+        try {
+            const call = await this.prisma.call.findUnique({
+                where: { id: callId },
+            });
+
+            if (!call || call.status !== CallStatus.CALLING) {
+                return null;
+            }
+
+            if (call.toId !== userId) {
+                throw new BadRequestException("Only the recipient can accept the call");
+            }
+
+            return await this.prisma.call.update({
+                where: { id: callId },
+                data: {
+                    status: CallStatus.ACTIVE,
+                    startedAt: new Date(),
+                },
+            });
+        } catch (error: any) {
+            throw new BadRequestException(`Failed to accept call: ${error?.message}`);
+        }
     }
 
-    async endCall(callId: string) {
-        return await this.prisma.call.update({
-            where: { id: callId },
-            data: { status: "END", endedAt: new Date() },
-        });
+    async markAsDeclined(callId: string, userId: string): Promise<Call | null> {
+        try {
+            const call = await this.prisma.call.findUnique({
+                where: { id: callId },
+            });
+
+            if (!call || call.status !== CallStatus.CALLING) {
+                return null;
+            }
+
+            if (call.toId !== userId) {
+                throw new BadRequestException(
+                    "Only the recipient can decline the call",
+                );
+            }
+
+            return await this.prisma.call.update({
+                where: { id: callId },
+                data: {
+                    status: CallStatus.DECLINED,
+                    endedAt: new Date(),
+                },
+            });
+        } catch (error: any) {
+            throw new BadRequestException(
+                `Failed to decline call: ${error?.message}`,
+            );
+        }
     }
 
-    async declinedCall(callId: string) {
-        return await this.prisma.call.update({
-            where: { id: callId },
-            data: { status: "DECLINED" },
-        });
-    }
+    async endCall(callId: string): Promise<Call | null> {
+        try {
+            const call = await this.prisma.call.findUnique({
+                where: { id: callId },
+            });
 
-    async getCall(callId: string) {
-        return this.prisma.call.findUnique({
-            where: { id: callId },
-            include: { participants: true },
-        });
+            if (!call || call.status === CallStatus.END) {
+                return null;
+            }
+
+            return await this.prisma.call.update({
+                where: { id: callId },
+                data: {
+                    status: CallStatus.END,
+                    endedAt: new Date(),
+                },
+            });
+        } catch (error: any) {
+            throw new BadRequestException(`Failed to end call: ${error?.message}`);
+        }
     }
 }

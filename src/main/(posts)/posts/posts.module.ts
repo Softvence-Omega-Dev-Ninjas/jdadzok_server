@@ -1,8 +1,8 @@
+import { FollowRepository } from "@module/(users)/follow/follow.repository";
+import { UserProfileRepository } from "@module/(users)/user-profile/user.profile.repository";
+import { UserRepository } from "@module/(users)/users/users.repository";
 import { Module } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { FollowRepository } from "@project/main/(users)/follow/follow.repository";
-import { UserProfileRepository } from "@project/main/(users)/user-profile/user.profile.repository";
-import { UserRepository } from "@project/main/(users)/users/users.repository";
 import { JwtServices } from "@project/services/jwt.service";
 import { GifRepository } from "../gif/gif.repository";
 import { LocationRepository } from "../locations/locations.repository";
@@ -17,6 +17,7 @@ import { PostService } from "./posts.service";
     imports: [],
     controllers: [PostController],
     providers: [
+        FollowRepository,
         JwtServices,
         JwtService,
         PostService,
@@ -27,9 +28,8 @@ import { PostService } from "./posts.service";
         PostMetadataRepository,
         UserRepository,
         UserProfileRepository,
-        FollowRepository,
         PostGateway,
     ],
     exports: [PostRepository],
 })
-export class PostModule {}
+export class PostModule { }
