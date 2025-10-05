@@ -32,4 +32,4 @@ import { PostService } from "./posts.service";
     ],
     exports: [PostRepository],
 })
-export class PostModule { }
+export class PostModule {}

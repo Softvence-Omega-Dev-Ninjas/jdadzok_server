@@ -4,7 +4,7 @@ import { CreatePostsMetricsDto } from "./dto/posts-metrics.dto";
 
 @Injectable()
 export class PostsMetricsRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(input: CreatePostsMetricsDto) {
         return await this.prisma.$transaction(async (tx) => {

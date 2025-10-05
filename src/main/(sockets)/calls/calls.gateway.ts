@@ -35,10 +35,7 @@ export class CallsGateway extends BaseSocketGateway {
     }
 
     // Helper to validate and participant
-    private async validateCallParticipant(
-        callId: string,
-        userId: string,
-    ): Promise<boolean> {
+    private async validateCallParticipant(callId: string, userId: string): Promise<boolean> {
         const call = await this.svc.getCall(callId);
         if (!call) {
             return false;
@@ -98,10 +95,7 @@ export class CallsGateway extends BaseSocketGateway {
                 }
             }, this.CALL_TIMEOUT_MS);
         } catch (error: any) {
-            this.logger.error(
-                `Failed to initiate call: ${error?.message}`,
-                error?.stack,
-            );
+            this.logger.error(`Failed to initiate call: ${error?.message}`, error?.stack);
             client.emit(SOCKET_EVENTS.CALL.ERROR, {
                 message: "Failed to initiate call",
             });
@@ -138,10 +132,7 @@ export class CallsGateway extends BaseSocketGateway {
                 fromId: user.id,
             });
         } catch (error: any) {
-            this.logger.error(
-                `Failed to accept call: ${error?.message}`,
-                error?.stack,
-            );
+            this.logger.error(`Failed to accept call: ${error?.message}`, error?.stack);
             client.emit(SOCKET_EVENTS.CALL.ERROR, {
                 callId: payload.callId,
                 message: "Failed to accept call",
@@ -176,10 +167,7 @@ export class CallsGateway extends BaseSocketGateway {
             // Clean up room
             this.server.socketsLeave(callRoom);
         } catch (error: any) {
-            this.logger.error(
-                `Failed to decline call: ${error?.message}`,
-                error?.stack,
-            );
+            this.logger.error(`Failed to decline call: ${error?.message}`, error?.stack);
             client.emit(SOCKET_EVENTS.CALL.ERROR, {
                 callId: payload.callId,
                 message: "Failed to decline call",
@@ -199,18 +187,13 @@ export class CallsGateway extends BaseSocketGateway {
                 throw new Error("User not authorized for this call");
             }
 
-            this.server
-                .to(this.getCallRoom(payload.callId))
-                .emit(SOCKET_EVENTS.CALL.OFFER, {
-                    callId: payload.callId,
-                    fromId: user.id,
-                    sdp: payload.payload,
-                });
+            this.server.to(this.getCallRoom(payload.callId)).emit(SOCKET_EVENTS.CALL.OFFER, {
+                callId: payload.callId,
+                fromId: user.id,
+                sdp: payload.payload,
+            });
         } catch (error: any) {
-            this.logger.error(
-                `Failed to handle offer: ${error?.message}`,
-                error?.stack,
-            );
+            this.logger.error(`Failed to handle offer: ${error?.message}`, error?.stack);
             client.emit(SOCKET_EVENTS.CALL.ERROR, {
                 callId: payload.callId,
                 message: "Failed to send offer",
@@ -230,18 +213,13 @@ export class CallsGateway extends BaseSocketGateway {
                 throw new Error("User not authorized for this call");
             }
 
-            this.server
-                .to(this.getCallRoom(payload.callId))
-                .emit(SOCKET_EVENTS.CALL.ANSWER, {
-                    callId: payload.callId,
-                    fromId: user.id,
-                    sdp: payload.payload,
-                });
+            this.server.to(this.getCallRoom(payload.callId)).emit(SOCKET_EVENTS.CALL.ANSWER, {
+                callId: payload.callId,
+                fromId: user.id,
+                sdp: payload.payload,
+            });
         } catch (error: any) {
-            this.logger.error(
-                `Failed to handle answer: ${error?.message}`,
-                error?.stack,
-            );
+            this.logger.error(`Failed to handle answer: ${error?.message}`, error?.stack);
             client.emit(SOCKET_EVENTS.CALL.ERROR, {
                 callId: payload.callId,
                 message: "Failed to send answer",
@@ -269,10 +247,7 @@ export class CallsGateway extends BaseSocketGateway {
                     candidate: payload.payload,
                 });
         } catch (error: any) {
-            this.logger.error(
-                `Failed to handle ICE candidate: ${error?.message}`,
-                error?.stack,
-            );
+            this.logger.error(`Failed to handle ICE candidate: ${error?.message}`, error?.stack);
             client.emit(SOCKET_EVENTS.CALL.ERROR, {
                 callId: payload.callId,
                 message: "Failed to send ICE candidate",
@@ -338,10 +313,7 @@ export class CallsGateway extends BaseSocketGateway {
                 fromId: user.id,
             });
         } catch (error: any) {
-            this.logger.error(
-                `Failed to rejoin call: ${error?.message}`,
-                error?.stack,
-            );
+            this.logger.error(`Failed to rejoin call: ${error?.message}`, error?.stack);
             client.emit(SOCKET_EVENTS.CALL.ERROR, {
                 callId: payload.callId,
                 message: "Failed to rejoin call",

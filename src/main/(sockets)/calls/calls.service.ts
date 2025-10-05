@@ -5,7 +5,7 @@ import { CreateCallDto } from "./dto/create-calls.dto";
 
 @Injectable()
 export class CallsService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async createCall(fromId: string, payload: CreateCallDto): Promise<Call> {
         try {
@@ -86,9 +86,7 @@ export class CallsService {
             }
 
             if (call.toId !== userId) {
-                throw new BadRequestException(
-                    "Only the recipient can decline the call",
-                );
+                throw new BadRequestException("Only the recipient can decline the call");
             }
 
             return await this.prisma.call.update({
@@ -99,9 +97,7 @@ export class CallsService {
                 },
             });
         } catch (error: any) {
-            throw new BadRequestException(
-                `Failed to decline call: ${error?.message}`,
-            );
+            throw new BadRequestException(`Failed to decline call: ${error?.message}`);
         }
     }
 

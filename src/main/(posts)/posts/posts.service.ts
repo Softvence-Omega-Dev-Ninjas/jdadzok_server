@@ -13,8 +13,8 @@ import { PostRepository } from "./posts.repository";
 export class PostService {
     constructor(
         private readonly repository: PostRepository,
-        private readonly followRepository: FollowRepository
-    ) { }
+        private readonly followRepository: FollowRepository,
+    ) {}
 
     async create(input: CreatePostDto) {
         const post = await this.repository.store(input);

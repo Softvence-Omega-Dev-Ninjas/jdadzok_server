@@ -1,9 +1,4 @@
-import {
-    RateLimitConfig,
-    SocketResponse,
-    SocketRoom,
-    SocketUser,
-} from "@module/(sockets)/@types";
+import { RateLimitConfig, SocketResponse, SocketRoom, SocketUser } from "@module/(sockets)/@types";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
 import { Logger, UseGuards } from "@nestjs/common";
 import {
@@ -29,7 +24,8 @@ import { SocketMiddleware } from "../middleware/socket.middleware";
 })
 @UseGuards(SocketAuthGuard)
 export abstract class BaseSocketGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     @WebSocketServer() protected server: Server;
     protected readonly logger = new Logger(this.constructor.name);
 
@@ -38,12 +34,9 @@ export abstract class BaseSocketGateway
     protected userSockets = new Map<string, string>(); // userId -> socketId
     protected socketUsers = new Map<string, string>(); // socketId -> userId
     protected rooms = new Map<string, SocketRoom>();
-    protected rateLimitStore = new Map<
-        string,
-        { count: number; resetTime: number }
-    >();
+    protected rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
-    constructor(private readonly socketMiddleware: SocketMiddleware) { }
+    constructor(private readonly socketMiddleware: SocketMiddleware) {}
 
     afterInit() {
         this.logger.log("Socket Gateway initialized");
@@ -87,9 +80,7 @@ export abstract class BaseSocketGateway
             // Join user to their personal room
             await client.join(`user:${socketUser.id}`);
 
-            this.logger.log(
-                `User ${socketUser.email} connected with socket ${client.id}`,
-            );
+            this.logger.log(`User ${socketUser.email} connected with socket ${client.id}`);
 
             // Notify others about user joining
             client.broadcast.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
@@ -135,11 +126,7 @@ export abstract class BaseSocketGateway
         });
     }
 
-    protected createResponse<T>(
-        success: boolean,
-        data?: T,
-        error?: string,
-    ): SocketResponse<T> {
+    protected createResponse<T>(success: boolean, data?: T, error?: string): SocketResponse<T> {
         return {
             success,
             data,
@@ -246,12 +233,7 @@ export abstract class BaseSocketGateway
         return true;
     }
 
-    protected emitToRoom(
-        roomId: string,
-        event: string,
-        data: any,
-        excludeSocketId?: string,
-    ): void {
+    protected emitToRoom(roomId: string, event: string, data: any, excludeSocketId?: string): void {
         if (excludeSocketId) {
             this.server.to(roomId).except(excludeSocketId).emit(event, data);
         } else {
@@ -259,11 +241,7 @@ export abstract class BaseSocketGateway
         }
     }
 
-    protected broadcastToAll<D = any>(
-        event: string,
-        data: D,
-        excludeSocketId?: string,
-    ): void {
+    protected broadcastToAll<D = any>(event: string, data: D, excludeSocketId?: string): void {
         if (excludeSocketId) {
             this.server.except(excludeSocketId).emit(event, data);
         } else {
