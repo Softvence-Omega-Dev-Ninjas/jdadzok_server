@@ -8,4 +8,4 @@ import { CallsService } from "./calls.service";
     providers: [CallsService, CallsGateway],
     exports: [],
 })
-export class CallsModule { }
+export class CallsModule {}

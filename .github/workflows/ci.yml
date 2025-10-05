@@ -1,182 +1,182 @@
 name: CI Pipeline
 
 on:
-  push:
-    branches:
-      - "**"
-  pull_request:
-    branches:
-      - "**"
+    push:
+        branches:
+            - "**"
+    pull_request:
+        branches:
+            - "**"
 
 jobs:
-  lint-test:
-    name: 🧪 CI - Lint, Build, Format, Prisma
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+    lint-test:
+        name: 🧪 CI - Lint, Build, Format, Prisma
+        runs-on: ubuntu-latest
+        steps:
+            - name: 📥 Checkout code
+              uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
+            - name: 🟢 Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
 
-      - name: 🔧 Setup and load environment
-        uses: ./.github/actions/setup-and-load-env
-        with:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
-          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
-          EMAIL: ${{ secrets.EMAIL }}
-          PG_USERNAME: ${{ secrets.PG_USERNAME }}
-          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          PG_DATABASE: ${{ secrets.PG_DATABASE }}
-          PG_PORT: ${{ secrets.PG_PORT }}
-          PG_HOST: ${{ secrets.PG_HOST }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
-          BASE_URL: ${{ secrets.BASE_URL }}
-          PORT: ${{ secrets.PORT }}
-          MAIL_USER: ${{ secrets.MAIL_USER }}
-          MAIL_PASS: ${{ secrets.MAIL_PASS }}
-          SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
-          SUPER_ADMIN_PASS: ${{ secrets.SUPER_ADMIN_PASS }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_USER: ${{ secrets.REDIS_USER }}
-          REDIS_PASS: ${{ secrets.REDIS_PASS }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          REDIS_CONTAINER: ${{ secrets.REDIS_CONTAINER }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+            - name: 🔧 Setup and load environment
+              uses: ./.github/actions/setup-and-load-env
+              with:
+                  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+                  PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+                  PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+                  EMAIL: ${{ secrets.EMAIL }}
+                  PG_USERNAME: ${{ secrets.PG_USERNAME }}
+                  PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+                  PG_DATABASE: ${{ secrets.PG_DATABASE }}
+                  PG_PORT: ${{ secrets.PG_PORT }}
+                  PG_HOST: ${{ secrets.PG_HOST }}
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+                  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+                  JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+                  BASE_URL: ${{ secrets.BASE_URL }}
+                  PORT: ${{ secrets.PORT }}
+                  MAIL_USER: ${{ secrets.MAIL_USER }}
+                  MAIL_PASS: ${{ secrets.MAIL_PASS }}
+                  SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
+                  SUPER_ADMIN_PASS: ${{ secrets.SUPER_ADMIN_PASS }}
+                  REDIS_HOST: ${{ secrets.REDIS_HOST }}
+                  REDIS_USER: ${{ secrets.REDIS_USER }}
+                  REDIS_PASS: ${{ secrets.REDIS_PASS }}
+                  REDIS_PORT: ${{ secrets.REDIS_PORT }}
+                  REDIS_CONTAINER: ${{ secrets.REDIS_CONTAINER }}
+                  REDIS_URL: ${{ secrets.REDIS_URL }}
+                  TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+                  TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+                  TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+                  AWS_REGION: ${{ secrets.AWS_REGION }}
+                  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+                  IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
+                  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+                  GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+                  VPS_HOST: ${{ secrets.VPS_HOST }}
+                  VPS_USER: ${{ secrets.VPS_USER }}
+                  VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
 
-      - name: 📋 Verify environment variables
-        run: |
-          echo "Package name: $PACKAGE_NAME"
-          echo "Package version: $PACKAGE_VERSION"
-          echo "Docker image: $IMAGE_TAG"
-          echo "✅ Environment variables are accessible"
+            - name: 📋 Verify environment variables
+              run: |
+                  echo "Package name: $PACKAGE_NAME"
+                  echo "Package version: $PACKAGE_VERSION"
+                  echo "Docker image: $IMAGE_TAG"
+                  echo "✅ Environment variables are accessible"
 
-      - name: 📦 Install dependencies
-        run: npm install
+            - name: 📦 Install dependencies
+              run: npm i pnpm@latest && pnpm i
 
-      - name: 🧹 Run Lint
-        run: npm run lint $USERNAME
+            - name: 🧹 Run Lint
+              run: pnpm ci:fix
 
-      - name: ✅ Format Check
-        run: npm run format
+            - name: ✅ Format Check
+              run: pnpm format
 
-      - name: 🏗 Build Project
-        run: npm run build
+            - name: 🏗 Build Project
+              run: pnpm build
 
-      - name: 🔄 Generate Prisma Client
-        run: npm run prisma:generate
+            - name: 🔄 Generate Prisma Client
+              run: pnpm prisma:generate
 
-      - name: 🧹 Clean up .env
-        if: always()
-        run: rm -f "${{ github.workspace }}/.env"
+            - name: 🧹 Clean up .env
+              if: always()
+              run: rm -f "${{ github.workspace }}/.env"
 
-  build-and-push:
-    name: Build & Push Docker Image 🏗️
-    needs: lint-test
-    runs-on: ubuntu-latest
+    build-and-push:
+        name: Build & Push Docker Image 🏗️
+        needs: lint-test
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Code 📥
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout Code 📥
+              uses: actions/checkout@v4
 
-      - name: Set up NodeJs
-        uses: actions/setup-node@v3
-        with:
-          node-version: "20"
+            - name: Set up NodeJs
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
 
-      - name: 🔧 Setup and load environment
-        uses: ./.github/actions/setup-and-load-env
-        with:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
-          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
-          EMAIL: ${{ secrets.EMAIL }}
-          PG_USERNAME: ${{ secrets.PG_USERNAME }}
-          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          PG_DATABASE: ${{ secrets.PG_DATABASE }}
-          PG_PORT: ${{ secrets.PG_PORT }}
-          PG_HOST: ${{ secrets.PG_HOST }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
-          BASE_URL: ${{ secrets.BASE_URL }}
-          PORT: ${{ secrets.PORT }}
-          MAIL_USER: ${{ secrets.MAIL_USER }}
-          MAIL_PASS: ${{ secrets.MAIL_PASS }}
-          SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
-          SUPER_ADMIN_PASS: ${{ secrets.SUPER_ADMIN_PASS }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_USER: ${{ secrets.REDIS_USER }}
-          REDIS_PASS: ${{ secrets.REDIS_PASS }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          REDIS_CONTAINER: ${{ secrets.REDIS_CONTAINER }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+            - name: 🔧 Setup and load environment
+              uses: ./.github/actions/setup-and-load-env
+              with:
+                  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+                  PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+                  PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+                  EMAIL: ${{ secrets.EMAIL }}
+                  PG_USERNAME: ${{ secrets.PG_USERNAME }}
+                  PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+                  PG_DATABASE: ${{ secrets.PG_DATABASE }}
+                  PG_PORT: ${{ secrets.PG_PORT }}
+                  PG_HOST: ${{ secrets.PG_HOST }}
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+                  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+                  JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+                  BASE_URL: ${{ secrets.BASE_URL }}
+                  PORT: ${{ secrets.PORT }}
+                  MAIL_USER: ${{ secrets.MAIL_USER }}
+                  MAIL_PASS: ${{ secrets.MAIL_PASS }}
+                  SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
+                  SUPER_ADMIN_PASS: ${{ secrets.SUPER_ADMIN_PASS }}
+                  REDIS_HOST: ${{ secrets.REDIS_HOST }}
+                  REDIS_USER: ${{ secrets.REDIS_USER }}
+                  REDIS_PASS: ${{ secrets.REDIS_PASS }}
+                  REDIS_PORT: ${{ secrets.REDIS_PORT }}
+                  REDIS_CONTAINER: ${{ secrets.REDIS_CONTAINER }}
+                  REDIS_URL: ${{ secrets.REDIS_URL }}
+                  TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+                  TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+                  TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+                  AWS_REGION: ${{ secrets.AWS_REGION }}
+                  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+                  IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
+                  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+                  GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+                  VPS_HOST: ${{ secrets.VPS_HOST }}
+                  VPS_USER: ${{ secrets.VPS_USER }}
+                  VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
 
-      - name: 📋 Verify environment variables
-        run: |
-          echo "Package name: $PACKAGE_NAME"
-          echo "Package version: $PACKAGE_VERSION"
-          echo "Docker image: $IMAGE_TAG"
-          echo "✅ Environment variables are accessible"
+            - name: 📋 Verify environment variables
+              run: |
+                  echo "Package name: $PACKAGE_NAME"
+                  echo "Package version: $PACKAGE_VERSION"
+                  echo "Docker image: $IMAGE_TAG"
+                  echo "✅ Environment variables are accessible"
 
-      - name: Log in to Docker Hub 🔑
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          echo "🔑 Logging into Docker Hub..."
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-          echo "✅ Successfully logged into Docker Hub"
+            - name: Log in to Docker Hub 🔑
+              env:
+                  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+                  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+              run: |
+                  echo "🔑 Logging into Docker Hub..."
+                  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                  echo "✅ Successfully logged into Docker Hub"
 
-      - name: Build Docker Image 🔨
-        run: |
-          echo "Building Docker image: $IMAGE_TAG"
-          docker compose --profile prod build
-          if [ $? -eq 0 ]; then
-            echo "✅ Docker image built successfully"
-          else
-            echo "❌ Failed to build Docker image"
-            exit 1
-          fi
+            - name: Build Docker Image 🔨
+              run: |
+                  echo "Building Docker image: $IMAGE_TAG"
+                  docker compose --profile prod build
+                  if [ $? -eq 0 ]; then
+                    echo "✅ Docker image built successfully"
+                  else
+                    echo "❌ Failed to build Docker image"
+                    exit 1
+                  fi
 
-      - name: Push Docker Image 🚀
-        run: |
-          echo "Pushing Docker image: $IMAGE_TAG"
-          docker compose --profile prod push
-          if [ $? -eq 0 ]; then
-            echo "✅ Docker image $IMAGE_TAG pushed successfully!"
-          else
-            echo "❌ Failed to push Docker image"
-            exit 1
-          fi
+            - name: Push Docker Image 🚀
+              run: |
+                  echo "Pushing Docker image: $IMAGE_TAG"
+                  docker compose --profile prod push
+                  if [ $? -eq 0 ]; then
+                    echo "✅ Docker image $IMAGE_TAG pushed successfully!"
+                  else
+                    echo "❌ Failed to push Docker image"
+                    exit 1
+                  fi
