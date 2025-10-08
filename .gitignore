@@ -86,3 +86,4 @@ jdadzok deploy.pem
 nginx
 .env.production
 sajib.pem
+jdadzok_server.pem
