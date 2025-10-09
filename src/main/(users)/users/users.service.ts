@@ -42,35 +42,36 @@ export class UserService {
         // if they select any other provider, we will not store password
         if (body.authProvider !== "EMAIL") delete body.password;
         // skip creating account now.
-        const createdUser = await this.repository.store(body);
-        if (!createdUser.isVerified) {
+        const { user, hasAccount } = await this.repository.store(body);
+
+        if (!user["isVerified"]) {
             // send otp again
-            this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
+            await this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
                 email: body.email,
-                userId: createdUser.id,
+                userId: user.id,
             });
             // return with mail verification
             return {
-                hasAccount: true,
-                user: createdUser,
+                user: omit(user, ["password"]),
+                hasAccount,
             };
         }
 
         this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
             email: body.email,
-            userId: createdUser.id,
+            userId: user.id,
         });
 
         const accessToken = await this.jwtService.signAsync({
-            email: createdUser.email,
-            sub: createdUser.id,
-            roles: createdUser.role,
+            email: user.email,
+            sub: user.id,
+            roles: user.role,
         });
 
         return {
             accessToken,
-            user: createdUser,
-            hasAccount: false,
+            user: omit(user, ["password"]),
+            hasAccount,
         };
     }
 

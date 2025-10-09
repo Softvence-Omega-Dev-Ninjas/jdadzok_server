@@ -1,5 +1,6 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
-import { Logger } from "@nestjs/common";
+import { InternalServerErrorException, Logger } from "@nestjs/common";
+import { OtpRedisData } from "@project/lib/utils/otp.types";
 import { QUEUE_JOB_NAME } from "@project/main/(buill-queue)/constants";
 import { Job } from "bullmq";
 import { UserService } from "./users.service";
@@ -10,18 +11,19 @@ export class UsersProcessor extends WorkerHost {
     constructor(private readonly service: UserService) {
         super();
     }
-    async process(job: Job): Promise<any> {
+    async process<T = any>(job: Job): Promise<T | string | undefined> {
         switch (job.name) {
             case QUEUE_JOB_NAME.MAIL.SEND_OTP:
                 try {
-                    await this.service.sendOtpMail({
+                    const otp = await this.service.sendOtpMail({
                         email: job.data.email,
                         userId: job.data.userId,
                     });
+                    return otp as OtpRedisData as T;
                 } catch (error: any) {
                     this.logger.error("Could not send opt", error);
+                    throw new InternalServerErrorException("Could not send opt");
                 }
-                return {};
             case QUEUE_JOB_NAME.MAIL.POST_MAIL:
                 return new Promise((resolv) => resolv("Hello"));
         }

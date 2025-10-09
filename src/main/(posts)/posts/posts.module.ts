@@ -3,6 +3,7 @@ import { UserProfileRepository } from "@module/(users)/user-profile/user.profile
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { Module } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { S3Service } from "@project/s3/s3.service";
 import { JwtServices } from "@project/services/jwt.service";
 import { GifRepository } from "../gif/gif.repository";
 import { LocationRepository } from "../locations/locations.repository";
@@ -12,6 +13,7 @@ import { PostGateway } from "./getway/posts.gateway";
 import { PostController } from "./posts.controller";
 import { PostRepository } from "./posts.repository";
 import { PostService } from "./posts.service";
+import { PostUtils } from "./utils";
 
 @Module({
     imports: [],
@@ -29,6 +31,8 @@ import { PostService } from "./posts.service";
         UserRepository,
         UserProfileRepository,
         PostGateway,
+        S3Service,
+        PostUtils,
     ],
     exports: [PostRepository],
 })

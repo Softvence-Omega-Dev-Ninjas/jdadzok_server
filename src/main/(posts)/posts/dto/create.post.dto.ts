@@ -1,51 +1,49 @@
-import { mediaType, PostForm, postFrom, PostVisibility, postVisibility } from "@constants/enums";
-import { CreatePostMetadataDto } from "@module/(posts)/post-metadata/dto/post.metadata.dto";
+import { mediaType, PostForm, postFrom, postVisibility, PostVisibility } from "@constants/enums";
+import {
+    CreatePostMetadata,
+    CreatePostMetadataDto,
+} from "@module/(posts)/post-metadata/dto/post.metadata.dto";
 import { ApiHideProperty, ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
 import { MediaType } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsOptional,
+    IsString,
+    IsUUID,
+    ValidateNested,
+} from "class-validator";
 
-// CreatePost class with missing properties added
-class CreatePost {
+export class CreatePost {
     @ApiHideProperty()
     @IsUUID()
     @IsOptional()
     authorId?: string;
 
-    @ApiProperty({
-        example: "This is my first post!",
-        description: "Main text content of the post",
-        type: String,
-    })
-    @IsString()
+    @ApiProperty({ example: "This is my first post!", required: false })
     @IsOptional()
+    @IsString()
     text?: string;
 
-    @ApiProperty({
-        example: ["https://localhost:5056/something.jpg", "https://localhost:5056/something.jpg"],
-        description: "List of post media URLs",
-        type: [String],
-        required: false,
-    })
+    @ApiHideProperty()
     @IsOptional()
-    // @IsArray({ each: true })
+    @IsArray()
     mediaUrls?: string[];
 
-    // MediaType property (mediaType was commented out in DTO but it's present in the model)
     @ApiProperty({
-        enum: [MediaType], // assuming MediaType includes these values
+        enum: mediaType,
         example: "IMAGE",
-        description: "Type of media attached to the post",
         required: false,
     })
     @IsOptional()
-    @IsEnum(mediaType) // Enum of possible media types
+    @IsEnum(mediaType)
     mediaType?: MediaType;
 
     @ApiProperty({
         enum: postVisibility,
         example: "PUBLIC",
-        description: "Visibility of the post",
         required: false,
     })
     @IsOptional()
@@ -53,15 +51,40 @@ class CreatePost {
     visibility?: PostVisibility;
 
     @ApiProperty({
-        example: ["9e7a2c12-f0f2-4d6b-b042-123456789abc", "f41a1ecb-86f2-4f55-a68d-9876543210de"],
-        description: "List of user IDs to tag in this post",
-        type: [String],
+        example: ["9e7a2c12-f0f2-4d6b-b042-123456789abc"],
+        description: "Tagged user IDs (array or JSON string)",
         required: false,
     })
     @IsOptional()
+    @Transform(({ value }) => {
+        if (!value) return undefined;
+        try {
+            return typeof value === "string" ? JSON.parse(value) : value;
+        } catch {
+            return Array.isArray(value) ? value : [];
+        }
+    })
     @IsArray()
     @IsUUID("all", { each: true })
     taggedUserIds?: string[];
+
+    @ApiProperty({
+        type: CreatePostMetadataDto,
+        description: "Metadata JSON",
+        required: false,
+    })
+    @IsOptional()
+    @ValidateNested()
+    @Transform(({ value }) => {
+        if (!value || value === "null" || value === "undefined") return undefined;
+        try {
+            return typeof value === "string" ? JSON.parse(value) : value;
+        } catch {
+            return undefined;
+        }
+    })
+    @Type(() => CreatePostMetadata)
+    metadata?: CreatePostMetadata;
 
     @ApiHideProperty()
     @IsOptional()
@@ -69,73 +92,67 @@ class CreatePost {
     metadataId?: string;
 
     @ApiProperty({
-        description: "Metadata to create with the post",
-        type: CreatePostMetadataDto,
-        required: false,
-    })
-    @IsOptional()
-    @ValidateNested({ each: true })
-    @Type(() => CreatePostMetadataDto)
-    metadata?: CreatePostMetadataDto;
-
-    @ApiProperty({
         enum: postFrom,
         example: "REGULAR_PROFILE",
-        description: "From where you are doing your post",
-        required: false,
+        required: true,
     })
     @IsEnum(postFrom)
-    postFrom: PostForm;
+    postFrom!: PostForm;
 
-    // New Properties based on the Post Model
-
-    @ApiProperty({
-        example: "9e7a2c12-f0f2-4d6b-b042-123456789abc",
-        description: "Category of the post",
-        required: false,
-    })
+    @ApiProperty({ required: false })
     @IsOptional()
     @IsUUID()
+    @Transform(({ value }) => {
+        return value ? value : undefined;
+    })
     categoryId?: string;
 
-    @ApiProperty({
-        example: "9e7a2c12-f0f2-4d6b-b042-123456789abc",
-        description: "Community associated with the post",
-        required: false,
-    })
+    @ApiProperty({ required: false })
     @IsOptional()
     @IsUUID()
+    @Transform(({ value }) => {
+        return value ? value : undefined;
+    })
     communityId?: string;
 
-    @ApiProperty({
-        example: "9e7a2c12-f0f2-4d6b-b042-123456789abc",
-        description: "NGO associated with the post",
-        required: false,
-    })
+    @ApiProperty({ required: false })
     @IsOptional()
     @IsUUID()
+    @Transform(({ value }) => {
+        return value ? value : undefined;
+    })
     ngoId?: string;
 
     @ApiProperty({
-        description: "Option to accept volunteers for the post",
-        required: false,
         example: false,
+        description: "Accept volunteer option (boolean or string)",
+        required: false,
     })
     @IsOptional()
-    @IsEnum([true, false])
+    @Transform(({ value }) => {
+        if (value === undefined || value === null) return undefined;
+        if (typeof value === "boolean") return value;
+        if (typeof value === "string") return value.toLowerCase() === "true" || value === "1";
+        return Boolean(value);
+    })
+    @IsBoolean()
     acceptVolunteer?: boolean;
 
     @ApiProperty({
-        description: "Option to accept donations for the post",
-        required: false,
         example: false,
+        description: "Accept donation option (boolean or string)",
+        required: false,
     })
     @IsOptional()
-    @IsEnum([true, false])
+    @Transform(({ value }) => {
+        if (value === undefined || value === null) return undefined;
+        if (typeof value === "boolean") return value;
+        if (typeof value === "string") return value.toLowerCase() === "true" || value === "1";
+        return Boolean(value);
+    })
+    @IsBoolean()
     acceptDonation?: boolean;
 }
 
-// DTOs for CreatePost and UpdatePost
 export class CreatePostDto extends IntersectionType(CreatePost) {}
-
-export class UpdatePostDto extends PartialType(IntersectionType(CreatePost)) {}
+export class UpdatePostDto extends PartialType(CreatePost) {}

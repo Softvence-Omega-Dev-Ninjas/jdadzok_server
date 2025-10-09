@@ -1,8 +1,8 @@
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { UserRepository } from "@module/(users)/users/users.repository";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { HelperTx } from "@project/@types";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { UserRepository } from "@project/main/(users)/users/users.repository";
-import { AdvanceQueryBuilder } from "@project/services/query-builder.service";
+import { AdvanceQueryBuilder } from "@service/query-builder.service";
 import { GifRepository } from "../gif/gif.repository";
 import { LocationRepository } from "../locations/locations.repository";
 import { CreatePostMetadataDto } from "../post-metadata/dto/post.metadata.dto";
@@ -22,6 +22,7 @@ export class PostRepository {
         private readonly gifRepo: GifRepository,
         private readonly metadataRepo: PostMetadataRepository,
         private readonly userRepo: UserRepository,
+        // ngo & community
     ) {}
 
     private readonly defaultInclude = {
@@ -36,6 +37,7 @@ export class PostRepository {
     async store(input: CreatePostDto) {
         const { metadata, taggedUserIds, ...postData } = input;
         return await this.prisma.$transaction(async (tx) => {
+            // check required thing
             let metadataId = input.metadataId;
 
             if (metadata && !metadataId) {
@@ -57,7 +59,7 @@ export class PostRepository {
                     break;
                 default:
                     // here...
-                    console.info("if anything else ");
+                    console.info("default");
             }
             const postForAuthor = await tx.post.create({
                 data: {
@@ -82,7 +84,18 @@ export class PostRepository {
                 include: {
                     ...this.defaultInclude,
                     author: {
-                        include: { profile: { select: { name: true } } },
+                        omit: { password: true },
+                        include: {
+                            profile: {
+                                select: {
+                                    name: true,
+                                    username: true,
+                                    coverUrl: true,
+                                    avatarUrl: true,
+                                    bio: true,
+                                },
+                            },
+                        },
                     },
                 },
             });

@@ -12,9 +12,11 @@ export class Seeds {
 
     public user = async () => {
         const data = () => ({
-            email: faker.person.fullName(),
+            email: faker.internet.email(),
+            // password: faker.
         });
         const usersArray = Array.from({ length: 5 }, data);
+
         await this.prisma.user.createMany({
             data: usersArray,
             skipDuplicates: true,

@@ -4,6 +4,7 @@ import {
     ForbiddenException,
     Injectable,
     NotFoundException,
+    UnauthorizedException,
 } from "@nestjs/common";
 import { TUser } from "@project/@types";
 import { MailService } from "@project/lib/mail/mail.service";
@@ -31,6 +32,7 @@ export class AuthService {
         const user = await this.userRepository.findByEmail(input.email);
         if (!user) throw new NotFoundException("User not found, Please sign up first");
 
+        if (!user.isVerified) throw new UnauthorizedException("Please verify your account first");
         // compoare password if auth provider is email
         if (user.authProvider === "EMAIL" && user.password) {
             const isMatch = await this.utilsService.compare(user.password, input.password!);

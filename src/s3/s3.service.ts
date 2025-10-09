@@ -29,7 +29,7 @@ export class S3Service {
         });
     }
 
-    async uploadFiles(files: Express.Multer.File[]): Promise<S3ResponseDto[]> {
+    async uploadFiles<T extends string>(files: Express.Multer.File[]): Promise<T[]> {
         if (!files || files.length === 0) {
             throw new BadRequestException("No file(s) uploaded");
         }
@@ -38,16 +38,17 @@ export class S3Service {
             throw new BadRequestException("You can upload a maximum of 20 files");
         }
 
-        const results: S3ResponseDto[] = [];
+        // const results: S3ResponseDto[] = [];
+        const results: string[] = [];
 
         for (const file of files) {
             results.push(await this.uploadFile(file));
         }
 
-        return results;
+        return results as T[];
     }
 
-    async uploadFile(file: Express.Multer.File): Promise<S3ResponseDto> {
+    async uploadFile<T extends string>(file: Express.Multer.File): Promise<T> {
         const isSmallFile = file.size < 20 * 1024 * 1024; // 20MB
         let fileHash: string | null = null;
 
@@ -59,7 +60,7 @@ export class S3Service {
             // Check Redis for existing URL
             const cached = await this.redisService.get<S3ResponseDto>(key);
 
-            if (cached) return cached; // Skip upload
+            if (cached) return cached["url"] as T; // Skip upload
         }
 
         // Build S3 Key
@@ -92,7 +93,8 @@ export class S3Service {
                 await this.redisService.set(key, result, "1d");
             }
 
-            return result;
+            // return result;
+            return `https://${this.AWS_S3_BUCKET_NAME}.s3.${this.AWS_REGION}.amazonaws.com/${s3Key}` as T;
         } catch (err) {
             console.info(err);
             throw new BadRequestException("Failed to upload file to S3");

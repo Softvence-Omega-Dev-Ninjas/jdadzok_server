@@ -22,7 +22,10 @@ export class UserRepository {
             if (isUser && !isUser.isVerified) {
                 // if it's not verified then give chances to verify account again
                 // to do that we have to sent the otp again
-                return isUser;
+                return {
+                    user: isUser,
+                    hasAccount: true,
+                };
             }
 
             const createUser = omit(input, ["name"]);
@@ -41,7 +44,10 @@ export class UserRepository {
             );
 
             const resObj = { ...user, profile };
-            return omit(resObj, ["password"]);
+            return {
+                user: resObj,
+                hasAccount: false,
+            };
         });
     }
 

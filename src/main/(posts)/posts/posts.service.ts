@@ -21,22 +21,21 @@ export class PostService {
         if (!post) throw new BadRequestException("Fail to creaete post");
 
         const followers = await this.followRepository.findManyFollowerId(post?.authorId);
-        console.info(followers);
-
-        return post;
         // send notification to the all followers
-        // for (const follower of followers) {
-        //   // TODO: have to handle on the gateway not on endpoint
-        //   //   this.postGetway.emit("post:new", {
-        //   //     data: post,
-        //   //     type: "notification",
-        //   //     from: post.authorId,
-        //   //     to: follower.followerId,
-        //   //     meta: {
-        //   //       message: `${post.author.profile?.name} add a new post`,
-        //   //     },
-        //   //   });
-        // }
+        for (const follower of followers) {
+            console.info("notificaiton will get: ", follower);
+            //   TODO: have to handle on the gateway not on endpoint
+            // this.postGetway.emit("post:new", {
+            //   data: post,
+            //   type: "notification",
+            //   from: post.authorId,
+            //   to: follower.followerId,
+            //   meta: {
+            //     message: `${post.author.profile?.name} add a new post`,
+            //   },
+            // });
+        }
+        return post;
     }
 
     async index(options?: PostQueryDto) {

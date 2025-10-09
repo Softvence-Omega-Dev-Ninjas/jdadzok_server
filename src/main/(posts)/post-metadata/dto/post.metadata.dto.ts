@@ -1,11 +1,11 @@
 import { feelings, Feelings } from "@constants/enums";
 import { ApiHideProperty, ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsEnum, IsOptional, IsUUID, ValidateNested } from "class-validator";
 import { CreateGifDto } from "../../gif/dto/create.gif.dto";
 import { CreateLocationDto } from "../../locations/dto/create.location.dto";
 
-class CreatePostMetadata {
+export class CreatePostMetadata {
     @ApiProperty({
         enum: feelings,
         example: "HAPPY",
@@ -24,6 +24,14 @@ class CreatePostMetadata {
     @IsOptional()
     @ValidateNested({
         each: true,
+    })
+    @Transform(({ value }) => {
+        if (!value) return undefined;
+        try {
+            return typeof value === "string" ? JSON.parse(value) : value;
+        } catch {
+            return undefined;
+        }
     })
     @Type(() => CreateLocationDto)
     checkIn?: CreateLocationDto;
@@ -49,5 +57,5 @@ class CreatePostMetadata {
     gifId?: string;
 }
 
-export class CreatePostMetadataDto extends IntersectionType(CreatePostMetadata) {}
+export class CreatePostMetadataDto extends CreatePostMetadata {}
 export class UpdatePostMetadataDto extends PartialType(IntersectionType(CreatePostMetadata)) {}

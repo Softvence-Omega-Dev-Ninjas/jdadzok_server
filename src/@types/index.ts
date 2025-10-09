@@ -1,4 +1,4 @@
-import { Role } from "@constants/enums";
+import { AuthProvider, CapLevel, Role } from "@constants/enums";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 
@@ -6,6 +6,17 @@ export type TUser = {
     userId: string;
     email: string;
     role: Role;
+};
+
+export type VerifiedUser = {
+    id: string;
+    email: string;
+    authProvider: AuthProvider;
+    isVerified: boolean;
+    role: Role;
+    capLevel: CapLevel;
+    createdAt: string;
+    updatedAt: string;
 };
 
 export type HelperTx = Omit<

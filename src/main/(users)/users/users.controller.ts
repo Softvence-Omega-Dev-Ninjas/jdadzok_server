@@ -13,6 +13,7 @@ import { TUser } from "@project/@types";
 import { GetUser, GetVerifiedUser, MakePublic } from "@project/common/jwt/jwt.decorator";
 import { successResponse } from "@project/common/utils/response.util";
 import { VerifyTokenDto } from "@project/main/(started)/auth/dto/verify-token.dto";
+import { omit } from "@project/utils";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserService } from "./users.service";
@@ -27,13 +28,17 @@ export class UserController {
     async register(@Body() body: CreateUserDto) {
         try {
             const result = await this.service.register(body);
+
             if (result.hasAccount) {
                 return successResponse(
-                    result,
+                    omit(result, ["hasAccount"]),
                     "Already have account with this email, check your mail to verify OTP",
                 );
             }
-            return successResponse(result, "Please check your mail to verify OTP");
+            return successResponse(
+                omit(result, ["hasAccount"]),
+                "Registration successfull! Please check your mail to verify OTP",
+            );
         } catch (err) {
             return err;
         }

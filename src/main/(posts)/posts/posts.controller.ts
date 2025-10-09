@@ -1,5 +1,6 @@
 import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { successResponse } from "@common/utils/response.util";
+import { postFrom } from "@constants/enums";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
     Body,
@@ -11,31 +12,73 @@ import {
     Post,
     Put,
     Query,
+    UploadedFiles,
     UseGuards,
+    UseInterceptors,
     UsePipes,
     ValidationPipe,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
-import { TUser } from "@project/@types";
+import { FilesInterceptor } from "@nestjs/platform-express";
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiExtraModels, ApiOperation } from "@nestjs/swagger";
+import { TUser, VerifiedUser } from "@project/@types";
+import { S3Service } from "@project/s3/s3.service";
+import { omit } from "@project/utils";
+import { transformAndValidate } from "@project/utils/zod-utility/transform-validation";
+import multer from "multer";
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
+import { fromDataExample } from "./example";
 import { PostService } from "./posts.service";
+import { PostUtils } from "./utils";
 
 @ApiBearerAuth()
 @Controller("posts")
+@ApiExtraModels(CreatePostDto)
 export class PostController {
-    constructor(private readonly service: PostService) {}
+    constructor(
+        private readonly service: PostService,
+        private readonly s3Service: S3Service,
+        private readonly utils: PostUtils,
+    ) {}
 
     @Post()
     @ApiOperation({ summary: "Create a new post" })
+    @ApiConsumes("multipart/form-data")
+    @ApiBody(fromDataExample)
+    @UseInterceptors(
+        FilesInterceptor("files", 20, {
+            storage: multer.memoryStorage(),
+            limits: { files: 20 },
+        }),
+    )
     @UseGuards(JwtAuthGuard)
-    @UsePipes(ValidationPipe)
-    async store(@GetVerifiedUser() user: TUser, @Body() body: CreatePostDto) {
+    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+    async store(
+        @GetVerifiedUser() user: VerifiedUser,
+        @UploadedFiles() files: Array<Express.Multer.File>,
+        @Body() req: any,
+    ) {
         try {
-            const post = await this.service.create({
+            const mediaUrls = files?.length ? await this.s3Service.uploadFiles(files) : [];
+            const extractMetaData = JSON.parse(req.metadata);
+            const body = omit(req, ["files"]);
+            const tagged = body.taggedUserIds && this.utils.extractTagsId(body.taggedUserIds);
+
+            const createInput = {
                 ...body,
-                authorId: user.userId,
-            });
+                authorId: user.id,
+                taggedUserIds: tagged,
+                postFrom: this.utils.include(postFrom, body.postFrom),
+                metadata: extractMetaData,
+                mediaUrls,
+                // boolean
+                acceptVolunteer: this.utils.extractBoolean(body.acceptVolunteer),
+                acceptDonation: this.utils.extractBoolean(body.acceptDonation),
+            };
+
+            const validated = await transformAndValidate(CreatePostDto, createInput);
+
+            const post = await this.service.create(validated);
             return successResponse(post, "Post created successfully");
         } catch (err) {
             return err;
