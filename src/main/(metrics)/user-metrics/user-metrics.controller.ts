@@ -1,45 +1,38 @@
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { UserMetrics } from "@prisma/client";
-import { CreateUserMetricsDto, UpdateUserMetricsDto } from "./dto/user-metrics.dto";
-import { UserMetricsService } from "./user-metrics.service";
+import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { VerifiedUser } from '@project/@types';
+import { GetVerifiedUser } from '@project/common/jwt/jwt.decorator';
+import { CalculateActivityScoreDto } from './dto/activity-score.dto';
+import { UpdateUserMetricsDto } from './dto/update-user-metrics.dto';
+import { UserMetricsResponseDto } from './dto/user-metrics-response.dto';
+import { UserMetricsService } from './user-metrics.service';
 
-@ApiTags("User Metrics")
-@Controller("user-metrics")
+@ApiTags('User Metrics')
+@Controller('user-metrics')
 export class UserMetricsController {
-    constructor(private readonly userMetricsService: UserMetricsService) {}
+    constructor(private readonly service: UserMetricsService) { }
 
-    @Post()
-    @ApiOperation({ summary: "Create User Metrics" })
-    @ApiResponse({ status: 201, description: "Metrics successfully created." })
-    @ApiResponse({ status: 400, description: "Bad Request." })
-    create(@Body() createUserMetricsDto: CreateUserMetricsDto): Promise<UserMetrics> {
-        return this.userMetricsService.create(createUserMetricsDto);
-    }
-
-    @Get(":userId")
-    @ApiOperation({ summary: "Get User Metrics by userId" })
-    @ApiResponse({ status: 200, description: "User Metrics fetched successfully." })
-    @ApiResponse({ status: 404, description: "UserMetrics not found." })
-    findOne(@Param("userId") userId: string): Promise<UserMetrics> {
-        return this.userMetricsService.findOne(userId);
-    }
-
-    @Put(":userId")
-    @ApiOperation({ summary: "Update User Metrics by userId" })
-    @ApiResponse({ status: 200, description: "User Metrics updated successfully." })
-    @ApiResponse({ status: 404, description: "UserMetrics not found." })
-    update(
-        @Param("userId") userId: string,
-        @Body() updateUserMetricsDto: UpdateUserMetricsDto,
-    ): Promise<UserMetrics> {
-        return this.userMetricsService.update(userId, updateUserMetricsDto);
-    }
-
+    @ApiOperation({ summary: 'Get user metrics summary' })
+    @ApiResponse({ status: 200, type: UserMetricsResponseDto })
     @Get()
-    @ApiOperation({ summary: "Get all User Metrics" })
-    @ApiResponse({ status: 200, description: "Fetched all user metrics successfully." })
-    findAll(): Promise<UserMetrics[]> {
-        return this.userMetricsService.findAll();
+    async getUserMetrics(@GetVerifiedUser() user: VerifiedUser) {
+        return this.service.getUserMetrics(user.id);
+    }
+
+    @ApiOperation({ summary: 'Update user activity metrics' })
+    @ApiResponse({ status: 200, type: UserMetricsResponseDto })
+    @Put('update')
+    async updateUserMetrics(
+        @GetVerifiedUser() user: VerifiedUser,
+        @Body() dto: UpdateUserMetricsDto,
+    ) {
+        return this.service.updateMetrics({ ...dto, userId: user.id });
+    }
+
+    @ApiOperation({ summary: 'Recalculate user activity score' })
+    @ApiResponse({ status: 200, type: UserMetricsResponseDto })
+    @Post('activity-score')
+    async calculateActivityScore(@Body() dto: CalculateActivityScoreDto) {
+        return this.service.calculateActivityScore(dto);
     }
 }

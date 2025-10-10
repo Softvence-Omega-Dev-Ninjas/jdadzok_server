@@ -1,34 +1,39 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { UserMetrics } from "@prisma/client";
-import { CreateUserMetricsDto, UpdateUserMetricsDto } from "./dto/user-metrics.dto";
-import { UserMetricsRepository } from "./user.metrics.repository";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CalculateActivityScoreDto } from './dto/activity-score.dto';
+import { UpdateUserMetricsDto } from './dto/update-user-metrics.dto';
+import { UserMetricsRepository } from './user.metrics.repository';
 
 @Injectable()
 export class UserMetricsService {
-    constructor(private readonly userMetricsRepository: UserMetricsRepository) {}
+    constructor(private readonly repo: UserMetricsRepository) { }
 
-    async create(createUserMetricsDto: CreateUserMetricsDto): Promise<UserMetrics> {
-        // logic to create user metrics
-        return await this.userMetricsRepository.create(createUserMetricsDto);
+    async getUserMetrics(userId: string) {
+        const metrics = await this.repo.findByUserId(userId);
+        if (!metrics) throw new NotFoundException('User metrics not found');
+        return metrics;
     }
 
-    async findOne(userId: string): Promise<UserMetrics> {
-        const userMetrics = await this.userMetricsRepository.findOne(userId);
-        if (!userMetrics) {
-            throw new NotFoundException(`User metrics for userId ${userId} not found.`);
+    async updateMetrics(dto: UpdateUserMetricsDto) {
+        let metrics = await this.repo.findByUserId(dto.userId);
+        if (!metrics) {
+            await this.repo.createDefault(dto.userId);
         }
-        return userMetrics;
+        return this.repo.updateMetrics(dto);
     }
 
-    async findAll(): Promise<UserMetrics[]> {
-        return this.userMetricsRepository.findAll();
-    }
+    async calculateActivityScore({ userId }: CalculateActivityScoreDto) {
+        const metrics = await this.repo.findByUserId(userId);
+        if (!metrics) throw new NotFoundException('User metrics not found');
 
-    async update(userId: string, updateUserMetricsDto: UpdateUserMetricsDto): Promise<UserMetrics> {
-        const userMetrics = await this.userMetricsRepository.update(userId, updateUserMetricsDto);
-        if (!userMetrics) {
-            throw new NotFoundException(`User metrics for userId ${userId} not found.`);
-        }
-        return userMetrics;
+        // Activity scoring algorithm (from CAP System)
+        const score =
+            metrics.totalPosts * 5 +
+            metrics.totalComments * 2 +
+            metrics.totalLikes * 1 +
+            metrics.totalShares * 3 +
+            metrics.totalFollowers * 0.5 +
+            metrics.volunteerHours * 10;
+
+        return this.repo.updateActivityScore(userId, score);
     }
 }

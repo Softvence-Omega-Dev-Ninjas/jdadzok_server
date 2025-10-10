@@ -35,4 +35,4 @@ import { CapLevelController } from "./cap-level.controller";
     ],
     exports: [CapLevelService, UserMetricsService, AdRevenueService, VolunteerTrackingService],
 })
-export class CapLevelModule {}
+export class CapLevelModule { }

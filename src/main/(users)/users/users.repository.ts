@@ -9,7 +9,7 @@ export class UserRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly profileRepo: UserProfileRepository,
-    ) {}
+    ) { }
 
     async store(input: CreateUserDto) {
         return await this.prisma.$transaction(async (tx) => {
@@ -31,7 +31,28 @@ export class UserRepository {
             const createUser = omit(input, ["name"]);
             // make sure role is USER, and cap level none when they create their account
             const user = await tx.user.create({
-                data: { ...createUser, role: "USER", capLevel: "NONE" },
+                data: {
+                    ...createUser, role: "USER", capLevel: "NONE",
+                    metrics: {
+                        create: {
+                            totalPosts: 0,
+                            totalComments: 0,
+                            totalLikes: 0,
+                            totalShares: 0,
+                            totalFollowers: 0,
+                            totalFollowing: 0,
+                            totalEarnings: 0.0,
+                            currentMonthEarnings: 0.0,
+                            volunteerHours: 0,
+                            completedProjects: 0,
+                            activityScore: 0.0,
+                        }
+                    }
+                },
+                include: {
+                    profile: true,
+                    metrics: true
+                }
             });
 
             // if input has name then create profile
@@ -42,6 +63,7 @@ export class UserRepository {
                 },
                 tx,
             );
+            //TODO: Create default notification settings
 
             const resObj = { ...user, profile };
             return {

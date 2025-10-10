@@ -7,6 +7,7 @@ import {
     Controller,
     Delete,
     Get,
+    NotFoundException,
     Param,
     ParseUUIDPipe,
     Post,
@@ -89,8 +90,29 @@ export class PostController {
     @ApiOperation({ summary: "Get all posts" })
     @UsePipes(PostQueryDto)
     async index(@Query() query: PostQueryDto) {
-        const posts = await this.service.index(query);
-        return posts;
+        try {
+            const posts = await this.service.index(query);
+            return posts;
+        } catch (err) {
+            return err;
+        }
+    }
+
+    @Get("share-link/:id")
+    @ApiOperation({ summary: "Generate shareable post url" })
+    @UseGuards(JwtAuthGuard)
+    async shareLink(@Param("id", ParseUUIDPipe) id: string) {
+        try {
+            if (!id)
+                throw new NotFoundException("Post ID not found", {
+                    description: "Provided params are not valid / not found!",
+                });
+
+            const link = await this.service.generateLink(id);
+            return successResponse(link, "Post shareable link generated");
+        } catch (err) {
+            return err;
+        }
     }
 
     @Put(":id")

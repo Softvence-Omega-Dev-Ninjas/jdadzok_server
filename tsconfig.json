@@ -13,7 +13,7 @@
         "outDir": "./dist",
         "baseUrl": "./",
         "paths": {
-            "@app/*": ["src/app-metadata/*"],
+            "@metadata/*": ["src/app-metadata/*"],
             "@project/*": ["src/*"],
             "@common/*": ["src/common/*"],
             "@configs/*": ["src/configs/*"],

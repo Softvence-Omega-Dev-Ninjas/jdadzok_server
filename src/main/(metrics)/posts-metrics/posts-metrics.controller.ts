@@ -1,22 +1,66 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { CreatePostsMetricsDto, UpdatePostsMetricsDto } from "./dto/posts-metrics.dto";
 import { PostsMetricsService } from "./posts-metrics.service";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { GetVerifiedUser } from "@project/common/jwt/jwt.decorator";
-import { TUser } from "@project/@types";
 
 @ApiBearerAuth()
 @ApiTags("Posts Metrics")
-@UseGuards()
 @Controller("posts-metrics")
 export class PostsMetricsController {
-    constructor(private readonly postsMetricsService: PostsMetricsService) {}
+    constructor(private readonly service: PostsMetricsService) { }
 
-    @Get()
-    async getPostsMetrics(@GetVerifiedUser() user: TUser) {
-        try {
-            return await this.postsMetricsService.get(user.userId);
-        } catch (err) {
-            return err;
-        }
+    @Post()
+    @ApiOperation({ summary: "Create post metrics entry" })
+    create(@Body() dto: CreatePostsMetricsDto) {
+        return this.service.createMetrics(dto);
+    }
+
+    @Get(":postId")
+    @ApiOperation({ summary: "Get metrics for a specific post" })
+    findOne(@Param("postId") postId: string) {
+        return this.service.getMetrics(postId);
+    }
+
+    @Patch(":postId")
+    @ApiOperation({ summary: "Update metrics for a specific post" })
+    update(@Param("postId") postId: string, @Body() dto: UpdatePostsMetricsDto) {
+        return this.service.updateMetrics(postId, dto);
+    }
+
+    // Increment endpoints for frontend interaction updates
+    @Post(":postId/like")
+    @ApiOperation({ summary: "Increment total likes" })
+    incrementLike(@Param("postId") postId: string) {
+        return this.service.incrementLike(postId);
+    }
+
+    @Post(":postId/unlike")
+    @ApiOperation({ summary: "Decrement total likes" })
+    decrementLike(@Param("postId") postId: string) {
+        return this.service.decrementLike(postId);
+    }
+
+    @Post(":postId/comment")
+    @ApiOperation({ summary: "Increment total comments" })
+    incrementComment(@Param("postId") postId: string) {
+        return this.service.incrementComment(postId);
+    }
+
+    @Post(":postId/share")
+    @ApiOperation({ summary: "Increment total shares" })
+    incrementShare(@Param("postId") postId: string) {
+        return this.service.incrementShare(postId);
+    }
+
+    @Post(":postId/view")
+    @ApiOperation({ summary: "Increment total views" })
+    incrementView(@Param("postId") postId: string) {
+        return this.service.incrementView(postId);
+    }
+
+    @Delete(":postId")
+    @ApiOperation({ summary: "Delete metrics for a specific post" })
+    delete(@Param("postId") postId: string) {
+        return this.service.deleteMetrics(postId);
     }
 }

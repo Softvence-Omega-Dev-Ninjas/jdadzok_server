@@ -1,6 +1,7 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { HelperTx } from "@project/@types";
 import { AdvanceQueryBuilder } from "@service/query-builder.service";
 import { GifRepository } from "../gif/gif.repository";
@@ -102,7 +103,7 @@ export class PostRepository {
         });
     }
 
-    async findAll(options?: PostQueryDto) {
+    async findAll(options?: PostQueryDto, select: Prisma.PostSelect = {}) {
         const limit = options?.limit ?? 10;
         const posts = await this.prisma.post.findMany({
             take: limit + 1,
@@ -110,10 +111,7 @@ export class PostRepository {
             orderBy: {
                 createdAt: "desc",
             },
-            include: {
-                metadata: options?.metadata ?? false,
-                author: options?.metadata ?? false,
-            },
+            select,
         });
 
         let nextCursor: string | undefined = undefined;
@@ -130,18 +128,6 @@ export class PostRepository {
                 length: posts.length,
             },
         };
-    }
-
-    async findById(id: string) {
-        return this.prisma.post.findUnique({
-            where: { id },
-            include: {
-                ...this.defaultInclude,
-                comments: true,
-                likes: true,
-                taggedUsers: true,
-            },
-        });
     }
 
     async update(id: string, data: UpdatePostDto) {
@@ -382,5 +368,35 @@ export class PostRepository {
             },
             take: limit,
         });
+    }
+    /**
+     * Finds a post by ID with dynamic select and include options.
+     * @param {string} id - The ID of the post.
+     * @param {Prisma.PostSelect} select - Fields to select from the post.
+     * @param {Prisma.PostInclude} include - Relations to include.
+     * @param {Prisma.PostWhereUniqueInput} where - Optional filters to apply for the post query.
+     */
+    async findById(
+        id: string,
+        select: Prisma.PostSelect = { id: true, ...this.defaultInclude },
+        where: Prisma.PostWhereUniqueInput = { id },
+    ) {
+        try {
+            const whereClause: Prisma.PostWhereUniqueInput = where || { id };
+            const result = await this.prisma.post.findUnique({
+                where: whereClause,
+                select,
+            });
+
+            if (!result) {
+                throw new NotFoundException(`Post not found with ID: ${id}`);
+            }
+
+            return result;
+        } catch (err) {
+            throw new NotFoundException(`Post not found with that uuid: ${id}`, {
+                description: err.message,
+            });
+        }
     }
 }

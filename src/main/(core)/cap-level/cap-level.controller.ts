@@ -16,7 +16,7 @@ import { CapLevelService } from "./cap-lavel.service";
 @Controller("cap-level")
 @UseGuards(JwtAuthGuard)
 export class CapLevelController {
-    constructor(private readonly service: CapLevelService) {}
+    constructor(private readonly service: CapLevelService) { }
 
     @ApiOperation({ summary: "Get all cap level requirements" })
     @Get("requirements")

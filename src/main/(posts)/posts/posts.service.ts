@@ -39,7 +39,12 @@ export class PostService {
     }
 
     async index(options?: PostQueryDto) {
-        return await this.repository.findAll(options);
+        return await this.repository.findAll(options, {
+            metadata: true,
+            author: true,
+            likes: true,
+            shares: true,
+        });
     }
 
     async findOne(id: string) {
@@ -50,9 +55,19 @@ export class PostService {
         return post;
     }
 
+    async generateLink(id: string) {
+        const post = await this.repository.findById(id, {
+            authorId: true,
+            ngoId: true,
+            communityId: true,
+        });
+        // generate shareable post link
+        return `${process.env.SERVER}/posts/${post.id}?author=${post.authorId}`;
+    }
+
     async update(id: string, updateData: UpdatePostDto, userId: string) {
         this.validateAuthorId(userId);
-        const post = await this.findOne(id);
+        const post = await this.repository.findById(id, { authorId: true }, { id });
 
         // Check if user is authorized to update this post
         if (post.authorId !== userId) {

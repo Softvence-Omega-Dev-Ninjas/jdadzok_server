@@ -1,32 +1,33 @@
-import { Injectable } from "@nestjs/common";
-import { UserMetrics } from "@prisma/client";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { CreateUserMetricsDto, UpdateUserMetricsDto } from "./dto/user-metrics.dto";
+import { PrismaService } from '@lib/prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { UpdateUserMetricsDto } from './dto/update-user-metrics.dto';
 
 @Injectable()
 export class UserMetricsRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
-    async create(createUserMetricsDto: CreateUserMetricsDto): Promise<UserMetrics> {
-        return await this.prisma.userMetrics.create({
-            data: createUserMetricsDto,
+    async findByUserId(userId: string) {
+        return this.prisma.userMetrics.findUnique({ where: { userId } });
+    }
+
+    async createDefault(userId: string) {
+        return this.prisma.userMetrics.create({
+            data: { userId },
         });
     }
 
-    async findOne(userId: string): Promise<UserMetrics | null> {
-        return await this.prisma.userMetrics.findUnique({
+    async updateMetrics(data: UpdateUserMetricsDto) {
+        const { userId, ...metrics } = data;
+        return this.prisma.userMetrics.update({
             where: { userId },
+            data: { ...metrics, lastUpdated: new Date() },
         });
     }
 
-    async findAll(): Promise<UserMetrics[]> {
-        return await this.prisma.userMetrics.findMany();
-    }
-
-    async update(userId: string, updateUserMetricsDto: UpdateUserMetricsDto): Promise<UserMetrics> {
-        return await this.prisma.userMetrics.update({
+    async updateActivityScore(userId: string, score: number) {
+        return this.prisma.userMetrics.update({
             where: { userId },
-            data: updateUserMetricsDto,
+            data: { activityScore: score, lastUpdated: new Date() },
         });
     }
 }
