@@ -1,6 +1,6 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { Payout, PayOutStatus, Prisma } from "@prisma/client";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreatePayoutDto, PayoutQueryDto, PayoutStatsDto, UpdatePayoutDto } from "./dto/payout.dto";
 
 @Injectable()

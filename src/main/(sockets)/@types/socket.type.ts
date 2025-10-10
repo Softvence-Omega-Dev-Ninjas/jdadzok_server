@@ -1,4 +1,4 @@
-import { Role } from "@project/constants/enums";
+import { Role } from "@app/constants/enums";
 import { SocketEventMap } from "./socket.event.map";
 import { UserStatus } from "./user.event";
 

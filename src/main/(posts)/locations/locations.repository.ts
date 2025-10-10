@@ -1,5 +1,5 @@
+import { HelperTx } from "@app/@types";
 import { Injectable } from "@nestjs/common";
-import { HelperTx } from "@project/@types";
 import { CreateLocationDto } from "./dto/create.location.dto";
 
 @Injectable()

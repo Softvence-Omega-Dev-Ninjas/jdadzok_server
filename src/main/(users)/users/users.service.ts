@@ -1,3 +1,11 @@
+import { TUser } from "@app/@types";
+import { MailService } from "@app/lib/mail/mail.service";
+import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { OptService } from "@app/lib/utils/otp.service";
+import { UtilsService } from "@app/lib/utils/utils.service";
+import { QUEUE_JOB_NAME } from "@app/main/(buill-queue)/constants";
+import { VerifyTokenDto } from "@app/main/(started)/auth/dto/verify-token.dto";
+import { JwtServices } from "@app/services/jwt.service";
 import { InjectQueue } from "@nestjs/bullmq";
 import {
     BadRequestException,
@@ -5,14 +13,6 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { TUser } from "@project/@types";
-import { MailService } from "@project/lib/mail/mail.service";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { OptService } from "@project/lib/utils/otp.service";
-import { UtilsService } from "@project/lib/utils/utils.service";
-import { QUEUE_JOB_NAME } from "@project/main/(buill-queue)/constants";
-import { VerifyTokenDto } from "@project/main/(started)/auth/dto/verify-token.dto";
-import { JwtServices } from "@project/services/jwt.service";
 import { omit } from "@utils/index";
 import { Queue } from "bullmq";
 import { ResentOtpDto } from "./dto/resent-otp.dto";

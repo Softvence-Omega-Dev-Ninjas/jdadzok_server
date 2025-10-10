@@ -1,6 +1,6 @@
+import { ENVEnum } from "@app/common/enum/env.enum";
 import { SharedBullAsyncConfiguration } from "@nestjs/bullmq";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { ENVEnum } from "@project/common/enum/env.enum";
 
 export const buillQueueConfig: SharedBullAsyncConfiguration = {
     imports: [ConfigModule],

@@ -1,3 +1,10 @@
+import { TUser } from "@app/@types";
+import { MailService } from "@app/lib/mail/mail.service";
+import { OptService } from "@app/lib/utils/otp.service";
+import { UtilsService } from "@app/lib/utils/utils.service";
+import { ResentOtpDto } from "@app/main/(users)/users/dto/resent-otp.dto";
+import { JwtServices } from "@app/services/jwt.service";
+import { omit } from "@app/utils";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import {
     BadRequestException,
@@ -6,13 +13,6 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from "@nestjs/common";
-import { TUser } from "@project/@types";
-import { MailService } from "@project/lib/mail/mail.service";
-import { OptService } from "@project/lib/utils/otp.service";
-import { UtilsService } from "@project/lib/utils/utils.service";
-import { ResentOtpDto } from "@project/main/(users)/users/dto/resent-otp.dto";
-import { JwtServices } from "@project/services/jwt.service";
-import { omit } from "@project/utils";
 import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";

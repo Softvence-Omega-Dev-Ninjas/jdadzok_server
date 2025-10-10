@@ -1,8 +1,8 @@
+import { GetUser } from "@app/common/jwt/jwt.decorator";
+import { handleRequest } from "@app/common/utils/handle.request.util";
+import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
-import { GetUser } from "@project/common/jwt/jwt.decorator";
-import { handleRequest } from "@project/common/utils/handle.request.util";
-import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { CommunitiesService } from "./communities.service";
 import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
 

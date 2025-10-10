@@ -1,10 +1,10 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import {
     BadRequestException,
     ForbiddenException,
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateNgoDto, UpdateNgoDto } from "./dto/ngo.dto";
 @Injectable()
 export class NgoService {

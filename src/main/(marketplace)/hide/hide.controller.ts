@@ -1,5 +1,5 @@
+import { handleRequest } from "@app/common/utils/handle.request.util";
 import { Controller, Param, Patch } from "@nestjs/common";
-import { handleRequest } from "@project/common/utils/handle.request.util";
 import { HideService } from "./hide.service";
 
 @Controller("hide")

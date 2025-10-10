@@ -1,4 +1,4 @@
-import { PrismaService } from "@project/lib/prisma/prisma.service";
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";

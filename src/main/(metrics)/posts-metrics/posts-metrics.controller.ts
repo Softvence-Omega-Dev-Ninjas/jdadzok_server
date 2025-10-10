@@ -7,7 +7,7 @@ import { PostsMetricsService } from "./posts-metrics.service";
 @ApiTags("Posts Metrics")
 @Controller("posts-metrics")
 export class PostsMetricsController {
-    constructor(private readonly service: PostsMetricsService) { }
+    constructor(private readonly service: PostsMetricsService) {}
 
     @Post()
     @ApiOperation({ summary: "Create post metrics entry" })

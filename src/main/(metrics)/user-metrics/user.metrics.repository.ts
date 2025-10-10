@@ -1,10 +1,10 @@
-import { PrismaService } from '@lib/prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
-import { UpdateUserMetricsDto } from './dto/update-user-metrics.dto';
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { Injectable } from "@nestjs/common";
+import { UpdateUserMetricsDto } from "./dto/update-user-metrics.dto";
 
 @Injectable()
 export class UserMetricsRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async findByUserId(userId: string) {
         return this.prisma.userMetrics.findUnique({ where: { userId } });

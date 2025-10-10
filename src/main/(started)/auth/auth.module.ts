@@ -1,12 +1,12 @@
+import { OptService } from "@app/lib/utils/otp.service";
+import { UserProfileRepository } from "@app/main/(users)/user-profile/user.profile.repository";
+import { UserRepository } from "@app/main/(users)/users/users.repository";
+import { UserService } from "@app/main/(users)/users/users.service";
+import { JwtServices } from "@app/services/jwt.service";
 import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { JwtModule, JwtService } from "@nestjs/jwt";
-import { OptService } from "@project/lib/utils/otp.service";
-import { UserProfileRepository } from "@project/main/(users)/user-profile/user.profile.repository";
-import { UserRepository } from "@project/main/(users)/users/users.repository";
-import { UserService } from "@project/main/(users)/users/users.service";
-import { JwtServices } from "@project/services/jwt.service";
 import { AuthController } from "./auth.controller";
 import { AuthRepository } from "./auth.repository";
 import { AuthService } from "./auth.service";

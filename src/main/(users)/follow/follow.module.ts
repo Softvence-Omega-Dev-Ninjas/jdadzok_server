@@ -1,5 +1,5 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { Module } from "@nestjs/common";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { FollowRepository } from "./follow.repository";
 
 @Module({

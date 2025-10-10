@@ -1,6 +1,6 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import {
     CreatePaymentMethodDto,
     PaymentMethodQueryDto,

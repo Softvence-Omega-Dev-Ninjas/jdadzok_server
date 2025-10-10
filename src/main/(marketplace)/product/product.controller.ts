@@ -1,3 +1,6 @@
+import { GetUser } from "@app/common/jwt/jwt.decorator";
+import { handleRequest } from "@app/common/utils/handle.request.util";
+import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import {
     Body,
     Controller,
@@ -10,9 +13,6 @@ import {
     UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { GetUser } from "@project/common/jwt/jwt.decorator";
-import { handleRequest } from "@project/common/utils/handle.request.util";
-import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { CreateProductDto, updateProductDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
 import { ProductService } from "./product.service";

@@ -14,7 +14,7 @@
         "baseUrl": "./",
         "paths": {
             "@metadata/*": ["src/app-metadata/*"],
-            "@project/*": ["src/*"],
+            "@app/*": ["src/*"],
             "@common/*": ["src/common/*"],
             "@configs/*": ["src/configs/*"],
             "@constants/*": ["src/constants/*"],

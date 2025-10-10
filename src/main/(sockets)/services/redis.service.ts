@@ -1,7 +1,7 @@
+import { TTL, TTLKey } from "@app/constants/ttl.constants";
 import { ENVEnum } from "@common/enum/env.enum";
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { TTL, TTLKey } from "@project/constants/ttl.constants";
 import Redis from "ioredis";
 import { SocketRoom, SocketUser, UserStatus } from "../@types";
 

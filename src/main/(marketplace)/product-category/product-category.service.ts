@@ -1,7 +1,7 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { slugify } from "@app/utils";
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateProductCategoryDto } from "./dto/create-product-category.dto";
-import { slugify } from "@project/utils";
 
 @Injectable()
 export class ProductCategoryService {

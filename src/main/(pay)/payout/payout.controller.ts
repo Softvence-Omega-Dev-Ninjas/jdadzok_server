@@ -1,3 +1,4 @@
+import { TUser } from "@app/@types";
 import { GetUser } from "@common/jwt/jwt.decorator";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
@@ -22,7 +23,6 @@ import {
     ApiTags,
 } from "@nestjs/swagger";
 import { PayOutStatus } from "@prisma/client";
-import { TUser } from "@project/@types";
 import {
     CreatePayoutDto,
     PayoutQueryDto,

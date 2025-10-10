@@ -1,6 +1,6 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { UserEnum } from "../enum/user.enum";
 import { ROLES_KEY } from "./jwt.decorator";
 import { RequestWithUser } from "./jwt.interface";

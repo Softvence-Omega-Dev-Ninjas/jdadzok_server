@@ -1,9 +1,9 @@
+import { TUser } from "@app/@types";
+import { successResponse } from "@app/common/utils/response.util";
+import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import { GetUser } from "@common/jwt/jwt.decorator";
 import { Controller, Get, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
-import { TUser } from "@project/@types";
-import { successResponse } from "@project/common/utils/response.util";
-import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { UserProfileService } from "./user.profile.service";
 
 @ApiBearerAuth()

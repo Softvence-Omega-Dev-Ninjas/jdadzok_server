@@ -1,6 +1,6 @@
+import { successResponse } from "@app/common/utils/response.util";
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { successResponse } from "@project/common/utils/response.util";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateLikeDto } from "./dto/creaete.like.dto";
 
 @Injectable()

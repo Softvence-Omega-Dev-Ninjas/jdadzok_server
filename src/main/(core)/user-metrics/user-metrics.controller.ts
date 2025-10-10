@@ -1,3 +1,4 @@
+import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import {
     ActivityLeaderboardDto,
     ActivityScoreWeightsDto,
@@ -31,7 +32,6 @@ import {
     ApiResponse,
     ApiTags,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 
 /**
  * Controller for managing user metrics and activity scoring

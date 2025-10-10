@@ -1,3 +1,5 @@
+import { Notification } from "@app/common/interface/events-payload";
+import { JWTPayload } from "@app/common/jwt/jwt.interface";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
@@ -8,8 +10,6 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from "@nestjs/websockets";
-import { Notification } from "@project/common/interface/events-payload";
-import { JWTPayload } from "@project/common/jwt/jwt.interface";
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 

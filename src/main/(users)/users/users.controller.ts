@@ -1,3 +1,8 @@
+import { TUser } from "@app/@types";
+import { GetUser, GetVerifiedUser, MakePublic } from "@app/common/jwt/jwt.decorator";
+import { successResponse } from "@app/common/utils/response.util";
+import { VerifyTokenDto } from "@app/main/(started)/auth/dto/verify-token.dto";
+import { omit } from "@app/utils";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
     Body,
@@ -9,11 +14,6 @@ import {
     ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
-import { TUser } from "@project/@types";
-import { GetUser, GetVerifiedUser, MakePublic } from "@project/common/jwt/jwt.decorator";
-import { successResponse } from "@project/common/utils/response.util";
-import { VerifyTokenDto } from "@project/main/(started)/auth/dto/verify-token.dto";
-import { omit } from "@project/utils";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 import { UserService } from "./users.service";

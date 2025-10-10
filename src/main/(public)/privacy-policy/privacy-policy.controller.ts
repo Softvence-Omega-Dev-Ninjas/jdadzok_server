@@ -1,6 +1,6 @@
+import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Get, Put, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { UpdatePrivacyPolicyDto } from "./dto/privacy-policy.dto";
 import { PrivacyPolicyService } from "./privacy-policy.service";
 

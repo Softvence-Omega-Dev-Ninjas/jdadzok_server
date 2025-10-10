@@ -1,8 +1,8 @@
+import { TUser } from "@app/@types";
+import { GetUser, Roles } from "@app/common/jwt/jwt.decorator";
+import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import { Controller, Put, UseGuards } from "@nestjs/common";
 import { Role } from "@prisma/client";
-import { TUser } from "@project/@types";
-import { GetUser, Roles } from "@project/common/jwt/jwt.decorator";
-import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 
 @Controller("notifications")
 export class NotificaitonsController {

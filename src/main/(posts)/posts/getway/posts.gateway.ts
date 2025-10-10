@@ -1,3 +1,5 @@
+import { GetSocketUser } from "@app/main/(sockets)/ecorators/rate-limit.decorator";
+import { safeParseAsync } from "@app/utils";
 import { PostComment, PostEvent, PostReaction, SocketUser } from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
@@ -10,8 +12,6 @@ import {
     SubscribeMessage,
     WebSocketGateway,
 } from "@nestjs/websockets";
-import { GetSocketUser } from "@project/main/(sockets)/ecorators/rate-limit.decorator";
-import { safeParseAsync } from "@project/utils";
 import { Socket } from "socket.io";
 import { CreatePostDto } from "../dto/create.post.dto";
 import { PostService } from "../posts.service";

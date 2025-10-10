@@ -1,10 +1,10 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import {
     BadRequestException,
     ForbiddenException,
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateProductDto, updateProductDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
 

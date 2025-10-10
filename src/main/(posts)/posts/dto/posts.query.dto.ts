@@ -1,5 +1,5 @@
+import { PaginationDto } from "@app/global/dto/pagination";
 import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
-import { PaginationDto } from "@project/global/dto/pagination";
 import { Transform } from "class-transformer";
 import { IsBoolean, IsOptional } from "class-validator";
 

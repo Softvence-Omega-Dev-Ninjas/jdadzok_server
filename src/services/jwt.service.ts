@@ -1,8 +1,8 @@
+import { ENVEnum } from "@app/common/enum/env.enum";
+import { JWTPayload } from "@app/common/jwt/jwt.interface";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService, JwtSignOptions } from "@nestjs/jwt";
-import { ENVEnum } from "@project/common/enum/env.enum";
-import { JWTPayload } from "@project/common/jwt/jwt.interface";
 
 @Injectable()
 export class JwtServices {

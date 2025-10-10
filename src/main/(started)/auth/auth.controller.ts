@@ -1,10 +1,10 @@
+import { TUser } from "@app/@types";
+import { GetVerifiedUser, MakePublic } from "@app/common/jwt/jwt.decorator";
+import { successResponse } from "@app/common/utils/response.util";
+import { ResentOtpDto } from "@app/main/(users)/users/dto/resent-otp.dto";
 import { cookieHandler } from "@common/jwt/cookie.handler";
 import { Body, Controller, Post, Res, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
-import { TUser } from "@project/@types";
-import { GetVerifiedUser, MakePublic } from "@project/common/jwt/jwt.decorator";
-import { successResponse } from "@project/common/utils/response.util";
-import { ResentOtpDto } from "@project/main/(users)/users/dto/resent-otp.dto";
 import { Response } from "express";
 import { AuthService } from "./auth.service";
 import { ForgetPasswordDto } from "./dto/forget.dto";

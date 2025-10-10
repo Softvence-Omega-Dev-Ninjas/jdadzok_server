@@ -1,8 +1,8 @@
+import { GetUser } from "@app/common/jwt/jwt.decorator";
+import { handleRequest } from "@app/common/utils/handle.request.util";
+import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import { Controller, Delete, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
-import { GetUser } from "@project/common/jwt/jwt.decorator";
-import { handleRequest } from "@project/common/utils/handle.request.util";
-import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { FavouritelistService } from "./favoritelist.service";
 
 @Controller("favouritelists")

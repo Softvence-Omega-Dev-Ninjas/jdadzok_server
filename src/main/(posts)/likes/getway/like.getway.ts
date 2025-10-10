@@ -1,9 +1,9 @@
+import { SocketMiddleware } from "@app/main/(sockets)/middleware/socket.middleware";
 import { SocketUser } from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 import { GetSocketUser } from "@module/(sockets)/ecorators/rate-limit.decorator";
 import { BadGatewayException } from "@nestjs/common";
 import { MessageBody, SubscribeMessage, WebSocketGateway } from "@nestjs/websockets";
-import { SocketMiddleware } from "@project/main/(sockets)/middleware/socket.middleware";
 import { CreateLikeDto, UpdateLikeDto } from "../dto/creaete.like.dto";
 import { SOCKET_LIKE_EVENT } from "../events";
 import { LikeService } from "../like.service";

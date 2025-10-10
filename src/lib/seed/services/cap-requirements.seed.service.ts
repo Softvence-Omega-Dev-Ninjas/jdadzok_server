@@ -1,6 +1,6 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { CapLevel } from "@constants/enums";
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 
 interface CapLevelConfig {
     capLevel: CapLevel;

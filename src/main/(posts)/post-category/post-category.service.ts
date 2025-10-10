@@ -1,5 +1,5 @@
+import { slugify } from "@app/utils";
 import { Injectable } from "@nestjs/common";
-import { slugify } from "@project/utils";
 import { CreatePostCategoryDto } from "./dto/category.dto";
 import { PostCategoryRepository } from "./post-category.repository";
 

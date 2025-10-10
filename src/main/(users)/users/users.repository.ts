@@ -1,6 +1,6 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { omit } from "@app/utils";
 import { ConflictException, Injectable } from "@nestjs/common";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { omit } from "@project/utils";
 import { UserProfileRepository } from "../user-profile/user.profile.repository";
 import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
 
@@ -9,7 +9,7 @@ export class UserRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly profileRepo: UserProfileRepository,
-    ) { }
+    ) {}
 
     async store(input: CreateUserDto) {
         return await this.prisma.$transaction(async (tx) => {
@@ -32,7 +32,9 @@ export class UserRepository {
             // make sure role is USER, and cap level none when they create their account
             const user = await tx.user.create({
                 data: {
-                    ...createUser, role: "USER", capLevel: "NONE",
+                    ...createUser,
+                    role: "USER",
+                    capLevel: "NONE",
                     metrics: {
                         create: {
                             totalPosts: 0,
@@ -46,13 +48,13 @@ export class UserRepository {
                             volunteerHours: 0,
                             completedProjects: 0,
                             activityScore: 0.0,
-                        }
-                    }
+                        },
+                    },
                 },
                 include: {
                     profile: true,
-                    metrics: true
-                }
+                    metrics: true,
+                },
             });
 
             // if input has name then create profile

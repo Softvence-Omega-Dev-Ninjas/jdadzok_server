@@ -3,8 +3,8 @@
 //   Injectable,
 //   UnauthorizedException,
 // } from "@nestjs/common";
-// import { SocketMiddleware } from "@project/main/(sockets)/middleware/socket.middleware";
-// import { JwtServices } from "@project/services/jwt.service";
+// import { SocketMiddleware } from "@app/main/(sockets)/middleware/socket.middleware";
+// import { JwtServices } from "@app/services/jwt.service";
 // import { Socket } from "socket.io";
 
 // @Injectable()

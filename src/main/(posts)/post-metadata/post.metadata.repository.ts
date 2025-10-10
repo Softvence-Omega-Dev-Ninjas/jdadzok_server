@@ -1,5 +1,5 @@
+import { HelperTx } from "@app/@types";
 import { Injectable } from "@nestjs/common";
-import { HelperTx } from "@project/@types";
 import { CreatePostMetadataDto, UpdatePostMetadataDto } from "./dto/post.metadata.dto";
 
 @Injectable()

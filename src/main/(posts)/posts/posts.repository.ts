@@ -1,8 +1,8 @@
+import { HelperTx } from "@app/@types";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { HelperTx } from "@project/@types";
 import { AdvanceQueryBuilder } from "@service/query-builder.service";
 import { GifRepository } from "../gif/gif.repository";
 import { LocationRepository } from "../locations/locations.repository";

@@ -1,27 +1,27 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { VerifiedUser } from '@project/@types';
-import { GetVerifiedUser } from '@project/common/jwt/jwt.decorator';
-import { CalculateActivityScoreDto } from './dto/activity-score.dto';
-import { UpdateUserMetricsDto } from './dto/update-user-metrics.dto';
-import { UserMetricsResponseDto } from './dto/user-metrics-response.dto';
-import { UserMetricsService } from './user-metrics.service';
+import { VerifiedUser } from "@app/@types";
+import { GetVerifiedUser } from "@app/common/jwt/jwt.decorator";
+import { Body, Controller, Get, Post, Put } from "@nestjs/common";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { CalculateActivityScoreDto } from "./dto/activity-score.dto";
+import { UpdateUserMetricsDto } from "./dto/update-user-metrics.dto";
+import { UserMetricsResponseDto } from "./dto/user-metrics-response.dto";
+import { UserMetricsService } from "./user-metrics.service";
 
-@ApiTags('User Metrics')
-@Controller('user-metrics')
+@ApiTags("User Metrics")
+@Controller("user-metrics")
 export class UserMetricsController {
-    constructor(private readonly service: UserMetricsService) { }
+    constructor(private readonly service: UserMetricsService) {}
 
-    @ApiOperation({ summary: 'Get user metrics summary' })
+    @ApiOperation({ summary: "Get user metrics summary" })
     @ApiResponse({ status: 200, type: UserMetricsResponseDto })
     @Get()
     async getUserMetrics(@GetVerifiedUser() user: VerifiedUser) {
         return this.service.getUserMetrics(user.id);
     }
 
-    @ApiOperation({ summary: 'Update user activity metrics' })
+    @ApiOperation({ summary: "Update user activity metrics" })
     @ApiResponse({ status: 200, type: UserMetricsResponseDto })
-    @Put('update')
+    @Put("update")
     async updateUserMetrics(
         @GetVerifiedUser() user: VerifiedUser,
         @Body() dto: UpdateUserMetricsDto,
@@ -29,9 +29,9 @@ export class UserMetricsController {
         return this.service.updateMetrics({ ...dto, userId: user.id });
     }
 
-    @ApiOperation({ summary: 'Recalculate user activity score' })
+    @ApiOperation({ summary: "Recalculate user activity score" })
     @ApiResponse({ status: 200, type: UserMetricsResponseDto })
-    @Post('activity-score')
+    @Post("activity-score")
     async calculateActivityScore(@Body() dto: CalculateActivityScoreDto) {
         return this.service.calculateActivityScore(dto);
     }

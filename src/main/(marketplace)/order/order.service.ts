@@ -1,3 +1,4 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import {
     BadRequestException,
     ForbiddenException,
@@ -5,7 +6,6 @@ import {
     NotAcceptableException,
     NotFoundException,
 } from "@nestjs/common";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateOrderDto } from "./dto/order.dto";
 // import { OrderQueryDto } from "./dto/order.query.dto";
 

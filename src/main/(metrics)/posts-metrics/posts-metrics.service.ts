@@ -4,7 +4,7 @@ import { PostsMetricsRepository } from "./posts-metrics.repository";
 
 @Injectable()
 export class PostsMetricsService {
-    constructor(private readonly repo: PostsMetricsRepository) { }
+    constructor(private readonly repo: PostsMetricsRepository) {}
 
     async createMetrics(dto: CreatePostsMetricsDto) {
         return this.repo.create(dto);

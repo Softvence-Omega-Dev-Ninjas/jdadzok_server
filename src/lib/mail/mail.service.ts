@@ -1,7 +1,7 @@
+import { ENVEnum } from "@common/enum/env.enum";
+import appMetadata from "@metadata/app-metadata";
 import { BadGatewayException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import appMetadata from "@project/app-metadata/app-metadata";
-import { ENVEnum } from "@project/common/enum/env.enum";
 import * as nodemailer from "nodemailer";
 import { MailContext, MailTemplateType } from "./mail-context.type";
 import { generateFriendRequestEmail } from "./templates/friend-request.template";

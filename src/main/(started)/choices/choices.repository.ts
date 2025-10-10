@@ -1,6 +1,6 @@
+import { HelperTx } from "@app/@types";
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { HelperTx } from "@project/@types";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateUserChoiceDto } from "../user-choice/dto/user-choice.dto";
 import { UserChoiceRepository } from "../user-choice/user-choice.repository";
 import { CreateChoiceDto } from "./dto/choices.create.dto";

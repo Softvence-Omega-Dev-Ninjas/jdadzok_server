@@ -1,6 +1,6 @@
+import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Get, Put, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@project/main/(started)/auth/guards/jwt-auth";
 import { UpdateTermsAndConditionsDto } from "./dto/terms-and-conditions.dto";
 import { TermsAndConditionsService } from "./terms-and-conditions.service";
 

@@ -130,4 +130,3 @@ export const gender = [
     "PANGENDER",
 ] as const;
 export type Gender = (typeof gender)[number];
-

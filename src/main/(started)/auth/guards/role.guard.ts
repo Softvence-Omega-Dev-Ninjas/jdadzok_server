@@ -1,8 +1,8 @@
+import { ROLES_KEY } from "@app/common/jwt/jwt.decorator";
+import { RequestWithUser } from "@app/common/jwt/jwt.interface";
 import { Role } from "@constants/enums";
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { ROLES_KEY } from "@project/common/jwt/jwt.decorator";
-import { RequestWithUser } from "@project/common/jwt/jwt.interface";
 
 @Injectable()
 export class RolesGuard implements CanActivate {

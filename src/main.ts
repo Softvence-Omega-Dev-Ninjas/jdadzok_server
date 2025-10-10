@@ -1,4 +1,5 @@
 import { extendZodWithOpenApi } from "@anatine/zod-openapi";
+import appMetadata from "@metadata/app-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
@@ -8,7 +9,6 @@ import { expand } from "dotenv-expand";
 import path from "path";
 import "reflect-metadata";
 import z from "zod";
-import appMetadata from "./app-metadata/app-metadata";
 import { AppModule } from "./app.module";
 import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";

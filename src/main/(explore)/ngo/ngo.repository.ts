@@ -1,6 +1,6 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { slugify } from "@app/utils";
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { slugify } from "@project/utils";
 import { CreateNgoDto } from "./dto/ngo.dto";
 
 @Injectable()

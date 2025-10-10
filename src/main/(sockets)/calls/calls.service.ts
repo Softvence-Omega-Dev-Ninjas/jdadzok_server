@@ -1,6 +1,6 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { Call, CallStatus, CallType } from "@prisma/client";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
 import { CreateCallDto } from "./dto/create-calls.dto";
 
 @Injectable()

@@ -1,6 +1,6 @@
+import { successResponse } from "@app/common/utils/response.util";
 import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
-import { successResponse } from "@project/common/utils/response.util";
 import { CreatePostTagUserDto, UpdatePostTagUserDto } from "./dto/post-tags.create.dto";
 import { PostTagsService } from "./post-tags.service";
 

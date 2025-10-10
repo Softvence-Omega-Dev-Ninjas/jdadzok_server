@@ -1,8 +1,8 @@
+import { TUser } from "@app/@types";
+import { successResponse } from "@app/common/utils/response.util";
 import { GetUser, GetVerifiedUser, MakePublic } from "@common/jwt/jwt.decorator";
 import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
-import { TUser } from "@project/@types";
-import { successResponse } from "@project/common/utils/response.util";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth";
 import { CreateUserChoiceDto } from "../user-choice/dto/user-choice.dto";
 import { ChoicesService } from "./choices.service";

@@ -1,5 +1,5 @@
+import { capitalize } from "@app/utils";
 import * as constantEnum from "@constants/enums";
-import { capitalize } from "@project/utils";
 import fs from "fs";
 import path from "path";
 

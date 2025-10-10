@@ -1,3 +1,5 @@
+import { TUser } from "@app/@types";
+import { successResponse } from "@app/common/utils/response.util";
 import { GetUser } from "@common/jwt/jwt.decorator";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
@@ -21,8 +23,6 @@ import {
     ApiResponse,
     ApiTags,
 } from "@nestjs/swagger";
-import { TUser } from "@project/@types";
-import { successResponse } from "@project/common/utils/response.util";
 import {
     CreatePaymentMethodDto,
     PaymentMethodQueryDto,

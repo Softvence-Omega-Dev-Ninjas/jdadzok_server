@@ -1,3 +1,5 @@
+import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { JwtServices } from "@app/services/jwt.service";
 import {
     BadGatewayException,
     CanActivate,
@@ -7,8 +9,6 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { PrismaService } from "@project/lib/prisma/prisma.service";
-import { JwtServices } from "@project/services/jwt.service";
 import { Socket } from "socket.io";
 import { SocketUser } from "../@types";
 

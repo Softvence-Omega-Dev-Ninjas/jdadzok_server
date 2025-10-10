@@ -1,6 +1,6 @@
+import appMetadata from "@metadata/app-metadata";
 import { Controller, Get } from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import appMetadata from "./app-metadata/app-metadata";
 
 @ApiTags("App")
 @Controller()

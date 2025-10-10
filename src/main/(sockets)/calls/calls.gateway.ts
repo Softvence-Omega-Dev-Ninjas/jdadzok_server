@@ -1,3 +1,5 @@
+import { GetSocketUser } from "@app/main/(sockets)/ecorators/rate-limit.decorator";
+import { SocketMiddleware } from "@app/main/(sockets)/middleware/socket.middleware";
 import { SocketUser } from "@module/(sockets)/@types";
 import { BadRequestException, UsePipes, ValidationPipe } from "@nestjs/common";
 import {
@@ -6,8 +8,6 @@ import {
     SubscribeMessage,
     WebSocketGateway,
 } from "@nestjs/websockets";
-import { GetSocketUser } from "@project/main/(sockets)/ecorators/rate-limit.decorator";
-import { SocketMiddleware } from "@project/main/(sockets)/middleware/socket.middleware";
 import { Socket } from "socket.io";
 import { BaseSocketGateway } from "../base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "../constants/socket-events.constant";

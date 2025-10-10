@@ -1,7 +1,7 @@
+import { handleRequest } from "@app/common/utils/handle.request.util";
 import { Body, Controller, Get, Post } from "@nestjs/common";
-import { ProductCategoryService } from "./product-category.service";
 import { CreateProductCategoryDto } from "./dto/create-product-category.dto";
-import { handleRequest } from "@project/common/utils/handle.request.util";
+import { ProductCategoryService } from "./product-category.service";
 
 @Controller("product-category")
 export class ProductCategoryController {
