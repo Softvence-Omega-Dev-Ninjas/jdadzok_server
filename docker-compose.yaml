@@ -1,191 +1,190 @@
 services:
-  app:
-    profiles:
-      - prod
-    platform: linux/amd64
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
-    container_name: ${PACKAGE_NAME}_api
-    ports:
-      - "${PORT}:${PORT}"
-    environment:
-      - NODE_ENV=${NODE_ENV}
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - REDIS_URL=${REDIS_URL}
-      - MAIL_USER=${MAIL_USER}
-      - MAIL_PASS=${MAIL_PASS}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
-      - SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL}
-      - SUPER_ADMIN_PASS=${SUPER_ADMIN_PASS}
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
-      - EMAIL=${EMAIL}
-      - BASE_URL=${BASE_URL}
-      # aws
-      - AWS_REGION=${AWS_REGION}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
+    app:
+        profiles:
+            - prod
+        platform: linux/amd64
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
+        container_name: ${PACKAGE_NAME}_api
+        ports:
+            - "${PORT}:${PORT}"
+        environment:
+            - NODE_ENV=${NODE_ENV}
+            - DATABASE_URL=${DATABASE_URL}
+            - JWT_SECRET=${JWT_SECRET}
+            - REDIS_URL=${REDIS_URL}
+            - MAIL_USER=${MAIL_USER}
+            - MAIL_PASS=${MAIL_PASS}
+            - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+            - SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL}
+            - SUPER_ADMIN_PASS=${SUPER_ADMIN_PASS}
+            - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+            - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+            - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+            - EMAIL=${EMAIL}
+            - BASE_URL=${BASE_URL}
+            # aws
+            - AWS_REGION=${AWS_REGION}
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
 
-    depends_on:
-      local:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    # Enhanced health check for better zero-downtime deployment
-    healthcheck:
-      disable: true
+        depends_on:
+            local:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        restart: unless-stopped
+        # Enhanced health check for better zero-downtime deployment
+        healthcheck:
+            disable: true
 
-    # Add logging configuration
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    # Add labels for better container management
-    labels:
-      - "app.name=${PACKAGE_NAME}"
-      - "app.version=${PACKAGE_VERSION}"
-      - "deployment.type=zero-downtime"
+        # Add logging configuration
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "10m"
+                max-file: "3"
+        # Add labels for better container management
+        labels:
+            - "app.name=${PACKAGE_NAME}"
+            - "app.version=${PACKAGE_VERSION}"
+            - "deployment.type=zero-downtime"
 
-  local:
-    image: postgres:15
-    container_name: ${PG_DATABASE}
-    restart: always
-    profiles:
-      - prod
-      - dev
-    environment:
-      POSTGRES_USER: ${PG_USERNAME}
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-      POSTGRES_DB: ${PG_DATABASE}
-      POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "${PG_PORT}:${PG_PORT}"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    healthcheck:
-      test:
-        ["CMD", "pg_isready", "-U", "${PG_USERNAME}", "-d", "${PG_DATABASE}"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 15s
-  redis:
-    image: redis:7-alpine # Use Alpine version for smaller size
-    container_name: ${REDIS_CONTAINER}
-    restart: always
-    profiles:
-      - dev
-      - prod
-    ports:
-      - "${REDIS_PORT}:${REDIS_PORT}"
-    volumes:
-      - redis_data:/data
-    # Add Redis configuration for better performance
-    command: redis-server --appendonly yes --maxmemory 1000mb --maxmemory-policy allkeys-lru
-    # Add health check for Redis
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
-    # Add resource limits
-    deploy:
-      resources:
-        limits:
-          cpus: "0.25"
-          memory: 1000M
-        reservations:
-          cpus: "0.1"
-          memory: 1000M
-    # Add logging
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "5m"
-        max-file: "3"
+    local:
+        image: postgres:15
+        container_name: ${PG_DATABASE}
+        restart: always
+        profiles:
+            - prod
+            - dev
+        environment:
+            POSTGRES_USER: ${PG_USERNAME}
+            POSTGRES_PASSWORD: ${PG_PASSWORD}
+            POSTGRES_DB: ${PG_DATABASE}
+            POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements
+        volumes:
+            - jdadzok_pg:/var/lib/postgresql/data
+        ports:
+            - "${PG_PORT}:${PG_PORT}"
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "10m"
+                max-file: "3"
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "${PG_USERNAME}", "-d", "${PG_DATABASE}"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 15s
+    redis:
+        image: redis:7-alpine # Use Alpine version for smaller size
+        container_name: ${REDIS_CONTAINER}
+        restart: always
+        profiles:
+            - dev
+            - prod
+        ports:
+            - "${REDIS_PORT}:${REDIS_PORT}"
+        volumes:
+            - jdadzok_redis:/data
+        # Add Redis configuration for better performance
+        command: redis-server --appendonly yes --maxmemory 1000mb --maxmemory-policy allkeys-lru
+        # Add health check for Redis
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 3s
+            retries: 5
+            start_period: 5s
+        # Add resource limits
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.25"
+                    memory: 1000M
+                reservations:
+                    cpus: "0.1"
+                    memory: 1000M
+        # Add logging
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "5m"
+                max-file: "3"
 
-  nginx:
-    profiles:
-      - prod
-    image: nginx:alpine
-    container_name: ${PACKAGE_NAME}_nginx
-    depends_on:
-      - app
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/certbot/www:/var/www/certbot
-      - ./nginx/certbot/conf:/etc/letsencrypt
-      - ./nginx/selfsigned:/etc/nginx/selfsigned
+    nginx:
+        profiles:
+            - prod
+        image: nginx:alpine
+        container_name: ${PACKAGE_NAME}_nginx
+        depends_on:
+            - app
+        volumes:
+            - ./nginx/conf.d:/etc/nginx/conf.d
+            - ./nginx/certbot/www:/var/www/certbot
+            - ./nginx/certbot/conf:/etc/letsencrypt
+            - ./nginx/selfsigned:/etc/nginx/selfsigned
 
-    ports:
-      - "80:80"
-      - "443:443"
-    networks:
-      - default
-    restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+        networks:
+            - default
+        restart: always
 
-  certbot:
-    profiles:
-      - prod
-    image: certbot/certbot
-    container_name: ${PACKAGE_NAME}_certbot
-    volumes:
-      - ./nginx/certbot/www:/var/www/certbot
-      - ./nginx/certbot/conf:/etc/letsencrypt
-    environment:
-      - EMAIL=${EMAIL}
-      - BASE_URL=${BASE_URL}
-    entrypoint: >
-      certbot certonly --webroot --webroot-path=/var/www/certbot 
-      --email ${EMAIL} --agree-tos --no-eff-email 
-      -d ${BASE_URL}
-    depends_on:
-      - nginx
-    networks:
-      - default
-    restart: "no"
+    certbot:
+        profiles:
+            - prod
+        image: certbot/certbot
+        container_name: ${PACKAGE_NAME}_certbot
+        volumes:
+            - ./nginx/certbot/www:/var/www/certbot
+            - ./nginx/certbot/conf:/etc/letsencrypt
+        environment:
+            - EMAIL=${EMAIL}
+            - BASE_URL=${BASE_URL}
+        entrypoint: >
+            certbot certonly --webroot --webroot-path=/var/www/certbot 
+            --email ${EMAIL} --agree-tos --no-eff-email 
+            -d ${BASE_URL}
+        depends_on:
+            - nginx
+        networks:
+            - default
+        restart: "no"
 
-  certbot-renew:
-    profiles:
-      - prod
-    image: certbot/certbot
-    container_name: ${PACKAGE_NAME}_certbot_renew
-    volumes:
-      - ./nginx/certbot/www:/var/www/certbot
-      - ./nginx/certbot/conf:/etc/letsencrypt
-    entrypoint: >
-      sh -c "trap exit TERM; 
-             while :; do 
-               echo '🔄 Checking for SSL renewal...'; 
-               certbot renew --webroot --webroot-path=/var/www/certbot --quiet --deploy-hook 'nginx -s reload'; 
-               sleep 12h; 
-             done"
-    depends_on:
-      - nginx
-    networks:
-      - default
-    restart: unless-stopped
+    certbot-renew:
+        profiles:
+            - prod
+        image: certbot/certbot
+        container_name: ${PACKAGE_NAME}_certbot_renew
+        volumes:
+            - ./nginx/certbot/www:/var/www/certbot
+            - ./nginx/certbot/conf:/etc/letsencrypt
+        entrypoint: >
+            sh -c "trap exit TERM; 
+                   while :; do 
+                     echo '🔄 Checking for SSL renewal...'; 
+                     certbot renew --webroot --webroot-path=/var/www/certbot --quiet --deploy-hook 'nginx -s reload'; 
+                     sleep 12h; 
+                   done"
+        depends_on:
+            - nginx
+        networks:
+            - default
+        restart: unless-stopped
 
 volumes:
-  postgres_data:
-  redis_data:
+    jdadzok_pg:
+    jdadzok_redis:
 
 # Add networks for better isolation (optional)
 networks:
-  default:
-    name: ${PACKAGE_NAME}_network
-    labels:
-      - "project=${PACKAGE_NAME}"
+    default:
+        name: ${PACKAGE_NAME}_network
+        labels:
+            - "project=${PACKAGE_NAME}"
