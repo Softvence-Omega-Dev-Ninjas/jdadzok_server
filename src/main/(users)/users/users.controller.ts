@@ -15,12 +15,13 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
-import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
+import { UpdateUserDto } from "./dto/update.user.dto";
+import { CreateUserDto } from "./dto/users.dto";
 import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-    constructor(private readonly service: UserService) {}
+    constructor(private readonly service: UserService) { }
 
     @MakePublic()
     @Post("register")

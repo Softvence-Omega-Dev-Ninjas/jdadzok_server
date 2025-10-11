@@ -29,6 +29,7 @@ export class Seeds {
             skipDuplicates: true,
         });
     };
+
     public aboutUs = async () => {
         const exists = await this.prisma.aboutUs.findFirst();
         if (exists) return; // Skip if already seeded
@@ -43,6 +44,7 @@ export class Seeds {
 
         await this.prisma.aboutUs.create({ data });
     };
+
     public privacyPolicy = async () => {
         const exists = await this.prisma.privacyPolicy.findFirst();
         if (exists) return;

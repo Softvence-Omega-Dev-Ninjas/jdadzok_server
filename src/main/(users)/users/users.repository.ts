@@ -2,14 +2,15 @@ import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { omit } from "@app/utils";
 import { ConflictException, Injectable } from "@nestjs/common";
 import { UserProfileRepository } from "../user-profile/user.profile.repository";
-import { CreateUserDto, UpdateUserDto } from "./dto/users.dto";
+import { UpdateUserDto } from "./dto/update.user.dto";
+import { CreateUserDto } from "./dto/users.dto";
 
 @Injectable()
 export class UserRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly profileRepo: UserProfileRepository,
-    ) {}
+    ) { }
 
     async store(input: CreateUserDto) {
         return await this.prisma.$transaction(async (tx) => {
@@ -111,14 +112,21 @@ export class UserRepository {
         });
     }
 
-    async update(id: string, data: Partial<UpdateUserDto>) {
-        return await this.prisma.user.update({
-            where: { id },
-            data: {
-                ...data,
-            },
-        });
+    async update(id: string, data: UpdateUserDto) {
+        const { profile } = data;
+        if (profile) {
+            return await this.prisma.user.update({
+                where: { id },
+                data: {
+                    ...data,
+                    profile: {
+                        update: { ...profile }
+                    }
+                }
+            })
+        }
     }
+
     async delete(userId: string) {
         return await this.prisma.user.delete({
             where: {

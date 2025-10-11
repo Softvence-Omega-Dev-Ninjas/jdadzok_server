@@ -17,10 +17,10 @@ import { UserGroupModule } from "./(users)/users.group.module";
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        SocketsGroupModule,
-        CoreGroupModule,
         StartedGroupModule,
         UserGroupModule,
+        SocketsGroupModule,
+        CoreGroupModule,
         SharedGroupModule,
         PostsGroupModule,
         MarketplacesGroupModule,
@@ -34,4 +34,4 @@ import { UserGroupModule } from "./(users)/users.group.module";
     providers: [],
     exports: [],
 })
-export class MainModule {}
+export class MainModule { }

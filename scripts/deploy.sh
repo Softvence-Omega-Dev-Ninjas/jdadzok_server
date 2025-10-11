@@ -12,12 +12,11 @@ PACKAGE_NAME="${PACKAGE_NAME:?PACKAGE_NAME not set}"
 DOCKER_USERNAME="${DOCKER_USERNAME:?DOCKER_USERNAME not set}"
 PACKAGE_VERSION="${PACKAGE_VERSION:-latest}"
 PORT="${PORT:-5056}"
-# VPS host comes from GitHub secret
 VPS_HOST_IP="${VPS_HOST_IP:?VPS_HOST_IP not set}"
 BASE_URL="http://$VPS_HOST_IP"
 HEALTH_ENDPOINT="${HEALTH_ENDPOINT:-$BASE_URL:$PORT/}"
-HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-15}"
-HEALTH_RETRIES="${HEALTH_RETRIES:-12}" # up to 2 minutes
+HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-10}"
+HEALTH_RETRIES="${HEALTH_RETRIES:-6}" # up to 2 minutes
 VERSION_FILE="./deployment_versions.txt"
 
 # ================================
@@ -54,15 +53,32 @@ save_version() {
 # Replace docker healthcheck with external curl check
 health_check() {
   log "Waiting for API to respond at $HEALTH_ENDPOINT..."
+  local fail_count=0  # 🔹 new variable for counting failures
+
   for i in $(seq 1 "$HEALTH_RETRIES"); do
     if curl -fs --max-time "$HEALTH_TIMEOUT" "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
       ok "API is up and responding"
       return 0
     fi
-    warn "Attempt $i/$HEALTH_RETRIES: not ready, retrying in 10s..."
+
+    ((fail_count++))  # 🔹 increment failure count
+    warn "Attempt $i/$HEALTH_RETRIES failed (consecutive fails: $fail_count)"
+
+    # 🔹 If 3 consecutive failures → restart all containers
+    if (( fail_count == 3 )); then
+      warn "3 consecutive health check failures. Restarting all containers..."
+      docker compose --profile prod down || warn "Failed to bring down containers"
+      sleep 5
+      docker compose --profile prod up -d || err "Failed to bring containers up again"
+      fail_count=0  # reset after restart
+      warn "Containers restarted. Retrying health check..."
+      sleep 10
+    fi
+
     sleep 10
   done
-  err "API did not respond in time"
+
+  err "API did not respond after all retries"
   return 1
 }
 

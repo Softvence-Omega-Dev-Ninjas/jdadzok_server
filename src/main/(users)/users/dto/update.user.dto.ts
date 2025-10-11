@@ -1,16 +1,10 @@
-import {
-    ApiHideProperty,
-    ApiProperty,
-    ApiPropertyOptional,
-    IntersectionType,
-    PartialType,
-} from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional, IntersectionType, PartialType } from "@nestjs/swagger";
 import { AuthProvider, CapLevel, Role } from "@prisma/client";
-import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength } from "class-validator";
-import { UpdateUserProfileMetricsDto } from "../../profile-metrics/dto/user.profile.metrics";
+import { Transform, Type } from "class-transformer";
+import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength, ValidateNested } from "class-validator";
 import { UpdateUserProfileDto } from "../../user-profile/dto/user.profile.dto";
 
-class UserCreate {
+class UserDto {
     @ApiProperty({ description: "name of the user", example: "John Mollik" })
     @IsString()
     name?: string;
@@ -20,7 +14,7 @@ class UserCreate {
         example: "devlopersabbir@gmail.com",
     })
     @IsEmail()
-    email: string;
+    email?: string;
 
     @ApiPropertyOptional({ description: "Password hash", example: "pass123" })
     @IsOptional()
@@ -52,22 +46,20 @@ class UserCreate {
     @IsEnum(CapLevel)
     capLevel?: CapLevel;
 
-}
-
-class SelectUser {
     @ApiPropertyOptional({
         type: UpdateUserProfileDto,
     })
-    profile?: UpdateUserProfileDto;
-
-    @ApiPropertyOptional({
-        type: UpdateUserProfileMetricsDto,
+    @IsOptional()
+    @ValidateNested()
+    @Transform(({ value }) => {
+        if (!value || value === "null" || value === "undefined") return undefined;
+        try {
+            return typeof value === "string" ? JSON.parse(value) : value;
+        } catch {
+            return undefined;
+        }
     })
-    metrics?: UpdateUserProfileMetricsDto;
+    @Type(() => UpdateUserProfileDto)
+    profile?: UpdateUserProfileDto
 }
-
-export class CreateUserDto extends IntersectionType(UserCreate) { }
-export class SelectUserDto extends IntersectionType(
-    PartialType(CreateUserDto),
-    PartialType(SelectUser),
-) { }
+export class UpdateUserDto extends IntersectionType(PartialType(UserDto)) { }
