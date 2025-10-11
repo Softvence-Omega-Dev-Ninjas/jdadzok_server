@@ -11,7 +11,7 @@ export class UtilsService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
-    ) {}
+    ) { }
 
     sanitizedResponse(sto: any, data: any) {
         return plainToInstance(sto, data, { excludeExtraneousValues: true });
@@ -32,8 +32,8 @@ export class UtilsService {
 
     generateToken(payload: JWTPayload): string {
         return this.jwtService.sign(payload, {
-            secret: this.configService.get<string>(ENVEnum.JWT_SECRET),
-            expiresIn: this.configService.get<string>(ENVEnum.JWT_EXPIRES_IN),
+            secret: this.configService.getOrThrow(ENVEnum.JWT_SECRET),
+            expiresIn: this.configService.getOrThrow(ENVEnum.JWT_EXPIRES_IN),
         });
     }
 }

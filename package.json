@@ -1,7 +1,7 @@
 {
     "name": "jdadzok_server",
     "displayName": "JdadZok Server",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "description": "This is backend for jdadzok social media application",
     "author": "Vision 360",
     "private": true,
@@ -55,7 +55,7 @@
         "@nestjs/platform-socket.io": "11.1.6",
         "@nestjs/schedule": "^6.0.0",
         "@nestjs/websockets": "11.1.6",
-        "@prisma/client": "^6.16.1",
+        "@prisma/client": "^6.17.1",
         "@socket.io/redis-adapter": "8.3.0",
         "argon2": "^0.44.0",
         "bcrypt": "^6.0.0",

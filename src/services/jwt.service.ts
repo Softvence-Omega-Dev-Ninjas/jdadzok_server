@@ -9,7 +9,7 @@ export class JwtServices {
     constructor(
         private readonly service: JwtService,
         private readonly configService: ConfigService,
-    ) {}
+    ) { }
 
     public async signAsync<T extends JWTPayload>(
         payload: T,
@@ -17,15 +17,17 @@ export class JwtServices {
     ): Promise<string> {
         return await this.service.signAsync(payload, {
             ...options,
-            expiresIn: this.configService.getOrThrow<string>(ENVEnum.JWT_EXPIRES_IN),
-            secret: this.configService.getOrThrow<string>(ENVEnum.JWT_SECRET),
+            expiresIn: this.configService.getOrThrow(ENVEnum.JWT_EXPIRES_IN),
+            secret: this.configService.getOrThrow(ENVEnum.JWT_SECRET),
         });
     }
 
-    public async verifyAsync(token: string, options?: JwtSignOptions) {
+    public async verifyAsync(token: string, options: JwtSignOptions = {
+        secret: this.configService.getOrThrow(ENVEnum.JWT_SECRET)
+    }) {
         return await this.service.verifyAsync(token, {
             ...options,
-            secret: this.configService.getOrThrow<string>(ENVEnum.JWT_SECRET),
+            audience: ""
         });
     }
 }
