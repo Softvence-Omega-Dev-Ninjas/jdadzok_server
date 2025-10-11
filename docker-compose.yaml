@@ -32,7 +32,7 @@ services:
             - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
 
         depends_on:
-            local:
+            db:
                 condition: service_healthy
             redis:
                 condition: service_healthy
@@ -53,7 +53,7 @@ services:
             - "app.version=${PACKAGE_VERSION}"
             - "deployment.type=zero-downtime"
 
-    local:
+    db:
         image: postgres:15
         container_name: ${PG_DATABASE}
         restart: always
