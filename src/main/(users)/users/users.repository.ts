@@ -1,6 +1,6 @@
 import { PrismaService } from "@app/lib/prisma/prisma.service";
 import { omit } from "@app/utils";
-import { ConflictException, Injectable } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { UserProfileRepository } from "../user-profile/user.profile.repository";
 import { UpdateUserDto } from "./dto/update.user.dto";
 import { CreateUserDto } from "./dto/users.dto";
@@ -134,4 +134,46 @@ export class UserRepository {
             },
         });
     }
+    async getUserById(id: string, includePrivateData: boolean = false) {
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            include: {
+                profile: true,
+                about: true,
+                metrics: includePrivateData,
+                posts: {
+                    take: 10,
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                        likes: { take: 5 },
+                        comments: { take: 3 },
+                        _count: {
+                            select: { likes: true, comments: true, shares: true }
+                        }
+                    }
+                },
+                followers: includePrivateData ? {
+                    include: { follower: { include: { profile: true } } }
+                } : false,
+                following: includePrivateData ? {
+                    include: { following: { include: { profile: true } } }
+                } : false,
+                _count: {
+                    select: {
+                        posts: true,
+                        followers: true,
+                        following: true,
+                        volunteerProjects: true,
+                    }
+                }
+            }
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        return omit(user, ['password', 'email']);
+    }
 }
+

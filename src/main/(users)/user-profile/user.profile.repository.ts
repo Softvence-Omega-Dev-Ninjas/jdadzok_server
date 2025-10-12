@@ -1,6 +1,6 @@
 import { HelperTx } from "@app/@types";
 import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateUserProfileDto } from "./dto/user.profile.dto";
 
 @Injectable()
@@ -78,6 +78,37 @@ export class UserProfileRepository {
             include: {
                 user: true,
             },
+        });
+    }
+    async updateUserProfile(userId: string, data: CreateUserProfileDto) {
+        // Check if username is taken by another user
+        if (data.username) {
+            const existingUser = await this.prisma.user.findFirst({
+                where: {
+                    AND: [{ profile: { username: data.username } }, { NOT: { id: userId } }],
+                },
+            });
+
+            if (existingUser) {
+                throw new BadRequestException("Username already taken");
+            }
+        }
+
+        return await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                profile: {
+                    update: {
+                        ...(data.name && { name: data.name }),
+                        ...(data.username && { username: data.username }),
+                        ...(data.bio && { bio: data.bio }),
+                        ...(data.avatarUrl && { avatarUrl: data.avatarUrl }),
+                        ...(data.coverUrl && { coverUrl: data.coverUrl }),
+                        ...(data.location && { location: data.location }),
+                    },
+                },
+            },
+            include: { profile: true },
         });
     }
 }

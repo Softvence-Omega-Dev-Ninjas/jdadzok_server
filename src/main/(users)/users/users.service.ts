@@ -154,7 +154,7 @@ export class UserService {
 
     async followUser(followerId: string, followedId: string) {
         if (followerId === followedId) {
-            throw new Error("Cannot follow userself");
+            throw new ConflictException("Cannot follow userself");
         }
 
         const [follower, following] = await Promise.all([
@@ -164,7 +164,7 @@ export class UserService {
 
         // Check user exis with id
         if (!follower || !following) {
-            throw new Error("Invalid user");
+            throw new BadRequestException("Invalid user");
         }
 
         // Check already follow
@@ -178,7 +178,7 @@ export class UserService {
         });
 
         if (userFollow) {
-            throw new Error("already following...");
+            throw new ConflictException("already following...");
         }
 
         return await this.prisma.$transaction([
@@ -187,7 +187,6 @@ export class UserService {
                     followerId,
                     followedId,
                 },
-
                 select: {
                     follower: { select: { id: true } },
                     followed: { select: { id: true } },
@@ -210,6 +209,7 @@ export class UserService {
             }),
         ]);
     }
+
     async unfollowUser(followerId: string, followedId: string) {
         const userFollow = await this.prisma.userFollow.findUnique({
             where: {
@@ -250,5 +250,9 @@ export class UserService {
                 },
             }),
         ]);
+    }
+
+    async getUserById(id: string) {
+        return await this.repository.getUserById(id)
     }
 }

@@ -8,6 +8,7 @@ import {
     Body,
     Controller,
     Delete,
+    Param,
     Post,
     UseGuards,
     UsePipes,
@@ -79,18 +80,46 @@ export class UserController {
         }
     }
 
-    // @ApiBearerAuth()
-    // @Get("me")
-    // @UsePipes(ValidationPipe)
-    // @UseGuards(JwtAuthGuard)
-    // async GetMe(@GetUser() user: TUser) {
-    //   try {
-    //     const result = await this.service.getMe(user.userId);
-    //     return successResponse(result, "User profile retrive success");
-    //   } catch (err) {
-    //     return err;
-    //   }
-    // }
+    @ApiBearerAuth()
+    @Post("/me")
+    @UsePipes(ValidationPipe)
+    @UseGuards(JwtAuthGuard)
+    async me(@GetUser() user: TUser) {
+        try {
+            const result = await this.service.getUserById(user.userId);
+            return result
+        } catch (err) {
+            return err;
+        }
+    }
+
+
+
+    @ApiBearerAuth()
+    @Post("follow-user/:id")
+    @UsePipes(ValidationPipe)
+    @UseGuards(JwtAuthGuard)
+    async followUser(@Param("id") id: string, @GetVerifiedUser() user: TUser) {
+        try {
+            const follow = await this.service.followUser(id, user.userId);
+            return successResponse(follow, "You have successfully following");
+        } catch (err) {
+            return err;
+        }
+    }
+
+    @ApiBearerAuth()
+    @Post("follow-user/:id")
+    @UsePipes(ValidationPipe)
+    @UseGuards(JwtAuthGuard)
+    async unfollowUser(@Param("id") id: string, @GetVerifiedUser() user: TUser) {
+        try {
+            const follow = await this.service.followUser(id, user.userId);
+            return successResponse(follow, "You have successfully unfollowing");
+        } catch (err) {
+            return err;
+        }
+    }
 
     @ApiBearerAuth()
     @Delete("delete")
