@@ -67,11 +67,11 @@ export const GetVerifiedUser = createParamDecorator(
         // check user verified or not
         if (!isUser.isVerified) throw new UnauthorizedException("Please verify your account first");
 
-        const obj = omit(isUser, ["password"])
+        const obj = omit(isUser, ["password"]);
         return {
             userId: obj.id,
             email: obj.email,
-            role: obj.role
+            role: obj.role,
         } satisfies TUser;
     },
 );

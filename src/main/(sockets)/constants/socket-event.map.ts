@@ -1,5 +1,15 @@
 import { PostEvent } from "@app/main/(posts)/posts/events";
-import { CallEvent, ChatMessage, ChatTyping, NotificationEvent, PostComment, PostReaction, RoomEvent, SocketUser, UserStatusEvent } from "../@types";
+import {
+    CallEvent,
+    ChatMessage,
+    ChatTyping,
+    NotificationEvent,
+    PostComment,
+    PostReaction,
+    RoomEvent,
+    SocketUser,
+    UserStatusEvent,
+} from "../@types";
 import { SOCKET_EVENTS } from "./socket-events.constant";
 
 export type SocketEventMap = {
@@ -33,4 +43,3 @@ export type SocketEventMap = {
 };
 
 export type EventData<T extends keyof SocketEventMap> = SocketEventMap[T];
-

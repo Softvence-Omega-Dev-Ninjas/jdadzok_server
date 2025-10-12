@@ -1,7 +1,21 @@
-import { ApiHideProperty, ApiProperty, ApiPropertyOptional, IntersectionType, PartialType } from "@nestjs/swagger";
+import {
+    ApiHideProperty,
+    ApiProperty,
+    ApiPropertyOptional,
+    IntersectionType,
+    PartialType,
+} from "@nestjs/swagger";
 import { AuthProvider, CapLevel, Role } from "@prisma/client";
 import { Transform, Type } from "class-transformer";
-import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength, ValidateNested } from "class-validator";
+import {
+    IsBoolean,
+    IsEmail,
+    IsEnum,
+    IsOptional,
+    IsString,
+    MinLength,
+    ValidateNested,
+} from "class-validator";
 import { UpdateUserProfileDto } from "../../user-profile/dto/user.profile.dto";
 
 class UserDto {
@@ -60,6 +74,6 @@ class UserDto {
         }
     })
     @Type(() => UpdateUserProfileDto)
-    profile?: UpdateUserProfileDto
+    profile?: UpdateUserProfileDto;
 }
-export class UpdateUserDto extends IntersectionType(PartialType(UserDto)) { }
+export class UpdateUserDto extends IntersectionType(PartialType(UserDto)) {}

@@ -31,7 +31,7 @@ export class UserService {
         private readonly jwtService: JwtServices,
         private readonly otpService: OptService,
         private readonly mailService: MailService,
-    ) { }
+    ) {}
 
     async register(body: CreateUserDto) {
         // has password if provider is email
@@ -92,7 +92,7 @@ export class UserService {
         const updatedUser = await this.repository.update(input.userId, {
             isVerified: true,
         });
-        if (!updatedUser) throw new InternalServerErrorException("Failt o update user")
+        if (!updatedUser) throw new InternalServerErrorException("Failt o update user");
         // when user account verified then we will have to send create a token and send it to as response
         const accessToken = await this.jwtService.signAsync({
             sub: user.id,
@@ -114,7 +114,10 @@ export class UserService {
     async updateUser(userId: string, input: UpdateUserDto) {
         const user = await this.repository.findById(userId);
         if (!user) throw new NotFoundException("User not found!"); // not required for all the time
-        if (user.id !== userId) throw new ConflictException("Request user OR input user not matched!", { description: "So, you cant update your account!" })
+        if (user.id !== userId)
+            throw new ConflictException("Request user OR input user not matched!", {
+                description: "So, you cant update your account!",
+            });
         // if update input has password then hash it
         if (input.password) input.password = await this.utilsService.hash(input.password!);
 
@@ -253,6 +256,6 @@ export class UserService {
     }
 
     async getUserById(id: string) {
-        return await this.repository.getUserById(id)
+        return await this.repository.getUserById(id);
     }
 }

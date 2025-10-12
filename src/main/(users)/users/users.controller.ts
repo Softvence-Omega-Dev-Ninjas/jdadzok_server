@@ -22,7 +22,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-    constructor(private readonly service: UserService) { }
+    constructor(private readonly service: UserService) {}
 
     @MakePublic()
     @Post("register")
@@ -87,13 +87,11 @@ export class UserController {
     async me(@GetUser() user: TUser) {
         try {
             const result = await this.service.getUserById(user.userId);
-            return result
+            return result;
         } catch (err) {
             return err;
         }
     }
-
-
 
     @ApiBearerAuth()
     @Post("follow-user/:id")

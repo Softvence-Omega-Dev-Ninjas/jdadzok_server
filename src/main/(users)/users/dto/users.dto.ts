@@ -51,7 +51,6 @@ class UserCreate {
     @IsOptional()
     @IsEnum(CapLevel)
     capLevel?: CapLevel;
-
 }
 
 class SelectUser {
@@ -66,8 +65,8 @@ class SelectUser {
     metrics?: UpdateUserProfileMetricsDto;
 }
 
-export class CreateUserDto extends IntersectionType(UserCreate) { }
+export class CreateUserDto extends IntersectionType(UserCreate) {}
 export class SelectUserDto extends IntersectionType(
     PartialType(CreateUserDto),
     PartialType(SelectUser),
-) { }
+) {}

@@ -10,7 +10,7 @@ export class UserRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly profileRepo: UserProfileRepository,
-    ) { }
+    ) {}
 
     async store(input: CreateUserDto) {
         return await this.prisma.$transaction(async (tx) => {
@@ -120,10 +120,10 @@ export class UserRepository {
                 data: {
                     ...data,
                     profile: {
-                        update: { ...profile }
-                    }
-                }
-            })
+                        update: { ...profile },
+                    },
+                },
+            });
         }
     }
 
@@ -143,37 +143,40 @@ export class UserRepository {
                 metrics: includePrivateData,
                 posts: {
                     take: 10,
-                    orderBy: { createdAt: 'desc' },
+                    orderBy: { createdAt: "desc" },
                     include: {
                         likes: { take: 5 },
                         comments: { take: 3 },
                         _count: {
-                            select: { likes: true, comments: true, shares: true }
-                        }
-                    }
+                            select: { likes: true, comments: true, shares: true },
+                        },
+                    },
                 },
-                followers: includePrivateData ? {
-                    include: { follower: { include: { profile: true } } }
-                } : false,
-                following: includePrivateData ? {
-                    include: { following: { include: { profile: true } } }
-                } : false,
+                followers: includePrivateData
+                    ? {
+                          include: { follower: { include: { profile: true } } },
+                      }
+                    : false,
+                following: includePrivateData
+                    ? {
+                          include: { following: { include: { profile: true } } },
+                      }
+                    : false,
                 _count: {
                     select: {
                         posts: true,
                         followers: true,
                         following: true,
                         volunteerProjects: true,
-                    }
-                }
-            }
+                    },
+                },
+            },
         });
 
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException("User not found");
         }
 
-        return omit(user, ['password', 'email']);
+        return omit(user, ["password", "email"]);
     }
 }
-
