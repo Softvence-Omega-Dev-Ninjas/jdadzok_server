@@ -131,6 +131,9 @@ enum MessageStatus {
 }
 
 enum NotificationType {
+  VOLUNTEER_MATCH
+  SYSTEM
+  CAP_UPGRADE
   LIKE
   COMMENT
   FOLLOW

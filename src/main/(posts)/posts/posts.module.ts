@@ -1,3 +1,5 @@
+import { HelperFunctions } from "@app/main/(core)/feeds/functions/helper";
+import { PostsMetricsRepository } from "@app/main/(metrics)/posts-metrics/posts-metrics.repository";
 import { S3Service } from "@app/s3/s3.service";
 import { JwtServices } from "@app/services/jwt.service";
 import { FollowRepository } from "@module/(users)/follow/follow.repository";
@@ -33,6 +35,8 @@ import { PostUtils } from "./utils";
         PostGateway,
         S3Service,
         PostUtils,
+        PostsMetricsRepository,
+        HelperFunctions,
     ],
     exports: [PostRepository],
 })

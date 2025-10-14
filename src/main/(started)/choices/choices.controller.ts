@@ -27,7 +27,6 @@ export class ChoicesController {
     @Get("/user-choices")
     @UseGuards(JwtAuthGuard)
     async getUserChoices(@GetVerifiedUser() user: TUser) {
-        console.log("user: ", user);
         try {
             return await this.choicesService.getUserChoices(user.userId);
         } catch (err) {

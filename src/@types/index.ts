@@ -2,6 +2,8 @@ import { AuthProvider, CapLevel, Role } from "@constants/enums";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 
+export type MakeRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
 export type TUser = {
     userId: string;
     email: string;

@@ -10,44 +10,28 @@ services:
         container_name: ${PACKAGE_NAME}_api
         ports:
             - "${PORT}:${PORT}"
-        environment:
-            - NODE_ENV=${NODE_ENV}
-            - DATABASE_URL=${DATABASE_URL}
-            - JWT_SECRET=${JWT_SECRET}
-            - REDIS_URL=${REDIS_URL}
-            - MAIL_USER=${MAIL_USER}
-            - MAIL_PASS=${MAIL_PASS}
-            - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
-            - SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL}
-            - SUPER_ADMIN_PASS=${SUPER_ADMIN_PASS}
-            - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-            - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-            - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
-            - EMAIL=${EMAIL}
-            - BASE_URL=${BASE_URL}
-            # aws
-            - AWS_REGION=${AWS_REGION}
-            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-            - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
-
+        env_file:
+            - .env
+            - .env.production
         depends_on:
             db:
                 condition: service_healthy
             redis:
                 condition: service_healthy
-        restart: unless-stopped
-        # Enhanced health check for better zero-downtime deployment
-        healthcheck:
-            disable: true
-
-        # Add logging configuration
+        restart: always
+        command: >
+            sh -c "
+                echo '🏁 Waiting for DB...';
+                sleep 5;
+                npx prisma migrate deploy;
+                echo '🚀 Starting app...';
+                pnpm start:docker
+            "
         logging:
             driver: "json-file"
             options:
                 max-size: "10m"
                 max-file: "3"
-        # Add labels for better container management
         labels:
             - "app.name=${PACKAGE_NAME}"
             - "app.version=${PACKAGE_VERSION}"
@@ -76,8 +60,8 @@ services:
                 max-file: "3"
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "${PG_USERNAME}", "-d", "${PG_DATABASE}"]
-            interval: 30s
-            timeout: 10s
+            interval: 10s
+            timeout: 5s
             retries: 5
             start_period: 15s
     redis:
@@ -91,8 +75,6 @@ services:
             - "${REDIS_PORT}:${REDIS_PORT}"
         volumes:
             - jdadzok_redis:/data
-        # Add Redis configuration for better performance
-        command: redis-server --appendonly yes --maxmemory 1000mb --maxmemory-policy allkeys-lru
         # Add health check for Redis
         healthcheck:
             test: ["CMD", "redis-cli", "ping"]
@@ -100,21 +82,6 @@ services:
             timeout: 3s
             retries: 5
             start_period: 5s
-        # Add resource limits
-        deploy:
-            resources:
-                limits:
-                    cpus: "0.25"
-                    memory: 1000M
-                reservations:
-                    cpus: "0.1"
-                    memory: 1000M
-        # Add logging
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "5m"
-                max-file: "3"
 
     nginx:
         profiles:

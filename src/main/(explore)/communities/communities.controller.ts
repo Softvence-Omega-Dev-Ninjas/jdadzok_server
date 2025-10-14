@@ -1,6 +1,6 @@
-import { GetUser } from "@app/common/jwt/jwt.decorator";
-import { handleRequest } from "@app/common/utils/handle.request.util";
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
+import { GetUser } from "@common/jwt/jwt.decorator";
+import { handleRequest } from "@common/utils/handle.request.util";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { CommunitiesService } from "./communities.service";

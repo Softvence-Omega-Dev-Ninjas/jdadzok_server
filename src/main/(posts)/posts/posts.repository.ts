@@ -1,5 +1,7 @@
 import { HelperTx } from "@app/@types";
+import { HelperFunctions } from "@app/main/(core)/feeds/functions/helper";
 import { PrismaService } from "@lib/prisma/prisma.service";
+import { PostsMetricsRepository } from "@module/(metrics)/posts-metrics/posts-metrics.repository";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
@@ -24,6 +26,8 @@ export class PostRepository {
         private readonly metadataRepo: PostMetadataRepository,
         private readonly userRepo: UserRepository,
         // ngo & community
+        private readonly postMetricsRepository: PostsMetricsRepository,
+        private readonly helperFunctions: HelperFunctions,
     ) {}
 
     private readonly defaultInclude = {
@@ -65,10 +69,26 @@ export class PostRepository {
             const postForAuthor = await tx.post.create({
                 data: {
                     ...postData,
+                    postFrom: postData.postFrom,
                     authorId: postData.authorId!,
                     metadataId,
                 },
+                include: {
+                    author: { include: { profile: true } },
+                    category: true,
+                    community: { include: { profile: true } },
+                    ngo: { include: { profile: true } },
+                    metadata: {
+                        include: {
+                            checkIn: true,
+                            gif: true,
+                        },
+                    },
+                },
             });
+
+            // post metrics
+            await this.postMetricsRepository.create({ postId: postForAuthor.id }, tx);
 
             if (taggedUserIds && taggedUserIds.length > 0) {
                 await this.handleTaggedUsers(
@@ -78,7 +98,14 @@ export class PostRepository {
                     metadataId,
                     postForAuthor.id,
                 );
+                await this.helperFunctions.createTagNotifications(
+                    postForAuthor.id,
+                    input.authorId!,
+                    taggedUserIds,
+                );
             }
+            // Create notifications for tagged users
+            // await this.helperFunctions.createTagNotifications(post.id, authorId, data.taggedUserIds);
 
             return tx.post.findUnique({
                 where: { id: postForAuthor.id },

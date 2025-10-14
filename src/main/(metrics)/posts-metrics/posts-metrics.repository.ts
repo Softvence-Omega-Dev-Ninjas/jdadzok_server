@@ -1,3 +1,4 @@
+import { HelperTx, MakeRequired } from "@app/@types";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { CreatePostsMetricsDto, UpdatePostsMetricsDto } from "./dto/posts-metrics.dto";
@@ -6,8 +7,28 @@ import { CreatePostsMetricsDto, UpdatePostsMetricsDto } from "./dto/posts-metric
 export class PostsMetricsRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    async create(dto: CreatePostsMetricsDto) {
-        return this.prisma.postMetrics.create({ data: dto });
+    async create(dto: MakeRequired<CreatePostsMetricsDto, "postId">, tx?: HelperTx) {
+        if (tx) {
+            return await tx.postMetrics.create({
+                data: {
+                    postId: dto.postId,
+                    totalLikes: dto.totalLikes ?? 0,
+                    totalComments: dto.totalComments ?? 0,
+                    totalShares: dto.totalShares ?? 0,
+                    totalViews: dto.totalViews ?? 0,
+                },
+            });
+        } else {
+            return await this.prisma.postMetrics.create({
+                data: {
+                    postId: dto.postId,
+                    totalLikes: dto.totalLikes ?? 0,
+                    totalComments: dto.totalComments ?? 0,
+                    totalShares: dto.totalShares ?? 0,
+                    totalViews: dto.totalViews ?? 0,
+                },
+            });
+        }
     }
 
     async findByPostId(postId: string) {

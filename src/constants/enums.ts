@@ -26,6 +26,9 @@ export const paymentMethod = ["STRIPE", "PAYPAL"] as const;
 export type PaymentMethod = (typeof paymentMethod)[number];
 
 export const notificationType = [
+    "VOLUNTEER_MATCH",
+    "SYSTEM",
+    "CAP_UPGRADE",
     "LIKE",
     "COMMENT",
     "FOLLOW",

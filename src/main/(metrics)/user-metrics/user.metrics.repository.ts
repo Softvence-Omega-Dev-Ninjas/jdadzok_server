@@ -7,27 +7,36 @@ export class UserMetricsRepository {
     constructor(private readonly prisma: PrismaService) {}
 
     async findByUserId(userId: string) {
-        return this.prisma.userMetrics.findUnique({ where: { userId } });
+        return await this.prisma.userMetrics.findUnique({ where: { userId } });
     }
 
     async createDefault(userId: string) {
-        return this.prisma.userMetrics.create({
+        return await this.prisma.userMetrics.create({
             data: { userId },
         });
     }
 
     async updateMetrics(data: UpdateUserMetricsDto) {
         const { userId, ...metrics } = data;
-        return this.prisma.userMetrics.update({
+        return await this.prisma.userMetrics.update({
             where: { userId },
             data: { ...metrics, lastUpdated: new Date() },
         });
     }
 
     async updateActivityScore(userId: string, score: number) {
-        return this.prisma.userMetrics.update({
+        return await this.prisma.userMetrics.update({
             where: { userId },
             data: { activityScore: score, lastUpdated: new Date() },
+        });
+    }
+    async updateUserActivityScore(userId: string, points = 10) {
+        // 10 points for creating post
+        await this.prisma.userMetrics.update({
+            where: { userId },
+            data: {
+                activityScore: { increment: points },
+            },
         });
     }
 }
