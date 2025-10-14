@@ -24,7 +24,7 @@ services:
                 sleep 5;
                 npx prisma migrate deploy;
                 echo '🚀 Starting app...';
-                pnpm start:docker
+                npm run start:docker
             "
         logging:
             driver: "json-file"
