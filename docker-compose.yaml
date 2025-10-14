@@ -12,7 +12,6 @@ services:
             - "${PORT}:${PORT}"
         env_file:
             - .env
-            - .env.production
         depends_on:
             db:
                 condition: service_healthy
