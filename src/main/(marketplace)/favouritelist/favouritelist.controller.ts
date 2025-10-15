@@ -1,6 +1,6 @@
-import { GetUser } from "@app/common/jwt/jwt.decorator";
-import { handleRequest } from "@app/common/utils/handle.request.util";
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
+import { GetUser } from "@common/jwt/jwt.decorator";
+import { handleRequest } from "@common/utils/handle.request.util";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Controller, Delete, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { FavouritelistService } from "./favoritelist.service";
@@ -9,7 +9,7 @@ import { FavouritelistService } from "./favoritelist.service";
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class FavouritelistController {
-    constructor(private readonly service: FavouritelistService) {}
+    constructor(private readonly service: FavouritelistService) { }
 
     @Post(":productId")
     async addToFavouritelist(

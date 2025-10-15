@@ -1,10 +1,10 @@
-import { capLevel, CapLevel } from "@app/constants/enums";
+import { capLevel, CapLevel } from "@constants/enums";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class HelperFunctions {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     // Helper methods
     async updateFollowCounts(followerId: string, followingId: string, isFollow: boolean) {

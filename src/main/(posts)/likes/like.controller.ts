@@ -1,15 +1,15 @@
-import { TUser } from "@app/@types";
-import { GetUser } from "@app/common/jwt/jwt.decorator";
+import { GetUser } from "@common/jwt/jwt.decorator";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
+import { TUser } from "@type/index";
 import { CreateLikeDto } from "./dto/creaete.like.dto";
 import { LikeService } from "./like.service";
 
 @ApiBearerAuth()
 @Controller("likes")
 export class LikeController {
-    constructor(private readonly likeService: LikeService) {}
+    constructor(private readonly likeService: LikeService) { }
 
     @ApiOperation({ summary: "Like / dislike a post or comment" })
     @Post()

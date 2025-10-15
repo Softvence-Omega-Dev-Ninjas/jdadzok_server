@@ -1,10 +1,10 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto } from "./dto/privacy-policy.dto";
 
 @Injectable()
 export class PrivacyPolicyRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async find() {
         return this.prisma.privacyPolicy.findFirst();

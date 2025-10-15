@@ -1,10 +1,7 @@
-import { TUser } from "@app/@types";
-import { MailService } from "@app/lib/mail/mail.service";
-import { OptService } from "@app/lib/utils/otp.service";
-import { UtilsService } from "@app/lib/utils/utils.service";
-import { ResentOtpDto } from "@app/main/(users)/users/dto/resent-otp.dto";
-import { JwtServices } from "@app/services/jwt.service";
-import { omit } from "@app/utils";
+import { MailService } from "@lib/mail/mail.service";
+import { OptService } from "@lib/utils/otp.service";
+import { UtilsService } from "@lib/utils/utils.service";
+import { ResentOtpDto } from "@module/(users)/users/dto/resent-otp.dto";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import {
     BadRequestException,
@@ -13,6 +10,9 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from "@nestjs/common";
+import { JwtServices } from "@service/jwt.service";
+import { TUser } from "@type/index";
+import { omit } from "@utils/index";
 import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
@@ -26,7 +26,7 @@ export class AuthService {
         private readonly jwtService: JwtServices,
         private readonly mailService: MailService,
         private readonly otpService: OptService,
-    ) {}
+    ) { }
 
     async login(input: LoginDto) {
         const user = await this.userRepository.findByEmail(input.email);

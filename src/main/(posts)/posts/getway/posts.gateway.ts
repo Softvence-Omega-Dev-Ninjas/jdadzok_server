@@ -1,8 +1,7 @@
-import { GetSocketUser } from "@app/main/(sockets)/ecorators/rate-limit.decorator";
-import { safeParseAsync } from "@app/utils";
 import { PostComment, PostEvent, PostReaction, SocketUser } from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
+import { GetSocketUser } from "@module/(sockets)/ecorators/rate-limit.decorator";
 import { SocketMiddleware } from "@module/(sockets)/middleware/socket.middleware";
 import { BadGatewayException, Injectable } from "@nestjs/common";
 import {
@@ -12,6 +11,7 @@ import {
     SubscribeMessage,
     WebSocketGateway,
 } from "@nestjs/websockets";
+import { safeParseAsync } from "@utils/index";
 import { Socket } from "socket.io";
 import { CreatePostDto } from "../dto/create.post.dto";
 import { PostService } from "../posts.service";

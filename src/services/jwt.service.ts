@@ -1,5 +1,5 @@
-import { ENVEnum } from "@app/common/enum/env.enum";
-import { JWTPayload } from "@app/common/jwt/jwt.interface";
+import { ENVEnum } from "@common/enum/env.enum";
+import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService, JwtSignOptions } from "@nestjs/jwt";
@@ -9,7 +9,7 @@ export class JwtServices {
     constructor(
         private readonly service: JwtService,
         private readonly configService: ConfigService,
-    ) {}
+    ) { }
 
     public async signAsync<T extends JWTPayload>(
         payload: T,

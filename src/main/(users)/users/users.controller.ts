@@ -1,8 +1,6 @@
-import { TUser } from "@app/@types";
-import { GetUser, GetVerifiedUser, MakePublic } from "@app/common/jwt/jwt.decorator";
-import { successResponse } from "@app/common/utils/response.util";
-import { VerifyTokenDto } from "@app/main/(started)/auth/dto/verify-token.dto";
-import { omit } from "@app/utils";
+import { GetUser, GetVerifiedUser, MakePublic } from "@common/jwt/jwt.decorator";
+import { successResponse } from "@common/utils/response.util";
+import { VerifyTokenDto } from "@module/(started)/auth/dto/verify-token.dto";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
     Body,
@@ -15,6 +13,8 @@ import {
     ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
+import { TUser } from "@type/index";
+import { omit } from "@utils/index";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { UpdateUserDto } from "./dto/update.user.dto";
 import { CreateUserDto } from "./dto/users.dto";
@@ -22,7 +22,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-    constructor(private readonly service: UserService) {}
+    constructor(private readonly service: UserService) { }
 
     @MakePublic()
     @Post("register")

@@ -1,5 +1,5 @@
-import { TTL, TTLKey } from "@app/constants/ttl.constants";
 import { ENVEnum } from "@common/enum/env.enum";
+import { TTL, TTLKey } from "@constants/ttl.constants";
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
@@ -12,7 +12,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     private redisSubscriber: Redis;
     private redisPublisher: Redis;
 
-    constructor(private readonly configService: ConfigService) {}
+    constructor(private readonly configService: ConfigService) { }
 
     async onModuleInit() {
         await this.connect();

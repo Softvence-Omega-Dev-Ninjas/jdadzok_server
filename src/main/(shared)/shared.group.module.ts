@@ -1,4 +1,4 @@
-import { NotificationModule } from "@app/lib/notification/notification.module";
+import { NotificationModule } from "@lib/notification/notification.module";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -7,4 +7,4 @@ import { Module } from "@nestjs/common";
     providers: [],
     exports: [],
 })
-export class SharedGroupModule {}
+export class SharedGroupModule { }

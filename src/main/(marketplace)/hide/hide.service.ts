@@ -1,9 +1,9 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class HideService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async toggleVisibility(productId: string) {
         const product = await this.prisma.product.findUnique({

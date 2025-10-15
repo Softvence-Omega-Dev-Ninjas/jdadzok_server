@@ -1,11 +1,11 @@
-import { HelperTx } from "@app/@types";
-import { HelperFunctions } from "@app/main/(core)/feeds/functions/helper";
 import { PrismaService } from "@lib/prisma/prisma.service";
+import { HelperFunctions } from "@module/(core)/feeds/functions/helper";
 import { PostsMetricsRepository } from "@module/(metrics)/posts-metrics/posts-metrics.repository";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { AdvanceQueryBuilder } from "@service/query-builder.service";
+import { HelperTx } from "@type/index";
 import { GifRepository } from "../gif/gif.repository";
 import { LocationRepository } from "../locations/locations.repository";
 import { CreatePostMetadataDto } from "../post-metadata/dto/post.metadata.dto";
@@ -28,7 +28,7 @@ export class PostRepository {
         // ngo & community
         private readonly postMetricsRepository: PostsMetricsRepository,
         private readonly helperFunctions: HelperFunctions,
-    ) {}
+    ) { }
 
     private readonly defaultInclude = {
         metadata: {

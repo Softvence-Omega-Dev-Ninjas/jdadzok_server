@@ -1,6 +1,7 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { omit } from "@app/utils";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { HelperTx } from "@type/shared.types";
+import { omit } from "@utils/index";
 import { UserProfileRepository } from "../user-profile/user.profile.repository";
 import { UpdateUserDto } from "./dto/update.user.dto";
 import { CreateUserDto } from "./dto/users.dto";
@@ -10,10 +11,10 @@ export class UserRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly profileRepo: UserProfileRepository,
-    ) {}
+    ) { }
 
     async store(input: CreateUserDto) {
-        return await this.prisma.$transaction(async (tx) => {
+        return await this.prisma.$transaction(async (tx: HelperTx) => {
             const isUser = await tx.user.findFirst({ where: { email: input.email } });
             // if user already has && user is already verified then throw error otherwise processed
             if (isUser && isUser.isVerified) {
@@ -154,13 +155,13 @@ export class UserRepository {
                 },
                 followers: includePrivateData
                     ? {
-                          include: { follower: { include: { profile: true } } },
-                      }
+                        include: { follower: { include: { profile: true } } },
+                    }
                     : false,
                 following: includePrivateData
                     ? {
-                          include: { following: { include: { profile: true } } },
-                      }
+                        include: { following: { include: { profile: true } } },
+                    }
                     : false,
                 _count: {
                     select: {

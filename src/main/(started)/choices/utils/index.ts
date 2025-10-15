@@ -1,5 +1,5 @@
 // some utils or parseChoiceInput file
-import { slugify } from "@app/utils";
+import { slugify } from "@utils/index";
 import { CreateChoiceDto } from "../dto/choices.create.dto";
 
 export const parseChoiceInput = (userId: string, input: CreateChoiceDto[]): CreateChoiceDto[] => {

@@ -1,11 +1,11 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { slugify } from "@app/utils";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
+import { slugify } from "@utils/index";
 import { CreateNgoDto } from "./dto/ngo.dto";
 
 @Injectable()
 export class NgoRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     // create new ngo......
     async createNgo(userId: string, dto: CreateNgoDto) {

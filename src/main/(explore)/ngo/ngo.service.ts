@@ -1,4 +1,4 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import {
     BadRequestException,
     ForbiddenException,
@@ -8,7 +8,7 @@ import {
 import { CreateNgoDto, UpdateNgoDto } from "./dto/ngo.dto";
 @Injectable()
 export class NgoService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     // create new ngo......
     async createNgo(userId: string, dto: CreateNgoDto) {

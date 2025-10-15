@@ -12,8 +12,6 @@ import { SharedGroupModule } from "./(shared)/shared.group.module";
 import { SocketsGroupModule } from "./(sockets)/sockets.group.module";
 import { StartedGroupModule } from "./(started)/started.group.module";
 import { UserGroupModule } from "./(users)/users.group.module";
-import { VolunteerModule } from "./volunteer/volunteer.module";
-import { CommunityModule } from "./community/community.module";
 
 @Global()
 @Module({
@@ -31,8 +29,6 @@ import { CommunityModule } from "./community/community.module";
         BuillQueueModule,
         PublicGroupModule,
         MetricsGroupModule,
-        VolunteerModule,
-        CommunityModule,
     ],
     controllers: [],
     providers: [],

@@ -1,9 +1,9 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class FavouritelistService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
     // add wishlist...
 
     async addToFavouritelist(userId: string, productId: string) {

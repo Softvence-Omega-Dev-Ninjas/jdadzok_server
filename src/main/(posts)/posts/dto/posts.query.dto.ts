@@ -1,4 +1,4 @@
-import { PaginationDto } from "@app/global/dto/pagination";
+import { PaginationDto } from "@global/dto/pagination";
 import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsBoolean, IsOptional } from "class-validator";
@@ -19,4 +19,4 @@ class PostQueryDataTransferObject {
 
 export class PostQueryDto extends PartialType(
     IntersectionType(PaginationDto, PostQueryDataTransferObject),
-) {}
+) { }

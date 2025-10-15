@@ -1,9 +1,9 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class CommunityMemberService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     // async addMember(communityId: string, userId: string) {
     //   const isMemberExist = await this.prisma.communitiesMembership.findFirst({

@@ -1,9 +1,9 @@
 // import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 // import { Injectable } from "@nestjs/common";
 // import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from "@nestjs/websockets";
-// import { marketplaceEvent } from "@app/main/(sockets)/@types";
-// import { SOCKET_EVENTS } from "@app/main/(sockets)/constants/socket-events.constant";
-// import { JwtServices } from "@app/services/jwt.service";
+// import { marketplaceEvent } from "@module/(sockets)/@types";
+// import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
+// import { JwtServices } from "@service/jwt.service";
 // import { Socket } from "socket.io";
 // import { ProductService } from "../product.service";
 
@@ -36,9 +36,9 @@
 //     }
 // }
 
-import { marketplaceEvent } from "@app/main/(sockets)/@types";
-import { SOCKET_EVENTS } from "@app/main/(sockets)/constants/socket-events.constant";
+import { marketplaceEvent } from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
+import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
 import {
     ConnectedSocket,
     MessageBody,

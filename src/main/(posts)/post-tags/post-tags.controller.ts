@@ -1,4 +1,4 @@
-import { successResponse } from "@app/common/utils/response.util";
+import { successResponse } from "@common/utils/response.util";
 import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { CreatePostTagUserDto, UpdatePostTagUserDto } from "./dto/post-tags.create.dto";
@@ -7,7 +7,7 @@ import { PostTagsService } from "./post-tags.service";
 @ApiBearerAuth()
 @Controller("post-tags")
 export class PostTagsController {
-    constructor(private readonly service: PostTagsService) {}
+    constructor(private readonly service: PostTagsService) { }
 
     @Post()
     async store(@Body() body: CreatePostTagUserDto[]) {

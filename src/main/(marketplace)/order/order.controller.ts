@@ -1,6 +1,6 @@
-import { GetUser } from "@app/common/jwt/jwt.decorator";
-import { handleRequest } from "@app/common/utils/handle.request.util";
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
+import { GetUser } from "@common/jwt/jwt.decorator";
+import { handleRequest } from "@common/utils/handle.request.util";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { CreateOrderDto } from "./dto/order.dto";
@@ -10,7 +10,7 @@ import { OrderService } from "./order.service";
 @UseGuards(JwtAuthGuard)
 @Controller("orders")
 export class OrderController {
-    constructor(private readonly service: OrderService) {}
+    constructor(private readonly service: OrderService) { }
 
     @Post("/")
     @ApiOperation({ summary: "Added new order" })

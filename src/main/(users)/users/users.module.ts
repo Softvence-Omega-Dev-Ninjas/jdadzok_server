@@ -1,10 +1,10 @@
-import { MailService } from "@app/lib/mail/mail.service";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { OptService } from "@app/lib/utils/otp.service";
-import { JwtServices } from "@app/services/jwt.service";
+import { MailService } from "@lib/mail/mail.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { OptService } from "@lib/utils/otp.service";
 import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { JwtServices } from "@service/jwt.service";
 import { UserProfileModule } from "../user-profile/user.profile.module";
 import { UserProfileRepository } from "../user-profile/user.profile.repository";
 import { UserController } from "./users.controller";
@@ -28,4 +28,4 @@ import { UserService } from "./users.service";
     ],
     exports: [UserRepository, UserService],
 })
-export class UserModule {}
+export class UserModule { }

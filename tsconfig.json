@@ -13,8 +13,8 @@
         "outDir": "./dist",
         "baseUrl": "./",
         "paths": {
+            "@type/*": ["src/@types/*"],
             "@metadata/*": ["src/app-metadata/*"],
-            "@app/*": ["src/*"],
             "@common/*": ["src/common/*"],
             "@configs/*": ["src/configs/*"],
             "@constants/*": ["src/constants/*"],
@@ -23,7 +23,8 @@
             "@module/*": ["src/main/*"],
             "@scripts/*": ["src/scripts/*"],
             "@service/*": ["src/services/*"],
-            "@utils/*": ["src/utils/*"]
+            "@utils/*": ["src/utils/*"],
+            "@s3/*": ["src/s3/*"]
         },
         "incremental": true,
         "skipLibCheck": true,

@@ -1,4 +1,4 @@
-import { UtilsService } from "@app/lib/utils/utils.service";
+import { UtilsService } from "@lib/utils/utils.service";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
@@ -7,7 +7,7 @@ export class AuthRepository {
     constructor(
         private readonly userRepository: UserRepository,
         private readonly utilityService: UtilsService,
-    ) {}
+    ) { }
 
     async validateUserWithPassword(email: string, password: string) {
         const user = await this.userRepository.findByEmail(email);

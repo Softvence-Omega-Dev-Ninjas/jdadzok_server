@@ -1,4 +1,3 @@
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import {
     ActivityLeaderboardDto,
     ActivityScoreWeightsDto,
@@ -10,6 +9,7 @@ import {
     UserActivityAnalyticsDto,
     UserMetricsResponseDto,
 } from "@module/(core)/cap-level/dto/user-metrics.dto";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { UserMetricsService } from "@module/(users)/profile-metrics/user-metrics.service";
 import {
     Body,
@@ -42,7 +42,7 @@ import {
 @Controller("user-metrics")
 @UseGuards(JwtAuthGuard)
 export class UserMetricsController {
-    constructor(private readonly userMetricsService: UserMetricsService) {}
+    constructor(private readonly userMetricsService: UserMetricsService) { }
 
     /**
      * Get user metrics by user ID

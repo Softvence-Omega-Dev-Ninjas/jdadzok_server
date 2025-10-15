@@ -1,6 +1,5 @@
-import { TUser } from "@app/@types";
-import { successResponse } from "@app/common/utils/response.util";
 import { GetUser } from "@common/jwt/jwt.decorator";
+import { successResponse } from "@common/utils/response.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
     Body,
@@ -23,6 +22,7 @@ import {
     ApiResponse,
     ApiTags,
 } from "@nestjs/swagger";
+import { TUser } from "@type/index";
 import {
     CreatePaymentMethodDto,
     PaymentMethodQueryDto,
@@ -36,7 +36,7 @@ import { PaymentMethodService } from "./payment-method.service";
 @Controller("payment-methods")
 @UseGuards(JwtAuthGuard)
 export class PaymentMethodController {
-    constructor(private readonly paymentMethodService: PaymentMethodService) {}
+    constructor(private readonly paymentMethodService: PaymentMethodService) { }
 
     @Post()
     @ApiOperation({ summary: "Create a new payment method" })

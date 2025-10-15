@@ -1,4 +1,4 @@
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth"; // Adjust path
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth"; // Adjust path
 import { Body, Controller, Get, Put, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AboutUsService } from "./about-us.service";
@@ -7,7 +7,7 @@ import { UpdateAboutUsDto } from "./dto/about-us.dto";
 @ApiTags("about-us")
 @Controller("about-us")
 export class AboutUsController {
-    constructor(private readonly aboutUsService: AboutUsService) {}
+    constructor(private readonly aboutUsService: AboutUsService) { }
 
     @Get()
     @ApiOperation({ summary: "Get the About Us information (public)" })

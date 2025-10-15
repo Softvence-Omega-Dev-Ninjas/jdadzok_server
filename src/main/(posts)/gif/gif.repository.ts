@@ -1,10 +1,10 @@
-import { HelperTx } from "@app/@types";
 import { Injectable } from "@nestjs/common";
+import { HelperTx } from "@type/index";
 import { CreateGifDto } from "./dto/create.gif.dto";
 
 @Injectable()
 export class GifRepository {
-    constructor() {}
+    constructor() { }
 
     async txStore(tx: HelperTx, data: CreateGifDto) {
         const gif = await tx.gif.findFirst({

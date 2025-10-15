@@ -1,7 +1,7 @@
-import { SocketMiddleware } from "@app/main/(sockets)/middleware/socket.middleware";
 import { SocketUser } from "@module/(sockets)/@types";
 import { BaseSocketGateway } from "@module/(sockets)/base/abstract-socket.gateway";
 import { GetSocketUser } from "@module/(sockets)/ecorators/rate-limit.decorator";
+import { SocketMiddleware } from "@module/(sockets)/middleware/socket.middleware";
 import { BadGatewayException } from "@nestjs/common";
 import { MessageBody, SubscribeMessage, WebSocketGateway } from "@nestjs/websockets";
 import { CreateLikeDto, UpdateLikeDto } from "../dto/creaete.like.dto";

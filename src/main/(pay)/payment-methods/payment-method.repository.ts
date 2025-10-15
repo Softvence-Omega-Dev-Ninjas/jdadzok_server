@@ -1,4 +1,4 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import {
@@ -9,7 +9,7 @@ import {
 
 @Injectable()
 export class PaymentMethodRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async create(userId: string, data: CreatePaymentMethodDto) {
         // If this is being set as default, unset other default payment methods for this user

@@ -1,8 +1,5 @@
-import { TUser } from "@app/@types";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { JwtServices } from "@app/services/jwt.service";
-import { omit } from "@app/utils";
 import { Role } from "@constants/enums";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { RolesGuard } from "@module/(started)/auth/guards/role.guard";
 import {
@@ -16,6 +13,9 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
+import { JwtServices } from "@service/jwt.service";
+import { TUser } from "@type/index";
+import { omit } from "@utils/index";
 import { cookieHandler } from "./cookie.handler";
 import { RequestWithUser } from "./jwt.interface";
 

@@ -1,4 +1,4 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { UserEnum } from "../enum/user.enum";
@@ -10,7 +10,7 @@ export class RolesGuard implements CanActivate {
     constructor(
         private reflector: Reflector,
         private prisma: PrismaService,
-    ) {}
+    ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const requiredRoles = this.reflector.getAllAndOverride<UserEnum[]>(ROLES_KEY, [

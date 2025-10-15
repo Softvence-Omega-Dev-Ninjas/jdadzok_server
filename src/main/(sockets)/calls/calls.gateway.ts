@@ -1,6 +1,6 @@
-import { GetSocketUser } from "@app/main/(sockets)/ecorators/rate-limit.decorator";
-import { SocketMiddleware } from "@app/main/(sockets)/middleware/socket.middleware";
 import { SocketUser } from "@module/(sockets)/@types";
+import { GetSocketUser } from "@module/(sockets)/ecorators/rate-limit.decorator";
+import { SocketMiddleware } from "@module/(sockets)/middleware/socket.middleware";
 import { BadRequestException, UsePipes, ValidationPipe } from "@nestjs/common";
 import {
     ConnectedSocket,

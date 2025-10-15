@@ -1,11 +1,11 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { Call, CallStatus, CallType } from "@prisma/client";
 import { CreateCallDto } from "./dto/create-calls.dto";
 
 @Injectable()
 export class CallsService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async createCall(fromId: string, payload: CreateCallDto): Promise<Call> {
         try {

@@ -1,4 +1,4 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import {
     BadRequestException,
     ForbiddenException,
@@ -10,7 +10,7 @@ import { ProductQueryDto } from "./dto/product.query.dto";
 
 @Injectable()
 export class ProductService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
     // create product new product
     async create(userId: string, dto: CreateProductDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });

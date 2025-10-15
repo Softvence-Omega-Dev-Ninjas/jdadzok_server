@@ -1,5 +1,5 @@
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import { CapLevel } from "@constants/enums";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Controller, Get, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
 import {
     ApiBearerAuth,
@@ -16,7 +16,7 @@ import { CapLevelService } from "./cap-lavel.service";
 @Controller("cap-level")
 @UseGuards(JwtAuthGuard)
 export class CapLevelController {
-    constructor(private readonly service: CapLevelService) {}
+    constructor(private readonly service: CapLevelService) { }
 
     @ApiOperation({ summary: "Get all cap level requirements" })
     @Get("requirements")

@@ -1,11 +1,11 @@
-import { successResponse } from "@app/common/utils/response.util";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { successResponse } from "@common/utils/response.util";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { CreateLikeDto } from "./dto/creaete.like.dto";
 
 @Injectable()
 export class LikeRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async alreadyLiked(userId: string, postId?: string, commentId?: string) {
         return await this.prisma.like.findFirst({

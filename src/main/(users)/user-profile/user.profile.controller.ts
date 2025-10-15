@@ -1,16 +1,16 @@
-import { TUser } from "@app/@types";
-import { successResponse } from "@app/common/utils/response.util";
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import { GetUser } from "@common/jwt/jwt.decorator";
+import { successResponse } from "@common/utils/response.util";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Get, Put, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
+import { TUser } from "@type/index";
 import { UpdateUserProfileDto } from "./dto/user.profile.dto";
 import { UserProfileService } from "./user.profile.service";
 
 @ApiBearerAuth()
 @Controller("user-profile")
 export class UserProfileController {
-    constructor(private readonly profileService: UserProfileService) {}
+    constructor(private readonly profileService: UserProfileService) { }
 
     @Get()
     @UsePipes(ValidationPipe)

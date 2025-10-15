@@ -1,11 +1,9 @@
-import { TUser } from "@app/@types";
-import { MailService } from "@app/lib/mail/mail.service";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { OptService } from "@app/lib/utils/otp.service";
-import { UtilsService } from "@app/lib/utils/utils.service";
-import { QUEUE_JOB_NAME } from "@app/main/(buill-queue)/constants";
-import { VerifyTokenDto } from "@app/main/(started)/auth/dto/verify-token.dto";
-import { JwtServices } from "@app/services/jwt.service";
+import { MailService } from "@lib/mail/mail.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { OptService } from "@lib/utils/otp.service";
+import { UtilsService } from "@lib/utils/utils.service";
+import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
+import { VerifyTokenDto } from "@module/(started)/auth/dto/verify-token.dto";
 import { InjectQueue } from "@nestjs/bullmq";
 import {
     BadRequestException,
@@ -14,6 +12,8 @@ import {
     InternalServerErrorException,
     NotFoundException,
 } from "@nestjs/common";
+import { JwtServices } from "@service/jwt.service";
+import { TUser } from "@type/index";
 import { omit } from "@utils/index";
 import { Queue } from "bullmq";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
@@ -31,7 +31,7 @@ export class UserService {
         private readonly jwtService: JwtServices,
         private readonly otpService: OptService,
         private readonly mailService: MailService,
-    ) {}
+    ) { }
 
     async register(body: CreateUserDto) {
         // has password if provider is email

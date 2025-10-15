@@ -1,77 +1,43 @@
-import { BadGatewayException, Injectable, Logger } from "@nestjs/common";
+// import { AuthValidatorService } from "@global/auth-validator/auth-validator.service";
+import { Injectable, Logger } from "@nestjs/common";
 import { Socket } from "socket.io";
-import { SocketAuthGuard } from "../guards/socket-auth.guard";
 
 @Injectable()
 export class SocketMiddleware {
     private readonly logger = new Logger(SocketMiddleware.name);
 
-    // Authentication middleware
+    // constructor(private readonly authValidator: AuthValidatorService) { }
+
     authenticate() {
         return async (socket: Socket, next: (err?: any) => void) => {
-            try {
-                const user = await SocketAuthGuard.validateToken(socket);
-                socket.data.user = user;
-                if (!user)
-                    throw new BadGatewayException(
-                        "To join the socket server user must need to be login!",
-                    );
-                socket.join(user.id);
-                this.logger.log(`Socket ${socket.id} authenticated successfully`);
-                next();
-            } catch (error) {
-                this.logger.error(
-                    `Authentication failed for socket ${socket.id}: ${error.message}`,
-                );
-                next(new BadGatewayException("Authentication error"));
-            }
+            // try {
+            //     const user = await this.authValidator.validateSocketToken(socket);
+            //     socket.data.user = user;
+            //     socket.join(user.id);
+
+            //     this.logger.log(`✅ Socket ${socket.id} authenticated as user ${user.id}`);
+            //     next();
+            // } catch (error) {
+            //     this.logger.error(`❌ Auth failed for socket ${socket.id}: ${error.message}`);
+            //     next(new Error("Socket authentication failed"));
+            // }
+            next();
         };
     }
 
-    // Rate limiting middleware
-    // rateLimit(windowMs = 1000, maxRequests = 10) {
-    //   const requests = new Map<string, number[]>();
+    logging() {
+        return (socket: Socket, next: (err?: any) => void) => {
+            const ip = socket.handshake.address || "unknown";
+            const ua = socket.handshake.headers["user-agent"] || "unknown";
 
-    //   return (socket: Socket, next: (err?: any) => void) => {
-    //     const clientId = SocketUtils.getClientIP(socket);
-    //     const now = Date.now();
+            this.logger.log(`📡 New connection ${socket.id} from IP ${ip}`);
+            this.logger.debug(`🧭 User-Agent: ${ua}`);
 
-    //     if (!requests.has(clientId)) {
-    //       requests.set(clientId, []);
-    //     }
+            socket.on("disconnect", (reason) => {
+                this.logger.log(`🔌 Disconnected: ${socket.id}, Reason: ${reason}`);
+            });
 
-    //     const clientRequests = requests.get(clientId)!;
-
-    //     // Remove old requests outside the window
-    //     const validRequests = clientRequests.filter(
-    //       (time) => now - time < windowMs,
-    //     );
-
-    //     if (validRequests.length >= maxRequests) {
-    //       return next(new Error("Rate limit exceeded"));
-    //     }
-
-    //     validRequests.push(now);
-    //     requests.set(clientId, validRequests);
-
-    //     next();
-    //   };
-    // }
-
-    // // Logging middleware
-    // logging() {
-    //   return (socket: Socket, next: (err?: any) => void) => {
-    //     const ip = SocketUtils.getClientIP(socket);
-    //     const userAgent = SocketUtils.getUserAgent(socket);
-
-    //     this.logger.log(`New socket connection: ${socket.id} from ${ip}`);
-    //     this.logger.debug(`User Agent: ${userAgent}`);
-
-    //     socket.on("disconnect", (reason) => {
-    //       this.logger.log(`Socket ${socket.id} disconnected: ${reason}`);
-    //     });
-
-    //     next();
-    //   };
-    // }
+            next();
+        };
+    }
 }

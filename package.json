@@ -1,7 +1,7 @@
 {
     "name": "jdadzok_server",
     "displayName": "JdadZok Server",
-    "version": "1.5.4",
+    "version": "1.5.5",
     "description": "This is backend for jdadzok social media application",
     "author": "Vision 360",
     "private": true,
@@ -65,6 +65,7 @@
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.2",
         "cloudinary": "^2.7.0",
+        "cookie": "^1.0.2",
         "cookie-parser": "^1.4.7",
         "dayjs": "^1.11.13",
         "dev-unique-id": "^1.1.5",

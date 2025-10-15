@@ -1,11 +1,11 @@
-import { handleRequest } from "@app/common/utils/handle.request.util";
+import { handleRequest } from "@common/utils/handle.request.util";
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { CreateProductCategoryDto } from "./dto/create-product-category.dto";
 import { ProductCategoryService } from "./product-category.service";
 
 @Controller("product-category")
 export class ProductCategoryController {
-    constructor(private readonly service: ProductCategoryService) {}
+    constructor(private readonly service: ProductCategoryService) { }
 
     @Post("")
     async create(@Body() dto: CreateProductCategoryDto) {

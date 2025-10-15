@@ -1,15 +1,15 @@
-import { TUser } from "@app/@types";
-import { successResponse } from "@app/common/utils/response.util";
 import { GetUser, GetVerifiedUser, MakePublic } from "@common/jwt/jwt.decorator";
+import { successResponse } from "@common/utils/response.util";
 import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
+import { TUser } from "@type/index";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth";
 import { CreateUserChoiceDto } from "../user-choice/dto/user-choice.dto";
 import { ChoicesService } from "./choices.service";
 
 @Controller("choices")
 export class ChoicesController {
-    constructor(private readonly choicesService: ChoicesService) {}
+    constructor(private readonly choicesService: ChoicesService) { }
 
     @ApiBearerAuth()
     @Post()

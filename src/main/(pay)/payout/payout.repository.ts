@@ -1,11 +1,11 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { Payout, PayOutStatus, Prisma } from "@prisma/client";
 import { CreatePayoutDto, PayoutQueryDto, PayoutStatsDto, UpdatePayoutDto } from "./dto/payout.dto";
 
 @Injectable()
 export class PayoutRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async create(userId: string, data: CreatePayoutDto): Promise<Payout> {
         return this.prisma.payout.create({

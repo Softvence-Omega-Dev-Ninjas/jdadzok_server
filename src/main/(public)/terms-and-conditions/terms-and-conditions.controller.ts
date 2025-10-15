@@ -1,4 +1,4 @@
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Get, Put, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { UpdateTermsAndConditionsDto } from "./dto/terms-and-conditions.dto";
@@ -7,7 +7,7 @@ import { TermsAndConditionsService } from "./terms-and-conditions.service";
 @ApiTags("terms-and-conditions")
 @Controller("terms-and-conditions")
 export class TermsAndConditionsController {
-    constructor(private readonly termsService: TermsAndConditionsService) {}
+    constructor(private readonly termsService: TermsAndConditionsService) { }
 
     @Get()
     @ApiOperation({ summary: "Get Terms and Conditions (public)" })

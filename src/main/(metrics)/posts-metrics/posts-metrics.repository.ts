@@ -1,11 +1,11 @@
-import { HelperTx, MakeRequired } from "@app/@types";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
+import { HelperTx, MakeRequired } from "@type/index";
 import { CreatePostsMetricsDto, UpdatePostsMetricsDto } from "./dto/posts-metrics.dto";
 
 @Injectable()
 export class PostsMetricsRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async create(dto: MakeRequired<CreatePostsMetricsDto, "postId">, tx?: HelperTx) {
         if (tx) {

@@ -1,11 +1,11 @@
-import { HelperTx } from "@app/@types";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { HelperTx } from "@type/index";
 import { CreateUserProfileDto } from "./dto/user.profile.dto";
 
 @Injectable()
 export class UserProfileRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async create(userId: string, input: CreateUserProfileDto, tx: HelperTx) {
         const user = await tx.user.findFirst({

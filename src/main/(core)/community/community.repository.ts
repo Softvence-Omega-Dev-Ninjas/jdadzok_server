@@ -1,11 +1,11 @@
-import { CommunityRole, CommunityType } from "@app/constants/enums";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { CommunityRole, CommunityType } from "@constants/enums";
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { CreateCommunityDto } from "@module/(explore)/communities/dto/communities.dto";
 import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
-import { CreateCommunityDto } from "../(explore)/communities/dto/communities.dto";
 
 @Injectable()
 export class CommunityRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     /**
      * Create a new community

@@ -1,8 +1,8 @@
-import { ENVEnum } from "@app/common/enum/env.enum";
-import { UserEnum } from "@app/common/enum/user.enum";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { UtilsService } from "@app/lib/utils/utils.service";
+import { ENVEnum } from "@common/enum/env.enum";
+import { UserEnum } from "@common/enum/user.enum";
 import { faker } from "@faker-js/faker";
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { UtilsService } from "@lib/utils/utils.service";
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import chalk from "chalk";
