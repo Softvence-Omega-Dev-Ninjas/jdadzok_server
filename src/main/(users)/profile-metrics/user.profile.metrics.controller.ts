@@ -9,7 +9,7 @@ import { UserProfileMetricsService } from "./user.profile.metrics.service";
 @ApiBearerAuth()
 @Controller("user-profile-metrics")
 export class UserProfileMetricsController {
-    constructor(private readonly profileService: UserProfileMetricsService) { }
+    constructor(private readonly profileService: UserProfileMetricsService) {}
     @Post()
     async createMetrics(@GetUser() user: TUser, @Body() body: CreateUserProfileMetricsDto) {
         try {

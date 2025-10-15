@@ -42,7 +42,7 @@ import {
 @Controller("user-metrics")
 @UseGuards(JwtAuthGuard)
 export class UserMetricsController {
-    constructor(private readonly userMetricsService: UserMetricsService) { }
+    constructor(private readonly userMetricsService: UserMetricsService) {}
 
     /**
      * Get user metrics by user ID

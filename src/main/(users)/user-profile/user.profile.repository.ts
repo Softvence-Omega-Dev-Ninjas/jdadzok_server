@@ -5,7 +5,7 @@ import { CreateUserProfileDto } from "./dto/user.profile.dto";
 
 @Injectable()
 export class UserProfileRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(userId: string, input: CreateUserProfileDto, tx: HelperTx) {
         const user = await tx.user.findFirst({

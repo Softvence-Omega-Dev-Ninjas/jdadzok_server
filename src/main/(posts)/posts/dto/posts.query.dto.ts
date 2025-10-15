@@ -19,4 +19,4 @@ class PostQueryDataTransferObject {
 
 export class PostQueryDto extends PartialType(
     IntersectionType(PaginationDto, PostQueryDataTransferObject),
-) { }
+) {}

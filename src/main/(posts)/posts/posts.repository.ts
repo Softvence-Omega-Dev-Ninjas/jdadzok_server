@@ -28,7 +28,7 @@ export class PostRepository {
         // ngo & community
         private readonly postMetricsRepository: PostsMetricsRepository,
         private readonly helperFunctions: HelperFunctions,
-    ) { }
+    ) {}
 
     private readonly defaultInclude = {
         metadata: {

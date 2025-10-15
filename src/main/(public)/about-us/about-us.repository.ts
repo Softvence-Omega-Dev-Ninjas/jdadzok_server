@@ -4,7 +4,7 @@ import { CreateAboutUsDto, UpdateAboutUsDto } from "./dto/about-us.dto";
 
 @Injectable()
 export class AboutUsRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async find() {
         // Returns the first record, or null if none

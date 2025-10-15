@@ -38,7 +38,7 @@ import { PayoutService } from "./payout.service";
 @Controller("payouts")
 @UseGuards(JwtAuthGuard)
 export class PayoutController {
-    constructor(private readonly payoutService: PayoutService) { }
+    constructor(private readonly payoutService: PayoutService) {}
 
     @Post()
     @ApiOperation({ summary: "Create a new payout request" })

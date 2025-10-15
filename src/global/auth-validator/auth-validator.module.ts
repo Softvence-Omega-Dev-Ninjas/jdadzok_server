@@ -9,4 +9,4 @@ import { AuthValidatorService } from "./auth-validator.service";
     providers: [AuthValidatorService, JwtService, JwtServices, UserRepository],
     exports: [AuthValidatorService],
 })
-export class AuthValidatorModule { }
+export class AuthValidatorModule {}

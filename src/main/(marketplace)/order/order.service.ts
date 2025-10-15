@@ -11,7 +11,7 @@ import { CreateOrderDto } from "./dto/order.dto";
 
 @Injectable()
 export class OrderService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     // added new order.
     async add(userId: string, dto: CreateOrderDto) {

@@ -7,7 +7,7 @@ import {
 
 @Injectable()
 export class TermsAndConditionsRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async find() {
         return this.prisma.termsAndConditions.findFirst();

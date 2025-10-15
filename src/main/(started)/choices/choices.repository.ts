@@ -10,7 +10,7 @@ export class ChoicesRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly userChoiceRepository: UserChoiceRepository,
-    ) { }
+    ) {}
 
     /**
      * Find a choice by its slug

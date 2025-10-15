@@ -5,7 +5,7 @@ import { CreatePostTagUserDto, UpdatePostTagUserDto } from "./dto/post-tags.crea
 
 @Injectable()
 export class PostTagsRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async txStore(tx: HelperTx, data: CreatePostTagUserDto[]) {
         return await tx.postTagUser.createMany({ data, skipDuplicates: true });

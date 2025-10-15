@@ -4,7 +4,7 @@ import { HideService } from "./hide.service";
 
 @Controller("hide")
 export class HideController {
-    constructor(private readonly service: HideService) { }
+    constructor(private readonly service: HideService) {}
 
     //  Toggle product visibility..
     @Patch(":productId/toggle")

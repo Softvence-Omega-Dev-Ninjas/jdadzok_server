@@ -19,7 +19,7 @@ import { CreateCommentDto } from "./dto/create.comment.dto";
 @ApiTags("comments")
 @Controller("comments")
 export class CommentController {
-    constructor(private readonly commentService: CommentService) { }
+    constructor(private readonly commentService: CommentService) {}
 
     @ApiOperation({ summary: "Create a comment" })
     @Post()

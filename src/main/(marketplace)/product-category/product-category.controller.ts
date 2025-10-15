@@ -5,7 +5,7 @@ import { ProductCategoryService } from "./product-category.service";
 
 @Controller("product-category")
 export class ProductCategoryController {
-    constructor(private readonly service: ProductCategoryService) { }
+    constructor(private readonly service: ProductCategoryService) {}
 
     @Post("")
     async create(@Body() dto: CreateProductCategoryDto) {

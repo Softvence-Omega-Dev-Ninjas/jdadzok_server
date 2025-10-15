@@ -5,7 +5,7 @@ import { CreateCallDto } from "./dto/create-calls.dto";
 
 @Injectable()
 export class CallsService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async createCall(fromId: string, payload: CreateCallDto): Promise<Call> {
         try {

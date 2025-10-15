@@ -10,7 +10,7 @@ export class RolesGuard implements CanActivate {
     constructor(
         private reflector: Reflector,
         private prisma: PrismaService,
-    ) { }
+    ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const requiredRoles = this.reflector.getAllAndOverride<UserEnum[]>(ROLES_KEY, [

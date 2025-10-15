@@ -3,7 +3,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 
 @Injectable()
 export class FavouritelistService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
     // add wishlist...
 
     async addToFavouritelist(userId: string, productId: string) {

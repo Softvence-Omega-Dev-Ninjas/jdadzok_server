@@ -5,7 +5,7 @@ import { CreatePayoutDto, PayoutQueryDto, PayoutStatsDto, UpdatePayoutDto } from
 
 @Injectable()
 export class PayoutRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(userId: string, data: CreatePayoutDto): Promise<Payout> {
         return this.prisma.payout.create({

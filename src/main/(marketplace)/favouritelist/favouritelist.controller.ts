@@ -9,7 +9,7 @@ import { FavouritelistService } from "./favoritelist.service";
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class FavouritelistController {
-    constructor(private readonly service: FavouritelistService) { }
+    constructor(private readonly service: FavouritelistService) {}
 
     @Post(":productId")
     async addToFavouritelist(

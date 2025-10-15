@@ -10,7 +10,7 @@ import { NgoService } from "./ngo.service";
 @UseGuards(JwtAuthGuard)
 @Controller("ngos")
 export class NgoController {
-    constructor(private readonly service: NgoService) { }
+    constructor(private readonly service: NgoService) {}
     // create new ngo.....
     @Post("/")
     @ApiOperation({ summary: "Create new ngo" })

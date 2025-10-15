@@ -7,7 +7,7 @@ import { UpdateAboutUsDto } from "./dto/about-us.dto";
 @ApiTags("about-us")
 @Controller("about-us")
 export class AboutUsController {
-    constructor(private readonly aboutUsService: AboutUsService) { }
+    constructor(private readonly aboutUsService: AboutUsService) {}
 
     @Get()
     @ApiOperation({ summary: "Get the About Us information (public)" })

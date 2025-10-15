@@ -5,7 +5,7 @@ import { CreateProductCategoryDto } from "./dto/create-product-category.dto";
 
 @Injectable()
 export class ProductCategoryService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(dto: CreateProductCategoryDto) {
         const uniSlug = slugify(dto.name);

@@ -36,7 +36,7 @@ import { PaymentMethodService } from "./payment-method.service";
 @Controller("payment-methods")
 @UseGuards(JwtAuthGuard)
 export class PaymentMethodController {
-    constructor(private readonly paymentMethodService: PaymentMethodService) { }
+    constructor(private readonly paymentMethodService: PaymentMethodService) {}
 
     @Post()
     @ApiOperation({ summary: "Create a new payment method" })

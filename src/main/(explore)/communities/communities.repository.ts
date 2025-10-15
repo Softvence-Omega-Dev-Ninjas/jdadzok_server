@@ -4,7 +4,7 @@ import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
 
 @Injectable()
 export class CommunitiesService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     // create new community......
     async createCommunity(userId: string, dto: CreateCommunityDto) {

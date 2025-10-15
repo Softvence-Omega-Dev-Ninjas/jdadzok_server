@@ -5,7 +5,7 @@ import { CreateNgoDto } from "./dto/ngo.dto";
 
 @Injectable()
 export class NgoRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     // create new ngo......
     async createNgo(userId: string, dto: CreateNgoDto) {

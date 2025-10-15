@@ -5,7 +5,7 @@ import { CreateLikeDto } from "./dto/creaete.like.dto";
 
 @Injectable()
 export class LikeRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async alreadyLiked(userId: string, postId?: string, commentId?: string) {
         return await this.prisma.like.findFirst({

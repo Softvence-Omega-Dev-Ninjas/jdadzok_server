@@ -7,7 +7,7 @@ import { PrivacyPolicyService } from "./privacy-policy.service";
 @ApiTags("privacy-policy")
 @Controller("privacy-policy")
 export class PrivacyPolicyController {
-    constructor(private readonly privacyPolicyService: PrivacyPolicyService) { }
+    constructor(private readonly privacyPolicyService: PrivacyPolicyService) {}
 
     @Get()
     @ApiOperation({ summary: "Get the Privacy Policy (public)" })

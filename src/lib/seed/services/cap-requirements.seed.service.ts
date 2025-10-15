@@ -17,7 +17,7 @@ interface CapLevelConfig {
 
 @Injectable()
 export class CapRequirementsSeedService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     private readonly capLevelConfigs: CapLevelConfig[] = [
         {

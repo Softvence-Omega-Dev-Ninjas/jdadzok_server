@@ -9,7 +9,7 @@ export class JwtServices {
     constructor(
         private readonly service: JwtService,
         private readonly configService: ConfigService,
-    ) { }
+    ) {}
 
     public async signAsync<T extends JWTPayload>(
         payload: T,

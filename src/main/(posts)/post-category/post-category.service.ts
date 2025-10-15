@@ -5,7 +5,7 @@ import { PostCategoryRepository } from "./post-category.repository";
 
 @Injectable()
 export class PostCategoryService {
-    constructor(private readonly repository: PostCategoryRepository) { }
+    constructor(private readonly repository: PostCategoryRepository) {}
 
     async create(input: CreatePostCategoryDto) {
         // generate slug from the name

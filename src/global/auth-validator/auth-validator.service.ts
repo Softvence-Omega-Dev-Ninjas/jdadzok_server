@@ -9,7 +9,7 @@ export class AuthValidatorService {
     constructor(
         private readonly jwtService: JwtServices,
         private readonly userRepo: UserRepository,
-    ) { }
+    ) {}
 
     async validateSocketToken(socket: Socket) {
         const rawCookie = socket.handshake.headers.cookie;

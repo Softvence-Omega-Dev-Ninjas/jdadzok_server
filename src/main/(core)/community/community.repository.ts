@@ -5,7 +5,7 @@ import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/com
 
 @Injectable()
 export class CommunityRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     /**
      * Create a new community

@@ -4,7 +4,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class HelperFunctions {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     // Helper methods
     async updateFollowCounts(followerId: string, followingId: string, isFollow: boolean) {

@@ -10,7 +10,7 @@ import { UserMetricsService } from "./user-metrics.service";
 @ApiTags("User Metrics")
 @Controller("user-metrics")
 export class UserMetricsController {
-    constructor(private readonly service: UserMetricsService) { }
+    constructor(private readonly service: UserMetricsService) {}
 
     @ApiOperation({ summary: "Get user metrics summary" })
     @ApiResponse({ status: 200, type: UserMetricsResponseDto })

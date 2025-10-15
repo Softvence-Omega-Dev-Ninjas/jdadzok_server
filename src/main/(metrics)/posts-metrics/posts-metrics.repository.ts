@@ -5,7 +5,7 @@ import { CreatePostsMetricsDto, UpdatePostsMetricsDto } from "./dto/posts-metric
 
 @Injectable()
 export class PostsMetricsRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(dto: MakeRequired<CreatePostsMetricsDto, "postId">, tx?: HelperTx) {
         if (tx) {

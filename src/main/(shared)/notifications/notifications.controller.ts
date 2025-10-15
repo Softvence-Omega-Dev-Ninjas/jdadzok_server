@@ -6,7 +6,7 @@ import { TUser } from "@type/index";
 
 @Controller("notifications")
 export class NotificaitonsController {
-    constructor() { }
+    constructor() {}
 
     @UseGuards(JwtAuthGuard)
     async fetchSystemAdminNotificaiton(@GetUser() user: TUser) {

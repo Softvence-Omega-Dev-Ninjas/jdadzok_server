@@ -10,7 +10,7 @@ import { OrderService } from "./order.service";
 @UseGuards(JwtAuthGuard)
 @Controller("orders")
 export class OrderController {
-    constructor(private readonly service: OrderService) { }
+    constructor(private readonly service: OrderService) {}
 
     @Post("/")
     @ApiOperation({ summary: "Added new order" })

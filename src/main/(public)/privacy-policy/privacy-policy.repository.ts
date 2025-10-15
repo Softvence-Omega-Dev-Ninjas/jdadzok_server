@@ -4,7 +4,7 @@ import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto } from "./dto/privacy-po
 
 @Injectable()
 export class PrivacyPolicyRepository {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async find() {
         return this.prisma.privacyPolicy.findFirst();

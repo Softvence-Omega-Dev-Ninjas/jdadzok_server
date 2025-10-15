@@ -9,7 +9,7 @@ import { ChoicesService } from "./choices.service";
 
 @Controller("choices")
 export class ChoicesController {
-    constructor(private readonly choicesService: ChoicesService) { }
+    constructor(private readonly choicesService: ChoicesService) {}
 
     @ApiBearerAuth()
     @Post()

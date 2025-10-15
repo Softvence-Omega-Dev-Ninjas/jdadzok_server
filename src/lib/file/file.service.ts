@@ -14,7 +14,7 @@ export class FileService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly configService: ConfigService,
-    ) { }
+    ) {}
 
     @HandleError("Error creating file", "file")
     async create(createFileDto: CreateFileDto) {
