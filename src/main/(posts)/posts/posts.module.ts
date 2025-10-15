@@ -1,3 +1,4 @@
+import { AuthValidatorService } from "@global/auth-validator/auth-validator.service";
 import { HelperFunctions } from "@module/(core)/feeds/functions/helper";
 import { PostsMetricsRepository } from "@module/(metrics)/posts-metrics/posts-metrics.repository";
 import { FollowRepository } from "@module/(users)/follow/follow.repository";
@@ -22,8 +23,11 @@ import { PostUtils } from "./utils";
     controllers: [PostController],
     providers: [
         FollowRepository,
-        JwtServices,
         JwtService,
+        UserProfileRepository,
+        UserRepository,
+        JwtServices,
+        AuthValidatorService,
         PostService,
         PostRepository,
         PostTagsRepository,
@@ -40,4 +44,4 @@ import { PostUtils } from "./utils";
     ],
     exports: [PostRepository],
 })
-export class PostModule {}
+export class PostModule { }

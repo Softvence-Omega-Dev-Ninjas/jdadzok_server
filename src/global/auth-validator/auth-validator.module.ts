@@ -1,3 +1,4 @@
+import { UserProfileRepository } from "@module/(users)/user-profile/user.profile.repository";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { Module } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -6,7 +7,7 @@ import { AuthValidatorService } from "./auth-validator.service";
 
 @Module({
     imports: [],
-    providers: [AuthValidatorService, JwtService, JwtServices, UserRepository],
+    providers: [JwtService, UserProfileRepository, UserRepository, JwtServices, AuthValidatorService],
     exports: [AuthValidatorService],
 })
-export class AuthValidatorModule {}
+export class AuthValidatorModule { }

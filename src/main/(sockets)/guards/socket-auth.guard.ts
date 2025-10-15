@@ -1,9 +1,9 @@
-// import { AuthValidatorService } from "@global/auth-validator/auth-validator.service";
+import { AuthValidatorService } from "@global/auth-validator/auth-validator.service";
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class SocketAuthGuard implements CanActivate {
-    // constructor(private readonly authValidator: AuthValidatorService) { }
+    constructor(private readonly authValidator: AuthValidatorService) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         if (context.getType() !== "ws") return true;
