@@ -8,9 +8,8 @@ jobs:
   lint-test:
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-      - name: 🔧 Setup and load environment
+      - uses: actions/checkout@v4
+      - name: Setup env
         uses: ./.github/actions/setup-and-load-env
         with:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -49,43 +48,32 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
-      - name: 📋 Verify environment variables
-        uses: ./.github/actions/verify-env
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: ./.github/actions/verify-env
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v2
         with:
           version: 10
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: ~/.pnpm-store
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
-      - name: Install dependencies
-        run: pnpm install
-      - name: 🧹 Run Lint
-        run: pnpm ci:fix
-      - name: ✅ Format Check
-        run: pnpm format
-      - name: 🔄 Generate Prisma Client
-        run: pnpm prisma:generate
-      - name: 🏗 Build Project
-        run: pnpm build
-      - name: 🧹 Clean up .env
-        if: always()
+      - run: pnpm install
+      - run: pnpm ci:fix
+      - run: pnpm format
+      - run: pnpm prisma:generate
+      - run: pnpm build
+      - if: always()
         run: rm -f "${{ github.workspace }}/.env"
   build-and-push:
     needs: lint-test
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-      - name: 🔧 Setup and load environment
+      - uses: actions/checkout@v4
+      - name: Setup env
         uses: ./.github/actions/setup-and-load-env
         with:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -124,15 +112,7 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
-      - name: 📋 Verify environment variables
-        uses: ./.github/actions/verify-env
-      - name: Log in to Docker Hub 🔑
-        uses: ./.github/actions/docker-login
-      - name: Build Docker Image 🔨
-        run: |
-          echo "Building Docker image: '"$IMAGE_TAG"'"
-          docker compose --profile prod build
-      - name: Push Docker Image 🚀
-        run: |
-          echo "Pushing Docker image: '"$IMAGE_TAG"'"
-          docker compose --profile prod push
+      - uses: ./.github/actions/verify-env
+      - uses: ./.github/actions/docker-login
+      - run: docker compose --profile prod build
+      - run: docker compose --profile prod push

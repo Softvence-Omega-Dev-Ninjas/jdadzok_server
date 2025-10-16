@@ -1,14 +1,17 @@
-name: "Docker Login"
-description: "Logs into Docker Hub using provided credentials"
+name: "docker-login"
+description: "docker-login composite action"
+inputs:
+  DOCKER_USERNAME:
+    description: "DOCKER_USERNAME from .env.production"
+    required: true
+  DOCKER_PASSWORD:
+    description: "DOCKER_PASSWORD from .env.production"
+    required: true
 runs:
-    using: "composite"
-    steps:
-        - name: Log in to Docker Hub 🔑
-          shell: bash
-          env:
-              DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-              DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          run: |
-              echo "🔑 Logging into Docker Hub..."
-              echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-              echo "✅ Successfully logged into Docker Hub"
+  using: "composite"
+  steps:
+    - name: Log in to Docker
+      shell: bash
+      run: |
+        echo "${{ inputs.DOCKER_PASSWORD }}" | docker login -u "${{ inputs.DOCKER_USERNAME }}" --password-stdin
+        echo '✅ Docker login successful'

@@ -1,6 +1,5 @@
-name: 🚀 CD Pipeline with Zero Downtime
+name: CD Pipeline
 on:
-  push:
   workflow_run:
     workflows: ["CI Pipeline"]
     types:
@@ -10,9 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-      - name: 🔧 Setup and load environment
+      - uses: actions/checkout@v4
+      - name: Setup env
         uses: ./.github/actions/setup-and-load-env
         with:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -51,11 +49,9 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
-      - name: 📋 Verify environment variables
-        uses: ./.github/actions/verify-env
-      - name: Setup SSH 🔐
-        uses: ./.github/actions/setup-ssh
-      - name: Copy Files to Server 📦
+      - uses: ./.github/actions/verify-env
+      - uses: ./.github/actions/setup-ssh
+      - name: Copy Files to Server
         run: |
           echo "Creating directories..."
           ssh deploy-server "mkdir -p ~/$PACKAGE_NAME/scripts"
@@ -65,13 +61,11 @@ jobs:
           scp Dockerfile deploy-server:~/$PACKAGE_NAME/
           scp -r scripts deploy-server:~/$PACKAGE_NAME/
           echo "✅ Files copied successfully"
-      - name: Fix permissions on server 🌋
-        run: |
-          ssh deploy-server "chmod -R +x ~/$PACKAGE_NAME/scripts/*.sh"
-      - name: Deploy Application 🚀
-        run: |
-          ssh deploy-server "bash ~/$PACKAGE_NAME/scripts/deploy-remote.sh"
-      - name: Verify Deployment ✅
+      - name: Fix permissions on server
+        run: ssh deploy-server "chmod -R +x ~/$PACKAGE_NAME/scripts/*.sh"
+      - name: Deploy Application
+        run: ssh deploy-server "bash ~/$PACKAGE_NAME/scripts/deploy-remote.sh"
+      - name: Verify Deployment
         run: |
           ssh deploy-server bash << 'VERIFY_EOF'
             cd ~/${{ secrets.PACKAGE_NAME }}
@@ -86,7 +80,7 @@ jobs:
             fi
             echo "Deployment verified successfully!"
           VERIFY_EOF
-      - name: Cleanup 🧹
+      - name: Cleanup
         if: always()
         run: |
           rm -rf ~/.ssh/deploy_key* ~/.ssh/config
