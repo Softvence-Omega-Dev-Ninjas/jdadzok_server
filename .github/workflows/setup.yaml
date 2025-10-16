@@ -1,0 +1,20 @@
+name: Setup Workflow
+on:
+    workflow_call:
+jobs:
+    setup:
+        runs-on: ubuntu-latest
+        steps:
+            - name: 📥 Checkout code
+              uses: actions/checkout@v4
+
+            - name: 🔧 Setup and load environment
+              uses: ./.github/actions/setup-and-load-env
+
+            - name: 📋 Verify environment variables
+              uses: ./.github/actions/verify-env
+
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node
+              with:
+                  node-version: "22"

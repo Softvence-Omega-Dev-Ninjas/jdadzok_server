@@ -1,0 +1,93 @@
+name: "Setup and Load Environment"
+description: "Generates .env from GitHub Secrets and exports to GITHUB_ENV"
+
+runs:
+    using: "composite"
+    steps:
+        - name: 🔧 Generate .env file
+          shell: bash
+          run: |
+              ENV_FILE="$GITHUB_WORKSPACE/.env"
+              echo "🔧 Creating .env file at $ENV_FILE..."
+              cat <<'EOF' > "$ENV_FILE"
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+              PACKAGE_NAME=${{ secrets.PACKAGE_NAME }}
+              PACKAGE_VERSION=${{ secrets.PACKAGE_VERSION }}
+              EMAIL=${{ secrets.EMAIL }}
+              NODE_ENV=development
+              PG_USERNAME=${{ secrets.PG_USERNAME }}
+              PG_PASSWORD=${{ secrets.PG_PASSWORD }}
+              PG_DATABASE=${{ secrets.PG_DATABASE }}
+              PG_PORT=${{ secrets.PG_PORT }}
+              PG_HOST=${{ secrets.PG_HOST }}
+              DATABASE_URL=${{ secrets.DATABASE_URL }}
+              JWT_SECRET=${{ secrets.JWT_SECRET }}
+              JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
+              BASE_URL=${{ secrets.BASE_URL }}
+              PORT=${{ secrets.PORT }}
+              MAIL_USER=${{ secrets.MAIL_USER }}
+              MAIL_PASS=${{ secrets.MAIL_PASS }}
+              SUPER_ADMIN_EMAIL=${{ secrets.SUPER_ADMIN_EMAIL }}
+              SUPER_ADMIN_PASS=${{ secrets.SUPER_ADMIN_PASS }}
+              REDIS_HOST=${{ secrets.REDIS_HOST }}
+              REDIS_USER=${{ secrets.REDIS_USER }}
+              REDIS_PASS=${{ secrets.REDIS_PASS }}
+              REDIS_PORT=${{ secrets.REDIS_PORT }}
+              REDIS_CONTAINER=${{ secrets.REDIS_CONTAINER }}
+              REDIS_URL=${{ secrets.REDIS_URL }}
+              TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
+              TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}
+              TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}
+              AWS_REGION=${{ secrets.AWS_REGION }}
+              AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+              AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
+              IMAGE_TAG=${{ secrets.IMAGE_TAG }}
+              DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
+              GIT_TOKEN=${{ secrets.GIT_TOKEN }}
+              VPS_HOST=${{ secrets.VPS_HOST }}
+              VPS_HOST_IP=${{ secrets.VPS_HOST_IP }}
+              VPS_USER=${{ secrets.VPS_USER }}
+              EOF
+              # Handle SSH private key
+              echo '${{ secrets.VPS_SSH_PRIVATE_KEY }}' > "$GITHUB_WORKSPACE/deploy_key.pem"
+              chmod 600 "$GITHUB_WORKSPACE/deploy_key.pem"
+              echo "VPS_SSH_PRIVATE_KEY_FILE=$GITHUB_WORKSPACE/deploy_key.pem" >> "$ENV_FILE"
+              # Verify file creation
+              if [ -f "$ENV_FILE" ] && [ -s "$ENV_FILE" ]; then
+                FILE_SIZE=$(wc -c < "$ENV_FILE")
+                echo "✅ .env file created successfully (size: ${FILE_SIZE} bytes)"
+              else
+                echo "❌ Error: .env file creation failed"
+                exit 1
+              fi
+        - name: 📤 Export variables to GITHUB_ENV
+          shell: bash
+          run: |
+              echo "📤 Exporting environment variables to GITHUB_ENV..."
+              while IFS='=' read -r key value; do
+                if [[ -n "$key" && -n "$value" && ! "$key" =~ ^# ]]; then
+                  echo "$key=$value" >> $GITHUB_ENV
+                fi
+              done < "$GITHUB_WORKSPACE/.env"
+              echo "✅ All environment variables exported successfully"
+        - name: 🔍 Verify setup
+          shell: bash
+          run: |
+              ENV_FILE="$GITHUB_WORKSPACE/.env"
+              if [ -f "$ENV_FILE" ]; then
+                VAR_COUNT=$(grep -c '^[A-Z]' "$ENV_FILE" 2>/dev/null || echo "0")
+                FILE_SIZE=$(wc -c < "$ENV_FILE")
+                echo "🎉 Environment setup complete!"
+                echo "📁 .env file: $ENV_FILE"
+                echo "🔢 Variables count: $VAR_COUNT"
+                echo "📊 File size: ${FILE_SIZE} bytes"
+                echo "🧪 Testing variable availability:"
+                echo " PACKAGE_NAME: ${PACKAGE_NAME:-'NOT_SET'}"
+                echo " PACKAGE_VERSION: ${PACKAGE_VERSION:-'NOT_SET'}"
+                echo " DOCKER_USERNAME: ${DOCKER_USERNAME:-'NOT_SET'}"
+                echo " SSH Key file: ${VPS_SSH_PRIVATE_KEY_FILE:-'NOT_SET'}"
+              else
+                echo "❌ Error: .env file missing after generation"
+                exit 1
+              fi

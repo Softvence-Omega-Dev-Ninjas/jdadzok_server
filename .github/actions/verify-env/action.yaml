@@ -1,0 +1,12 @@
+name: "Verify Environment Variables"
+description: "Verifies that key environment variables are accessible"
+runs:
+    using: "composite"
+    steps:
+        - name: 📋 Verify environment variables
+          shell: bash
+          run: |
+              echo "Package name: $PACKAGE_NAME"
+              echo "Package version: $PACKAGE_VERSION"
+              echo "Docker image: $IMAGE_TAG"
+              echo "✅ Environment variables are accessible"
