@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 
 async function main() {
     expand(config({ path: path.resolve(process.cwd(), ".env") }));
-    console.info("🌱 Database Seed start ");
+    console.info("===============🌱 Database Seed start 🌱===============");
     const seed = new Seeds(prisma);
 
     // ============LIST OF SEED START============= //
@@ -20,7 +20,7 @@ async function main() {
     await seed.termsAndConditions();
     // ============LIST OF SEED END============= //
 
-    console.info("🌱 Database Seed successfully 😍")
+    console.info("===============🌱 Database Seed successfully 😍===============")
 }
 
 main()
