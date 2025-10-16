@@ -331,8 +331,6 @@ cat >> "$CD_YAML" <<'EOF'
           echo "✅ Files copied successfully"
       - name: Fix permissions on server
         run: ssh deploy-server "chmod -R +x ~/${{ secrets.PACKAGE_NAME }}/scripts/*.sh"
-      - name: Deploy Application
-        run: ssh deploy-server "bash ~/${{ secrets.PACKAGE_NAME }}/scripts/deploy-remote.sh"
       - name: Verify Deployment
         run: |
           ssh deploy-server bash << 'VERIFY_EOF'

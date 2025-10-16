@@ -1,95 +1,93 @@
 name: CD Pipeline
 on:
-  workflow_run:
-    workflows: ["CI Pipeline"]
-    types:
-      - completed
+    workflow_run:
+        workflows: ["CI Pipeline"]
+        types:
+            - completed
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup env
-        uses: ./.github/actions/setup-and-load-env
-        with:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
-          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
-          EMAIL: ${{ secrets.EMAIL }}
-          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
-          NODE_ENV: ${{ secrets.NODE_ENV }}
-          PG_USERNAME: ${{ secrets.PG_USERNAME }}
-          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          PG_DATABASE: ${{ secrets.PG_DATABASE }}
-          PG_PORT: ${{ secrets.PG_PORT }}
-          PG_HOST: ${{ secrets.PG_HOST }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
-          BASE_URL: ${{ secrets.BASE_URL }}
-          PORT: ${{ secrets.PORT }}
-          MAIL_USER: ${{ secrets.MAIL_USER }}
-          MAIL_PASS: ${{ secrets.MAIL_PASS }}
-          SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
-          SUPER_ADMIN_PASS: ${{ secrets.SUPER_ADMIN_PASS }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          REDIS_CONTAINER: ${{ secrets.REDIS_CONTAINER }}
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
-      - uses: ./.github/actions/verify-env
-        with:
-          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
-          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
-          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
-      - uses: ./.github/actions/setup-ssh
-        with:
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-      - name: Copy Files to Server
-        run: |
-          echo "Creating directories..."
-          ssh deploy-server "mkdir -p ~/${{ secrets.PACKAGE_NAME }}/scripts"
-          echo "Copying files..."
-          scp docker-compose.yaml deploy-server:~/${{ secrets.PACKAGE_NAME }}/
-          scp .env deploy-server:~/${{ secrets.PACKAGE_NAME }}/
-          scp Dockerfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
-          scp -r scripts deploy-server:~/${{ secrets.PACKAGE_NAME }}/
-          echo "✅ Files copied successfully"
-      - name: Fix permissions on server
-        run: ssh deploy-server "chmod -R +x ~/${{ secrets.PACKAGE_NAME }}/scripts/*.sh"
-      - name: Deploy Application
-        run: ssh deploy-server "bash ~/${{ secrets.PACKAGE_NAME }}/scripts/deploy-remote.sh"
-      - name: Verify Deployment
-        run: |
-          ssh deploy-server bash << 'VERIFY_EOF'
-            cd ~/${{ secrets.PACKAGE_NAME }}
-            echo "=== Running deployment status check ==="
-            ./scripts/deploy.sh status
-            echo "=== Testing endpoint directly ==="
-            if curl -f -s --connect-timeout 5 --max-time 10 "http://${{ secrets.VPS_HOST_IP }}:${{ secrets.PORT }}/" | grep -q '"status":"ok"'; then
-              echo "🎉 Endpoint health check passed! Service is responding with status: ok"
-            else
-              echo "❌ Endpoint health check failed!"
-              exit 1
-            fi
-            echo "Deployment verified successfully!"
-          VERIFY_EOF
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -rf ~/.ssh/deploy_key* ~/.ssh/config
-          rm -f .env
+    deploy:
+        runs-on: ubuntu-latest
+        # if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup env
+              uses: ./.github/actions/setup-and-load-env
+              with:
+                  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+                  PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+                  PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+                  EMAIL: ${{ secrets.EMAIL }}
+                  IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
+                  NODE_ENV: ${{ secrets.NODE_ENV }}
+                  PG_USERNAME: ${{ secrets.PG_USERNAME }}
+                  PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+                  PG_DATABASE: ${{ secrets.PG_DATABASE }}
+                  PG_PORT: ${{ secrets.PG_PORT }}
+                  PG_HOST: ${{ secrets.PG_HOST }}
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+                  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+                  JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+                  BASE_URL: ${{ secrets.BASE_URL }}
+                  PORT: ${{ secrets.PORT }}
+                  MAIL_USER: ${{ secrets.MAIL_USER }}
+                  MAIL_PASS: ${{ secrets.MAIL_PASS }}
+                  SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
+                  SUPER_ADMIN_PASS: ${{ secrets.SUPER_ADMIN_PASS }}
+                  REDIS_HOST: ${{ secrets.REDIS_HOST }}
+                  REDIS_PORT: ${{ secrets.REDIS_PORT }}
+                  REDIS_CONTAINER: ${{ secrets.REDIS_CONTAINER }}
+                  REDIS_URL: ${{ secrets.REDIS_URL }}
+                  TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+                  TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+                  TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+                  AWS_REGION: ${{ secrets.AWS_REGION }}
+                  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+                  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+                  GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+                  VPS_USER: ${{ secrets.VPS_USER }}
+                  VPS_HOST: ${{ secrets.VPS_HOST }}
+                  VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
+            - uses: ./.github/actions/verify-env
+              with:
+                  PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+                  PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+                  IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
+            - uses: ./.github/actions/setup-ssh
+              with:
+                  VPS_USER: ${{ secrets.VPS_USER }}
+                  VPS_HOST: ${{ secrets.VPS_HOST }}
+                  VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+            - name: Copy Files to Server
+              run: |
+                  echo "Creating directories..."
+                  ssh deploy-server "mkdir -p ~/${{ secrets.PACKAGE_NAME }}/scripts"
+                  echo "Copying files..."
+                  scp docker-compose.yaml deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+                  scp .env deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+                  scp Dockerfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+                  scp -r scripts deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+                  echo "✅ Files copied successfully"
+            - name: Fix permissions on server
+              run: ssh deploy-server "chmod -R +x ~/${{ secrets.PACKAGE_NAME }}/scripts/*.sh"
+            - name: Verify Deployment
+              run: |
+                  ssh deploy-server bash << 'VERIFY_EOF'
+                    cd ~/${{ secrets.PACKAGE_NAME }}
+                    echo "=== Running deployment status check ==="
+                    ./scripts/deploy.sh status
+                    echo "=== Testing endpoint directly ==="
+                    if curl -f -s --connect-timeout 5 --max-time 10 "http://${{ secrets.VPS_HOST_IP }}:${{ secrets.PORT }}/" | grep -q '"status":"ok"'; then
+                      echo "🎉 Endpoint health check passed! Service is responding with status: ok"
+                    else
+                      echo "❌ Endpoint health check failed!"
+                      exit 1
+                    fi
+                    echo "Deployment verified successfully!"
+                  VERIFY_EOF
+            - name: Cleanup
+              if: always()
+              run: |
+                  rm -rf ~/.ssh/deploy_key* ~/.ssh/config
+                  rm -f .env
