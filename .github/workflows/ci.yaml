@@ -49,6 +49,10 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
       - uses: ./.github/actions/verify-env
+        with:
+          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -113,6 +117,15 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
       - uses: ./.github/actions/verify-env
+        with:
+          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
       - uses: ./.github/actions/docker-login
+        with:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       - run: docker compose --profile prod build
       - run: docker compose --profile prod push
+      - if: always()
+        run: rm -f "${{ github.workspace }}/.env"

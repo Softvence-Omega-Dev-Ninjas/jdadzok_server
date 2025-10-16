@@ -24,7 +24,7 @@ SENSITIVE_KEYS=(
   VPS_SSH_PRIVATE_KEY
 )
 
-# Colors
+# Colors for output
 GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
 RED="\033[0;31m"
@@ -144,10 +144,9 @@ for key in "${ENV_KEYS[@]}"; do
           echo \"$key=\${{ inputs.$key }}\""
 done
 RUNS_SETUP_LOAD_ENV+="
-        } > \"\$ENV_FILE\""
-RUNS_SETUP_LOAD_ENV+="
-        if [[ -n \"\${{ inputs.VPS_SSH_PRIVATE_KEY:-}}\" ]]; then
-          echo '\${{ inputs.VPS_SSH_PRIVATE_KEY }}' > \"\$GITHUB_WORKSPACE/deploy_key.pem\"
+        } > \"\$ENV_FILE\"
+        if [[ -n \"\${{ inputs.VPS_SSH_PRIVATE_KEY }}\" ]]; then
+          echo \"\${{ inputs.VPS_SSH_PRIVATE_KEY }}\" > \"\$GITHUB_WORKSPACE/deploy_key.pem\"
           chmod 600 \"\$GITHUB_WORKSPACE/deploy_key.pem\"
           echo \"VPS_SSH_PRIVATE_KEY_FILE=\$GITHUB_WORKSPACE/deploy_key.pem\" >> \"\$ENV_FILE\"
         fi"
@@ -193,9 +192,9 @@ VERIFY_INPUTS=(PACKAGE_NAME PACKAGE_VERSION IMAGE_TAG)
 RUNS_VERIFY_ENV="    - name: Verify environment
       shell: bash
       run: |
-        echo \"Package: \$\{inputs.PACKAGE_NAME\}\"
-        echo \"Version: \$\{inputs.PACKAGE_VERSION\}\"
-        echo \"Image: \$\{inputs.IMAGE_TAG\}\"
+        echo \"Package: \${{ inputs.PACKAGE_NAME }}\"
+        echo \"Version: \${{ inputs.PACKAGE_VERSION }}\"
+        echo \"Image: \${{ inputs.IMAGE_TAG }}\"
         echo '✅ Environment variables accessible'"
 
 generate_action "verify-env" VERIFY_INPUTS[@] "$RUNS_VERIFY_ENV"
@@ -236,6 +235,10 @@ EOF
 generate_workflow_inputs "$CI_YAML" "${ENV_KEYS[@]}"
 cat >> "$CI_YAML" <<'EOF'
       - uses: ./.github/actions/verify-env
+        with:
+          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -267,9 +270,18 @@ EOF
 generate_workflow_inputs "$CI_YAML" "${ENV_KEYS[@]}"
 cat >> "$CI_YAML" <<'EOF'
       - uses: ./.github/actions/verify-env
+        with:
+          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
       - uses: ./.github/actions/docker-login
+        with:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       - run: docker compose --profile prod build
       - run: docker compose --profile prod push
+      - if: always()
+        run: rm -f "${{ github.workspace }}/.env"
 EOF
 ok "Generated $CI_YAML"
 
@@ -295,26 +307,32 @@ jobs:
         uses: ./.github/actions/setup-and-load-env
         with:
 EOF
-
 generate_workflow_inputs "$CD_YAML" "${ENV_KEYS[@]}"
-
 cat >> "$CD_YAML" <<'EOF'
       - uses: ./.github/actions/verify-env
+        with:
+          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
       - uses: ./.github/actions/setup-ssh
+        with:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
       - name: Copy Files to Server
         run: |
           echo "Creating directories..."
-          ssh deploy-server "mkdir -p ~/$PACKAGE_NAME/scripts"
+          ssh deploy-server "mkdir -p ~/${{ secrets.PACKAGE_NAME }}/scripts"
           echo "Copying files..."
-          scp docker-compose.yaml deploy-server:~/$PACKAGE_NAME/
-          scp .env deploy-server:~/$PACKAGE_NAME/
-          scp Dockerfile deploy-server:~/$PACKAGE_NAME/
-          scp -r scripts deploy-server:~/$PACKAGE_NAME/
+          scp docker-compose.yaml deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+          scp .env deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+          scp Dockerfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+          scp -r scripts deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           echo "✅ Files copied successfully"
       - name: Fix permissions on server
-        run: ssh deploy-server "chmod -R +x ~/$PACKAGE_NAME/scripts/*.sh"
+        run: ssh deploy-server "chmod -R +x ~/${{ secrets.PACKAGE_NAME }}/scripts/*.sh"
       - name: Deploy Application
-        run: ssh deploy-server "bash ~/$PACKAGE_NAME/scripts/deploy-remote.sh"
+        run: ssh deploy-server "bash ~/${{ secrets.PACKAGE_NAME }}/scripts/deploy-remote.sh"
       - name: Verify Deployment
         run: |
           ssh deploy-server bash << 'VERIFY_EOF'
@@ -336,7 +354,6 @@ cat >> "$CD_YAML" <<'EOF'
           rm -rf ~/.ssh/deploy_key* ~/.ssh/config
           rm -f .env
 EOF
-
 ok "Generated $CD_YAML"
 
 # -------------------------

@@ -50,21 +50,29 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
       - uses: ./.github/actions/verify-env
+        with:
+          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
+          IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
       - uses: ./.github/actions/setup-ssh
+        with:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
       - name: Copy Files to Server
         run: |
           echo "Creating directories..."
-          ssh deploy-server "mkdir -p ~/$PACKAGE_NAME/scripts"
+          ssh deploy-server "mkdir -p ~/${{ secrets.PACKAGE_NAME }}/scripts"
           echo "Copying files..."
-          scp docker-compose.yaml deploy-server:~/$PACKAGE_NAME/
-          scp .env deploy-server:~/$PACKAGE_NAME/
-          scp Dockerfile deploy-server:~/$PACKAGE_NAME/
-          scp -r scripts deploy-server:~/$PACKAGE_NAME/
+          scp docker-compose.yaml deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+          scp .env deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+          scp Dockerfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+          scp -r scripts deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           echo "✅ Files copied successfully"
       - name: Fix permissions on server
-        run: ssh deploy-server "chmod -R +x ~/$PACKAGE_NAME/scripts/*.sh"
+        run: ssh deploy-server "chmod -R +x ~/${{ secrets.PACKAGE_NAME }}/scripts/*.sh"
       - name: Deploy Application
-        run: ssh deploy-server "bash ~/$PACKAGE_NAME/scripts/deploy-remote.sh"
+        run: ssh deploy-server "bash ~/${{ secrets.PACKAGE_NAME }}/scripts/deploy-remote.sh"
       - name: Verify Deployment
         run: |
           ssh deploy-server bash << 'VERIFY_EOF'
