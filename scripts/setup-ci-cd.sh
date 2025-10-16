@@ -198,7 +198,15 @@ RUNS_VERIFY_ENV="    - name: Verify environment
         echo '✅ Environment variables accessible'"
 
 generate_action "verify-env" VERIFY_INPUTS[@] "$RUNS_VERIFY_ENV"
-
+# -------------------------
+# Helper for exporting variables
+# -------------------------
+generate_export_vars() {
+  local KEYS=("$@")
+  for key in "${KEYS[@]}"; do
+    printf '          export %s="${{secrets.%s}}"\n' "$key" "$key"
+  done
+}
 # -------------------------
 # Helper for workflow inputs
 # -------------------------
@@ -358,6 +366,42 @@ cat >> "$CD_YAML" <<'EOF'
           docker-compose --version
 
           VERIFY_EOF
+      - name: Deploy Application 🚀
+        run: |
+          ssh deploy-server bash << 'DEPLOY_EOF'
+
+          set -euo pipefail
+
+          cd ~/${{secrets.PACKAGE_NAME}}
+
+          # Install Docker Compose if needed
+          if [ ! -f ~/.docker/cli-plugins/docker-compose ]; then
+            echo "Installing Docker Compose..."
+            mkdir -p ~/.docker/cli-plugins/
+            url -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+            chmod +x ~/.docker/cli-plugins/docker-compose
+          fi
+
+          # Login to Docker Hub
+          echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
+
+          # Explicitly export required variables
+EOF
+# Hardcode export statements for each key in ENV_KEYS
+for key in "${ENV_KEYS[@]}"; do
+  echo "          export $key=\"\${{secrets.$key}}\"" >> "$CD_YAML"
+done
+cat >> "$CD_YAML" <<'EOF'
+
+          # Run the deployment script
+          echo "Starting zero-downtime deployment..."
+          ./scripts/deploy.sh --version "$PACKAGE_VERSION"
+
+          docker logout
+          docker image prune -f
+
+          DEPLOY_EOF
+
       - name: Verify Deployment
         run: |
           ssh deploy-server bash << 'VERIFY_EOF'
