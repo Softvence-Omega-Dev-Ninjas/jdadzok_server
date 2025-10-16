@@ -231,7 +231,7 @@ done
 cat >> "$ACTION_YAML" <<'YAML_RUNS_END'
         } > "$ENV_FILE"
         # Handle SSH private key: write to file if provided
-        if [[ -n "${{ inputs.VPS_SSH_PRIVATE_KEY:-} }" ]]; then
+        if [[ -n "${{ inputs.VPS_SSH_PRIVATE_KEY }}" ]]; then
           echo '${{ inputs.VPS_SSH_PRIVATE_KEY }}' > "$GITHUB_WORKSPACE/deploy_key.pem"
           chmod 600 "$GITHUB_WORKSPACE/deploy_key.pem"
           echo "VPS_SSH_PRIVATE_KEY_FILE=$GITHUB_WORKSPACE/deploy_key.pem" >> "$ENV_FILE"
