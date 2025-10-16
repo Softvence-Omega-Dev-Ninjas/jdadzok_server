@@ -26,7 +26,6 @@ export class ChatGateway extends BaseSocketGateway {
         //     );
         //     return;
         // }
-
         // // Rate limiting
         // const rateLimitKey = `chat:${userId}`;
         // if (!this.checkRateLimit(rateLimitKey, RATE_LIMITS.CHAT_MESSAGE)) {
@@ -36,7 +35,6 @@ export class ChatGateway extends BaseSocketGateway {
         //     );
         //     return;
         // }
-
         // // Validate message
         // if (!data.message?.trim()) {
         //     client.emit(
@@ -45,21 +43,18 @@ export class ChatGateway extends BaseSocketGateway {
         //     );
         //     return;
         // }
-
         // const message: ChatMessage = {
         //     ...data,
         //     eventId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         //     timestamp: new Date(),
         //     userId,
         // };
-
         // try {
         //     // If roomId is specified, send to room; otherwise broadcast to all
         //     if (message.roomId) {
         //         // Ensure user is in the room
         //         const roomUsers = this.getRoomUsers(message.roomId);
         //         const isInRoom = roomUsers.some((u) => u.id === userId);
-
         //         if (!isInRoom) {
         //             client.emit(
         //                 SOCKET_EVENTS.ERROR.UNAUTHORIZED,
@@ -67,7 +62,6 @@ export class ChatGateway extends BaseSocketGateway {
         //             );
         //             return;
         //         }
-
         //         this.emitToRoom(
         //             message.roomId,
         //             SOCKET_EVENTS.CHAT.MESSAGE_RECEIVE,
@@ -78,10 +72,8 @@ export class ChatGateway extends BaseSocketGateway {
         //         // Broadcast to all connected users
         //         this.broadcastToAll(SOCKET_EVENTS.CHAT.MESSAGE_RECEIVE, message, client.id);
         //     }
-
         //     // Send success response to sender
         //     client.emit(SOCKET_EVENTS.CHAT.MESSAGE_SEND, this.createResponse(true, message));
-
         //     this.logger.log(`Chat message sent by user ${userId}: ${message.eventId}`);
         // } catch (error) {
         //     this.logger.error(`Error handling chat message: ${error.message}`);
@@ -99,14 +91,12 @@ export class ChatGateway extends BaseSocketGateway {
     ) {
         // const userId = this.getUserId(client.id);
         // if (!userId) return;
-
         // const typingEvent: ChatTyping = {
         //     ...data,
         //     eventId: `typing_${Date.now()}`,
         //     timestamp: new Date(),
         //     userId,
         // };
-
         // if (data.roomId) {
         //     this.emitToRoom(data.roomId, SOCKET_EVENTS.CHAT.MESSAGE_TYPING, typingEvent, client.id);
         // } else {
@@ -127,7 +117,6 @@ export class ChatGateway extends BaseSocketGateway {
         //     );
         //     return;
         // }
-
         // // Rate limiting
         // if (!this.checkRateLimit(`room_join:${userId}`, RATE_LIMITS.ROOM_JOIN)) {
         //     client.emit(
@@ -136,15 +125,12 @@ export class ChatGateway extends BaseSocketGateway {
         //     );
         //     return;
         // }
-
         // const success = await this.joinRoom(client, data.roomId, {
         //     name: data.roomName || data.roomId,
         //     type: "chat",
         // });
-
         // if (success) {
         //     const roomUsers = this.getRoomUsers(data.roomId);
-
         //     client.emit(
         //         SOCKET_EVENTS.ROOM.JOIN,
         //         this.createResponse(true, {
@@ -152,7 +138,6 @@ export class ChatGateway extends BaseSocketGateway {
         //             users: roomUsers,
         //         }),
         //     );
-
         //     // Notify other room members
         //     this.emitToRoom(
         //         data.roomId,
@@ -163,7 +148,6 @@ export class ChatGateway extends BaseSocketGateway {
         //         },
         //         client.id,
         //     );
-
         //     this.logger.log(`User ${userId} joined chat room ${data.roomId}`);
         // } else {
         //     client.emit(
@@ -180,9 +164,7 @@ export class ChatGateway extends BaseSocketGateway {
     ) {
         // const userId = this.getUserId(client.id);
         // if (!userId) return;
-
         // const success = await this.leaveRoom(client, data.roomId);
-
         // if (success) {
         //     client.emit(
         //         SOCKET_EVENTS.ROOM.LEAVE,
@@ -190,13 +172,11 @@ export class ChatGateway extends BaseSocketGateway {
         //             roomId: data.roomId,
         //         }),
         //     );
-
         //     // Notify other room members
         //     this.emitToRoom(data.roomId, SOCKET_EVENTS.CONNECTION.USER_LEFT, {
         //         userId,
         //         roomId: data.roomId,
         //     });
-
         //     this.logger.log(`User ${userId} left chat room ${data.roomId}`);
         // }
     }

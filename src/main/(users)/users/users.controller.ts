@@ -53,6 +53,7 @@ export class UserController {
             const result = await this.service.verifyOpt(body);
             return successResponse(result, "User account verify successfully");
         } catch (err) {
+            console.log(err)
             return err;
         }
     }

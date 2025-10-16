@@ -7,6 +7,7 @@ import { UserRepository } from "@module/(users)/users/users.repository";
 import { InjectQueue } from "@nestjs/bullmq";
 import {
     BadRequestException,
+    ConflictException,
     ForbiddenException,
     Injectable,
     NotFoundException,
@@ -82,15 +83,16 @@ export class AuthService {
         const user = await this.userRepository.findByEmail(input.email);
         if (!user) throw new NotFoundException("User not found with that email");
 
+        if (user.isVerified) throw new ConflictException("Account already verified!");
         // again send their otp
         // const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
         await this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
             email: user.email,
-            userId: user.id
-        })
+            userId: user.id,
+        });
         return {
             id: user.id,
-            email: user.email
+            email: user.email,
         };
     }
 

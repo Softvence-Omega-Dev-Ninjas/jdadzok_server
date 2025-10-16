@@ -67,7 +67,6 @@ export class AuthController {
                 "Resend code email sent successfully! Please check your mail.",
             );
         } catch (err) {
-            console.log(err)
             return err;
         }
     }

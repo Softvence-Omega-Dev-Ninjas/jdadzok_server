@@ -7,7 +7,7 @@ import { SocketUtils } from "../utils/socket.utils";
 export class SocketMiddleware {
     private readonly logger = new Logger(SocketMiddleware.name);
 
-    constructor(private readonly authValidator: AuthValidatorService) { }
+    constructor(private readonly authValidator: AuthValidatorService) {}
 
     authenticate() {
         return async (socket: Socket, next: (err?: any) => void) => {
@@ -28,7 +28,10 @@ export class SocketMiddleware {
     logging() {
         return (socket: Socket, next: (err?: any) => void) => {
             const ip = SocketUtils.getClientIP(socket) || socket.handshake.address || "unknown";
-            const ua = SocketUtils.getUserAgent(socket) || socket.handshake.headers["user-agent"] || "unknown";
+            const ua =
+                SocketUtils.getUserAgent(socket) ||
+                socket.handshake.headers["user-agent"] ||
+                "unknown";
 
             this.logger.verbose(`📡 New connection ${socket.id} from IP ${ip}`);
             this.logger.verbose(`🧭 User-Agent: ${ua}`);

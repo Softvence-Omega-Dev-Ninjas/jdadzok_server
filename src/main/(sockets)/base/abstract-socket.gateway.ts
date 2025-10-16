@@ -25,18 +25,19 @@ import { RedisService } from "../services/redis.service";
 })
 @UseGuards(SocketAuthGuard)
 export abstract class BaseSocketGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     @WebSocketServer() protected server: Server;
     protected readonly logger = new Logger(this.constructor.name);
 
     constructor(
         protected readonly redisService: RedisService,
         private readonly socketMiddleware: SocketMiddleware,
-    ) { }
+    ) {}
 
     async afterInit() {
         this.logger.verbose(`(${this.constructor.name}) Gateway initialized`);
-        this.server.use(this.socketMiddleware.authenticate())
+        this.server.use(this.socketMiddleware.authenticate());
         this.server.use(this.socketMiddleware.logging());
 
         // await this.redisService.subscribe(SOCKET_EVENTS.CHAT.MESSAGE, (message: any) => {
@@ -45,7 +46,7 @@ export abstract class BaseSocketGateway
         // });
     }
     async handleConnection(client: Socket) {
-        this.logger.log('onn connections: ', client.id)
+        this.logger.log("onn connections: ", client.id);
         // const auth = this.socketMiddleware.authenticate();
         // console.log({ auth })
         // this.server.use(this.socketMiddleware.authenticate());
@@ -90,13 +91,7 @@ export abstract class BaseSocketGateway
         this.logger.log(`User ${user.email} disconnected`);
     }
 
-
-
-    protected createResponse<T>(
-        success: boolean,
-        data?: T,
-        error?: string,
-    ): SocketResponse<T> {
+    protected createResponse<T>(success: boolean, data?: T, error?: string): SocketResponse<T> {
         return { success, data, error, timestamp: new Date() };
     }
     // private handleUserLeaveRoom(roomId: string, userId: string) {
@@ -240,7 +235,6 @@ export abstract class BaseSocketGateway
     // protected getSocketIdByUserId(userId: string): string | undefined {
     //     return this.userSockets.get(userId);
     // }
-
 
     // private setupHeartbeat(): void {
     //     // Send heartbeat every 30 seconds

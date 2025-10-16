@@ -9,9 +9,13 @@ import { BaseSocketGateway } from "./abstract-socket.gateway";
 @WebSocketGateway()
 export class RootGetway extends BaseSocketGateway {
     @SubscribeMessage("hello")
-    async handleHello(@GetSocketUser() user: SocketUser, client: Socket, @MessageBody() payload: any) {
-        console.log('user: ', user)
-        console.log('client id: ', client.id)
-        console.log('payload: ', payload)
+    async handleHello(
+        @GetSocketUser() user: SocketUser,
+        client: Socket,
+        @MessageBody() payload: any,
+    ) {
+        console.log("user: ", user);
+        console.log("client id: ", client.id);
+        console.log("payload: ", payload);
     }
 }

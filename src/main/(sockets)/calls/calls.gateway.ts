@@ -55,23 +55,19 @@ export class CallsGateway extends BaseSocketGateway {
         //         });
         //         return;
         //     }
-
         //     // Join initiator to call room
         //     client.join(callRoom);
-
         //     // Notify target user about incomming call
         //     this.server.to(targetSocket.id).emit(SOCKET_EVENTS.CALL.INCOMING, {
         //         callId: call.id,
         //         formId: user.id,
         //         offer: payload.offer,
         //     });
-
         //     // Notify initiator of ringing status
         //     client.emit(SOCKET_EVENTS.CALL.STATUS, {
         //         callId: call.id,
         //         status: "RINGING",
         //     });
-
         //     // Set timeout for call acceptance
         //     setTimeout(async () => {
         //         const currentCall = await this.svc.getCall(call.id);
@@ -106,15 +102,12 @@ export class CallsGateway extends BaseSocketGateway {
         //     if (!(await this.validateCallParticipant(payload.callId, user.id))) {
         //         throw new Error("User not authorized for this call");
         //     }
-
         //     const call = await this.svc.markAsAccepted(payload.callId, user.id);
         //     if (!call) {
         //         throw new Error("Call not found or already ended");
         //     }
-
         //     const callRoom = this.getCallRoom(payload.callId);
         //     client.join(callRoom);
-
         //     // Notify call room
         //     this.server.to(callRoom).emit(SOCKET_EVENTS.CALL.STATUS, {
         //         callId: call.id,
@@ -142,19 +135,16 @@ export class CallsGateway extends BaseSocketGateway {
         //     if (!(await this.validateCallParticipant(payload.callId, user.id))) {
         //         throw new Error("User not authorized for this call");
         //     }
-
         //     const call = await this.svc.markAsDeclined(payload.callId, user.id);
         //     if (!call) {
         //         throw new Error("Call not found or already ended");
         //     }
-
         //     const callRoom = this.getCallRoom(payload.callId);
         //     this.server.to(callRoom).emit(SOCKET_EVENTS.CALL.STATUS, {
         //         callId: payload.callId,
         //         status: "DECLINED",
         //         fromId: user.id,
         //     });
-
         //     // Clean up room
         //     this.server.socketsLeave(callRoom);
         // } catch (error: any) {
@@ -177,7 +167,6 @@ export class CallsGateway extends BaseSocketGateway {
         //     if (!(await this.validateCallParticipant(payload.callId, user.id))) {
         //         throw new Error("User not authorized for this call");
         //     }
-
         //     this.server.to(this.getCallRoom(payload.callId)).emit(SOCKET_EVENTS.CALL.OFFER, {
         //         callId: payload.callId,
         //         fromId: user.id,
@@ -203,7 +192,6 @@ export class CallsGateway extends BaseSocketGateway {
         //     if (!(await this.validateCallParticipant(payload.callId, user.id))) {
         //         throw new Error("User not authorized for this call");
         //     }
-
         //     this.server.to(this.getCallRoom(payload.callId)).emit(SOCKET_EVENTS.CALL.ANSWER, {
         //         callId: payload.callId,
         //         fromId: user.id,
@@ -229,7 +217,6 @@ export class CallsGateway extends BaseSocketGateway {
         //     if (!(await this.validateCallParticipant(payload.callId, user.id))) {
         //         throw new Error("User not authorized for this call");
         //     }
-
         //     this.server
         //         .to(this.getCallRoom(payload.callId))
         //         .emit(SOCKET_EVENTS.CALL.ICE_CANDIDATE, {
@@ -257,7 +244,6 @@ export class CallsGateway extends BaseSocketGateway {
         //     if (!(await this.validateCallParticipant(payload.callId, user.id))) {
         //         throw new Error("User not authorized for this call");
         //     }
-
         //     await this.svc.endCall(payload.callId);
         //     const callRoom = this.getCallRoom(payload.callId);
         //     this.server.to(callRoom).emit(SOCKET_EVENTS.CALL.STATUS, {
@@ -265,7 +251,6 @@ export class CallsGateway extends BaseSocketGateway {
         //         status: "ENDED",
         //         fromId: user.id,
         //     });
-
         //     // Clean up room
         //     this.server.socketsLeave(callRoom);
         // } catch (error: any) {
@@ -293,10 +278,8 @@ export class CallsGateway extends BaseSocketGateway {
         //     ) {
         //         throw new Error("Cannot rejoin: Invalid or inactive call");
         //     }
-
         //     const callRoom = this.getCallRoom(payload.callId);
         //     client.join(callRoom);
-
         //     // Notify others in the room about rejoined user
         //     this.server.to(callRoom).emit(SOCKET_EVENTS.CALL.STATUS, {
         //         callId: payload.callId,

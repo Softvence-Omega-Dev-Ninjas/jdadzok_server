@@ -21,7 +21,6 @@ export class NotificationGateway extends BaseSocketGateway {
     ) {
         // const userId = this.getUserId(client.id);
         // if (!userId) return;
-
         // const notification: NotificationEvent = {
         //     ...data,
         //     eventId: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -29,14 +28,12 @@ export class NotificationGateway extends BaseSocketGateway {
         //     userId,
         //     read: false,
         // };
-
         // // Send notification to target user
         // const sent = this.emitToUser(
         //     data.targetUserId,
         //     SOCKET_EVENTS.NOTIFICATION.SEND,
         //     notification,
         // );
-
         // if (sent) {
         //     client.emit(SOCKET_EVENTS.NOTIFICATION.SEND, this.createResponse(true, { sent: true }));
         //     this.logger.log(`Notification sent from ${userId} to ${data.targetUserId}`);
@@ -55,7 +52,6 @@ export class NotificationGateway extends BaseSocketGateway {
     ) {
         // const userId = this.getUserId(client.id);
         // if (!userId) return;
-
         // // In a real app, you'd update the database here
         // client.emit(
         //     SOCKET_EVENTS.NOTIFICATION.READ,

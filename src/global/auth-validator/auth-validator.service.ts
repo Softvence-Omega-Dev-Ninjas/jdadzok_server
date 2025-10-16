@@ -9,11 +9,11 @@ export class AuthValidatorService {
     constructor(
         private readonly jwtService: JwtServices,
         private readonly userRepo: UserRepository,
-    ) { }
+    ) {}
 
     async validateSocketToken(socket: Socket) {
         const rawCookie = this.extractToken(socket);
-        console.log(rawCookie)
+        console.log(rawCookie);
         if (!rawCookie) {
             throw new BadGatewayException("Unauthorized user - cookie not found");
         }
@@ -47,6 +47,10 @@ export class AuthValidatorService {
     private extractToken(client: Socket) {
         // Common approaches: `auth` in handshake (v4), or query param
         // Example using auth handshake: socket = io(url, { auth: { token } })
-        return (client.handshake.auth && client.handshake.auth.token) || client.handshake.query?.token || client.handshake.headers.cookie;
+        return (
+            (client.handshake.auth && client.handshake.auth.token) ||
+            client.handshake.query?.token ||
+            client.handshake.headers.cookie
+        );
     }
 }

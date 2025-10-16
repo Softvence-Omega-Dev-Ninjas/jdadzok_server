@@ -10,7 +10,7 @@ export class ChoicesRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly userChoiceRepository: UserChoiceRepository,
-    ) {}
+    ) { }
 
     /**
      * Find a choice by its slug
@@ -35,6 +35,7 @@ export class ChoicesRepository {
      */
     async createMany(data: CreateUserChoiceDto["ids"], userId: string) {
         return await this.prisma.$transaction(async (tx) => {
+            const choices: Record<string, any> = [];
             for (const item of data) {
                 const isNotExist = await tx.choice.findFirst({ where: { id: item } });
                 if (!isNotExist) throw new NotFoundException("Choice not found with that ID!");
@@ -42,7 +43,6 @@ export class ChoicesRepository {
                 const createdUserChoice = await tx.userChoice.upsert({
                     where: {
                         userId_choiceId: {
-                            // 👈 compound key
                             choiceId: isNotExist.id,
                             userId,
                         },
@@ -55,9 +55,13 @@ export class ChoicesRepository {
                         userId,
                         choiceId: isNotExist.id,
                     },
+                    select: {
+                        choice: true
+                    }
                 });
-                return createdUserChoice;
+                choices.push(createdUserChoice.choice)
             }
+            return choices
         });
     }
 

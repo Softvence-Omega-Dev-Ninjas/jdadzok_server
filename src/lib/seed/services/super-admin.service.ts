@@ -1,11 +1,9 @@
 import { ENVEnum } from "@common/enum/env.enum";
 import { UserEnum } from "@common/enum/user.enum";
-import { faker } from "@faker-js/faker";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { UtilsService } from "@lib/utils/utils.service";
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import chalk from "chalk";
 
 @Injectable()
 export class SuperAdminService implements OnModuleInit {
@@ -25,8 +23,6 @@ export class SuperAdminService implements OnModuleInit {
     async onModuleInit() {
         // Seed super admin if it doesn't exist
         await this.seedSuperAdminUser();
-        // Seed regular users only if no users exist
-        await this.seedUsersOnce();
     }
 
     /**
@@ -74,50 +70,5 @@ export class SuperAdminService implements OnModuleInit {
 
     private async hashPassword(password: string): Promise<string> {
         return await this.utils.hash(password);
-    }
-
-    /**
-     * Seed regular users if no users exist.
-     */
-    private async seedUsersOnce(): Promise<void> {
-        const existingUsersCount = await this.prisma.user.count();
-
-        if (existingUsersCount <= 1) {
-            await this.createUsers();
-        } else {
-            this.logger.warn("⚠️ Users already exist, skipping seeding.");
-        }
-    }
-
-    /**
-     * Creates multiple regular users.
-     */
-    private async createUsers(): Promise<void> {
-        const users = await this.generateRandomUsers(5); // Generate 5 random users
-
-        // Bulk create users with password hashing
-        await this.prisma.user.createMany({
-            data: users,
-            skipDuplicates: true,
-        });
-
-        console.info(chalk.bgBlue.white.bold("🚀 Regular users seeded!"));
-    }
-
-    /**
-     * Generates an array of random user objects.
-     * @param count - The number of users to generate.
-     */
-    private async generateRandomUsers(count: number): Promise<any[]> {
-        // Use Promise.all to ensure all promises are resolved before returning the result
-        const users = await Promise.all(
-            Array.from({ length: count }, async () => ({
-                email: faker.internet.email(),
-                password: await this.hashPassword("pass123"), // Hashing passwords
-                authProvider: faker.helpers.arrayElement(["EMAIL"] as const),
-            })),
-        );
-
-        return users;
     }
 }

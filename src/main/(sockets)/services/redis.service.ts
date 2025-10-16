@@ -12,7 +12,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     private redisSubscriber: Redis;
     private redisPublisher: Redis;
 
-    constructor(private readonly configService: ConfigService) { }
+    constructor(private readonly configService: ConfigService) {}
 
     async onModuleInit() {
         await this.connect();
@@ -24,7 +24,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     private async connect() {
         try {
-
             const REDIS_PORT = Number(this.configService.get(ENVEnum.REDIS_PORT)) || 6379;
             const REDIS_HOST = this.configService.get(ENVEnum.REDIS_HOST) || "redis";
 
@@ -57,7 +56,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
             });
         } catch (error) {
             this.logger.error("Failed to connect to Redis");
-            console.log(error)
+            console.log(error);
         }
     }
 
@@ -302,7 +301,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     //         }
     //     });
     // }
-
 
     async publish(channel: string, message: any): Promise<void> {
         await this.redisPublisher.publish(channel, JSON.stringify(message));

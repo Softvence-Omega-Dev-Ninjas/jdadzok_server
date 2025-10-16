@@ -22,7 +22,6 @@ export class LikeGetway extends BaseSocketGateway {
     //         return err;
     //     }
     // }
-
     // @SubscribeMessage(SOCKET_LIKE_EVENT.DISLIKE)
     // async handleDislike(@GetSocketUser() user: SocketUser, @MessageBody() body: UpdateLikeDto) {
     //     if (!body.postId) throw new BadGatewayException("PostID is required to like a post!");

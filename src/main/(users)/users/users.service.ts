@@ -78,10 +78,11 @@ export class UserService {
     }
 
     async verifyOpt(input: VerifyTokenDto) {
-        const user = await this.repository.findById(input.userId);
+        const user = await this.repository.findById(input.userId, { id: true, email: true, isVerified: true, role: true });
         if (!user) throw new NotFoundException("User not found with that ID");
 
         if (user.isVerified) throw new ConflictException("Account already verified!");
+
         await this.otpService.verifyOtp({
             userId: user.id,
             token: input.token,
@@ -89,10 +90,9 @@ export class UserService {
         });
 
         // Update DB
-        const updatedUser = await this.repository.update(input.userId, {
-            isVerified: true,
-        });
-        if (!updatedUser) throw new InternalServerErrorException("Failt o update user");
+        const updatedUser = await this.repository.accountVerified(input.userId, !user.isVerified);
+
+        if (!updatedUser) throw new InternalServerErrorException("Failt to update user");
         // when user account verified then we will have to send create a token and send it to as response
         const accessToken = await this.jwtService.signAsync({
             sub: user.id,
@@ -107,10 +107,10 @@ export class UserService {
         if (!user) throw new NotFoundException("User not found with that email");
 
         /**
-        * @deprecated
-        * again send their otp
-        */
-        // const otp = await this.sendOtpMail({ userId: user.id, email: user.email }); 
+         * @deprecated
+         * again send their otp
+         */
+        // const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
         await this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
             email: user.email,
             userId: user.id,

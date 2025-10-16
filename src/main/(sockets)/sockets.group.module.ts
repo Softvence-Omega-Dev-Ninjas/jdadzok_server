@@ -29,8 +29,8 @@ import { RedisService } from "./services/redis.service";
         UserRepository,
         JwtServices,
         AuthValidatorService,
-        RootGetway
+        RootGetway,
     ],
     exports: [SocketMiddleware, RedisService],
 })
-export class SocketsGroupModule { }
+export class SocketsGroupModule {}
