@@ -29,10 +29,11 @@ export class ChatGateway extends BaseSocketGateway {
         //     return;
         // }
         // Validate message
-        if (!data.message?.trim()) return client.emit(
-            SOCKET_EVENTS.ERROR.VALIDATION,
-            this.createResponse(false, null, "Message cannot be empty"),
-        );
+        if (!data.message?.trim())
+            return client.emit(
+                SOCKET_EVENTS.ERROR.VALIDATION,
+                this.createResponse(false, null, "Message cannot be empty"),
+            );
         const message: ChatMessage = {
             ...data,
             eventId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -66,7 +67,6 @@ export class ChatGateway extends BaseSocketGateway {
             // Send success response to sender
             client.emit(SOCKET_EVENTS.CHAT.MESSAGE_SEND, this.createResponse(true, message));
             this.logger.log(`Chat message sent by user ${user.id}: ${message.eventId}`);
-
         } catch (error) {
             this.logger.error(`Error handling chat message: ${error.message}`);
             client.emit(

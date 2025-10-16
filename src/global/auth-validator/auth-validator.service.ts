@@ -8,7 +8,7 @@ export class AuthValidatorService {
     constructor(
         private readonly jwtService: JwtServices,
         private readonly userRepo: UserRepository,
-    ) { }
+    ) {}
 
     async validateSocketToken(socket: Socket) {
         // const rawCookie = this.extractToken(socket);
@@ -33,7 +33,7 @@ export class AuthValidatorService {
 
         if (!user) {
             throw new BadGatewayException("Unauthorized User ❌", {
-                description: "User not foudn with that email & id"
+                description: "User not foudn with that email & id",
             });
         }
 

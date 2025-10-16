@@ -13,7 +13,7 @@ export class UserRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly profileRepo: UserProfileRepository,
-    ) { }
+    ) {}
 
     async store(input: CreateUserDto) {
         return await this.prisma.$transaction(async (tx: HelperTx) => {
@@ -84,7 +84,17 @@ export class UserRepository {
             where: { email },
         });
     }
-    async findById(id: string, select: Prisma.UserSelect<DefaultArgs> = { profile: true, id: true, email: true, role: true, authProvider: true, isVerified: true, }) {
+    async findById(
+        id: string,
+        select: Prisma.UserSelect<DefaultArgs> = {
+            profile: true,
+            id: true,
+            email: true,
+            role: true,
+            authProvider: true,
+            isVerified: true,
+        },
+    ) {
         return await this.prisma.user.findUnique({
             where: { id },
             select,
@@ -105,20 +115,20 @@ export class UserRepository {
                 ...rest,
                 profile: profile
                     ? {
-                        upsert: {
-                            where: {
-                                username: profile.username!,
-                            },
-                            create: {
-                                ...profile,
-                                name: profile.name || "",
-                                username: profile.username!,
-                            },
-                            update: {
-                                ...profile,
-                            },
-                        },
-                    }
+                          upsert: {
+                              where: {
+                                  username: profile.username!,
+                              },
+                              create: {
+                                  ...profile,
+                                  name: profile.name || "",
+                                  username: profile.username!,
+                              },
+                              update: {
+                                  ...profile,
+                              },
+                          },
+                      }
                     : undefined,
             },
         });
@@ -151,13 +161,13 @@ export class UserRepository {
                 },
                 followers: includePrivateData
                     ? {
-                        include: { follower: { include: { profile: true } } },
-                    }
+                          include: { follower: { include: { profile: true } } },
+                      }
                     : false,
                 following: includePrivateData
                     ? {
-                        include: { following: { include: { profile: true } } },
-                    }
+                          include: { following: { include: { profile: true } } },
+                      }
                     : false,
                 _count: {
                     select: {

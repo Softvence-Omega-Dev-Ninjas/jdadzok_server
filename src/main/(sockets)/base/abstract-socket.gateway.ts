@@ -25,14 +25,15 @@ import { RedisService } from "../services/redis.service";
 })
 @UseGuards(SocketAuthGuard)
 export abstract class BaseSocketGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     @WebSocketServer() protected server: Server;
     protected readonly logger = new Logger(this.constructor.name);
 
     constructor(
         protected readonly redisService: RedisService,
         private readonly socketMiddleware: SocketMiddleware,
-    ) { }
+    ) {}
 
     async afterInit() {
         this.logger.verbose(`(${this.constructor.name}) Gateway initialized`);
@@ -91,7 +92,7 @@ export abstract class BaseSocketGateway
 
             // Remove empty rooms (except permanent ones)
             if (room.users.length === 0) {
-                await this.redisService.deleteRoom(roomId)
+                await this.redisService.deleteRoom(roomId);
             }
         }
     }
@@ -133,7 +134,7 @@ export abstract class BaseSocketGateway
             if (!userInRoom) {
                 const user = await this.redisService.getConnectedUser(client.id);
                 if (user) {
-                    await this.redisService.addUserToRoom(roomId, user.id)
+                    await this.redisService.addUserToRoom(roomId, user.id);
                     // room.users.push(user);
                 }
             }
@@ -147,7 +148,7 @@ export abstract class BaseSocketGateway
 
     protected async leaveRoom(client: Socket, roomId: string): Promise<boolean> {
         try {
-            if (!client.user || !client.user.id) return false
+            if (!client.user || !client.user.id) return false;
 
             await client.leave(roomId);
             this.handleUserLeaveRoom(roomId, client.user.id);
@@ -200,7 +201,6 @@ export abstract class BaseSocketGateway
         return await this.redisService.getUserSocketId(userId);
     }
 
-
     // Public getters
     get socketServer(): Server {
         return this.server;
@@ -211,6 +211,6 @@ export abstract class BaseSocketGateway
     }
 
     get activeRooms() {
-        return this.redisService.getRooms()
+        return this.redisService.getRooms();
     }
 }

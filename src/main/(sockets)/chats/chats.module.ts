@@ -15,7 +15,10 @@ import { ChatService } from "./chat.service";
         UserProfileRepository,
         UserRepository,
         JwtServices,
-        AuthValidatorService, ChatService, ChatGateway],
+        AuthValidatorService,
+        ChatService,
+        ChatGateway,
+    ],
     exports: [],
 })
-export class ChatModule { }
+export class ChatModule {}
