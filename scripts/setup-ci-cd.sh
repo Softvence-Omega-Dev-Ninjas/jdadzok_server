@@ -331,6 +331,33 @@ cat >> "$CD_YAML" <<'EOF'
           echo "✅ Files copied successfully"
       - name: Fix permissions on server
         run: ssh deploy-server "chmod -R +x ~/${{ secrets.PACKAGE_NAME }}/scripts/*.sh"
+      - name: Prepare OS
+        run: |
+          ssh deploy-server bash << 'VERIFY_EOF'
+
+          # Update packages
+          sudo apt update && sudo apt upgrade -y
+
+          # Install Docker
+          sudo apt install -y docker.io
+
+          # Enable Docker service
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+          # Add ubuntu user to docker group (so no sudo needed)
+          sudo usermod -aG docker $USER
+          newgrp docker
+
+          # Verify
+          docker --version
+
+          # Install Docker Compose (latest)
+          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+
+          VERIFY_EOF
       - name: Verify Deployment
         run: |
           ssh deploy-server bash << 'VERIFY_EOF'
