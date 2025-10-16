@@ -19,6 +19,7 @@ export class NotificationGateway extends BaseSocketGateway {
             targetUserId: string;
         },
     ) {
+        console.info(data, client.id);
         // const userId = this.getUserId(client.id);
         // if (!userId) return;
         // const notification: NotificationEvent = {
@@ -50,6 +51,7 @@ export class NotificationGateway extends BaseSocketGateway {
         @ConnectedSocket() client: Socket,
         @MessageBody() data: { notificationId: string },
     ) {
+        console.info(client.id, data);
         // const userId = this.getUserId(client.id);
         // if (!userId) return;
         // // In a real app, you'd update the database here

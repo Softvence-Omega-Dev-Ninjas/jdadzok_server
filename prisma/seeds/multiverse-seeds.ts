@@ -14,7 +14,9 @@ export class Seeds {
     }
 
     public user = async (count = 10) => {
-        const userPromises = Array.from({ length: count }).map(async () => await createUser(this.prisma,));
+        const userPromises = Array.from({ length: count }).map(
+            async () => await createUser(this.prisma),
+        );
         const users = await Promise.all(userPromises);
         this.logger.log(`✅ Seeded ${users.length} users`);
     };
@@ -33,10 +35,7 @@ export class Seeds {
 
         const data: Prisma.AboutUsCreateInput = {
             about: faker.lorem.paragraphs(2),
-            photos: [
-                faker.image.url(),
-                faker.image.url(),
-            ],
+            photos: [faker.image.url(), faker.image.url()],
         };
 
         await this.prisma.aboutUs.create({ data });

@@ -20,7 +20,7 @@ async function main() {
     await seed.termsAndConditions();
     // ============LIST OF SEED END============= //
 
-    console.info("===============🌱 Database Seed successfully 😍===============")
+    console.info("===============🌱 Database Seed successfully 😍===============");
 }
 
 main()

@@ -55,8 +55,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
                 this.logger.error("Redis Publisher Error:", err);
             });
         } catch (error) {
+            console.info(error.message);
             this.logger.error("Failed to connect to Redis");
-            console.log(error);
         }
     }
 

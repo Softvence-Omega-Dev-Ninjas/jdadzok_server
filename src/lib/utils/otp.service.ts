@@ -55,7 +55,6 @@ export class OptService {
         const redisKey = this.getRedisKeyByType(type, userId);
 
         const data = await this.redisService.get<OtpRedisData>(redisKey);
-        console.log("redis data: ", data);
 
         if (!data) {
             throw new ForbiddenException("OTP expired or not found");

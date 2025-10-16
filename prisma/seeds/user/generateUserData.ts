@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker';
-import { AuthProvider, CapLevel, MediaType, Role } from '@prisma/client';
+import { faker } from "@faker-js/faker";
+import { AuthProvider, CapLevel, MediaType, Role } from "@prisma/client";
 
 export const generateUserData = async () => {
     return {
@@ -20,7 +20,7 @@ export const generateUserData = async () => {
         about: {
             create: {
                 website: faker.internet.url(),
-                work: faker.company.name()
+                work: faker.company.name(),
             },
         },
         metrics: {
@@ -34,8 +34,8 @@ export const generateUserData = async () => {
             create: Array.from({ length: 3 }).map(() => ({
                 text: faker.lorem.sentence(),
                 mediaUrls: [faker.image.url()],
-                mediaType: MediaType.IMAGE
+                mediaType: MediaType.IMAGE,
             })),
-        }
+        },
     };
 };
