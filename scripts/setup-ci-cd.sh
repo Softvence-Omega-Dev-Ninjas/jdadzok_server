@@ -174,12 +174,12 @@ RUNS_SETUP_SSH="    - name: Setup SSH
         ssh-keyscan -H \${{ inputs.VPS_HOST }} >> ~/.ssh/known_hosts
         chmod 644 ~/.ssh/known_hosts
         cat > ~/.ssh/config <<EOF
-Host deploy-server
-  HostName \${{ inputs.VPS_HOST }}
-  User \${{ inputs.VPS_USER }}
-  IdentityFile ~/.ssh/deploy_key
-  StrictHostKeyChecking no
-EOF
+        Host deploy-server
+          HostName \${{ inputs.VPS_HOST }}
+          User \${{ inputs.VPS_USER }}
+          IdentityFile ~/.ssh/deploy_key
+          StrictHostKeyChecking no
+        EOF
         chmod 600 ~/.ssh/config
     - name: Test SSH
       shell: bash
