@@ -14,7 +14,7 @@ import { VerifyTokenDto } from "./dto/verify-token.dto";
 
 @Controller("auth")
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(private readonly authService: AuthService) { }
 
     @MakePublic()
     @Post("login")
@@ -67,6 +67,7 @@ export class AuthController {
                 "Resend code email sent successfully! Please check your mail.",
             );
         } catch (err) {
+            console.log(err)
             return err;
         }
     }

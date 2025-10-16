@@ -12,7 +12,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     private redisSubscriber: Redis;
     private redisPublisher: Redis;
 
-    constructor(private readonly configService: ConfigService) {}
+    constructor(private readonly configService: ConfigService) { }
 
     async onModuleInit() {
         await this.connect();
@@ -24,20 +24,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     private async connect() {
         try {
-            // const redisConfig: RedisOptions = {
-            //   host: "redis",
-            //   port: 6379,
-            //   password: this.configService.get(ENVEnum.REDIS_PASS) || "",
-            //   username: this.configService.get(ENVEnum.REDIS_USER) || "",
-            //   db: parseInt(process.env.REDIS_DB || "0"),
-            //   enableReadyCheck: true,
-            //   maxRetriesPerRequest: 3,
-            //   lazyConnect: true,
-            //   keepAlive: 30000,
-            //   tls: {
-            //     rejectUnauthorized: false,
-            //   },
-            // };
 
             const REDIS_PORT = Number(this.configService.get(ENVEnum.REDIS_PORT)) || 6379;
             const REDIS_HOST = this.configService.get(ENVEnum.REDIS_HOST) || "redis";
@@ -49,11 +35,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
             this.redisSubscriber = new Redis(REDIS_PORT, REDIS_HOST);
             this.redisPublisher = new Redis(REDIS_PORT, REDIS_HOST);
 
-            // await Promise.all([
-            //   // await this.redisClient.connect(),
-            //   this.redisSubscriber.connect(),
-            //   this.redisPublisher.connect(),
-            // ]);
+            await Promise.all([
+                // await this.redisClient.connect(),
+                // await this.redisSubscriber.connect(),
+                // this.redisPublisher.connect(),
+            ]);
 
             this.logger.log("Redis connected successfully");
 
@@ -70,8 +56,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
                 this.logger.error("Redis Publisher Error:", err);
             });
         } catch (error) {
-            this.logger.error("Failed to connect to Redis:", error);
-            throw error;
+            this.logger.error("Failed to connect to Redis");
+            console.log(error)
         }
     }
 
@@ -307,14 +293,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
 
     // Pub/Sub Methods for cross-server communication
-    async subscribe(channel: string, callback: (message: string) => void): Promise<void> {
-        await this.redisSubscriber.subscribe(channel);
-        this.redisSubscriber.on("message", (receivedChannel, message) => {
-            if (receivedChannel === channel) {
-                callback(message);
-            }
-        });
-    }
+    // async subscribe(channel: string, callback: (message: string) => void): Promise<void> {
+    //     this.logger.error('subscribe....')
+    //     await this.redisSubscriber.subscribe(channel);
+    //     this.redisSubscriber.on("message", (receivedChannel, message) => {
+    //         if (receivedChannel === channel) {
+    //             callback(message);
+    //         }
+    //     });
+    // }
+
 
     async publish(channel: string, message: any): Promise<void> {
         await this.redisPublisher.publish(channel, JSON.stringify(message));

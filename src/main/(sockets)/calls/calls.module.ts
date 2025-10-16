@@ -10,10 +10,15 @@ import { CallsService } from "./calls.service";
 @Module({
     imports: [],
     controllers: [],
-    providers: [JwtService,
+    providers: [
+        JwtService,
         UserProfileRepository,
         UserRepository,
-        JwtServices, AuthValidatorService, CallsService, CallsGateway],
+        JwtServices,
+        AuthValidatorService,
+        CallsService,
+        CallsGateway,
+    ],
     exports: [],
 })
-export class CallsModule { }
+export class CallsModule {}

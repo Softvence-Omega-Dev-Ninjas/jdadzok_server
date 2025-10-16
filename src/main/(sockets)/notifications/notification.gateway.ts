@@ -19,33 +19,33 @@ export class NotificationGateway extends BaseSocketGateway {
             targetUserId: string;
         },
     ) {
-        const userId = this.getUserId(client.id);
-        if (!userId) return;
+        // const userId = this.getUserId(client.id);
+        // if (!userId) return;
 
-        const notification: NotificationEvent = {
-            ...data,
-            eventId: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: new Date(),
-            userId,
-            read: false,
-        };
+        // const notification: NotificationEvent = {
+        //     ...data,
+        //     eventId: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        //     timestamp: new Date(),
+        //     userId,
+        //     read: false,
+        // };
 
-        // Send notification to target user
-        const sent = this.emitToUser(
-            data.targetUserId,
-            SOCKET_EVENTS.NOTIFICATION.SEND,
-            notification,
-        );
+        // // Send notification to target user
+        // const sent = this.emitToUser(
+        //     data.targetUserId,
+        //     SOCKET_EVENTS.NOTIFICATION.SEND,
+        //     notification,
+        // );
 
-        if (sent) {
-            client.emit(SOCKET_EVENTS.NOTIFICATION.SEND, this.createResponse(true, { sent: true }));
-            this.logger.log(`Notification sent from ${userId} to ${data.targetUserId}`);
-        } else {
-            client.emit(
-                SOCKET_EVENTS.ERROR.VALIDATION,
-                this.createResponse(false, null, "Target user not found or offline"),
-            );
-        }
+        // if (sent) {
+        //     client.emit(SOCKET_EVENTS.NOTIFICATION.SEND, this.createResponse(true, { sent: true }));
+        //     this.logger.log(`Notification sent from ${userId} to ${data.targetUserId}`);
+        // } else {
+        //     client.emit(
+        //         SOCKET_EVENTS.ERROR.VALIDATION,
+        //         this.createResponse(false, null, "Target user not found or offline"),
+        //     );
+        // }
     }
 
     @SubscribeMessage(SOCKET_EVENTS.NOTIFICATION.READ)
@@ -53,17 +53,17 @@ export class NotificationGateway extends BaseSocketGateway {
         @ConnectedSocket() client: Socket,
         @MessageBody() data: { notificationId: string },
     ) {
-        const userId = this.getUserId(client.id);
-        if (!userId) return;
+        // const userId = this.getUserId(client.id);
+        // if (!userId) return;
 
-        // In a real app, you'd update the database here
-        client.emit(
-            SOCKET_EVENTS.NOTIFICATION.READ,
-            this.createResponse(true, {
-                notificationId: data.notificationId,
-                read: true,
-            }),
-        );
+        // // In a real app, you'd update the database here
+        // client.emit(
+        //     SOCKET_EVENTS.NOTIFICATION.READ,
+        //     this.createResponse(true, {
+        //         notificationId: data.notificationId,
+        //         read: true,
+        //     }),
+        // );
     }
 
     protected setupRedis(): void {

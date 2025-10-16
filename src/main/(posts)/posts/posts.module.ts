@@ -44,4 +44,4 @@ import { PostUtils } from "./utils";
     ],
     exports: [PostRepository],
 })
-export class PostModule { }
+export class PostModule {}

@@ -7,7 +7,13 @@ import { AuthValidatorService } from "./auth-validator.service";
 
 @Module({
     imports: [],
-    providers: [JwtService, UserProfileRepository, UserRepository, JwtServices, AuthValidatorService],
+    providers: [
+        JwtService,
+        UserProfileRepository,
+        UserRepository,
+        JwtServices,
+        AuthValidatorService,
+    ],
     exports: [AuthValidatorService],
 })
-export class AuthValidatorModule { }
+export class AuthValidatorModule {}

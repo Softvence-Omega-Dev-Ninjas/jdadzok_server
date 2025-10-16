@@ -31,7 +31,7 @@ export class UserService {
         private readonly jwtService: JwtServices,
         private readonly otpService: OptService,
         private readonly mailService: MailService,
-    ) {}
+    ) { }
 
     async register(body: CreateUserDto) {
         // has password if provider is email
@@ -106,9 +106,16 @@ export class UserService {
         const user = await this.repository.findByEmail(input.email);
         if (!user) throw new NotFoundException("User not found with that email");
 
-        // again send their otp
-        const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
-        return otp;
+        /**
+        * @deprecated
+        * again send their otp
+        */
+        // const otp = await this.sendOtpMail({ userId: user.id, email: user.email }); 
+        await this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
+            email: user.email,
+            userId: user.id,
+        });
+        return { id: user.id, email: user.email };
     }
 
     async updateUser(userId: string, input: UpdateUserDto) {

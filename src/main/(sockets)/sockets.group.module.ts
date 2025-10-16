@@ -6,6 +6,7 @@ import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { JwtServices } from "@service/jwt.service";
+import { RootGetway } from "./base/root.getway";
 import { CallsModule } from "./calls/calls.module";
 import { SocketAuthGuard } from "./guards/socket-auth.guard";
 import { SocketMiddleware } from "./middleware/socket.middleware";
@@ -28,6 +29,7 @@ import { RedisService } from "./services/redis.service";
         UserRepository,
         JwtServices,
         AuthValidatorService,
+        RootGetway
     ],
     exports: [SocketMiddleware, RedisService],
 })
