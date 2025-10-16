@@ -1,5 +1,5 @@
-import { HelperTx } from "@app/@types";
 import { Injectable } from "@nestjs/common";
+import { HelperTx } from "@type/index";
 import { CreateGifDto } from "./dto/create.gif.dto";
 
 @Injectable()

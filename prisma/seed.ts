@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import chalk from "chalk";
 import { config } from "dotenv";
 import { expand } from "dotenv-expand";
 import path from "path";
@@ -7,9 +6,10 @@ import { Seeds } from "./seeds/multiverse-seeds";
 
 // Explicitly load environment variables
 const prisma = new PrismaClient();
+
 async function main() {
     expand(config({ path: path.resolve(process.cwd(), ".env") }));
-    console.info(chalk.bgYellow.white.bold("🌱 Database Seed start "));
+    console.info("===============🌱 Database Seed start 🌱===============");
     const seed = new Seeds(prisma);
 
     // ============LIST OF SEED START============= //
@@ -20,7 +20,7 @@ async function main() {
     await seed.termsAndConditions();
     // ============LIST OF SEED END============= //
 
-    console.info(chalk.bgYellow.white.bold("🌱 Database Seed successfully 😍"));
+    console.info("===============🌱 Database Seed successfully 😍===============")
 }
 
 main()

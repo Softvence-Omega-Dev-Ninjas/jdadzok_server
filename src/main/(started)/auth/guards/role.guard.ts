@@ -1,5 +1,5 @@
-import { ROLES_KEY } from "@app/common/jwt/jwt.decorator";
-import { RequestWithUser } from "@app/common/jwt/jwt.interface";
+import { ROLES_KEY } from "@common/jwt/jwt.decorator";
+import { RequestWithUser } from "@common/jwt/jwt.interface";
 import { Role } from "@constants/enums";
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";

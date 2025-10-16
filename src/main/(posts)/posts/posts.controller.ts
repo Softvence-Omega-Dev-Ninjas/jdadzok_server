@@ -1,7 +1,3 @@
-import { TUser, VerifiedUser } from "@app/@types";
-import { S3Service } from "@app/s3/s3.service";
-import { omit } from "@app/utils";
-import { transformAndValidate } from "@app/utils/zod-utility/transform-validation";
 import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { successResponse } from "@common/utils/response.util";
 import { postFrom } from "@constants/enums";
@@ -25,6 +21,10 @@ import {
 } from "@nestjs/common";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiExtraModels, ApiOperation } from "@nestjs/swagger";
+import { S3Service } from "@s3/s3.service";
+import { TUser, VerifiedUser } from "@type/index";
+import { omit } from "@utils/index";
+import { transformAndValidate } from "@utils/zod-utility/transform-validation";
 import multer from "multer";
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";

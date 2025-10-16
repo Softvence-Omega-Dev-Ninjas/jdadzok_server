@@ -1,4 +1,4 @@
-import { UtilsService } from "@app/lib/utils/utils.service";
+import { UtilsService } from "@lib/utils/utils.service";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 

@@ -1,6 +1,6 @@
 // import { Injectable } from "@nestjs/common";
 // import { PassportStrategy } from "@nestjs/passport";
-// import { UserRepository } from "@app/main/users/users.repository";
+// import { UserRepository } from "@module/users/users.repository";
 // import { Strategy } from "passport-jwt";
 // import { AuthService } from "../auth.service";
 

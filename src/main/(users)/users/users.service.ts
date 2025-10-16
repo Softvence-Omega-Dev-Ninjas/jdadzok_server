@@ -1,11 +1,9 @@
-import { TUser } from "@app/@types";
-import { MailService } from "@app/lib/mail/mail.service";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { OptService } from "@app/lib/utils/otp.service";
-import { UtilsService } from "@app/lib/utils/utils.service";
-import { QUEUE_JOB_NAME } from "@app/main/(buill-queue)/constants";
-import { VerifyTokenDto } from "@app/main/(started)/auth/dto/verify-token.dto";
-import { JwtServices } from "@app/services/jwt.service";
+import { MailService } from "@lib/mail/mail.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { OptService } from "@lib/utils/otp.service";
+import { UtilsService } from "@lib/utils/utils.service";
+import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
+import { VerifyTokenDto } from "@module/(started)/auth/dto/verify-token.dto";
 import { InjectQueue } from "@nestjs/bullmq";
 import {
     BadRequestException,
@@ -14,6 +12,8 @@ import {
     InternalServerErrorException,
     NotFoundException,
 } from "@nestjs/common";
+import { JwtServices } from "@service/jwt.service";
+import { TUser } from "@type/index";
 import { omit } from "@utils/index";
 import { Queue } from "bullmq";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
@@ -78,10 +78,16 @@ export class UserService {
     }
 
     async verifyOpt(input: VerifyTokenDto) {
-        const user = await this.repository.findById(input.userId);
+        const user = await this.repository.findById(input.userId, {
+            id: true,
+            email: true,
+            isVerified: true,
+            role: true,
+        });
         if (!user) throw new NotFoundException("User not found with that ID");
 
         if (user.isVerified) throw new ConflictException("Account already verified!");
+
         await this.otpService.verifyOtp({
             userId: user.id,
             token: input.token,
@@ -89,10 +95,9 @@ export class UserService {
         });
 
         // Update DB
-        const updatedUser = await this.repository.update(input.userId, {
-            isVerified: true,
-        });
-        if (!updatedUser) throw new InternalServerErrorException("Failt o update user");
+        const updatedUser = await this.repository.accountVerified(input.userId, !user.isVerified);
+
+        if (!updatedUser) throw new InternalServerErrorException("Failt to update user");
         // when user account verified then we will have to send create a token and send it to as response
         const accessToken = await this.jwtService.signAsync({
             sub: user.id,
@@ -106,9 +111,16 @@ export class UserService {
         const user = await this.repository.findByEmail(input.email);
         if (!user) throw new NotFoundException("User not found with that email");
 
-        // again send their otp
-        const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
-        return otp;
+        /**
+         * @deprecated
+         * again send their otp
+         */
+        // const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
+        await this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
+            email: user.email,
+            userId: user.id,
+        });
+        return { id: user.id, email: user.email };
     }
 
     async updateUser(userId: string, input: UpdateUserDto) {

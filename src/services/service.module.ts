@@ -1,4 +1,4 @@
-import { SocketMiddleware } from "@app/main/(sockets)/middleware/socket.middleware";
+import { SocketMiddleware } from "@module/(sockets)/middleware/socket.middleware";
 import { Logger, Module } from "@nestjs/common";
 import { SimpleBaseQueryDto } from "./dto/simple.base.query.dto";
 import { JwtServices } from "./jwt.service";

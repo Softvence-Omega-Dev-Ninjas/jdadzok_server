@@ -1,5 +1,5 @@
-import { Notification } from "@app/common/interface/events-payload";
-import { JWTPayload } from "@app/common/jwt/jwt.interface";
+import { Notification } from "@common/interface/events-payload";
+import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";

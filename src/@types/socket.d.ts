@@ -1,4 +1,4 @@
-import { SocketUser } from "@app/main/(sockets)/@types";
+import { SocketUser } from "@module/(sockets)/@types";
 
 declare module "socket.io" {
     interface Socket {

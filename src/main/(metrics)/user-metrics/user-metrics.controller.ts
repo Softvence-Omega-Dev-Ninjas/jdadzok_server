@@ -1,7 +1,7 @@
-import { VerifiedUser } from "@app/@types";
-import { GetVerifiedUser } from "@app/common/jwt/jwt.decorator";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { Body, Controller, Get, Post, Put } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { VerifiedUser } from "@type/index";
 import { CalculateActivityScoreDto } from "./dto/activity-score.dto";
 import { UpdateUserMetricsDto } from "./dto/update-user-metrics.dto";
 import { UserMetricsResponseDto } from "./dto/user-metrics-response.dto";

@@ -1,6 +1,6 @@
-import { HelperTx } from "@app/@types";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
+import { HelperTx } from "@type/index";
 import { CreatePostTagUserDto, UpdatePostTagUserDto } from "./dto/post-tags.create.dto";
 
 @Injectable()

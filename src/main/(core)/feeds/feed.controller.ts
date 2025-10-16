@@ -1,8 +1,8 @@
-import { TUser } from "@app/@types";
 import { GetUser } from "@common/jwt/jwt.decorator";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Controller, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
+import { TUser } from "@type/index";
 import { FeedService } from "./feed.service";
 
 @ApiBearerAuth()

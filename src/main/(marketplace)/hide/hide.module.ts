@@ -1,4 +1,4 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Module } from "@nestjs/common";
 import { HideController } from "./hide.controller";
 import { HideService } from "./hide.service";

@@ -1,6 +1,6 @@
-import { PostRepository } from "@app/main/(posts)/posts/posts.repository";
-import { ChoicesRepository } from "@app/main/(started)/choices/choices.repository";
-import { UserRepository } from "@app/main/(users)/users/users.repository";
+import { PostRepository } from "@module/(posts)/posts/posts.repository";
+import { ChoicesRepository } from "@module/(started)/choices/choices.repository";
+import { UserRepository } from "@module/(users)/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()

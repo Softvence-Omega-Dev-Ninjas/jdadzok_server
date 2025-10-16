@@ -1,5 +1,5 @@
-import { OtpRedisData } from "@app/lib/utils/otp.types";
-import { QUEUE_JOB_NAME } from "@app/main/(buill-queue)/constants";
+import { OtpRedisData } from "@lib/utils/otp.types";
+import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { InternalServerErrorException, Logger } from "@nestjs/common";
 import { Job } from "bullmq";

@@ -1,6 +1,9 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { omit } from "@app/utils";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { DefaultArgs } from "@prisma/client/runtime/library";
+import { HelperTx } from "@type/shared.types";
+import { omit } from "@utils/index";
 import { UserProfileRepository } from "../user-profile/user.profile.repository";
 import { UpdateUserDto } from "./dto/update.user.dto";
 import { CreateUserDto } from "./dto/users.dto";
@@ -13,7 +16,7 @@ export class UserRepository {
     ) {}
 
     async store(input: CreateUserDto) {
-        return await this.prisma.$transaction(async (tx) => {
+        return await this.prisma.$transaction(async (tx: HelperTx) => {
             const isUser = await tx.user.findFirst({ where: { email: input.email } });
             // if user already has && user is already verified then throw error otherwise processed
             if (isUser && isUser.isVerified) {
@@ -81,50 +84,54 @@ export class UserRepository {
             where: { email },
         });
     }
-    async findById(id: string) {
+    async findById(
+        id: string,
+        select: Prisma.UserSelect<DefaultArgs> = {
+            profile: true,
+            id: true,
+            email: true,
+            role: true,
+            authProvider: true,
+            isVerified: true,
+        },
+    ) {
         return await this.prisma.user.findUnique({
             where: { id },
-            include: {
-                profile: true,
-                about: true,
-                adRevenueShares: true,
-                bans: true,
-                chatParticipant: true,
-                comments: true,
-                communityMemberships: true,
-                corporateContacts: true,
-                createdChats: true,
-                creatorSubscriptions: true,
-                followedNgos: true,
-                followers: true,
-                following: true,
-                givenEndorsements: true,
-                issuedBans: true,
-                likedCommunities: true,
-                likedNgos: true,
-                likes: true,
-                metrics: true,
-                notifications: true,
-                posts: true,
-                products: true,
-                wishlist: true,
-            },
+            select,
         });
     }
-
+    async accountVerified(userId: string, isVerified: boolean) {
+        return await this.prisma.user.update({
+            where: { id: userId },
+            data: { isVerified },
+        });
+    }
     async update(id: string, data: UpdateUserDto) {
-        const { profile } = data;
-        if (profile) {
-            return await this.prisma.user.update({
-                where: { id },
-                data: {
-                    ...data,
-                    profile: {
-                        update: { ...profile },
-                    },
-                },
-            });
-        }
+        const { profile, ...rest } = data;
+
+        return await this.prisma.user.update({
+            where: { id },
+            data: {
+                ...rest,
+                profile: profile
+                    ? {
+                          upsert: {
+                              where: {
+                                  username: profile.username!,
+                              },
+                              create: {
+                                  ...profile,
+                                  name: profile.name || "",
+                                  username: profile.username!,
+                              },
+                              update: {
+                                  ...profile,
+                              },
+                          },
+                      }
+                    : undefined,
+            },
+        });
     }
 
     async delete(userId: string) {

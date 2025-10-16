@@ -1,4 +1,4 @@
-import { NotificationModule } from "@app/lib/notification/notification.module";
+import { NotificationModule } from "@lib/notification/notification.module";
 import { Module } from "@nestjs/common";
 
 @Module({

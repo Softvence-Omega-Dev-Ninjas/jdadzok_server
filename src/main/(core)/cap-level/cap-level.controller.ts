@@ -1,5 +1,5 @@
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth";
 import { CapLevel } from "@constants/enums";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Controller, Get, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
 import {
     ApiBearerAuth,

@@ -1,6 +1,6 @@
-import { HelperTx } from "@app/@types";
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { HelperTx } from "@type/index";
 import { CreateUserProfileDto } from "./dto/user.profile.dto";
 
 @Injectable()

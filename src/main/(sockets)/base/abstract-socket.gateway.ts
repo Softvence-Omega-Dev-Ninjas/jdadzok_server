@@ -1,4 +1,4 @@
-import { RateLimitConfig, SocketResponse, SocketRoom, SocketUser } from "@module/(sockets)/@types";
+import { SocketResponse, SocketRoom, SocketUser } from "@module/(sockets)/@types";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
 import { Logger, UseGuards } from "@nestjs/common";
 import {
@@ -11,6 +11,7 @@ import {
 import { Server, Socket } from "socket.io";
 import { SocketAuthGuard } from "../guards/socket-auth.guard";
 import { SocketMiddleware } from "../middleware/socket.middleware";
+import { RedisService } from "../services/redis.service";
 
 @WebSocketGateway({
     cors: {
@@ -29,110 +30,77 @@ export abstract class BaseSocketGateway
     @WebSocketServer() protected server: Server;
     protected readonly logger = new Logger(this.constructor.name);
 
-    // In-memory stores (replace with Redis in production)
-    protected connectedUsers = new Map<string, SocketUser>();
-    protected userSockets = new Map<string, string>(); // userId -> socketId
-    protected socketUsers = new Map<string, string>(); // socketId -> userId
-    protected rooms = new Map<string, SocketRoom>();
-    protected rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+    constructor(
+        protected readonly redisService: RedisService,
+        private readonly socketMiddleware: SocketMiddleware,
+    ) {}
 
-    constructor(private readonly socketMiddleware: SocketMiddleware) {}
-
-    afterInit() {
-        this.logger.log("Socket Gateway initialized");
+    async afterInit() {
+        this.logger.verbose(`(${this.constructor.name}) Gateway initialized`);
         this.server.use(this.socketMiddleware.authenticate());
-        // this.setupRedis();
-        this.setupRateLimiting();
-        this.setupHeartbeat();
-    }
+        this.server.use(this.socketMiddleware.logging());
 
+        // await this.redisService.subscribe(SOCKET_EVENTS.CHAT.MESSAGE, (message: any) => {
+        //     const parsed = JSON.parse(message);
+        //     this.server.to(parsed.roomId).emit(SOCKET_EVENTS.CHAT.NEW_MESSAGE, parsed);
+        // });
+    }
     async handleConnection(client: Socket) {
         const user = client.data.user;
-        try {
-            if (!user?.id) {
-                client.disconnect(true);
-                return;
-            }
+        if (!user?.id) return client.disconnect(true);
 
-            const socketUser: SocketUser = {
-                id: user.id,
-                socketId: client.id,
-                email: user.email,
-                status: "online",
-                role: user.role,
-                joinedAt: new Date(),
-            };
+        const socketUser: SocketUser = {
+            id: user.id,
+            socketId: client.id,
+            email: user.email,
+            status: "online",
+            role: user.role,
+            joinedAt: new Date(),
+        };
 
-            // Handle reconnection
-            const existingSocketId = this.userSockets.get(socketUser.id);
-            if (existingSocketId && existingSocketId !== client.id) {
-                // Disconnect old socket
-                const oldSocket = this.server.sockets.sockets.get(existingSocketId);
-                if (oldSocket) {
-                    oldSocket.disconnect(true);
-                }
-            }
+        await this.redisService.setConnectedUser(client.id, socketUser);
+        await client.join(`user:${socketUser.id}`);
 
-            this.connectedUsers.set(client.id, user);
-            this.userSockets.set(socketUser.id, client.id);
-            this.socketUsers.set(client.id, socketUser.id);
+        this.logger.log(`User ${socketUser.email} connected`);
 
-            // Join user to their personal room
-            await client.join(`user:${socketUser.id}`);
-
-            this.logger.log(`User ${socketUser.email} connected with socket ${client.id}`);
-
-            // Notify others about user joining
-            client.broadcast.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
-
-            // Send connection success response
-            client.emit(
-                SOCKET_EVENTS.CONNECTION.CONNECT,
-                this.createResponse(true, {
-                    user,
-                    serverTime: new Date(),
-                }),
-            );
-        } catch (error) {
-            this.logger.error(`Connection error: ${error.message}`);
-        }
+        // Broadcast join event
+        this.server.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
     }
 
     async handleDisconnect(client: Socket) {
-        const userId = this.socketUsers.get(client.id);
-        if (!userId) return;
+        const user = await this.redisService.getConnectedUser(client.id);
+        if (!user) return;
 
-        const user = this.connectedUsers.get(client.id);
-        if (!user) return this.logger.error("No user found to disconnect");
+        await this.redisService.removeConnectedUser(client.id);
 
-        // Cleanup
-        this.connectedUsers.delete(client.id);
-        this.userSockets.delete(userId);
-        this.socketUsers.delete(client.id);
-
-        // Leave all rooms
-        const rooms = Array.from(client.rooms);
-        for (const roomId of rooms) {
-            client.leave(roomId);
-            this.handleUserLeaveRoom(roomId, userId);
-        }
-
-        this.logger.log(`User ${userId} disconnected from socket ${client.id}`);
-
-        // Notify others about user leaving
-        client.broadcast.emit(SOCKET_EVENTS.CONNECTION.USER_LEFT, {
-            userId,
+        this.server.emit(SOCKET_EVENTS.CONNECTION.USER_LEFT, {
+            userId: user.id,
             reason: "disconnect",
         });
+
+        this.logger.log(`User ${user.email} disconnected`);
     }
 
     protected createResponse<T>(success: boolean, data?: T, error?: string): SocketResponse<T> {
-        return {
-            success,
-            data,
-            error,
-            timestamp: new Date(),
-        };
+        return { success, data, error, timestamp: new Date() };
+    }
+
+    protected async handleUserLeaveRoom(roomId: string, userId: string) {
+        const room = await this.redisService.getRoomData(roomId);
+        if (room) {
+            room.users = room.users.filter((u) => u.id !== userId);
+
+            // Remove empty rooms (except permanent ones)
+            if (room.users.length === 0) {
+                await this.redisService.deleteRoom(roomId);
+            }
+        }
+    }
+
+    // Get connected users in a room
+    protected async getRoomUsers(roomId: string): Promise<SocketUser[]> {
+        const room = await this.redisService.getRoomData(roomId);
+        return room ? [...room.users] : [];
     }
 
     protected async joinRoom(
@@ -141,13 +109,13 @@ export abstract class BaseSocketGateway
         roomData?: Partial<SocketRoom>,
     ): Promise<boolean> {
         try {
-            const userId = this.socketUsers.get(client.id);
-            if (!userId) return false;
+            const user = client.user;
+            if (!user || !user?.id) return false;
 
             await client.join(roomId);
 
             // Update or create room
-            let room = this.rooms.get(roomId);
+            let room = await this.redisService.getRoomData(roomId);
             if (!room) {
                 room = {
                     id: roomId,
@@ -157,15 +125,17 @@ export abstract class BaseSocketGateway
                     createdAt: new Date(),
                     metadata: roomData?.metadata || {},
                 };
-                this.rooms.set(roomId, room);
+                // await this.rooms.set(roomId, room);
+                await this.redisService.addUserToRoom(roomId, user.id);
             }
 
             // Add user to room if not already present
-            const userInRoom = room.users.find((u) => u.id === userId);
+            const userInRoom = room.users.find((u) => u.id === user.id);
             if (!userInRoom) {
-                const user = this.connectedUsers.get(client.id);
+                const user = await this.redisService.getConnectedUser(client.id);
                 if (user) {
-                    room.users.push(user);
+                    await this.redisService.addUserToRoom(roomId, user.id);
+                    // room.users.push(user);
                 }
             }
 
@@ -178,11 +148,10 @@ export abstract class BaseSocketGateway
 
     protected async leaveRoom(client: Socket, roomId: string): Promise<boolean> {
         try {
-            const userId = this.socketUsers.get(client.id);
-            if (!userId) return false;
+            if (!client.user || !client.user.id) return false;
 
             await client.leave(roomId);
-            this.handleUserLeaveRoom(roomId, userId);
+            this.handleUserLeaveRoom(roomId, client.user.id);
             return true;
         } catch (error) {
             this.logger.error(`Error leaving room ${roomId}: ${error.message}`);
@@ -190,40 +159,8 @@ export abstract class BaseSocketGateway
         }
     }
 
-    private handleUserLeaveRoom(roomId: string, userId: string) {
-        const room = this.rooms.get(roomId);
-        if (room) {
-            room.users = room.users.filter((u) => u.id !== userId);
-
-            // Remove empty rooms (except permanent ones)
-            if (room.users.length === 0 && room.type !== "post") {
-                this.rooms.delete(roomId);
-            }
-        }
-    }
-
-    protected checkRateLimit(key: string, config: RateLimitConfig): boolean {
-        const now = Date.now();
-        const record = this.rateLimitStore.get(key);
-
-        if (!record || now > record.resetTime) {
-            this.rateLimitStore.set(key, {
-                count: 1,
-                resetTime: now + config.windowMs,
-            });
-            return true;
-        }
-
-        if (record.count >= config.maxRequests) {
-            return false;
-        }
-
-        record.count++;
-        return true;
-    }
-
-    protected emitToUser(userId: string, event: string, data: any): boolean {
-        const socketId = this.userSockets.get(userId);
+    protected async emitToUser(userId: string, event: string, data: any): Promise<boolean> {
+        const socketId = await this.redisService.getUserSocketId(userId);
         if (!socketId) return false;
 
         const socket = this.server.sockets.sockets.get(socketId);
@@ -249,59 +186,19 @@ export abstract class BaseSocketGateway
         }
     }
 
-    // Get connected users in a room
-    protected getRoomUsers(roomId: string): SocketUser[] {
-        const room = this.rooms.get(roomId);
-        return room ? [...room.users] : [];
-    }
-
-    // Get user by user ID
-    protected getUserById(userId: string): SocketUser | undefined {
-        const socketId = this.getSocketIdByUserId(userId);
-        if (!socketId) {
-            return undefined;
-        }
-        return this.getUser(socketId);
-    }
-
     // Get user by socket ID
-    protected getUser(socketId: string): SocketUser | undefined {
-        return this.connectedUsers.get(socketId);
+    protected async getUser(socketId: string) {
+        return await this.redisService.getConnectedUser(socketId);
     }
 
     // Get user ID by socket ID
-    protected getUserId(socketId: string): string | undefined {
-        return this.socketUsers.get(socketId);
+    protected async getUserId(socketId: string) {
+        return await this.redisService.getUserIdFromSocket(socketId);
     }
 
     // Get socket ID by user ID
-    protected getSocketIdByUserId(userId: string): string | undefined {
-        return this.userSockets.get(userId);
-    }
-
-    // Abstract methods to be implemented by derived classes
-    // protected abstract setupRedis(): void;
-
-    private setupRateLimiting(): void {
-        // Clean up rate limit store every 5 minutes
-        setInterval(
-            () => {
-                const now = Date.now();
-                for (const [key, record] of this.rateLimitStore.entries()) {
-                    if (now > record.resetTime) {
-                        this.rateLimitStore.delete(key);
-                    }
-                }
-            },
-            5 * 60 * 1000,
-        );
-    }
-
-    private setupHeartbeat(): void {
-        // Send heartbeat every 30 seconds
-        setInterval(() => {
-            this.server.emit("heartbeat", { timestamp: new Date() });
-        }, 30000);
+    protected async getSocketIdByUserId(userId: string) {
+        return await this.redisService.getUserSocketId(userId);
     }
 
     // Public getters
@@ -309,11 +206,11 @@ export abstract class BaseSocketGateway
         return this.server;
     }
 
-    get connectedUserCount(): number {
-        return this.connectedUsers.size;
+    get connectedUserCount() {
+        return this.redisService.getOnlineUsersCount();
     }
 
-    get activeRooms(): string[] {
-        return Array.from(this.rooms.keys());
+    get activeRooms() {
+        return this.redisService.getRooms();
     }
 }

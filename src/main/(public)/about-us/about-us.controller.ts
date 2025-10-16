@@ -1,4 +1,4 @@
-import { JwtAuthGuard } from "@app/main/(started)/auth/guards/jwt-auth"; // Adjust path
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth"; // Adjust path
 import { Body, Controller, Get, Put, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AboutUsService } from "./about-us.service";

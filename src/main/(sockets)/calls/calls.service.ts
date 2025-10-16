@@ -1,4 +1,4 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { Call, CallStatus, CallType } from "@prisma/client";
 import { CreateCallDto } from "./dto/create-calls.dto";

@@ -1,4 +1,4 @@
-import { PostEvent } from "@app/main/(posts)/posts/events";
+import { PostEvent } from "@module/(posts)/posts/events";
 import {
     CallEvent,
     ChatMessage,

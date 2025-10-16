@@ -24,9 +24,10 @@ export class OptService {
         options: OtpOptions = { ttl: "5m", length: 6 },
     ): Promise<OtpRedisData> {
         const { userId, email, type } = payload;
-        const { ttl = "30s", length = 6 } = options; // TODO: need to be add 5s
+        const { ttl = "5m", length } = options; // TODO: need to be change the ttl
 
         const redisKey = this.getRedisKeyByType(type, userId);
+
         const existing = await this.redisService.get(redisKey);
 
         if (existing) throw new ForbiddenException("You can request a new OTP after some time.");
@@ -52,7 +53,9 @@ export class OptService {
         const { userId, token, type } = input;
 
         const redisKey = this.getRedisKeyByType(type, userId);
+
         const data = await this.redisService.get<OtpRedisData>(redisKey);
+        console.log("redis data: ", data);
 
         if (!data) {
             throw new ForbiddenException("OTP expired or not found");

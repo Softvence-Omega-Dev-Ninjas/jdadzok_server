@@ -1,4 +1,4 @@
-import { CreateProductDto } from "@app/main/(marketplace)/product/dto/product.dto";
+import { CreateProductDto } from "@module/(marketplace)/product/dto/product.dto";
 import { BaseSocketEvent } from "./base.types";
 
 export interface marketplaceEvent extends BaseSocketEvent {

@@ -1,4 +1,4 @@
-import { successResponse } from "@app/common/utils/response.util";
+import { successResponse } from "@common/utils/response.util";
 import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { CreatePostTagUserDto, UpdatePostTagUserDto } from "./dto/post-tags.create.dto";

@@ -1,4 +1,4 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto } from "./dto/privacy-policy.dto";
 

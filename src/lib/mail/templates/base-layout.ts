@@ -1,5 +1,4 @@
-import appMetadata from "@app/app-metadata/app-metadata";
-
+import appMetadata from "@metadata/app-metadata";
 const generateBaseLayout = (subject: string, body: string): string => {
     return `
   <!DOCTYPE html>

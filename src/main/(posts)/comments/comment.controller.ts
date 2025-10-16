@@ -1,5 +1,4 @@
-import { TUser } from "@app/@types";
-import { GetUser } from "@app/common/jwt/jwt.decorator";
+import { GetUser } from "@common/jwt/jwt.decorator";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
     Body,
@@ -12,6 +11,7 @@ import {
     UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { TUser } from "@type/index";
 import { CommentService } from "./comment.service";
 import { CreateCommentDto } from "./dto/create.comment.dto";
 

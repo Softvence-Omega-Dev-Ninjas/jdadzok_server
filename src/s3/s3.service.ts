@@ -1,8 +1,8 @@
-import { generateRedisKey } from "@app/utils";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { RedisService } from "@module/(sockets)/services/redis.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { generateRedisKey } from "@utils/index";
 import { createHash } from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 import { S3ResponseDto } from "./dto/s3.dto";

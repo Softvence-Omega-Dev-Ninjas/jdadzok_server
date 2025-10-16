@@ -11,8 +11,9 @@ export class ChoicesService {
         if (dtos.ids.length > 5) {
             throw new BadRequestException("You can select at most 5 choices.");
         }
-        // Parse the input data to match the format and slugify text
-        return await this.choicesRepo.createMany(dtos.ids, userId);
+
+        const choice = await this.choicesRepo.createMany(dtos.ids, userId);
+        return choice;
     }
 
     async getUserChoices(userId: string) {

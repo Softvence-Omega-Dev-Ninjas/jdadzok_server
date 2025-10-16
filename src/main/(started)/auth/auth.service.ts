@@ -1,18 +1,22 @@
-import { TUser } from "@app/@types";
-import { MailService } from "@app/lib/mail/mail.service";
-import { OptService } from "@app/lib/utils/otp.service";
-import { UtilsService } from "@app/lib/utils/utils.service";
-import { ResentOtpDto } from "@app/main/(users)/users/dto/resent-otp.dto";
-import { JwtServices } from "@app/services/jwt.service";
-import { omit } from "@app/utils";
+import { MailService } from "@lib/mail/mail.service";
+import { OptService } from "@lib/utils/otp.service";
+import { UtilsService } from "@lib/utils/utils.service";
+import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
+import { ResentOtpDto } from "@module/(users)/users/dto/resent-otp.dto";
 import { UserRepository } from "@module/(users)/users/users.repository";
+import { InjectQueue } from "@nestjs/bullmq";
 import {
     BadRequestException,
+    ConflictException,
     ForbiddenException,
     Injectable,
     NotFoundException,
     UnauthorizedException,
 } from "@nestjs/common";
+import { JwtServices } from "@service/jwt.service";
+import { TUser } from "@type/index";
+import { omit } from "@utils/index";
+import { Queue } from "bullmq";
 import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
@@ -21,6 +25,7 @@ import { VerifyTokenDto } from "./dto/verify-token.dto";
 @Injectable()
 export class AuthService {
     constructor(
+        @InjectQueue("users") private readonly userQueue: Queue,
         private readonly userRepository: UserRepository,
         private readonly utilsService: UtilsService,
         private readonly jwtService: JwtServices,
@@ -78,9 +83,17 @@ export class AuthService {
         const user = await this.userRepository.findByEmail(input.email);
         if (!user) throw new NotFoundException("User not found with that email");
 
+        if (user.isVerified) throw new ConflictException("Account already verified!");
         // again send their otp
-        const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
-        return otp;
+        // const otp = await this.sendOtpMail({ userId: user.id, email: user.email });
+        await this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
+            email: user.email,
+            userId: user.id,
+        });
+        return {
+            id: user.id,
+            email: user.email,
+        };
     }
 
     async resetPassword(input: ResetPasswordDto) {

@@ -1,26 +1,22 @@
 import { faker } from "@faker-js/faker";
+import { Logger } from "@nestjs/common";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { preChoices } from "./constants";
+import { createUser } from "./user/createUser";
 
 type TPrimsa = PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>;
 export class Seeds {
+    private logger = new Logger(Seeds.name);
     private prisma: TPrimsa;
     constructor(prisma: TPrimsa) {
         this.prisma = prisma;
     }
 
-    public user = async () => {
-        const data = () => ({
-            email: faker.internet.email(),
-            // password: faker.
-        });
-        const usersArray = Array.from({ length: 5 }, data);
-
-        await this.prisma.user.createMany({
-            data: usersArray,
-            skipDuplicates: true,
-        });
+    public user = async (count = 10) => {
+        const userPromises = Array.from({ length: count }).map(async () => await createUser(this.prisma,));
+        const users = await Promise.all(userPromises);
+        this.logger.log(`✅ Seeded ${users.length} users`);
     };
 
     public choice = async () => {
@@ -28,6 +24,7 @@ export class Seeds {
             data: preChoices,
             skipDuplicates: true,
         });
+        this.logger.log(`✅ Seeded ${preChoices.length} choice`);
     };
 
     public aboutUs = async () => {
@@ -37,12 +34,13 @@ export class Seeds {
         const data: Prisma.AboutUsCreateInput = {
             about: faker.lorem.paragraphs(2),
             photos: [
-                faker.image.urlLoremFlickr({ category: "nature" }),
-                faker.image.urlLoremFlickr({ category: "city" }),
+                faker.image.url(),
+                faker.image.url(),
             ],
         };
 
         await this.prisma.aboutUs.create({ data });
+        this.logger.log(`✅ Seeded About us`);
     };
 
     public privacyPolicy = async () => {
@@ -54,6 +52,7 @@ export class Seeds {
                 text: `# Privacy Policy\n\n${faker.lorem.paragraphs(3)}`,
             },
         });
+        this.logger.log(`✅ Seeded Privacy Policy`);
     };
 
     public termsAndConditions = async () => {
@@ -65,5 +64,6 @@ export class Seeds {
                 text: `# Terms and Conditions\n\n${faker.lorem.paragraphs(3)}`,
             },
         });
+        this.logger.log(`✅ Seeded Terms & conditions`);
     };
 }

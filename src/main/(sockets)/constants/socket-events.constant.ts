@@ -16,6 +16,8 @@ export const SOCKET_EVENTS = {
         MESSAGE_READ: "chat:message:read",
         MESSAGE_DELETE: "chat:message:delete",
         MESSAGE_EDIT: "chat:message:edit",
+        NEW_MESSAGE: "chat:message:new-message",
+        MESSAGE: "chat:message",
     },
 
     MARKETPLACE: {

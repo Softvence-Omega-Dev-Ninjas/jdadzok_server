@@ -1,5 +1,5 @@
-import { AppError } from "@app/common/error/handle-error.app";
-import { HandleError } from "@app/common/error/handle-error.decorator";
+import { AppError } from "@common/error/handle-error.app";
+import { HandleError } from "@common/error/handle-error.decorator";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as fs from "fs";

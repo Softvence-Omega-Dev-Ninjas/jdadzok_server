@@ -1,24 +1,17 @@
-import { PrismaService } from "@app/lib/prisma/prisma.service";
-import { JwtServices } from "@app/services/jwt.service";
-import {
-    BadGatewayException,
-    CanActivate,
-    ExecutionContext,
-    Injectable,
-    UnauthorizedException,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { JwtService } from "@nestjs/jwt";
+import { AuthValidatorService } from "@global/auth-validator/auth-validator.service";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Socket } from "socket.io";
 import { SocketUser } from "../@types";
 
 @Injectable()
 export class SocketAuthGuard implements CanActivate {
+    constructor(private readonly authValidator: AuthValidatorService) {}
+
     async canActivate(context: ExecutionContext): Promise<boolean> {
         if (context.getType() !== "ws") return true;
 
         const client: Socket = context.switchToWs().getClient();
-        const user = await SocketAuthGuard.validateToken(client);
+        const user = await this.authValidator.validateSocketToken(client);
 
         const socketUser: SocketUser = {
             id: user.id,
@@ -28,32 +21,10 @@ export class SocketAuthGuard implements CanActivate {
             status: "away",
             email: user.email,
         };
+
+        client.data.user = socketUser;
         client.user = socketUser;
-        client.data = socketUser;
+
         return true;
-    }
-
-    public static async validateToken(client: Socket) {
-        const token = client.handshake.headers.cookie ?? client.handshake.headers.cookie;
-
-        if (!token) throw new BadGatewayException("Unauthorized user - token not found");
-
-        const jwt = new JwtService();
-        const configService = new ConfigService();
-        const jwtService = new JwtServices(jwt, configService);
-        const isVerifiedToken = await jwtService.verifyAsync(token);
-        if (!isVerifiedToken?.email) throw new BadGatewayException("Invalid token, unauthorized");
-
-        const prisma = new PrismaService();
-        const user = await prisma.user.findFirst({
-            where: {
-                OR: [{ id: isVerifiedToken.sub }, { email: isVerifiedToken.email }],
-            },
-        });
-        if (!user) throw new BadGatewayException("User not found");
-
-        if (!user.isVerified) throw new UnauthorizedException("Please verify your account first");
-
-        return user;
     }
 }
