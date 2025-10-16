@@ -27,7 +27,7 @@
             function connect() {
                 const token = document.getElementById("token").value;
 
-                socket = io("http://localhost:5056", {
+                socket = io("http://localhost:5056/chats", {
                     auth: {
                         token: token,
                     },

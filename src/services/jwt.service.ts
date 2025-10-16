@@ -9,7 +9,7 @@ export class JwtServices {
     constructor(
         private readonly service: JwtService,
         private readonly configService: ConfigService,
-    ) {}
+    ) { }
 
     public async signAsync<T extends JWTPayload>(
         payload: T,
@@ -22,7 +22,7 @@ export class JwtServices {
         });
     }
 
-    public async verifyAsync(
+    public async verifyAsync<T extends JWTPayload>(
         token: string,
         options: JwtSignOptions = {
             secret: this.configService.getOrThrow(ENVEnum.JWT_SECRET),
@@ -31,6 +31,6 @@ export class JwtServices {
         return await this.service.verifyAsync(token, {
             ...options,
             audience: "",
-        });
+        }) as T;
     }
 }

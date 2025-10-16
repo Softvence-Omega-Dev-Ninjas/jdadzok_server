@@ -1,7 +1,6 @@
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { BadGatewayException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtServices } from "@service/jwt.service";
-import * as cookie from "cookie";
 import { Socket } from "socket.io";
 
 @Injectable()
@@ -9,20 +8,19 @@ export class AuthValidatorService {
     constructor(
         private readonly jwtService: JwtServices,
         private readonly userRepo: UserRepository,
-    ) {}
+    ) { }
 
     async validateSocketToken(socket: Socket) {
-        const rawCookie = this.extractToken(socket);
-        console.log(rawCookie);
-        if (!rawCookie) {
-            throw new BadGatewayException("Unauthorized user - cookie not found");
-        }
+        // const rawCookie = this.extractToken(socket);
+        // console.log('row: ', rawCookie);
+        // if (!rawCookie) {
+        //     throw new BadGatewayException("Unauthorized user - cookie not found");
+        // }
 
-        const parsed = cookie.parse(rawCookie);
-        const token = parsed["access_token"]; // Adjust to your actual cookie name
-
+        // const parsed = cookie.parse(rawCookie);
+        const token = this.extractToken(socket);
         if (!token) {
-            throw new BadGatewayException("Token not found in cookie");
+            throw new BadGatewayException("Unauthorized user - Token not found in cookie");
         }
 
         const isVerifiedToken = await this.jwtService.verifyAsync(token);
@@ -34,13 +32,14 @@ export class AuthValidatorService {
         const user = await this.userRepo.findById(isVerifiedToken.sub);
 
         if (!user) {
-            throw new BadGatewayException("User not found");
+            throw new BadGatewayException("Unauthorized User ❌", {
+                description: "User not foudn with that email & id"
+            });
         }
 
         if (!user.isVerified) {
             throw new UnauthorizedException("Please verify your account first");
         }
-
         return user;
     }
 

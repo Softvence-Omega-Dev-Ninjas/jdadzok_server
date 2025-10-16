@@ -1,3 +1,5 @@
+import { GetSocketUser } from "@common/decorators/socket-user.decorator";
+import { UseGuards } from "@nestjs/common";
 import {
     ConnectedSocket,
     MessageBody,
@@ -5,29 +7,20 @@ import {
     WebSocketGateway,
 } from "@nestjs/websockets";
 import { Socket } from "socket.io";
-import { ChatMessage, ChatTyping } from "../@types";
+import { ChatMessage, ChatTyping, SocketUser } from "../@types";
 import { BaseSocketGateway } from "../base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "../constants/socket-events.constant";
-@WebSocketGateway({
-    namespace: "/chats",
-    cors: { origin: true, credentials: true },
-})
+import { SocketAuthGuard } from "../guards/socket-auth.guard";
+@WebSocketGateway()
+@UseGuards(SocketAuthGuard)
 export class ChatGateway extends BaseSocketGateway {
     @SubscribeMessage(SOCKET_EVENTS.CHAT.MESSAGE_SEND)
     async handleChatMessage(
+        @GetSocketUser() user: SocketUser,
         @ConnectedSocket() client: Socket,
         @MessageBody() data: Omit<ChatMessage, "eventId" | "timestamp" | "userId">,
     ) {
-        // const userId = this.getUserId(client.id);
-        // if (!userId) {
-        //     client.emit(
-        //         SOCKET_EVENTS.ERROR.UNAUTHORIZED,
-        //         this.createResponse(false, null, "User not authenticated"),
-        //     );
-        //     return;
-        // }
-        // // Rate limiting
-        // const rateLimitKey = `chat:${userId}`;
+        // const rateLimitKey = `chat:${user.id}`;
         // if (!this.checkRateLimit(rateLimitKey, RATE_LIMITS.CHAT_MESSAGE)) {
         //     client.emit(
         //         SOCKET_EVENTS.ERROR.RATE_LIMIT,
@@ -35,53 +28,52 @@ export class ChatGateway extends BaseSocketGateway {
         //     );
         //     return;
         // }
-        // // Validate message
-        // if (!data.message?.trim()) {
-        //     client.emit(
-        //         SOCKET_EVENTS.ERROR.VALIDATION,
-        //         this.createResponse(false, null, "Message cannot be empty"),
-        //     );
-        //     return;
-        // }
-        // const message: ChatMessage = {
-        //     ...data,
-        //     eventId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        //     timestamp: new Date(),
-        //     userId,
-        // };
-        // try {
-        //     // If roomId is specified, send to room; otherwise broadcast to all
-        //     if (message.roomId) {
-        //         // Ensure user is in the room
-        //         const roomUsers = this.getRoomUsers(message.roomId);
-        //         const isInRoom = roomUsers.some((u) => u.id === userId);
-        //         if (!isInRoom) {
-        //             client.emit(
-        //                 SOCKET_EVENTS.ERROR.UNAUTHORIZED,
-        //                 this.createResponse(false, null, "You are not in this room"),
-        //             );
-        //             return;
-        //         }
-        //         this.emitToRoom(
-        //             message.roomId,
-        //             SOCKET_EVENTS.CHAT.MESSAGE_RECEIVE,
-        //             message,
-        //             client.id,
-        //         );
-        //     } else {
-        //         // Broadcast to all connected users
-        //         this.broadcastToAll(SOCKET_EVENTS.CHAT.MESSAGE_RECEIVE, message, client.id);
-        //     }
-        //     // Send success response to sender
-        //     client.emit(SOCKET_EVENTS.CHAT.MESSAGE_SEND, this.createResponse(true, message));
-        //     this.logger.log(`Chat message sent by user ${userId}: ${message.eventId}`);
-        // } catch (error) {
-        //     this.logger.error(`Error handling chat message: ${error.message}`);
-        //     client.emit(
-        //         SOCKET_EVENTS.ERROR.SERVER_ERROR,
-        //         this.createResponse(false, null, "Failed to send message"),
-        //     );
-        // }
+        // Validate message
+        if (!data.message?.trim()) return client.emit(
+            SOCKET_EVENTS.ERROR.VALIDATION,
+            this.createResponse(false, null, "Message cannot be empty"),
+        );
+        const message: ChatMessage = {
+            ...data,
+            eventId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: new Date(),
+            userId: user.id,
+        };
+        try {
+            // If roomId is specified, send to room; otherwise broadcast to all
+            if (message.roomId) {
+                // Ensure user is in the room
+                const roomUsers = await this.getRoomUsers(message.roomId);
+                const isInRoom = roomUsers.some((u) => u.id === user.id);
+
+                if (!isInRoom) {
+                    client.emit(
+                        SOCKET_EVENTS.ERROR.UNAUTHORIZED,
+                        this.createResponse(false, null, "You are not in this room"),
+                    );
+                    return;
+                }
+                this.emitToRoom(
+                    message.roomId,
+                    SOCKET_EVENTS.CHAT.MESSAGE_RECEIVE,
+                    message,
+                    client.id,
+                );
+            } else {
+                // Broadcast to all connected users
+                this.broadcastToAll(SOCKET_EVENTS.CHAT.MESSAGE_RECEIVE, message, client.id);
+            }
+            // Send success response to sender
+            client.emit(SOCKET_EVENTS.CHAT.MESSAGE_SEND, this.createResponse(true, message));
+            this.logger.log(`Chat message sent by user ${user.id}: ${message.eventId}`);
+
+        } catch (error) {
+            this.logger.error(`Error handling chat message: ${error.message}`);
+            client.emit(
+                SOCKET_EVENTS.ERROR.SERVER_ERROR,
+                this.createResponse(false, null, "Failed to send message"),
+            );
+        }
     }
 
     @SubscribeMessage(SOCKET_EVENTS.CHAT.MESSAGE_TYPING)

@@ -1,4 +1,4 @@
-import { SocketResponse } from "@module/(sockets)/@types";
+import { SocketResponse, SocketRoom, SocketUser } from "@module/(sockets)/@types";
 import { SOCKET_EVENTS } from "@module/(sockets)/constants/socket-events.constant";
 import { Logger, UseGuards } from "@nestjs/common";
 import {
@@ -25,15 +25,14 @@ import { RedisService } from "../services/redis.service";
 })
 @UseGuards(SocketAuthGuard)
 export abstract class BaseSocketGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer() protected server: Server;
     protected readonly logger = new Logger(this.constructor.name);
 
     constructor(
         protected readonly redisService: RedisService,
         private readonly socketMiddleware: SocketMiddleware,
-    ) {}
+    ) { }
 
     async afterInit() {
         this.logger.verbose(`(${this.constructor.name}) Gateway initialized`);
@@ -46,35 +45,25 @@ export abstract class BaseSocketGateway
         // });
     }
     async handleConnection(client: Socket) {
-        this.logger.log("onn connections: ", client.id);
-        // const auth = this.socketMiddleware.authenticate();
-        // console.log({ auth })
-        // this.server.use(this.socketMiddleware.authenticate());
-        // const user = client.data.user;
-        // console.log([user])
-        // if (!user?.id) return client.disconnect(true);
+        const user = client.data.user;
+        if (!user?.id) return client.disconnect(true);
 
-        // const socketUser: SocketUser = {
-        //     id: user.id,
-        //     socketId: client.id,
-        //     email: user.email,
-        //     status: "online",
-        //     role: user.role,
-        //     joinedAt: new Date(),
-        // };
+        const socketUser: SocketUser = {
+            id: user.id,
+            socketId: client.id,
+            email: user.email,
+            status: "online",
+            role: user.role,
+            joinedAt: new Date(),
+        };
 
-        // await this.redisService.setConnectedUser(client.id, socketUser);
-        // await client.join(`user:${socketUser.id}`);
+        await this.redisService.setConnectedUser(client.id, socketUser);
+        await client.join(`user:${socketUser.id}`);
 
-        // this.logger.log(`User ${socketUser.email} connected`);
+        this.logger.log(`User ${socketUser.email} connected`);
 
-        // client.emit(
-        //     SOCKET_EVENTS.CONNECTION.CONNECT,
-        //     this.createResponse(true, { user, serverTime: new Date() }),
-        // );
-
-        // // Broadcast join event
-        // this.server.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
+        // Broadcast join event
+        this.server.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
     }
 
     async handleDisconnect(client: Socket) {
@@ -94,165 +83,134 @@ export abstract class BaseSocketGateway
     protected createResponse<T>(success: boolean, data?: T, error?: string): SocketResponse<T> {
         return { success, data, error, timestamp: new Date() };
     }
-    // private handleUserLeaveRoom(roomId: string, userId: string) {
-    //     const room = this.rooms.get(roomId);
-    //     if (room) {
-    //         room.users = room.users.filter((u) => u.id !== userId);
 
-    //         // Remove empty rooms (except permanent ones)
-    //         if (room.users.length === 0 && room.type !== "post") {
-    //             this.rooms.delete(roomId);
-    //         }
-    //     }
-    // }
-    // // Get connected users in a room
-    // protected getRoomUsers(roomId: string): SocketUser[] {
-    //     const room = this.rooms.get(roomId);
-    //     return room ? [...room.users] : [];
-    // }
+    protected async handleUserLeaveRoom(roomId: string, userId: string) {
+        const room = await this.redisService.getRoomData(roomId);
+        if (room) {
+            room.users = room.users.filter((u) => u.id !== userId);
 
-    // protected async joinRoom(
-    //     client: Socket,
-    //     roomId: string,
-    //     roomData?: Partial<SocketRoom>,
-    // ): Promise<boolean> {
-    //     try {
-    //         const userId = this.socketUsers.get(client.id);
-    //         if (!userId) return false;
+            // Remove empty rooms (except permanent ones)
+            if (room.users.length === 0) {
+                await this.redisService.deleteRoom(roomId)
+            }
+        }
+    }
 
-    //         await client.join(roomId);
+    // Get connected users in a room
+    protected async getRoomUsers(roomId: string): Promise<SocketUser[]> {
+        const room = await this.redisService.getRoomData(roomId);
+        return room ? [...room.users] : [];
+    }
 
-    //         // Update or create room
-    //         let room = this.rooms.get(roomId);
-    //         if (!room) {
-    //             room = {
-    //                 id: roomId,
-    //                 name: roomData?.name || roomId,
-    //                 type: roomData?.type || "chat",
-    //                 users: [],
-    //                 createdAt: new Date(),
-    //                 metadata: roomData?.metadata || {},
-    //             };
-    //             this.rooms.set(roomId, room);
-    //         }
+    protected async joinRoom(
+        client: Socket,
+        roomId: string,
+        roomData?: Partial<SocketRoom>,
+    ): Promise<boolean> {
+        try {
+            const user = client.user;
+            if (!user || !user?.id) return false;
 
-    //         // Add user to room if not already present
-    //         const userInRoom = room.users.find((u) => u.id === userId);
-    //         if (!userInRoom) {
-    //             const user = this.connectedUsers.get(client.id);
-    //             if (user) {
-    //                 room.users.push(user);
-    //             }
-    //         }
+            await client.join(roomId);
 
-    //         return true;
-    //     } catch (error) {
-    //         this.logger.error(`Error joining room ${roomId}: ${error.message}`);
-    //         return false;
-    //     }
-    // }
+            // Update or create room
+            let room = await this.redisService.getRoomData(roomId);
+            if (!room) {
+                room = {
+                    id: roomId,
+                    name: roomData?.name || roomId,
+                    type: roomData?.type || "chat",
+                    users: [],
+                    createdAt: new Date(),
+                    metadata: roomData?.metadata || {},
+                };
+                // await this.rooms.set(roomId, room);
+                await this.redisService.addUserToRoom(roomId, user.id);
+            }
 
-    // protected async leaveRoom(client: Socket, roomId: string): Promise<boolean> {
-    //     try {
-    //         const userId = this.socketUsers.get(client.id);
-    //         if (!userId) return false;
+            // Add user to room if not already present
+            const userInRoom = room.users.find((u) => u.id === user.id);
+            if (!userInRoom) {
+                const user = await this.redisService.getConnectedUser(client.id);
+                if (user) {
+                    await this.redisService.addUserToRoom(roomId, user.id)
+                    // room.users.push(user);
+                }
+            }
 
-    //         await client.leave(roomId);
-    //         this.handleUserLeaveRoom(roomId, userId);
-    //         return true;
-    //     } catch (error) {
-    //         this.logger.error(`Error leaving room ${roomId}: ${error.message}`);
-    //         return false;
-    //     }
-    // }
-    // protected checkRateLimit(key: string, config: RateLimitConfig): boolean {
-    //     const now = Date.now();
-    //     const record = this.rateLimitStore.get(key);
+            return true;
+        } catch (error) {
+            this.logger.error(`Error joining room ${roomId}: ${error.message}`);
+            return false;
+        }
+    }
 
-    //     if (!record || now > record.resetTime) {
-    //         this.rateLimitStore.set(key, {
-    //             count: 1,
-    //             resetTime: now + config.windowMs,
-    //         });
-    //         return true;
-    //     }
+    protected async leaveRoom(client: Socket, roomId: string): Promise<boolean> {
+        try {
+            if (!client.user || !client.user.id) return false
 
-    //     if (record.count >= config.maxRequests) {
-    //         return false;
-    //     }
+            await client.leave(roomId);
+            this.handleUserLeaveRoom(roomId, client.user.id);
+            return true;
+        } catch (error) {
+            this.logger.error(`Error leaving room ${roomId}: ${error.message}`);
+            return false;
+        }
+    }
 
-    //     record.count++;
-    //     return true;
-    // }
+    protected async emitToUser(userId: string, event: string, data: any): Promise<boolean> {
+        const socketId = await this.redisService.getUserSocketId(userId);
+        if (!socketId) return false;
 
-    // protected emitToUser(userId: string, event: string, data: any): boolean {
-    //     const socketId = this.userSockets.get(userId);
-    //     if (!socketId) return false;
+        const socket = this.server.sockets.sockets.get(socketId);
+        if (!socket) return false;
 
-    //     const socket = this.server.sockets.sockets.get(socketId);
-    //     if (!socket) return false;
+        socket.emit(event, data);
+        return true;
+    }
 
-    //     socket.emit(event, data);
-    //     return true;
-    // }
+    protected emitToRoom(roomId: string, event: string, data: any, excludeSocketId?: string): void {
+        if (excludeSocketId) {
+            this.server.to(roomId).except(excludeSocketId).emit(event, data);
+        } else {
+            this.server.to(roomId).emit(event, data);
+        }
+    }
 
-    // protected emitToRoom(roomId: string, event: string, data: any, excludeSocketId?: string): void {
-    //     if (excludeSocketId) {
-    //         this.server.to(roomId).except(excludeSocketId).emit(event, data);
-    //     } else {
-    //         this.server.to(roomId).emit(event, data);
-    //     }
-    // }
+    protected broadcastToAll<D = any>(event: string, data: D, excludeSocketId?: string): void {
+        if (excludeSocketId) {
+            this.server.except(excludeSocketId).emit(event, data);
+        } else {
+            this.server.emit(event, data);
+        }
+    }
 
-    // protected broadcastToAll<D = any>(event: string, data: D, excludeSocketId?: string): void {
-    //     if (excludeSocketId) {
-    //         this.server.except(excludeSocketId).emit(event, data);
-    //     } else {
-    //         this.server.emit(event, data);
-    //     }
-    // }
+    // Get user by socket ID
+    protected async getUser(socketId: string) {
+        return await this.redisService.getConnectedUser(socketId);
+    }
 
-    // // Get user by user ID
-    // protected getUserById(userId: string): SocketUser | undefined {
-    //     const socketId = this.getSocketIdByUserId(userId);
-    //     if (!socketId) {
-    //         return undefined;
-    //     }
-    //     return this.getUser(socketId);
-    // }
+    // Get user ID by socket ID
+    protected async getUserId(socketId: string) {
+        return await this.redisService.getUserIdFromSocket(socketId);
+    }
 
-    // // Get user by socket ID
-    // protected getUser(socketId: string): SocketUser | undefined {
-    //     return this.connectedUsers.get(socketId);
-    // }
+    // Get socket ID by user ID
+    protected async getSocketIdByUserId(userId: string) {
+        return await this.redisService.getUserSocketId(userId);
+    }
 
-    // // Get user ID by socket ID
-    // protected getUserId(socketId: string): string | undefined {
-    //     return this.socketUsers.get(socketId);
-    // }
 
-    // // Get socket ID by user ID
-    // protected getSocketIdByUserId(userId: string): string | undefined {
-    //     return this.userSockets.get(userId);
-    // }
+    // Public getters
+    get socketServer(): Server {
+        return this.server;
+    }
 
-    // private setupHeartbeat(): void {
-    //     // Send heartbeat every 30 seconds
-    //     setInterval(() => {
-    //         this.server.emit("heartbeat", { timestamp: new Date() });
-    //     }, 30000);
-    // }
+    get connectedUserCount() {
+        return this.redisService.getOnlineUsersCount();
+    }
 
-    // // Public getters
-    // get socketServer(): Server {
-    //     return this.server;
-    // }
-
-    // get connectedUserCount(): number {
-    //     return this.connectedUsers.size;
-    // }
-
-    // get activeRooms(): string[] {
-    //     return Array.from(this.rooms.keys());
-    // }
+    get activeRooms() {
+        return this.redisService.getRooms()
+    }
 }

@@ -31,7 +31,7 @@ export class UserService {
         private readonly jwtService: JwtServices,
         private readonly otpService: OptService,
         private readonly mailService: MailService,
-    ) { }
+    ) {}
 
     async register(body: CreateUserDto) {
         // has password if provider is email
@@ -78,7 +78,12 @@ export class UserService {
     }
 
     async verifyOpt(input: VerifyTokenDto) {
-        const user = await this.repository.findById(input.userId, { id: true, email: true, isVerified: true, role: true });
+        const user = await this.repository.findById(input.userId, {
+            id: true,
+            email: true,
+            isVerified: true,
+            role: true,
+        });
         if (!user) throw new NotFoundException("User not found with that ID");
 
         if (user.isVerified) throw new ConflictException("Account already verified!");

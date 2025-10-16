@@ -4,7 +4,7 @@ import { ChoicesRepository } from "./choices.repository";
 
 @Injectable()
 export class ChoicesService {
-    constructor(private readonly choicesRepo: ChoicesRepository) { }
+    constructor(private readonly choicesRepo: ChoicesRepository) {}
 
     async assignChoices(dtos: CreateUserChoiceDto, userId: string) {
         // Check if the user is trying to select more than 5 choices
@@ -13,7 +13,7 @@ export class ChoicesService {
         }
 
         const choice = await this.choicesRepo.createMany(dtos.ids, userId);
-        return choice
+        return choice;
     }
 
     async getUserChoices(userId: string) {

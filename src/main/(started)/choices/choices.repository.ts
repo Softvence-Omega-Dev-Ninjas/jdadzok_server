@@ -10,7 +10,7 @@ export class ChoicesRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly userChoiceRepository: UserChoiceRepository,
-    ) { }
+    ) {}
 
     /**
      * Find a choice by its slug
@@ -56,12 +56,12 @@ export class ChoicesRepository {
                         choiceId: isNotExist.id,
                     },
                     select: {
-                        choice: true
-                    }
+                        choice: true,
+                    },
                 });
-                choices.push(createdUserChoice.choice)
+                choices.push(createdUserChoice.choice);
             }
-            return choices
+            return choices;
         });
     }
 

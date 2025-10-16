@@ -12,7 +12,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     private redisSubscriber: Redis;
     private redisPublisher: Redis;
 
-    constructor(private readonly configService: ConfigService) {}
+    constructor(private readonly configService: ConfigService) { }
 
     async onModuleInit() {
         await this.connect();
@@ -245,7 +245,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     async getUserRooms(userId: string): Promise<string[]> {
         return await this.redisClient.smembers(`user:${userId}:rooms`);
     }
-
+    async getRooms() {
+        return await this.redisClient.smembers("rooms");
+    }
     async getRoomData(roomId: string): Promise<SocketRoom | null> {
         const roomData = await this.redisClient.hgetall(`room:${roomId}`);
 

@@ -5,13 +5,12 @@ import { SocketUser } from "../@types";
 
 @Injectable()
 export class SocketAuthGuard implements CanActivate {
-    constructor(private readonly authValidator: AuthValidatorService) {}
+    constructor(private readonly authValidator: AuthValidatorService) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         if (context.getType() !== "ws") return true;
 
         const client: Socket = context.switchToWs().getClient();
-        console.log("guards....");
         const user = await this.authValidator.validateSocketToken(client);
 
         const socketUser: SocketUser = {

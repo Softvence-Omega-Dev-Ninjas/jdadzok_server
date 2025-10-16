@@ -1,5 +1,6 @@
 import { AuthValidatorService } from "@global/auth-validator/auth-validator.service";
 import { Injectable, Logger } from "@nestjs/common";
+import chalk from "chalk";
 import { Socket } from "socket.io";
 import { SocketUtils } from "../utils/socket.utils";
 
@@ -7,7 +8,7 @@ import { SocketUtils } from "../utils/socket.utils";
 export class SocketMiddleware {
     private readonly logger = new Logger(SocketMiddleware.name);
 
-    constructor(private readonly authValidator: AuthValidatorService) {}
+    constructor(private readonly authValidator: AuthValidatorService) { }
 
     authenticate() {
         return async (socket: Socket, next: (err?: any) => void) => {
@@ -16,7 +17,7 @@ export class SocketMiddleware {
                 socket.data.user = user;
                 socket.join(user.id);
 
-                this.logger.log(`✅ Socket ${socket.id} authenticated as user ${user.id}`);
+                this.logger.log(`✅ Socket (${chalk.yellow(socket.id)}) authenticated as user (${chalk.yellow(user.profile?.username ?? user.email)})`);
                 next();
             } catch (error) {
                 this.logger.error(`❌ Auth failed for socket ${socket.id}: ${error.message}`);

@@ -84,17 +84,17 @@ export class UserRepository {
             where: { email },
         });
     }
-    async findById(id: string, select: Prisma.UserSelect<DefaultArgs> = { profile: true }) {
+    async findById(id: string, select: Prisma.UserSelect<DefaultArgs> = { profile: true, id: true, email: true, role: true, authProvider: true, isVerified: true, }) {
         return await this.prisma.user.findUnique({
             where: { id },
-            select
+            select,
         });
     }
     async accountVerified(userId: string, isVerified: boolean) {
         return await this.prisma.user.update({
             where: { id: userId },
-            data: { isVerified }
-        })
+            data: { isVerified },
+        });
     }
     async update(id: string, data: UpdateUserDto) {
         const { profile, ...rest } = data;

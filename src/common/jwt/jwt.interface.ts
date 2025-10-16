@@ -9,6 +9,8 @@ export type JWTPayload = {
     sub: string;
     email: string;
     roles: string;
+    iat?: number;
+    exp?: number;
 };
 
 export interface UserTokenPayload {

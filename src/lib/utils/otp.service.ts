@@ -6,7 +6,7 @@ import { OtpOptions, OtpPayload, OtpRedisData, OtpType, OtpVerifyPayload } from 
 
 @Injectable()
 export class OptService {
-    constructor(private readonly redisService: RedisService) { }
+    constructor(private readonly redisService: RedisService) {}
 
     private getRedisKeyByType(type: OtpType, suffix: string) {
         switch (type) {
@@ -55,7 +55,7 @@ export class OptService {
         const redisKey = this.getRedisKeyByType(type, userId);
 
         const data = await this.redisService.get<OtpRedisData>(redisKey);
-        console.log('redis data: ', data)
+        console.log("redis data: ", data);
 
         if (!data) {
             throw new ForbiddenException("OTP expired or not found");

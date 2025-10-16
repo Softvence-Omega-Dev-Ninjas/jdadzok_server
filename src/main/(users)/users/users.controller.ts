@@ -22,7 +22,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-    constructor(private readonly service: UserService) { }
+    constructor(private readonly service: UserService) {}
 
     @MakePublic()
     @Post("register")
@@ -53,7 +53,7 @@ export class UserController {
             const result = await this.service.verifyOpt(body);
             return successResponse(result, "User account verify successfully");
         } catch (err) {
-            console.log(err)
+            console.log(err);
             return err;
         }
     }
