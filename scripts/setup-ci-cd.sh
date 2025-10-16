@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 # -------------------------
 # Config
@@ -204,7 +204,7 @@ runs:
     - name: 🔧 Generate .env file
       shell: bash
       run: |
-        set -euo pipefail
+        set -eo pipefail
         ENV_FILE="$GITHUB_WORKSPACE/.env"
         echo "🔧 Creating .env file at $ENV_FILE..."
         {
