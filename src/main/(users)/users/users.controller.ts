@@ -22,7 +22,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-    constructor(private readonly service: UserService) {}
+    constructor(private readonly service: UserService) { }
 
     @MakePublic()
     @Post("register")
@@ -107,12 +107,12 @@ export class UserController {
     }
 
     @ApiBearerAuth()
-    @Post("follow-user/:id")
+    @Post("unfollow-user/:id")
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     async unfollowUser(@Param("id") id: string, @GetVerifiedUser() user: TUser) {
         try {
-            const follow = await this.service.followUser(id, user.userId);
+            const follow = await this.service.unfollowUser(id, user.userId);
             return successResponse(follow, "You have successfully unfollowing");
         } catch (err) {
             return err;

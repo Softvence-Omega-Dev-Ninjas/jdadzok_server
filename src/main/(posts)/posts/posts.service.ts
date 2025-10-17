@@ -1,4 +1,4 @@
-import { FollowRepository } from "@module/(users)/follow/follow.repository";
+import { FollowRepository } from "@module/(users)/follow-unfollow/follow-unfollow.repository";
 import {
     BadRequestException,
     ForbiddenException,
@@ -14,7 +14,7 @@ export class PostService {
     constructor(
         private readonly repository: PostRepository,
         private readonly followRepository: FollowRepository,
-    ) {}
+    ) { }
 
     async create(input: CreatePostDto) {
         const post = await this.repository.store(input);

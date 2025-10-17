@@ -11,6 +11,7 @@ import { ChatMessage, SocketUser } from "../@types";
 import { BaseSocketGateway } from "../base/abstract-socket.gateway";
 import { SOCKET_EVENTS } from "../constants/socket-events.constant";
 import { SocketAuthGuard } from "../guards/socket-auth.guard";
+
 @WebSocketGateway()
 @UseGuards(SocketAuthGuard)
 export class ChatGateway extends BaseSocketGateway {

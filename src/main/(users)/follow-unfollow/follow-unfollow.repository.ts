@@ -2,8 +2,8 @@ import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class FollowRepository {
-    constructor(private readonly prisma: PrismaService) {}
+export class FollowUnfollowRepository {
+    constructor(private readonly prisma: PrismaService) { }
 
     async findManyFollowerId(followingId: string) {
         return await this.prisma.follow.findMany({

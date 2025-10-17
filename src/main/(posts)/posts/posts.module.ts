@@ -1,7 +1,7 @@
 import { AuthValidatorService } from "@global/auth-validator/auth-validator.service";
 import { HelperFunctions } from "@module/(core)/feeds/functions/helper";
 import { PostsMetricsRepository } from "@module/(metrics)/posts-metrics/posts-metrics.repository";
-import { FollowRepository } from "@module/(users)/follow/follow.repository";
+import { FollowRepository } from "@module/(users)/follow-unfollow/follow-unfollow.repository";
 import { UserProfileRepository } from "@module/(users)/user-profile/user.profile.repository";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { Module } from "@nestjs/common";
@@ -44,4 +44,4 @@ import { PostUtils } from "./utils";
     ],
     exports: [PostRepository],
 })
-export class PostModule {}
+export class PostModule { }

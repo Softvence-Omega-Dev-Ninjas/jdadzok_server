@@ -31,7 +31,7 @@ export class UserService {
         private readonly jwtService: JwtServices,
         private readonly otpService: OptService,
         private readonly mailService: MailService,
-    ) {}
+    ) { }
 
     async register(body: CreateUserDto) {
         // has password if provider is email
@@ -193,7 +193,7 @@ export class UserService {
         });
 
         if (userFollow) {
-            throw new ConflictException("already following...");
+            throw new ConflictException("You are already following...");
         }
 
         return await this.prisma.$transaction([
@@ -203,17 +203,19 @@ export class UserService {
                     followedId,
                 },
                 select: {
-                    follower: { select: { id: true } },
-                    followed: { select: { id: true } },
+                    follower: true,
+                    followed: true,
                     createdAt: true,
                 },
             }),
+
             this.prisma.profile.update({
                 where: { userId: followerId },
                 data: {
                     followingCount: { increment: 1 },
                 },
             }),
+
             this.prisma.profile.update({
                 where: {
                     userId: followerId,
@@ -234,10 +236,11 @@ export class UserService {
                 },
             },
         });
-
         if (!userFollow) {
-            throw new Error("Unknown user");
+            throw new NotFoundException("You must have to follow the user before unfollow");
         }
+
+        if (!userFollow?.followedId || !userFollow.followerId) throw new NotFoundException("Follower or following not found!")
 
         return await this.prisma.$transaction([
             this.prisma.userFollow.delete({
@@ -264,6 +267,13 @@ export class UserService {
                     followersCount: { decrement: 1 },
                 },
             }),
+            // update user profile metrics
+            this.prisma.userMetrics.update({
+                where: {
+                    userId: 
+                },
+                data: {},
+            })
         ]);
     }
 

@@ -35,6 +35,8 @@ services:
             - "app.name=${PACKAGE_NAME}"
             - "app.version=${PACKAGE_VERSION}"
             - "deployment.type=zero-downtime"
+        networks:
+            - ${PACKAGE_NAME}_networks
 
     db:
         image: postgres:15
@@ -63,6 +65,8 @@ services:
             timeout: 5s
             retries: 5
             start_period: 15s
+        networks:
+            - ${PACKAGE_NAME}_networks
     redis:
         image: redis:7-alpine # Use Alpine version for smaller size
         container_name: ${REDIS_CONTAINER}
@@ -81,76 +85,30 @@ services:
             timeout: 3s
             retries: 5
             start_period: 5s
+        networks:
+            - ${PACKAGE_NAME}_networks
 
-    nginx:
-        profiles:
-            - prod
-        image: nginx:alpine
-        container_name: ${PACKAGE_NAME}_nginx
-        depends_on:
-            - app
-        volumes:
-            - ./nginx/conf.d:/etc/nginx/conf.d
-            - ./nginx/certbot/www:/var/www/certbot
-            - ./nginx/certbot/conf:/etc/letsencrypt
-            - ./nginx/selfsigned:/etc/nginx/selfsigned
-
+    caddy:
+        image: caddy:latest
+        container_name: caddy_server
+        restart: unless-stopped
         ports:
             - "80:80"
             - "443:443"
-        networks:
-            - default
-        restart: always
-
-    certbot:
-        profiles:
-            - prod
-        image: certbot/certbot
-        container_name: ${PACKAGE_NAME}_certbot
         volumes:
-            - ./nginx/certbot/www:/var/www/certbot
-            - ./nginx/certbot/conf:/etc/letsencrypt
-        environment:
-            - EMAIL=${EMAIL}
-            - BASE_URL=${BASE_URL}
-        entrypoint: >
-            certbot certonly --webroot --webroot-path=/var/www/certbot 
-            --email ${EMAIL} --agree-tos --no-eff-email 
-            -d ${BASE_URL}
-        depends_on:
-            - nginx
+            - ./Caddyfile:/etc/caddy/Caddyfile
+            - caddy_data:/data
+            - caddy_config:/config
         networks:
-            - default
-        restart: "no"
-
-    certbot-renew:
-        profiles:
-            - prod
-        image: certbot/certbot
-        container_name: ${PACKAGE_NAME}_certbot_renew
-        volumes:
-            - ./nginx/certbot/www:/var/www/certbot
-            - ./nginx/certbot/conf:/etc/letsencrypt
-        entrypoint: >
-            sh -c "trap exit TERM; 
-                   while :; do 
-                     echo '🔄 Checking for SSL renewal...'; 
-                     certbot renew --webroot --webroot-path=/var/www/certbot --quiet --deploy-hook 'nginx -s reload'; 
-                     sleep 12h; 
-                   done"
-        depends_on:
-            - nginx
-        networks:
-            - default
-        restart: unless-stopped
-
+            - ${PACKAGE_NAME}_networks
 volumes:
     jdadzok_pg:
     jdadzok_redis:
 
+    caddy_data:
+    caddy_config:
+
 # Add networks for better isolation (optional)
 networks:
-    default:
-        name: ${PACKAGE_NAME}_network
-        labels:
-            - "project=${PACKAGE_NAME}"
+    ${PACKAGE_NAME}_networks:
+        driver: bridge

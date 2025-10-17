@@ -1,7 +1,7 @@
 {
     "name": "jdadzok_server",
     "displayName": "JdadZok Server",
-    "version": "1.5.8",
+    "version": "1.5.9",
     "description": "This is backend for jdadzok social media application",
     "author": "Dev Ninja Omega",
     "private": true,
