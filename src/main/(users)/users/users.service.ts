@@ -31,7 +31,7 @@ export class UserService {
         private readonly jwtService: JwtServices,
         private readonly otpService: OptService,
         private readonly mailService: MailService,
-    ) { }
+    ) {}
 
     async register(body: CreateUserDto) {
         // has password if provider is email
@@ -240,7 +240,8 @@ export class UserService {
             throw new NotFoundException("You must have to follow the user before unfollow");
         }
 
-        if (!userFollow?.followedId || !userFollow.followerId) throw new NotFoundException("Follower or following not found!")
+        if (!userFollow?.followedId || !userFollow.followerId)
+            throw new NotFoundException("Follower or following not found!");
 
         return await this.prisma.$transaction([
             this.prisma.userFollow.delete({
@@ -270,10 +271,10 @@ export class UserService {
             // update user profile metrics
             this.prisma.userMetrics.update({
                 where: {
-                    userId: 
+                    userId: followerId,
                 },
                 data: {},
-            })
+            }),
         ]);
     }
 

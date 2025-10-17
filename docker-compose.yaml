@@ -90,6 +90,8 @@ services:
 
     caddy:
         image: caddy:latest
+        profiles:
+            - prod
         container_name: caddy_server
         restart: unless-stopped
         ports:
@@ -110,5 +112,5 @@ volumes:
 
 # Add networks for better isolation (optional)
 networks:
-    ${PACKAGE_NAME}_networks:
+    jdadzok_server_networks:
         driver: bridge

@@ -8,4 +8,4 @@ import { FollowUnfollowService } from "./follow-unfollow.service";
     providers: [PrismaService, FollowUnfollowRepository, FollowUnfollowService],
     exports: [FollowUnfollowRepository],
 })
-export class FollowUnfollowModule { }
+export class FollowUnfollowModule {}

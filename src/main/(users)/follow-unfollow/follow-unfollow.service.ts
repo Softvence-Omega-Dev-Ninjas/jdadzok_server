@@ -3,7 +3,5 @@ import { FollowUnfollowRepository } from "./follow-unfollow.repository";
 
 @Injectable()
 export class FollowUnfollowService {
-    constructor(private readonly repository: FollowUnfollowRepository) { }
-
-
+    constructor(private readonly repository: FollowUnfollowRepository) {}
 }

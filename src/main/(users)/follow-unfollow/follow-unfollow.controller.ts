@@ -3,6 +3,5 @@ import { FollowUnfollowService } from "./follow-unfollow.service";
 
 @Controller("follow-unfollow")
 export class FollowUnfollow {
-    constructor(private readonly service: FollowUnfollowService) { }
-
+    constructor(private readonly service: FollowUnfollowService) {}
 }
