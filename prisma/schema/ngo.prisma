@@ -1,38 +1,38 @@
 model Ngo {
   id String @id @default(uuid())
-  
+
   // NGO ownership
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  
+
   // NGO details
   foundationDate DateTime
   ngoType        CommunityType // Reuse community types
-  
+
   // NGO metrics
-  likes      Int     @default(0)
-  isVerified Boolean @default(false)
+  likes      Int      @default(0)
+  isVerified Boolean  @default(false)
   capLevel   CapLevel @default(NONE)
-  
+
   // ---- RELATIONSHIPS ----
   profile NgoProfile? // NGO profile info
-  about   NgoAbout?   // Extended NGO info
-  
+  about   NgoAbout? // Extended NGO info
+
   // NGO posts
   posts Post[] @relation("NgoPosts")
-  
+
   // NGO social interactions
   followers User[] @relation("NgoFollowers")
   likers    User[] @relation("NgoLikers")
 
   // ngo need verification
   verifications NgoVerification[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  @@map("ngos")
+
   @@index([ownerId])
   @@index([ngoType])
   @@index([isVerified])
+  @@map("ngos")
 }

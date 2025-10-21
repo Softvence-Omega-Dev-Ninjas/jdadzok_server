@@ -1,6 +1,6 @@
 // import { BullModule } from "@nestjs/bullmq";
 // import { ConfigModule, ConfigService } from "@nestjs/config";
-// import { ENVEnum } from "@project/common/enum/env.enum";
+// import { ENVEnum } from "@common/enum/env.enum";
 
 // const BullConfig = BullModule.forRootAsync({
 //     imports: [ConfigModule],

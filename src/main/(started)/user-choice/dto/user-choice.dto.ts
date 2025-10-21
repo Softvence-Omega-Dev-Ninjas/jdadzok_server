@@ -1,19 +1,16 @@
-import { IntersectionType, PartialType } from "@nestjs/swagger";
-import { IsDate, IsOptional, IsUUID } from "class-validator";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { ArrayNotEmpty, IsArray, IsUUID } from "class-validator";
 
-class UserChoiceDto {
-  @IsUUID()
-  userId: string;
-
-  @IsUUID()
-  choiceId: string;
-
-  @IsDate()
-  @IsOptional()
-  createdAt?: string;
+export class CreateUserChoiceDto {
+    @ApiProperty({
+        example: ["550e8400-e29b-41d4-a716-446655440000"],
+        description: "List of choice UUIDs the user selects",
+        type: [String],
+    })
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsUUID("4", { each: true })
+    ids: string[];
 }
 
-export class CreateUserChoiceDto extends IntersectionType(UserChoiceDto) {}
-export class UpdateUserChoiceDto extends PartialType(
-  IntersectionType(UserChoiceDto),
-) {}
+export class UpdateUserChoiceDto extends PartialType(CreateUserChoiceDto) {}

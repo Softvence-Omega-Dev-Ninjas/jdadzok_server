@@ -1,58 +1,63 @@
 import { extendZodWithOpenApi } from "@anatine/zod-openapi";
+import appMetadata from "@metadata/app-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { config } from "dotenv";
+import { expand } from "dotenv-expand";
+import path from "path";
 import "reflect-metadata";
 import z from "zod";
 import { AppModule } from "./app.module";
 import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
-// import { GlobalExceptionFilter } from "./common/filter/http-exception.filter";
 
+expand(config({ path: path.resolve(process.cwd(), ".env") }));
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
+    const app = await NestFactory.create(AppModule);
+    const configService = app.get(ConfigService);
 
-  app.enableCors({
-    origin: ["*"],
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    // CORS configuration
+    app.enableCors({
+        origin: "*",
+        methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+        credentials: true,
+    });
 
-    credentials: true,
-  });
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            transform: true,
+            transformOptions: {
+                enableImplicitConversion: true,
+            },
+            // forbidNonWhitelisted: true,
+        }),
+    );
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-      forbidNonWhitelisted: true,
-    }),
-  );
+    app.useGlobalFilters(new AllExceptionsFilter());
+    // app.useGlobalFilters(new GlobalExceptionFilter());
 
-  app.useGlobalFilters(new AllExceptionsFilter());
-  // app.useGlobalFilters(new GlobalExceptionFilter());
+    // ✅ Swagger config with Bearer Auth
+    extendZodWithOpenApi(z);
+    const config = new DocumentBuilder()
+        .setTitle(appMetadata.displayName)
+        .setDescription(appMetadata.description)
+        .setVersion(appMetadata.version)
+        .addBearerAuth()
+        .build();
 
-  // ✅ Swagger config with Bearer Auth
-  extendZodWithOpenApi(z);
-  const config = new DocumentBuilder()
-    .setTitle("Jdadzok")
-    .setDescription("Jdadzok API description")
-    .setVersion("1.0")
-    .addBearerAuth()
-    .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup("docs", app, document, {
+        swaggerOptions: {
+            persistAuthorization: true,
+        },
+    });
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("docs", app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+    const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5056", 10);
 
-  const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5000", 10);
-  await app.listen(port);
+    await app.listen(port);
 }
 
 void bootstrap();

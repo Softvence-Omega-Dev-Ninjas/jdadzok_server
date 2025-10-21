@@ -1,0 +1,6 @@
+export const QUEUE_JOB_NAME = {
+    MAIL: {
+        POST_MAIL: "post:mail",
+        SEND_OTP: "user:send:otp",
+    },
+} as const;

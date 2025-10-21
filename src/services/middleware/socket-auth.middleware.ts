@@ -1,19 +1,16 @@
-import { BadGatewayException, Injectable } from "@nestjs/common";
-import { JwtServices } from "@project/services/jwt.service";
-import { Socket } from "socket.io";
+// import {
+//   BadGatewayException,
+//   Injectable,
+//   UnauthorizedException,
+// } from "@nestjs/common";
+// import { SocketMiddleware } from "@module/(sockets)/middleware/socket.middleware";
+// import { JwtServices } from "@service/jwt.service";
+// import { Socket } from "socket.io";
 
-@Injectable()
-export class SocketAuthMiddleware {
-  constructor(private authService: JwtServices) {}
+// @Injectable()
+// export class SocketAuthMiddleware {
+//   constructor(private authService: JwtServices, private readonly socketMiddleware: SocketMiddleware) {}
 
-  use(socket: Socket, next: (err?: any) => void) {
-    const token = socket.handshake.auth.token; // Pass token from client
-    if (!token) return next(new Error("Authentication error"));
-
-    const user = this.authService.verifyAsync(token);
-    if (!user)
-      throw new BadGatewayException("Unable to connnect to the socket");
-    socket.data.user = user; // Attach user to socket for later use
-    return next();
-  }
-}
+//   async use(socket: Socket, next: (err?: any) => void) {
+//     this.socketMiddleware.authenticate()()
+// }

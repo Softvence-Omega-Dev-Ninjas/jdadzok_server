@@ -1,0 +1,161 @@
+name: "setup-and-load-env"
+description: "setup-and-load-env composite action"
+inputs:
+  DOCKER_USERNAME:
+    description: "DOCKER_USERNAME from .env.production"
+    required: true
+  PACKAGE_NAME:
+    description: "PACKAGE_NAME from .env.production"
+    required: true
+  PACKAGE_VERSION:
+    description: "PACKAGE_VERSION from .env.production"
+    required: true
+  EMAIL:
+    description: "EMAIL from .env.production"
+    required: true
+  IMAGE_TAG:
+    description: "IMAGE_TAG from .env.production"
+    required: true
+  NODE_ENV:
+    description: "NODE_ENV from .env.production"
+    required: true
+  PG_USERNAME:
+    description: "PG_USERNAME from .env.production"
+    required: true
+  PG_PASSWORD:
+    description: "PG_PASSWORD from .env.production"
+    required: true
+  PG_DATABASE:
+    description: "PG_DATABASE from .env.production"
+    required: true
+  PG_PORT:
+    description: "PG_PORT from .env.production"
+    required: true
+  PG_HOST:
+    description: "PG_HOST from .env.production"
+    required: true
+  DATABASE_URL:
+    description: "DATABASE_URL from .env.production"
+    required: true
+  JWT_SECRET:
+    description: "JWT_SECRET from .env.production"
+    required: true
+  JWT_EXPIRES_IN:
+    description: "JWT_EXPIRES_IN from .env.production"
+    required: true
+  BASE_URL:
+    description: "BASE_URL from .env.production"
+    required: true
+  PORT:
+    description: "PORT from .env.production"
+    required: true
+  MAIL_USER:
+    description: "MAIL_USER from .env.production"
+    required: true
+  MAIL_PASS:
+    description: "MAIL_PASS from .env.production"
+    required: true
+  SUPER_ADMIN_EMAIL:
+    description: "SUPER_ADMIN_EMAIL from .env.production"
+    required: true
+  SUPER_ADMIN_PASS:
+    description: "SUPER_ADMIN_PASS from .env.production"
+    required: true
+  REDIS_HOST:
+    description: "REDIS_HOST from .env.production"
+    required: true
+  REDIS_PORT:
+    description: "REDIS_PORT from .env.production"
+    required: true
+  REDIS_CONTAINER:
+    description: "REDIS_CONTAINER from .env.production"
+    required: true
+  REDIS_URL:
+    description: "REDIS_URL from .env.production"
+    required: true
+  TWILIO_ACCOUNT_SID:
+    description: "TWILIO_ACCOUNT_SID from .env.production"
+    required: true
+  TWILIO_AUTH_TOKEN:
+    description: "TWILIO_AUTH_TOKEN from .env.production"
+    required: true
+  TWILIO_PHONE_NUMBER:
+    description: "TWILIO_PHONE_NUMBER from .env.production"
+    required: true
+  AWS_REGION:
+    description: "AWS_REGION from .env.production"
+    required: true
+  AWS_ACCESS_KEY_ID:
+    description: "AWS_ACCESS_KEY_ID from .env.production"
+    required: true
+  AWS_SECRET_ACCESS_KEY:
+    description: "AWS_SECRET_ACCESS_KEY from .env.production"
+    required: true
+  AWS_S3_BUCKET_NAME:
+    description: "AWS_S3_BUCKET_NAME from .env.production"
+    required: true
+  DOCKER_PASSWORD:
+    description: "DOCKER_PASSWORD from .env.production"
+    required: true
+  GIT_TOKEN:
+    description: "GIT_TOKEN from .env.production"
+    required: true
+  VPS_USER:
+    description: "VPS_USER from .env.production"
+    required: true
+  VPS_HOST:
+    description: "VPS_HOST from .env.production"
+    required: true
+  VPS_HOST_IP:
+    description: "VPS_HOST_IP from .env.production"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Generate .env
+      shell: bash
+      run: |
+        ENV_FILE="$GITHUB_WORKSPACE/.env"
+        {
+          echo "DOCKER_USERNAME=${{ inputs.DOCKER_USERNAME }}"
+          echo "PACKAGE_NAME=${{ inputs.PACKAGE_NAME }}"
+          echo "PACKAGE_VERSION=${{ inputs.PACKAGE_VERSION }}"
+          echo "EMAIL=${{ inputs.EMAIL }}"
+          echo "IMAGE_TAG=${{ inputs.IMAGE_TAG }}"
+          echo "NODE_ENV=${{ inputs.NODE_ENV }}"
+          echo "PG_USERNAME=${{ inputs.PG_USERNAME }}"
+          echo "PG_PASSWORD=${{ inputs.PG_PASSWORD }}"
+          echo "PG_DATABASE=${{ inputs.PG_DATABASE }}"
+          echo "PG_PORT=${{ inputs.PG_PORT }}"
+          echo "PG_HOST=${{ inputs.PG_HOST }}"
+          echo "DATABASE_URL=${{ inputs.DATABASE_URL }}"
+          echo "JWT_SECRET=${{ inputs.JWT_SECRET }}"
+          echo "JWT_EXPIRES_IN=${{ inputs.JWT_EXPIRES_IN }}"
+          echo "BASE_URL=${{ inputs.BASE_URL }}"
+          echo "PORT=${{ inputs.PORT }}"
+          echo "MAIL_USER=${{ inputs.MAIL_USER }}"
+          echo "MAIL_PASS=${{ inputs.MAIL_PASS }}"
+          echo "SUPER_ADMIN_EMAIL=${{ inputs.SUPER_ADMIN_EMAIL }}"
+          echo "SUPER_ADMIN_PASS=${{ inputs.SUPER_ADMIN_PASS }}"
+          echo "REDIS_HOST=${{ inputs.REDIS_HOST }}"
+          echo "REDIS_PORT=${{ inputs.REDIS_PORT }}"
+          echo "REDIS_CONTAINER=${{ inputs.REDIS_CONTAINER }}"
+          echo "REDIS_URL=${{ inputs.REDIS_URL }}"
+          echo "TWILIO_ACCOUNT_SID=${{ inputs.TWILIO_ACCOUNT_SID }}"
+          echo "TWILIO_AUTH_TOKEN=${{ inputs.TWILIO_AUTH_TOKEN }}"
+          echo "TWILIO_PHONE_NUMBER=${{ inputs.TWILIO_PHONE_NUMBER }}"
+          echo "AWS_REGION=${{ inputs.AWS_REGION }}"
+          echo "AWS_ACCESS_KEY_ID=${{ inputs.AWS_ACCESS_KEY_ID }}"
+          echo "AWS_SECRET_ACCESS_KEY=${{ inputs.AWS_SECRET_ACCESS_KEY }}"
+          echo "AWS_S3_BUCKET_NAME=${{ inputs.AWS_S3_BUCKET_NAME }}"
+          echo "DOCKER_PASSWORD=${{ inputs.DOCKER_PASSWORD }}"
+          echo "GIT_TOKEN=${{ inputs.GIT_TOKEN }}"
+          echo "VPS_USER=${{ inputs.VPS_USER }}"
+          echo "VPS_HOST=${{ inputs.VPS_HOST }}"
+          echo "VPS_HOST_IP=${{ inputs.VPS_HOST_IP }}"
+        } > "$ENV_FILE"
+        if [[ -n "${{ inputs.VPS_SSH_PRIVATE_KEY }}" ]]; then
+          echo "${{ inputs.VPS_SSH_PRIVATE_KEY }}" > "$GITHUB_WORKSPACE/deploy_key.pem"
+          chmod 600 "$GITHUB_WORKSPACE/deploy_key.pem"
+          echo "VPS_SSH_PRIVATE_KEY_FILE=$GITHUB_WORKSPACE/deploy_key.pem" >> "$ENV_FILE"
+        fi

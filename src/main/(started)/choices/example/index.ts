@@ -1,30 +1,17 @@
 import { ApiBodyOptions } from "@nestjs/swagger";
+import { preChoices } from "../constants";
 import { CreateChoiceDto } from "../dto/choices.create.dto";
 
 export const choicesBodyOptions: ApiBodyOptions = {
-  isArray: true,
-  type: CreateChoiceDto,
-  description: "An array of choice objects",
-  examples: {
-    example1: {
-      value: [
-        {
-          text: "Life Hacks",
+    isArray: true,
+    type: CreateChoiceDto,
+    description: "An array of choice objects",
+    examples: {
+        example1: {
+            value: preChoices.splice(0, 3),
         },
-        {
-          text: "Productivity",
+        example2: {
+            value: preChoices.splice(3, 6),
         },
-      ],
     },
-    example2: {
-      value: [
-        {
-          text: "Science & Education",
-        },
-        {
-          text: "Productivity",
-        },
-      ],
-    },
-  },
 };

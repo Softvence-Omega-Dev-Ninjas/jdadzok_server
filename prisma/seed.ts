@@ -1,23 +1,30 @@
-import { faker } from "@faker-js/faker";
 import { PrismaClient } from "@prisma/client";
-import * as dotenv from "dotenv";
+import { config } from "dotenv";
+import { expand } from "dotenv-expand";
+import path from "path";
+import { Seeds } from "./seeds/multiverse-seeds";
 
+// Explicitly load environment variables
 const prisma = new PrismaClient();
 
-const user = () => ({
-  email: faker.person.fullName(),
-});
-
 async function main() {
-  dotenv.config();
-  console.log("Seeding...");
-  const users = Array.from({ length: 5 }, user);
-  await prisma.user.createMany({ data: users });
-  console.log("Seeded!");
+    expand(config({ path: path.resolve(process.cwd(), ".env") }));
+    console.info("===============🌱 Database Seed start 🌱===============");
+    const seed = new Seeds(prisma);
+
+    // ============LIST OF SEED START============= //
+    await seed.user();
+    await seed.choice();
+    await seed.aboutUs();
+    await seed.privacyPolicy();
+    await seed.termsAndConditions();
+    // ============LIST OF SEED END============= //
+
+    console.info("===============🌱 Database Seed successfully 😍===============");
 }
 
 main()
-  .catch((e) => console.error(e))
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+    .catch((e) => console.error(e))
+    .finally(async () => {
+        await prisma.$disconnect();
+    });

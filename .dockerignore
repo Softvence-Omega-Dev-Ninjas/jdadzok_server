@@ -16,3 +16,15 @@ docker-compose.yaml
 generated
 .env.keys
 .env
+jdadzok.pem
+
+node_modules
+dist
+Dockerfile
+.dockerignore
+.env
+.git
+.gitignore
+README.md
+nginx
+.env.production

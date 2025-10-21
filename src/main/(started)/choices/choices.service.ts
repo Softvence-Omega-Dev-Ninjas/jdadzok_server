@@ -1,27 +1,29 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
+import { CreateUserChoiceDto } from "../user-choice/dto/user-choice.dto";
 import { ChoicesRepository } from "./choices.repository";
-import { CreateChoiceDto } from "./dto/choices.create.dto";
-import { parseChoiceInput } from "./utils";
 
 @Injectable()
 export class ChoicesService {
-  constructor(private readonly choicesRepo: ChoicesRepository) {}
+    constructor(private readonly choicesRepo: ChoicesRepository) {}
 
-  async assignChoices(userId: string, dtos: CreateChoiceDto[]) {
-    // max 5 choices
-    const existing = await this.choicesRepo.findAll(userId);
-    if (existing.length + dtos.length > 5) {
-      throw new BadRequestException("You can select at most 5 choices.");
+    async assignChoices(dtos: CreateUserChoiceDto, userId: string) {
+        // Check if the user is trying to select more than 5 choices
+        if (dtos.ids.length > 5) {
+            throw new BadRequestException("You can select at most 5 choices.");
+        }
+
+        const choice = await this.choicesRepo.createMany(dtos.ids, userId);
+        return choice;
     }
 
-    return this.choicesRepo.createMany(parseChoiceInput(userId, dtos));
-  }
+    async getUserChoices(userId: string) {
+        return this.choicesRepo.findManyByUserId(userId);
+    }
 
-  async getUserChoices(userId: string) {
-    return this.choicesRepo.findAll(userId);
-  }
-
-  async removeChoice(userId: string, slug: string) {
-    return this.choicesRepo.delete(userId, slug);
-  }
+    // async removeChoice(userId: string, slug: string) {
+    //   return this.choicesRepo.delete(userId, slug);
+    // }
+    async findMany() {
+        return await this.choicesRepo.findMany();
+    }
 }

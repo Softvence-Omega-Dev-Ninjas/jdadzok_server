@@ -1,6 +1,6 @@
 // import { ApiPropertyOptional } from '@nestjs/swagger';
 // import { OrderStatus } from '@prisma/client';
-// import { orderStatus } from '@project/constants';
+// import { orderStatus } from 'constants';
 // import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 // export class OrderQueryDto {

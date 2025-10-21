@@ -1,27 +1,162 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { CommunityType, communityType } from "@project/constants/enums";
-import { IsDateString, IsEnum, IsUUID } from "class-validator";
+// community.dto.ts
+import { ApiProperty, OmitType, PartialType } from "@nestjs/swagger";
+import { IsString, IsOptional, IsEnum, IsDateString } from "class-validator";
+import { Type } from "class-transformer";
+import { CommunityType, CommunityRole } from "@prisma/client";
 
-export class CreateCommunityDto {
-  @ApiProperty({
-    description: "The foundation date of the community",
-    example: "2025-08-29T10:30:00.000Z",
-  })
-  @IsDateString()
-  foundationDate: Date;
+// ---------------- COMMUNITY PROFILE ----------------
+export class CommunityProfileDto {
+    @ApiProperty({
+        description: "Community display name",
+        example: "Tech Enthusiasts Club",
+    })
+    @IsString()
+    name: string;
 
-  @ApiProperty({
-    description: "The type of community",
-    enum: communityType,
-    example: communityType,
-  })
-  @IsEnum(communityType)
-  communityType: CommunityType;
+    @ApiProperty({
+        description: "Unique username/handle for the community",
+        example: "tech_club",
+    })
+    @IsString()
+    username: string;
 
-  @ApiProperty({
-    description: "The ID of the owner (User ID)",
-    example: "550e8400-e29b-41d4-a716-446655440000",
-  })
-  @IsUUID()
-  ownerId: string;
+    @ApiProperty({
+        description: "Short tagline or title of the community",
+        example: "Exploring the Future of Technology",
+    })
+    @IsString()
+    title: string;
+
+    @ApiProperty({
+        description: "Detailed description or bio of the community",
+        example:
+            "A community of technology enthusiasts who share knowledge, organize events, and collaborate on projects.",
+        required: false,
+    })
+    @IsOptional()
+    bio?: string;
+
+    @ApiProperty({
+        description: "URL of the community avatar/logo",
+        example: "https://example.com/images/community-logo.png",
+        required: false,
+    })
+    @IsOptional()
+    avatarUrl?: string;
+
+    @ApiProperty({
+        description: "URL of the community cover image",
+        example: "https://example.com/images/community-cover.jpg",
+        required: false,
+    })
+    @IsOptional()
+    coverUrl?: string;
+
+    @ApiProperty({
+        description: "Location of the community",
+        example: "Dhaka, Bangladesh",
+        required: false,
+    })
+    @IsOptional()
+    location?: string;
 }
+
+// ---------------- COMMUNITY ABOUT ----------------
+export class CommunityAboutDto {
+    @ApiProperty({
+        description: "Detailed location of the community",
+        example: "Sylhet, Bangladesh",
+        required: false,
+    })
+    @IsOptional()
+    location?: string;
+
+    @ApiProperty({
+        description: "Date when the community was founded",
+        example: "2020-06-15T00:00:00.000Z",
+        required: false,
+        type: String,
+        format: "date-time",
+    })
+    @IsOptional()
+    @Type(() => Date)
+    foundingDate?: Date;
+
+    @ApiProperty({
+        description: "Community mission statement",
+        example: "To promote innovation and collaboration in the field of renewable energy.",
+        required: false,
+    })
+    @IsString()
+    @IsOptional()
+    mission?: string;
+
+    @ApiProperty({
+        description: "Official website of the community",
+        example: "https://www.greenfuture.org",
+        required: false,
+    })
+    @IsString()
+    @IsOptional()
+    website?: string;
+}
+
+// ---------------- COMMUNITIES MEMBERSHIP ----------------
+export class CommunitiesMembershipDto {
+    @ApiProperty({ description: "User ID of the member" })
+    userId: string;
+
+    @ApiProperty({ description: "Community ID of the membership" })
+    communityId: string;
+
+    @ApiProperty({
+        description: "Role of the user in the community",
+        enum: CommunityRole,
+    })
+    @IsEnum(CommunityRole)
+    role: CommunityRole;
+}
+
+// ---------------- COMMUNITY ----------------
+export class CreateCommunityDto {
+    @ApiProperty({
+        description: "Date when the community was founded",
+        example: "2024-09-01T00:00:00.000Z",
+    })
+    @IsDateString()
+    foundationDate: string;
+
+    @ApiProperty({
+        description: "Type of community",
+        example: CommunityType.PUBLIC,
+    })
+    @IsEnum(CommunityType)
+    communityType: CommunityType;
+
+    @ApiProperty({
+        description: "Community profile info",
+        type: () => CommunityProfileDto,
+        required: false,
+    })
+    @IsOptional()
+    profile?: CommunityProfileDto;
+
+    @ApiProperty({
+        description: "Extended community info",
+        type: () => CommunityAboutDto,
+        required: false,
+    })
+    @IsOptional()
+    about?: CommunityAboutDto;
+}
+
+// update dtos
+export class UpdateCommunityDto extends PartialType(
+    OmitType(CreateCommunityDto, ["foundationDate"] as const),
+) {}
+
+export class UpdateCommunitiesMembershipDto extends PartialType(CommunitiesMembershipDto) {}
+
+export class UpdateCommunityAboutDto extends PartialType(CommunityAboutDto) {}
+
+export class UpdateCommunityProfileDto extends PartialType(CommunityProfileDto) {}

@@ -18,3 +18,34 @@
 - tag 
 - and others
 
+<!-- community -->
+# 1/09/2025 Todo 
+- update community
+- get single community
+- somes change schemas (communities, communitiesMember ans shared profile)
+- createMember module,controller and service 
+- create addMember/followers api
+
+<!-- Ngo -->
+# 2/09/2025 Todo
+- Work in NGO module
+- create ngo
+- get all ngo
+- find one ngo
+- delete ngo by id
+- update ngo
+- fix error marketPlaces update and delete part
+
+<!-- community and ngo -->
+## 3/09/2025
+- work in ngo and community
+- follower 
+- following
+- like 
+- comment
+- share
+- check api 
+ 
+
+
+docker compose --profile prod up -d --build

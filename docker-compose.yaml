@@ -1,67 +1,116 @@
 services:
-  server:
-    profiles:
-      - prod
-    container_name: ${PACKAGE_NAME}-api
-    image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
-    restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      NODE_ENV: ${NODE_ENV}
-      DATABASE_URL: ${DATABASE_URL}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
-      BASE_URL: ${BASE_URL}
-      PORT: 5055
-      MAIL_USER: ${MAIL_USER}
-      MAIL_PASS: ${MAIL_PASS}
-      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL}
-      SUPER_ADMIN_PASS: ${SUPER_ADMIN_PASS}
-      REDIS_URL: ${REDIS_URL}
-      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
-      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
-      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
-    ports:
-      - "5055:5055"
-    depends_on:
-      - db
-      - redis
-    command: >
-      sh -c "
-        npx prisma migrate deploy &&
-        npm run start:prod
-      "
+    app:
+        profiles:
+            - prod
+        platform: linux/amd64
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
+        container_name: ${PACKAGE_NAME}_api
+        ports:
+            - "${PORT}:${PORT}"
+        env_file:
+            - .env
+        depends_on:
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        restart: always
+        command: >
+            sh -c "
+                echo '🏁 Waiting for DB...';
+                sleep 5;
+                npx prisma migrate deploy;
+                echo '🚀 Starting app...';
+                npm run start:docker
+            "
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "10m"
+                max-file: "3"
+        labels:
+            - "app.name=${PACKAGE_NAME}"
+            - "app.version=${PACKAGE_VERSION}"
+            - "deployment.type=zero-downtime"
+        networks:
+            - ${PACKAGE_NAME}_networks
 
-  db:
-    image: postgres:17
-    container_name: jdadzok_db
-    restart: always
-    profiles:
-      - dev
-      - prod
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: jdadzok_db
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    db:
+        image: postgres:15
+        container_name: ${PG_DATABASE}
+        restart: always
+        profiles:
+            - prod
+            - dev
+        environment:
+            POSTGRES_USER: ${PG_USERNAME}
+            POSTGRES_PASSWORD: ${PG_PASSWORD}
+            POSTGRES_DB: ${PG_DATABASE}
+            POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements
+        volumes:
+            - jdadzok_pg:/var/lib/postgresql/data
+        ports:
+            - "${PG_PORT}:${PG_PORT}"
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "10m"
+                max-file: "3"
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "${PG_USERNAME}", "-d", "${PG_DATABASE}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 15s
+        networks:
+            - ${PACKAGE_NAME}_networks
+    redis:
+        image: redis:7-alpine # Use Alpine version for smaller size
+        container_name: ${REDIS_CONTAINER}
+        restart: always
+        profiles:
+            - dev
+            - prod
+        ports:
+            - "${REDIS_PORT}:${REDIS_PORT}"
+        volumes:
+            - jdadzok_redis:/data
+        # Add health check for Redis
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 3s
+            retries: 5
+            start_period: 5s
+        networks:
+            - ${PACKAGE_NAME}_networks
 
-  redis:
-    image: redis
-    container_name: jdadzok_redis
-    restart: always
-    profiles:
-      - dev
-      - prod
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-
+    caddy:
+        image: caddy:latest
+        profiles:
+            - prod
+        container_name: caddy_server
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile
+            - caddy_data:/data
+            - caddy_config:/config
+        networks:
+            - ${PACKAGE_NAME}_networks
 volumes:
-  db-data:
-  redis-data:
+    jdadzok_pg:
+    jdadzok_redis:
+
+    caddy_data:
+    caddy_config:
+
+# Add networks for better isolation (optional)
+networks:
+    jdadzok_server_networks:
+        driver: bridge

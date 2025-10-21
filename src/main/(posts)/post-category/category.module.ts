@@ -4,8 +4,8 @@ import { PostCategoryRepository } from "./post-category.repository";
 import { PostCategoryService } from "./post-category.service";
 
 @Module({
-  controllers: [PostCategoryController],
-  providers: [PostCategoryRepository, PostCategoryService],
-  exports: [PostCategoryRepository],
+    controllers: [PostCategoryController],
+    providers: [PostCategoryRepository, PostCategoryService],
+    exports: [PostCategoryRepository],
 })
 export class CategoryModule {}

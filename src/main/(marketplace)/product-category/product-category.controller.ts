@@ -1,0 +1,26 @@
+import { handleRequest } from "@common/utils/handle.request.util";
+import { Body, Controller, Get, Post } from "@nestjs/common";
+import { CreateProductCategoryDto } from "./dto/create-product-category.dto";
+import { ProductCategoryService } from "./product-category.service";
+
+@Controller("product-category")
+export class ProductCategoryController {
+    constructor(private readonly service: ProductCategoryService) {}
+
+    @Post("")
+    async create(@Body() dto: CreateProductCategoryDto) {
+        return handleRequest(() => this.service.create(dto), "Added Product Category Successfully");
+    }
+    @Get("")
+    async findAll() {
+        return handleRequest(() => this.service.findAll(), "Get All Product Category Successfully");
+    }
+
+    // @Delete(':id')
+    // async remove(@Param('id') id:string){
+    //      return handleRequest(
+    //         () => this.service.remove(id),
+    //         "Delete Product Category Successfully",
+    //     );
+    // }
+}

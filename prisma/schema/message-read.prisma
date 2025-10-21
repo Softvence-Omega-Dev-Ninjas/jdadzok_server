@@ -1,22 +1,22 @@
 model MessageRead {
   id String @id @default(uuid())
-  
+
   // Message that was read
   messageId String
   message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  
+
   // User who read the message
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   readAt DateTime @default(now()) // When message was read
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // User can only read each message once
   @@unique([messageId, userId])
-  @@map("message_reads")
   @@index([messageId])
   @@index([userId])
+  @@map("message_reads")
 }
