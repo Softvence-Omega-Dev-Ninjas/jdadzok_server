@@ -42,6 +42,7 @@ export class PostRepository {
     async store(input: CreatePostDto) {
         const { metadata, taggedUserIds, ...postData } = input;
         return await this.prisma.$transaction(async (tx) => {
+            if (!postData.authorId) throw new NotFoundException("Request user not found!");
             // check required thing
             let metadataId = input.metadataId;
 
@@ -60,7 +61,7 @@ export class PostRepository {
                     console.info("comm");
                     break;
                 case "REGULAR_PROFILE":
-                    console.info("ngo");
+                    console.info("regular");
                     break;
                 default:
                     // here...
@@ -70,7 +71,7 @@ export class PostRepository {
                 data: {
                     ...postData,
                     postFrom: postData.postFrom,
-                    authorId: postData.authorId!,
+                    authorId: postData.authorId,
                     metadataId,
                 },
                 include: {
