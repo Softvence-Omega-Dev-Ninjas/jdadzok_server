@@ -18,6 +18,7 @@ export class PostService {
 
     async create(input: CreatePostDto) {
         const post = await this.repository.store(input);
+
         if (!post) throw new BadRequestException("Fail to creaete post");
 
         const followers = await this.followRepository.findManyFollowerId(post?.authorId);

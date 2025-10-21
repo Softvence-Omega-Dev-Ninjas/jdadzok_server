@@ -14,7 +14,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { JwtServices } from "@service/jwt.service";
-import { TUser } from "@type/index";
+import { VerifiedUser } from "@type/index";
 import { omit } from "@utils/index";
 import { cookieHandler } from "./cookie.handler";
 import { RequestWithUser } from "./jwt.interface";
@@ -69,10 +69,15 @@ export const GetVerifiedUser = createParamDecorator(
 
         const obj = omit(isUser, ["password"]);
         return {
-            userId: obj.id,
+            id: obj.id,
             email: obj.email,
             role: obj.role,
-        } satisfies TUser;
+            authProvider: obj.authProvider,
+            capLevel: obj.capLevel,
+            isVerified: obj.isVerified,
+            createdAt: obj.createdAt,
+            updatedAt: obj.updatedAt,
+        } satisfies VerifiedUser;
     },
 );
 
