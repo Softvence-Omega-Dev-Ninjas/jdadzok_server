@@ -41,32 +41,32 @@ export class PostRepository {
 
     async store(input: CreatePostDto) {
         const { metadata, taggedUserIds, ...postData } = input;
+
         return await this.prisma.$transaction(async (tx) => {
             if (!postData.authorId) throw new NotFoundException("Request user not found!");
-            // check required thing
-            let metadataId = input.metadataId;
 
+            // Handle metadata
+            let metadataId = input.metadataId;
             if (metadata && !metadataId) {
                 metadataId = await this.createMetadata(tx, metadata);
             }
 
+            // Log post type
             switch (input.postFrom) {
                 case "NGO":
-                    // here...
                     console.info("ngo");
                     break;
-
                 case "COMMUNITY":
-                    // here...
                     console.info("comm");
                     break;
                 case "REGULAR_PROFILE":
                     console.info("regular");
                     break;
                 default:
-                    // here...
                     console.info("default");
             }
+
+            // ✅ Create the post
             const postForAuthor = await tx.post.create({
                 data: {
                     ...postData,
@@ -88,9 +88,25 @@ export class PostRepository {
                 },
             });
 
-            // post metrics
+            // ✅ Create post metrics entry
             await this.postMetricsRepository.create({ postId: postForAuthor.id }, tx);
 
+            // ✅ Update user metrics (increase totalPosts)
+            await tx.userMetrics.upsert({
+                where: { userId: postData.authorId },
+                create: {
+                    userId: postData.authorId,
+                    totalPosts: 1,
+                },
+                update: {
+                    totalPosts: {
+                        increment: 1,
+                    },
+                    lastUpdated: new Date(),
+                },
+            });
+
+            // ✅ Handle tagged users
             if (taggedUserIds && taggedUserIds.length > 0) {
                 await this.handleTaggedUsers(
                     tx,
@@ -105,9 +121,8 @@ export class PostRepository {
                     taggedUserIds,
                 );
             }
-            // Create notifications for tagged users
-            // await this.helperFunctions.createTagNotifications(post.id, authorId, data.taggedUserIds);
 
+            // ✅ Return post with relations
             return tx.post.findUnique({
                 where: { id: postForAuthor.id },
                 include: {
