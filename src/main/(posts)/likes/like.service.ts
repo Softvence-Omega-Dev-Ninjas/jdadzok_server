@@ -17,6 +17,7 @@ export class LikeService {
     }
 
     async getPostLikes(postId: string) {
+        console.log(postId);
         return await this.likeRepository.getLikesForPost(postId);
     }
 }

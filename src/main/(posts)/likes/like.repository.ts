@@ -39,8 +39,9 @@ export class LikeRepository {
     }
 
     async getLikesForPost(postId: string) {
-        return this.prisma.like.findMany({
+        const like = await this.prisma.like.findMany({
             where: { postId },
         });
+        return like
     }
 }
