@@ -335,6 +335,7 @@ cat >> "$CD_YAML" <<'EOF'
           scp docker-compose.yaml deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           scp .env deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           scp Dockerfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+          scp Caddyfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           scp -r scripts deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           echo "✅ Files copied successfully"
       - name: Fix permissions on server

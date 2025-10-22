@@ -1,141 +1,122 @@
 #!/bin/bash
-
-# Zero Downtime Deployment Script (docker compose version)
-# Usage: ./deploy.sh --version <version> | --rollback | status
-
 set -euo pipefail
 
 # ================================
-# Configurable (from env vars)
+# Configurable
 # ================================
 PACKAGE_NAME="${PACKAGE_NAME:?PACKAGE_NAME not set}"
 DOCKER_USERNAME="${DOCKER_USERNAME:?DOCKER_USERNAME not set}"
 PACKAGE_VERSION="${PACKAGE_VERSION:-latest}"
 PORT="${PORT:-5056}"
 VPS_HOST_IP="${VPS_HOST_IP:?VPS_HOST_IP not set}"
-BASE_URL="http://$VPS_HOST_IP"
-HEALTH_ENDPOINT="${HEALTH_ENDPOINT:-$BASE_URL:$PORT/}"
-HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-10}"
-HEALTH_RETRIES="${HEALTH_RETRIES:-6}" # up to 2 minutes
 VERSION_FILE="./deployment_versions.txt"
 
-# ================================
-# Colors
-# ================================
+BASE_URL="http://$VPS_HOST_IP"
+LIVE_ENDPOINT="${BASE_URL}:${PORT}/api/health"
+CANDIDATE_PORT=$((PORT + 1))
+CANDIDATE_ENDPOINT="${BASE_URL}:${CANDIDATE_PORT}/api/health"
+
+HEALTH_TIMEOUT=6
+HEALTH_RETRIES=4
+
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
-
-log()  { echo -e "${BLUE}[INFO]${NC} $*"; }
-ok()   { echo -e "${GREEN}[OK]${NC} $*"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
-err()  { echo -e "${RED}[ERR]${NC} $*"; }
+log(){ echo -e "${BLUE}[INFO]${NC} $*"; }
+ok(){ echo -e "${GREEN}[OK]${NC} $*"; }
+warn(){ echo -e "${YELLOW}[WARN]${NC} $*"; }
+err(){ echo -e "${RED}[ERR]${NC} $*"; }
 
 # ================================
-# Helpers
+# Version Helpers
 # ================================
-usage() {
-  echo "Usage: $0 --version <version> | --rollback | status"
-  exit 1
-}
+current_version(){ [ -f "$VERSION_FILE" ] && tail -n1 "$VERSION_FILE" || echo "none"; }
+previous_version(){ [ -f "$VERSION_FILE" ] && tail -n2 "$VERSION_FILE" | head -n1 || echo "none"; }
+save_version(){ echo "$1" >> "$VERSION_FILE"; tail -n 10 "$VERSION_FILE" > "${VERSION_FILE}.tmp" && mv "${VERSION_FILE}.tmp" "$VERSION_FILE"; }
 
-current_version() {
-  [ -f "$VERSION_FILE" ] && tail -n1 "$VERSION_FILE" || echo "none"
-}
-
-previous_version() {
-  [ -f "$VERSION_FILE" ] && tail -n 2 "$VERSION_FILE" | head -n1 || echo "none"
-}
-
-save_version() {
-  echo "$1" >> "$VERSION_FILE"
-  tail -n 10 "$VERSION_FILE" > "${VERSION_FILE}.tmp" && mv "${VERSION_FILE}.tmp" "$VERSION_FILE"
-}
-
-# Replace docker healthcheck with external curl check
-health_check() {
-  log "Waiting for API to respond at $HEALTH_ENDPOINT..."
-  local fail_count=0  # 🔹 new variable for counting failures
-
-  for i in $(seq 1 "$HEALTH_RETRIES"); do
-    if curl -fs --max-time "$HEALTH_TIMEOUT" "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
-      ok "API is up and responding"
+# ================================
+# Health check
+# ================================
+check_health(){
+  local url="$1"
+  log "Checking health at $url ..."
+  for i in $(seq 1 $HEALTH_RETRIES); do
+    if curl -fs --max-time $HEALTH_TIMEOUT "$url" | grep -q '"status":"ok"'; then
+      ok "Health check passed"
       return 0
     fi
-
-    ((fail_count++))  # 🔹 increment failure count
-    warn "Attempt $i/$HEALTH_RETRIES failed (consecutive fails: $fail_count)"
-
-    # 🔹 If 3 consecutive failures → restart all containers
-    if (( fail_count == 3 )); then
-      warn "3 consecutive health check failures. Restarting all containers..."
-      docker compose --profile prod down || warn "Failed to bring down containers"
-      sleep 5
-      docker compose --profile prod up -d || err "Failed to bring containers up again"
-      fail_count=0  # reset after restart
-      warn "Containers restarted. Retrying health check..."
-      sleep 10
-    fi
-
-    sleep 10
+    warn "Attempt $i/$HEALTH_RETRIES failed"
+    sleep 5
   done
-
-  err "API did not respond after all retries"
   return 1
 }
 
-rollback() {
-  local cur=$(current_version)
-  local prev=$(previous_version)
+# ================================
+# Deployment
+# ================================
+deploy(){
+  local version="$1"
+  local image="${DOCKER_USERNAME}/${PACKAGE_NAME}:${version}"
+
+  log "Pulling new image: $image"
+  docker pull "$image" || err "Failed to pull image"
+
+  log "Starting candidate container on port $CANDIDATE_PORT ..."
+  docker run -d \
+    --name "${PACKAGE_NAME}_candidate" \
+    -p "${CANDIDATE_PORT}:${PORT}" \
+    "$image" >/dev/null
+
+  sleep 5
+
+  if check_health "$CANDIDATE_ENDPOINT"; then
+    ok "New version $version is healthy ✅"
+    save_version "$version"
+
+    log "Stopping old container..."
+    docker rm -f "${PACKAGE_NAME}_live" >/dev/null 2>&1 || true
+
+    log "Promoting candidate → live..."
+    docker rename "${PACKAGE_NAME}_candidate" "${PACKAGE_NAME}_live"
+    ok "Deployment complete. Now serving version $version"
+  else
+    err "New version failed health check ❌"
+    docker rm -f "${PACKAGE_NAME}_candidate" >/dev/null 2>&1 || true
+
+    prev=$(previous_version)
+    if [ "$prev" != "none" ]; then
+      warn "Rolling back to previous version: $prev"
+      deploy "$prev"
+    else
+      err "No previous version to roll back to!"
+    fi
+  fi
+}
+
+rollback(){
+  # local prev=$(previous_version)
   [ "$prev" = "none" ] && { err "No previous version"; return 1; }
-  warn "Rolling back $cur → $prev"
+  log "Rolling back to $prev ..."
   deploy "$prev"
 }
 
-deploy() {
-  local v="${1:?No version specified}"
-  local image="${DOCKER_USERNAME}/${PACKAGE_NAME}:${v}"
-
-  log "Deploying version $v (image=$image)"
-
-  # Pull new image
-  docker pull "$image" || warn "Image not in registry, will build locally"
-
-  # Update .env with new version
-  [ -f .env ] && sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=$v/" .env
-
-  # Recreate service with compose (ensures networks/volumes are correct)
-  docker compose --profile prod up -d app
-
-  sleep 5
-  if health_check; then
-    save_version "$v"
-    ok "Deployment $v successful"
-  else
-    err "New version not responding, rolling back..."
-    rollback
-  fi
-}
-
-status() {
+status(){
   echo "=== Deployment Status ==="
   echo "Current: $(current_version)"
   echo "Previous: $(previous_version)"
-  echo "Containers:"
-  docker compose ps
-  echo "Health check via $HEALTH_ENDPOINT:"
-  if curl -fs "$HEALTH_ENDPOINT" | grep -q '"status":"ok"'; then
-    echo "✅ ok"
+  docker ps --filter "name=${PACKAGE_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+  echo
+  if curl -fs "$LIVE_ENDPOINT" | grep -q '"status":"ok"'; then
+    ok "Current live version is healthy"
   else
-    echo "❌ fail"
+    err "Current live version unhealthy"
   fi
-  [ -f "$VERSION_FILE" ] && { echo "History:"; tail -n5 "$VERSION_FILE" | nl -s'. '; }
 }
 
 # ================================
-# CLI entrypoint
+# CLI
 # ================================
 case "${1:-}" in
   --version)
-    [ -z "${2:-}" ] && usage
+    [ -z "${2:-}" ] && { echo "Usage: $0 --version <version>"; exit 1; }
     deploy "$2"
     ;;
   --rollback)
@@ -145,6 +126,6 @@ case "${1:-}" in
     status
     ;;
   *)
-    usage
+    echo "Usage: $0 --version <version> | --rollback | status"
     ;;
 esac
