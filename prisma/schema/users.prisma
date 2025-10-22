@@ -10,7 +10,7 @@ model User {
   // User role and progression
   role     Role     @default(USER)
   capLevel CapLevel @default(NONE)
-
+  isToggleNotification Boolean @default(false)
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -91,14 +91,16 @@ model User {
   givenEndorsements    Endorsement[] @relation("Endorser")
   receivedEndorsements Endorsement[] @relation("Endorsee")
 
+  // User choices
+  userChoices UserChoice[]
+
   corporateContacts CorporateMembership[] @relation("CorporateContact")
 
   CommunityFollower CommunityFollower[]
 
   // payment methods -> a user can has multiple payment methods
   PaymentMethods PaymentMethods[]
-  UserChoice     UserChoice[]
-
+ NotificationToggle NotificationToggle[]
   @@index([email])
   @@index([capLevel])
   @@index([role])
