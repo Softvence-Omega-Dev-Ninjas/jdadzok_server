@@ -41,7 +41,7 @@ export class PostService {
 
     async index(options?: PostQueryDto) {
         return await this.repository.findAll(options, {
-            id:true,
+            id: true,
             metadata: true,
             author: true,
             likes: true,

@@ -25,7 +25,7 @@ export class LikeController {
     @ApiOperation({ summary: "Get likes for a post" })
     @Get("post/:id")
     @UseGuards(JwtAuthGuard)
-    async getPostLikes(@Param('id') id: string) {
+    async getPostLikes(@Param("id") id: string) {
         return await this.likeService.getPostLikes(id);
     }
 }

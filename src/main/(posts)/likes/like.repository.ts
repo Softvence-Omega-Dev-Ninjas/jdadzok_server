@@ -42,6 +42,6 @@ export class LikeRepository {
         const like = await this.prisma.like.findMany({
             where: { postId },
         });
-        return like
+        return like;
     }
 }
