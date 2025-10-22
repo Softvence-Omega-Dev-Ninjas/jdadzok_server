@@ -1,8 +1,8 @@
-import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
-import { TUser, VerifiedUser } from "@type/index";
+import { VerifiedUser } from "@type/index";
 import { CreateLikeDto } from "./dto/creaete.like.dto";
 import { LikeService } from "./like.service";
 
