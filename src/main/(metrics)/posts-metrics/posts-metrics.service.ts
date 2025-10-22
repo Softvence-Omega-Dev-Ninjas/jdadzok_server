@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { CreatePostsMetricsDto, UpdatePostsMetricsDto } from "./dto/posts-metrics.dto";
+import { CreatePostsMetricsDto } from "./dto/posts-metrics.dto";
 import { PostsMetricsRepository } from "./posts-metrics.repository";
 
 @Injectable()
@@ -16,10 +16,10 @@ export class PostsMetricsService {
         return metrics;
     }
 
-    async updateMetrics(postId: string, dto: UpdatePostsMetricsDto) {
-        await this.getMetrics(postId); // ensure exists
-        return this.repo.update(postId, dto);
-    }
+    // async updateMetrics(postId: string, dto: UpdatePostsMetricsDto) {
+    //     await this.getMetrics(postId); // ensure exists
+    //     return this.repo.update(postId, dto);
+    // }
 
     async incrementLike(postId: string) {
         return this.repo.increment(postId, "totalLikes");
@@ -41,7 +41,7 @@ export class PostsMetricsService {
         return this.repo.increment(postId, "totalViews");
     }
 
-    async deleteMetrics(postId: string) {
-        return this.repo.delete(postId);
-    }
+    // async deleteMetrics(postId: string) {
+    //     return this.repo.delete(postId);
+    // }
 }

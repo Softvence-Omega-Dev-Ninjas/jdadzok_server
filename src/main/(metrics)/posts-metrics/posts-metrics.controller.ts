@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { CreatePostsMetricsDto, UpdatePostsMetricsDto } from "./dto/posts-metrics.dto";
+import { CreatePostsMetricsDto } from "./dto/posts-metrics.dto";
 import { PostsMetricsService } from "./posts-metrics.service";
 
 @ApiBearerAuth()
@@ -21,11 +21,11 @@ export class PostsMetricsController {
         return this.service.getMetrics(postId);
     }
 
-    @Patch(":postId")
-    @ApiOperation({ summary: "Update metrics for a specific post" })
-    update(@Param("postId") postId: string, @Body() dto: UpdatePostsMetricsDto) {
-        return this.service.updateMetrics(postId, dto);
-    }
+    // @Patch(":postId")
+    // @ApiOperation({ summary: "Update metrics for a specific post" })
+    // update(@Param("postId") postId: string, @Body() dto: UpdatePostsMetricsDto) {
+    //     return this.service.updateMetrics(postId, dto);
+    // }
 
     // Increment endpoints for frontend interaction updates
     @Post(":postId/like")
@@ -58,9 +58,9 @@ export class PostsMetricsController {
         return this.service.incrementView(postId);
     }
 
-    @Delete(":postId")
-    @ApiOperation({ summary: "Delete metrics for a specific post" })
-    delete(@Param("postId") postId: string) {
-        return this.service.deleteMetrics(postId);
-    }
+    // @Delete(":postId")
+    // @ApiOperation({ summary: "Delete metrics for a specific post" })
+    // delete(@Param("postId") postId: string) {
+    //     return this.service.deleteMetrics(postId);
+    // }
 }
