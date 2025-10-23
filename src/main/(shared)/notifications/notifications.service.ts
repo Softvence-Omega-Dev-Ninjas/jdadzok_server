@@ -8,7 +8,7 @@ import { NotificationToggleDto } from "./dto/notification-toggle";
 export class NotificationsService {
     constructor(private readonly prisma: PrismaService) { }
 
-    @HandleError('Failed to get notification setting')
+    @HandleError("Failed to get notification setting")
     async getNotificationSetting(userId: string): Promise<TResponse<any>> {
         const result = await this.prisma.notificationToggle.findUnique({
             where: {
@@ -26,51 +26,134 @@ export class NotificationsService {
                     userId: userId,
                 },
             });
-            return successResponse(
-                notificationToggle,
-                'Notification setting created successfully',
-            );
+            return successResponse(notificationToggle, "Notification setting created successfully");
         }
 
-        return successResponse(result, 'Notification setting found successfully');
+        return successResponse(result, "Notification setting found successfully");
     }
 
-    //   -------------- update user notification now -------------------
+    //   --------------ProfileUpdateNotificationSettingOn update user notification now -------------------
 
-    @HandleError('Failed to update notification setting')
-    async updateNotificationSetting(userId: string): Promise<TResponse<any>> {
-
-        const changeNotification = await this.prisma.user.update({
+    @HandleError("Failed to update notification setting")
+    async ProfileUpdateNotificationSettingOn(userId: string): Promise<TResponse<any>> {
+        const changeNotification = await this.prisma.profile.update({
             where: {
-                id: userId,
+                userId: userId,
             },
             data: {
-                isToggleNotification: true
-            }
+                isToggleNotification: true,
+            },
         });
 
-        return successResponse(changeNotification, 'Notification setting updated successfully');
+        return successResponse(changeNotification, "Notification setting updated successfully");
     }
 
-    // ------------ toggle notificaton off-----------
+    // ------------ Profile-ToogleNotificationSettingOff  off-----------
 
-    @HandleError('Failed to update notification setting')
-    async ToogleNotificationSettingOff(userId: string): Promise<TResponse<any>> {
-
-        const changeNotification = await this.prisma.user.update({
+    @HandleError("Failed t off profile update notification setting")
+    async ProfileToogleNotificationSettingOff(userId: string): Promise<TResponse<any>> {
+        const changeNotificationOff = await this.prisma.profile.update({
             where: {
-                id: userId,
+                userId: userId,
             },
             data: {
-                isToggleNotification: false
-            }
+                isToggleNotification: false,
+            },
         });
 
-        return successResponse(changeNotification, 'Notification setting updated successfully');
+        return successResponse(changeNotificationOff, "Notification profile setting updated successfully");
     }
 
-    //  --- 
-    @HandleError('Failed to update notification setting')
+   
+
+    // ---------------- NGO Notification ON ----------------
+    @HandleError("Failed to update NGO notification setting")
+    async NgoUpdateNotificationSettingOn(userId: string): Promise<TResponse<any>> {
+        const NgochangeNotification = await this.prisma.ngo.updateMany({
+            where: { ownerId: userId },
+            data: { isToggleNotification: true },
+        });
+
+        if (NgochangeNotification.count === 0) {
+            return {
+                success: false,
+                message: "No NGO found for this user",
+                data: null,
+            };
+        }
+
+        return successResponse(NgochangeNotification, "NGO notification setting turned ON successfully");
+    }
+
+    // ---------------- NGO Notification OFF ----------------
+    @HandleError("Failed to update NGO notification setting OFF")
+    async NgoToogleNotificationSettingOff(userId: string): Promise<TResponse<any>> {
+        const NgochangeNotificationoff = await this.prisma.ngo.updateMany({
+            where: { ownerId: userId },
+            data: { isToggleNotification: false },
+        });
+
+        if (NgochangeNotificationoff.count === 0) {
+            return {
+                success: false,
+                message: "No NGO found for this user",
+                data: null,
+            };
+        }
+
+        return successResponse(NgochangeNotificationoff, "NGO notification setting turned OFF successfully");
+    }
+
+
+    // ---------------- Community Notification ON ----------------
+    @HandleError("Failed to update community notification setting")
+    async CommunityUpdateNotificationSettingOn(userId: string): Promise<TResponse<any>> {
+        const changeNotification = await this.prisma.community.updateMany({
+            where: {
+                ownerId: userId,
+            },
+            data: {
+                isToggleNotification: true,
+            },
+        });
+
+        if (changeNotification.count === 0) {
+            return {
+                success: false,
+                message: "No community found for this user",
+                data: null,
+            };
+        }
+
+        return successResponse(changeNotification, "Community notification setting turned ON successfully");
+    }
+
+    // ---------------- Community Notification OFF ----------------
+    @HandleError("Failed to update community notification setting")
+    async CommunityToogleNotificationSettingOff(userId: string): Promise<TResponse<any>> {
+        const changeNotification = await this.prisma.community.updateMany({
+            where: {
+                ownerId: userId,
+            },
+            data: {
+                isToggleNotification: false,
+            },
+        });
+
+        if (changeNotification.count === 0) {
+            return {
+                success: false,
+                message: "No community found for this user",
+                data: null,
+            };
+        }
+
+        return successResponse(changeNotification, "Community notification setting turned OFF successfully");
+    }
+
+
+    //  --- -------- failed to notification--------
+    @HandleError("Failed to update notification setting")
     async TestupdateNotificationSetting(
         userId: string,
         dto: NotificationToggleDto,
@@ -95,11 +178,6 @@ export class NotificationsService {
                 userRegistration: dto.userRegistration,
             },
         });
-        return successResponse(result, 'Notification setting updated successfully');
+        return successResponse(result, "Notification setting updated successfully");
     }
-
 }
-
-
-
-

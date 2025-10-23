@@ -7,4 +7,4 @@ import { NotificaitonsModule } from "./notifications/notifications.module";
     providers: [],
     exports: [NotificaitonsModule],
 })
-export class SharedGroupModule { }
+export class SharedGroupModule {}
