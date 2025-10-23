@@ -8,18 +8,20 @@ import {
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
 import { PostRepository } from "./posts.repository";
+import { PrismaService } from "@lib/prisma/prisma.service";
 
 @Injectable()
 export class PostService {
     constructor(
         private readonly repository: PostRepository,
         private readonly followRepository: FollowUnfollowRepository,
+        private prisma:PrismaService
     ) {}
 
     async create(input: CreatePostDto) {
         const post = await this.repository.store(input);
         if (!post) throw new BadRequestException("Fail to creaete post");
-
+        console.log(input)
         const followers = await this.followRepository.findManyFollowerId(post?.authorId);
         // send notification to the all followers
         for (const follower of followers) {
@@ -91,7 +93,18 @@ export class PostService {
         return await this.repository.delete(id);
     }
 
+
+
     private validateAuthorId(authorId?: string) {
         if (!authorId) throw new BadRequestException("Author ID is required");
+    }
+
+
+        async get_all_post_of_user(user_id:string){
+       const res=await this.prisma.post.findMany({
+        where:{
+            authorId:user_id 
+        }
+       })
     }
 }

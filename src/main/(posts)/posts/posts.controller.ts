@@ -7,6 +7,8 @@ import {
     Controller,
     Delete,
     Get,
+    HttpException,
+    HttpStatus,
     NotFoundException,
     Param,
     ParseUUIDPipe,
@@ -60,6 +62,7 @@ export class PostController {
         @Body() req: any,
     ) {
         try {
+            
             const mediaUrls = files?.length ? await this.s3Service.uploadFiles(files) : [];
             const extractMetaData = JSON.parse(req.metadata);
             const body = omit(req, ["files"]);
@@ -67,7 +70,7 @@ export class PostController {
 
             const createInput = {
                 ...body,
-                authorId: user.id,
+                authorId: user.userId,
                 taggedUserIds: tagged,
                 postFrom: this.utils.include(postFrom, body.postFrom),
                 metadata: extractMetaData,
@@ -82,7 +85,7 @@ export class PostController {
             const post = await this.service.create(validated);
             return successResponse(post, "Post created successfully");
         } catch (err) {
-            return err;
+           throw new HttpException(err.message,HttpStatus.BAD_REQUEST)
         }
     }
 
@@ -144,5 +147,15 @@ export class PostController {
     async findOne(@Param("id", ParseUUIDPipe) id: string) {
         const post = await this.service.findOne(id);
         return successResponse(post, "Post retrieved successfully");
+    }
+
+    @Get('users-post')
+    @UseGuards(JwtAuthGuard)
+    async get_user_all_post(){
+        try{
+            
+        }catch(err){
+            throw new HttpException(err.message,HttpStatus.BAD_REQUEST)
+        }
     }
 }
