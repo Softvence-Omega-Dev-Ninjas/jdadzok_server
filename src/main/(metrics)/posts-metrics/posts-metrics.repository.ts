@@ -35,12 +35,12 @@ export class PostsMetricsRepository {
         return this.prisma.postMetrics.findUnique({ where: { postId } });
     }
 
-    async update(postId: string, dto: UpdatePostsMetricsDto) {
-        return this.prisma.postMetrics.update({
-            where: { postId },
-            data: { ...dto, lastUpdated: new Date() },
-        });
-    }
+    // async update(postId: string, dto: UpdatePostsMetricsDto) {
+    //     return this.prisma.postMetrics.update({
+    //         where: { postId },
+    //         data: { ...dto, lastUpdated: new Date() },
+    //     });
+    // }
 
     async increment(postId: string, field: keyof UpdatePostsMetricsDto, amount = 1) {
         return this.prisma.postMetrics.update({
@@ -62,7 +62,7 @@ export class PostsMetricsRepository {
         });
     }
 
-    async delete(postId: string) {
-        return this.prisma.postMetrics.delete({ where: { postId } });
-    }
+    //     async delete(postId: string) {
+    //         return this.prisma.postMetrics.delete({ where: { postId } });
+    //     }
 }
