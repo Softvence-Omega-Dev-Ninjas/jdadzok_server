@@ -6,6 +6,7 @@ import {
     Body,
     Controller,
     Delete,
+    Get,
     Param,
     Post,
     UseGuards,
@@ -81,7 +82,7 @@ export class UserController {
     }
 
     @ApiBearerAuth()
-    @Post("/me")
+    @Get("/me")
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     async me(@GetUser() user: TUser) {
