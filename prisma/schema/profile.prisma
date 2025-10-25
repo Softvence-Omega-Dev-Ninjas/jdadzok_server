@@ -12,8 +12,8 @@ model Profile {
   bio       String? @db.Text // User bio/description
   avatarUrl String? // Profile picture URL
   coverUrl  String? // Cover photo URL
-  location  String? // User's location
-
+  location  String?
+ isToggleNotification Boolean @default(false)
   // personal information
   dateOfBirth DateTime?
   gender      Gender    @default(MALE)
