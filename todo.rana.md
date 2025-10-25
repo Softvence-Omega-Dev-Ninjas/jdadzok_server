@@ -5,7 +5,7 @@
 ### copyLink implement frontend devoloper 
 
 
-# Todo Community and Ngo....
+# Done Community and Ngo....
 - create cummunity
 - delete cummunity 
 - edit
@@ -16,7 +16,7 @@
 - comment
 - share 
 - tag 
-- and others
+- and others   
 
 <!-- community -->
 # 1/09/2025 Todo 
