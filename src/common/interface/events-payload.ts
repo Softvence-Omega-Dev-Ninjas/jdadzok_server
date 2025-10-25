@@ -3,7 +3,7 @@ import {
     CommunityMeta,
     MessageMeta,
     PostMeta,
-    UserRegistrationMeta
+    UserRegistrationMeta,
 } from "./events-meta";
 
 //  Generic Base Event
@@ -22,7 +22,6 @@ export interface Notification {
 }
 
 //  Individual Events
-
 
 export interface UserRegistration extends BaseEvent<UserRegistrationMeta> {
     info: {

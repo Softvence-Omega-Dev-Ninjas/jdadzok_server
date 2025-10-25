@@ -60,7 +60,9 @@ export class NotificaitonsController {
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     @Patch("profile-change-toggle-setting-on")
-    async ProfileUpdateNotificationSettingOn(@GetUser("userId") userId: string): Promise<TResponse<any>> {
+    async ProfileUpdateNotificationSettingOn(
+        @GetUser("userId") userId: string,
+    ): Promise<TResponse<any>> {
         return await this.NotificationsService.ProfileUpdateNotificationSettingOn(userId);
     }
 
@@ -74,12 +76,13 @@ export class NotificaitonsController {
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     @Patch("profile-change-toggle-setting-off")
-    async ProfileToogleNotificationSettingOff(@GetUser("userId") userId: string): Promise<TResponse<any>> {
+    async ProfileToogleNotificationSettingOff(
+        @GetUser("userId") userId: string,
+    ): Promise<TResponse<any>> {
         return await this.NotificationsService.ProfileToogleNotificationSettingOff(userId);
     }
 
-
-       // --------------  Ngo change notification  ON -----------------
+    // --------------  Ngo change notification  ON -----------------
 
     @ApiOperation({
         summary: "Ngo-Toggle notification setting on",
@@ -89,7 +92,9 @@ export class NotificaitonsController {
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     @Patch("Ngo-Toggle-toggle-setting-on")
-    async NgoUpdateNotificationSettingOn(@GetUser("userId") userId: string): Promise<TResponse<any>> {
+    async NgoUpdateNotificationSettingOn(
+        @GetUser("userId") userId: string,
+    ): Promise<TResponse<any>> {
         return await this.NotificationsService.NgoUpdateNotificationSettingOn(userId);
     }
 
@@ -103,13 +108,13 @@ export class NotificaitonsController {
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     @Patch("Ngo-change-toggle-setting-off")
-    async NgoToogleNotificationSettingOff(@GetUser("userId") userId: string): Promise<TResponse<any>> {
-        return await this.NotificationsService. NgoToogleNotificationSettingOff(userId);
+    async NgoToogleNotificationSettingOff(
+        @GetUser("userId") userId: string,
+    ): Promise<TResponse<any>> {
+        return await this.NotificationsService.NgoToogleNotificationSettingOff(userId);
     }
 
-
-
-     // --------------  community change notification  ON -----------------
+    // --------------  community change notification  ON -----------------
 
     @ApiOperation({
         summary: "Community Toggle notification setting on",
@@ -119,7 +124,9 @@ export class NotificaitonsController {
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     @Patch("community-Toggle-toggle-setting-on")
-    async CommunityUpdateNotificationSettingOn(@GetUser("userId") userId: string): Promise<TResponse<any>> {
+    async CommunityUpdateNotificationSettingOn(
+        @GetUser("userId") userId: string,
+    ): Promise<TResponse<any>> {
         return await this.NotificationsService.CommunityUpdateNotificationSettingOn(userId);
     }
 
@@ -133,10 +140,11 @@ export class NotificaitonsController {
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     @Patch("Community-change-toggle-setting-off")
-    async CommunityToogleNotificationSettingOff(@GetUser("userId") userId: string): Promise<TResponse<any>> {
-        return await this.NotificationsService. CommunityToogleNotificationSettingOff(userId);
+    async CommunityToogleNotificationSettingOff(
+        @GetUser("userId") userId: string,
+    ): Promise<TResponse<any>> {
+        return await this.NotificationsService.CommunityToogleNotificationSettingOff(userId);
     }
-
 
     // ------------- All connected clients will receive it.---
     // @Post("broadcast")
