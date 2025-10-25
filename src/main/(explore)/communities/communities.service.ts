@@ -1,13 +1,59 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
+import { Community } from "@common/interface/events-payload";
+import { EVENT_TYPES } from "@common/interface/events-name";
 
 @Injectable()
 export class CommunitiesService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly eventEmitter: EventEmitter2,
+    ) {}
 
     // create new community......
+    //     async createCommunity(userId: string, dto: CreateCommunityDto) {
+    //         const communitity = await this.prisma.community.findFirst({
+    //             where: {
+    //                 ownerId: userId,
+    //                 profile: {
+    //                     is: {
+    //                         title: dto.profile?.title,
+    //                     },
+    //                 },
+    //             },
+    //         });
+    //         if (communitity) {
+    //             throw new BadRequestException("Community Already Exist.");
+    //         }
+
+    //         return await this.prisma.community.create({
+    //             data: {
+    //                 owner: {
+    //                     connect: { id: userId },
+    //                 },
+    //                 communityType: dto.communityType,
+    //                 foundationDate: dto.foundationDate,
+    //                 about: {
+    //                     create: {
+    //                         ...dto.about,
+    //                     },
+    //                 },
+    //                 profile: {
+    //                     create: dto.profile,
+    //                 },
+    //             },
+    //             include: {
+    //                 about: true,
+    //                 profile: true,
+    //             },
+
+    //         });
+
+    //   }
+
     async createCommunity(userId: string, dto: CreateCommunityDto) {
         const communitity = await this.prisma.community.findFirst({
             where: {
@@ -23,7 +69,7 @@ export class CommunitiesService {
             throw new BadRequestException("Community Already Exist.");
         }
 
-        return await this.prisma.community.create({
+        const newCommunity = await this.prisma.community.create({
             data: {
                 owner: {
                     connect: { id: userId },
@@ -44,7 +90,30 @@ export class CommunitiesService {
                 profile: true,
             },
         });
+
+        // Event payload with recipients
+        const payload: Community = {
+            action: "CREATE",
+            info: {
+                title: newCommunity.profile?.title ?? "New Community",
+                message:
+                    newCommunity.about?.mission ??
+                    `Community "${newCommunity.profile?.title}" has been created.`,
+                recipients: [],
+                sendEmail: newCommunity.isToggleNotification ?? false,
+            },
+            meta: {
+                communityId: newCommunity.id,
+                performedBy: userId,
+                publishedAt: new Date(),
+            },
+        };
+
+        this.eventEmitter.emit(EVENT_TYPES.Community_CREATE, payload);
+
+        return newCommunity;
     }
+
     // find All data....
     async findAll() {
         const community = await this.prisma.community.findMany({

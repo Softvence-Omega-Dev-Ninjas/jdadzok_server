@@ -8,7 +8,7 @@ model Ngo {
   // NGO details
   foundationDate DateTime
   ngoType        CommunityType // Reuse community types
-
+ isToggleNotification Boolean @default(false)
   // NGO metrics
   likes      Int      @default(0)
   isVerified Boolean  @default(false)
