@@ -3,7 +3,7 @@ import {
     CommunityMeta,
     MessageMeta,
     PostMeta,
-    UserRegistrationMeta
+    UserRegistrationMeta,
 } from "./events-meta";
 
 //  Generic Base Event
@@ -23,7 +23,6 @@ export interface Notification {
 
 //  Individual Events
 
-
 export interface UserRegistration extends BaseEvent<UserRegistrationMeta> {
     info: {
         email: string;
@@ -39,7 +38,6 @@ export interface Community extends BaseEvent<CommunityMeta> {
         title: string;
         message: string;
         recipients: { email: string; id: string }[];
-        sendEmail: boolean;
     };
 }
 

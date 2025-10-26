@@ -14,7 +14,7 @@ model Notification {
 
   // Additional data as JSON
   metadata Json? // Extra notification data
-
+  users UserNotification[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -23,4 +23,22 @@ model Notification {
   @@index([read])
   @@index([createdAt])
   @@map("notifications")
+}
+
+
+model UserNotification {
+  id String @id @default(uuid())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  notificationId String
+
+  read Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([userId, notificationId]) 
 }

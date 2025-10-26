@@ -1,8 +1,10 @@
-import { Notification } from "@common/interface/events-payload";
+import { EVENT_TYPES } from "@common/interface/events-name";
+import { Community, Notification } from "@common/interface/events-payload";
 import { PayloadForSocketClient } from "@common/interface/socket-client-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { OnEvent } from "@nestjs/event-emitter";
 import { JwtService } from "@nestjs/jwt";
 import {
     OnGatewayConnection,
@@ -14,22 +16,22 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
-
 @WebSocketGateway({
     cors: { origin: "*" },
     namespace: "/js/notification",
 })
 @Injectable()
 export class NotificationGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     private readonly logger = new Logger(NotificationGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
-
+    private userSockets = new Map<string, string>();
     constructor(
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
-    ) { }
+    ) {}
 
     @WebSocketServer()
     server: Server;
@@ -154,5 +156,61 @@ export class NotificationGateway
     handlePong(client: Socket) {
         this.logger.debug("Received pong from client");
         client.emit("Community_CREATE");
+    }
+
+    // ✅ Listen for Community_CREATE event
+    // @OnEvent(EVENT_TYPES.Community_CREATE)
+    // handleCommunityCreated(payload: Community) {
+    //     console.log('📢 Broadcasting notification to all users');
+
+    //     if (!payload.info?.recipients) return;
+
+    //     for (const recipient of payload.info.recipients) {
+    //         const socketId = this.userSockets.get(recipient.id);
+    //         if (socketId) {
+    //             this.server.to(socketId).emit('notification', {
+    //                 title: payload.info.title,
+    //                 message: payload.info.message,
+    //                 communityId: payload.meta.communityId,
+    //             });
+    //         }
+    //     }
+    //     console.log("Sockets currently connected:", this.userSockets);
+    // }
+
+    @OnEvent(EVENT_TYPES.Community_CREATE)
+    async handleCommunityCreated(payload: Community) {
+        this.logger.log("📢 Broadcasting Community_CREATE notification");
+
+        if (!payload.info?.recipients) {
+            this.logger.warn("No recipients provided in Community_CREATE payload");
+            return;
+        }
+
+        for (const recipient of payload.info.recipients) {
+            const socketId = this.userSockets.get(recipient.id);
+            if (socketId) {
+                const clients = this.getClientsForUser(recipient.id);
+                const client = Array.from(clients).find((c) => c.id === socketId);
+                if (client && client.data.user.community) {
+                    // Check community toggle
+                    this.server.to(socketId).emit("notification", {
+                        type: "Community_CREATE",
+                        title: payload.info.title,
+                        message: payload.info.message,
+                        createdAt: new Date(),
+                        meta: { communityId: payload.meta.communityId },
+                    });
+                    this.logger.log(
+                        `Notification sent to user ${recipient.id} (socket ${socketId})`,
+                    );
+                } else {
+                    this.logger.warn(`User ${recipient.id} has community notifications disabled`);
+                }
+            } else {
+                this.logger.warn(`No socket found for user ${recipient.id}`);
+            }
+        }
+        this.logger.debug("Sockets currently connected:", Array.from(this.userSockets.entries()));
     }
 }

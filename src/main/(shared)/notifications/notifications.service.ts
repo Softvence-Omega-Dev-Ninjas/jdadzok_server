@@ -6,7 +6,7 @@ import { NotificationToggleDto } from "./dto/notification-toggle";
 
 @Injectable()
 export class NotificationsService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     @HandleError("Failed to get notification setting")
     async getNotificationSetting(userId: string): Promise<TResponse<any>> {
@@ -61,10 +61,11 @@ export class NotificationsService {
             },
         });
 
-        return successResponse(changeNotificationOff, "Notification profile setting updated successfully");
+        return successResponse(
+            changeNotificationOff,
+            "Notification profile setting updated successfully",
+        );
     }
-
-   
 
     // ---------------- NGO Notification ON ----------------
     @HandleError("Failed to update NGO notification setting")
@@ -82,7 +83,10 @@ export class NotificationsService {
             };
         }
 
-        return successResponse(NgochangeNotification, "NGO notification setting turned ON successfully");
+        return successResponse(
+            NgochangeNotification,
+            "NGO notification setting turned ON successfully",
+        );
     }
 
     // ---------------- NGO Notification OFF ----------------
@@ -101,9 +105,11 @@ export class NotificationsService {
             };
         }
 
-        return successResponse(NgochangeNotificationoff, "NGO notification setting turned OFF successfully");
+        return successResponse(
+            NgochangeNotificationoff,
+            "NGO notification setting turned OFF successfully",
+        );
     }
-
 
     // ---------------- Community Notification ON ----------------
     @HandleError("Failed to update community notification setting")
@@ -125,7 +131,10 @@ export class NotificationsService {
             };
         }
 
-        return successResponse(changeNotification, "Community notification setting turned ON successfully");
+        return successResponse(
+            changeNotification,
+            "Community notification setting turned ON successfully",
+        );
     }
 
     // ---------------- Community Notification OFF ----------------
@@ -148,9 +157,11 @@ export class NotificationsService {
             };
         }
 
-        return successResponse(changeNotification, "Community notification setting turned OFF successfully");
+        return successResponse(
+            changeNotification,
+            "Community notification setting turned OFF successfully",
+        );
     }
-
 
     //  --- -------- failed to notification--------
     @HandleError("Failed to update notification setting")

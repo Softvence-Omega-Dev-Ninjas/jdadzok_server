@@ -99,7 +99,8 @@ model User {
 
   // payment methods -> a user can has multiple payment methods
   PaymentMethods PaymentMethods[]
- NotificationToggle NotificationToggle[]
+  NotificationToggle NotificationToggle[]
+  userNotifications UserNotification[]
   @@index([email])
   @@index([capLevel])
   @@index([role])

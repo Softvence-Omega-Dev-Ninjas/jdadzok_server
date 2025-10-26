@@ -1,6 +1,5 @@
 model NotificationToggle {
   id String @id @default(uuid())
-
   email            Boolean @default(false)
   userUpdates      Boolean @default(false)
   communication    Boolean @default(false)
