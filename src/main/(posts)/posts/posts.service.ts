@@ -62,9 +62,7 @@ export class PostService {
     }
 
     async findOne(id: string) {
-        const post = await this.repository.findById(id, {
-            author: true,
-        });
+        const post = await this.repository.findById(id);
         if (!post) {
             throw new NotFoundException("Post not found");
         }

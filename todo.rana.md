@@ -19,7 +19,7 @@
 - and others   
 
 <!-- community -->
-# 1/09/2025 Todo 
+# 1/09/2025 Done 
 - update community
 - get single community
 - somes change schemas (communities, communitiesMember ans shared profile)
@@ -27,7 +27,7 @@
 - create addMember/followers api
 
 <!-- Ngo -->
-# 2/09/2025 Todo
+# 2/09/2025 Done
 - Work in NGO module
 - create ngo
 - get all ngo
@@ -37,7 +37,7 @@
 - fix error marketPlaces update and delete part
 
 <!-- community and ngo -->
-## 3/09/2025
+## 3/09/2025 Done
 - work in ngo and community
 - follower 
 - following
