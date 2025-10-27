@@ -30,7 +30,7 @@ export class CapLevelService {
     constructor(
         private readonly repository: CapLevelRepository,
         private readonly userMetricsService: UserMetricsService,
-    ) { }
+    ) {}
 
     private readonly capLevelOrder: CapLevel[] = [
         "NONE",
