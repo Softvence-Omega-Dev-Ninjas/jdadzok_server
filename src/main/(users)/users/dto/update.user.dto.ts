@@ -19,10 +19,6 @@ import {
 import { UpdateUserProfileDto } from "../../user-profile/dto/user.profile.dto";
 
 class UserDto {
-    @ApiProperty({ description: "name of the user", example: "John Mollik" })
-    @IsString()
-    name?: string;
-
     @ApiProperty({
         description: "User email address",
         example: "devlopersabbir@gmail.com",
