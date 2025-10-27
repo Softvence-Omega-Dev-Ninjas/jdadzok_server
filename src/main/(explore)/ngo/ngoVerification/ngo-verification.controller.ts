@@ -1,22 +1,22 @@
-import {
-    Controller,
-    Post,
-    Get,
-    Param,
-    Body,
-    UseGuards,
-    Patch,
-    UseInterceptors,
-    UploadedFile,
-} from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { GetUser } from "@common/jwt/jwt.decorator";
 import { handleRequest } from "@common/utils/handle.request.util";
-import { NgoVerificationService } from "./ngo-verification.service";
-import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verification.dto";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
+import {
+    Body,
+    Controller,
+    Get,
+    Param,
+    Patch,
+    Post,
+    UploadedFile,
+    UseGuards,
+    UseInterceptors,
+} from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
 import multer from "multer";
+import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verification.dto";
+import { NgoVerificationService } from "./ngo-verification.service";
 
 @ApiTags("NGO Verification")
 @ApiBearerAuth()
@@ -52,11 +52,11 @@ export class NgoVerificationController {
     async applyVerification(
         @GetUser("userId") userId: string,
         @Param("ngoId") ngoId: string,
-        @UploadedFile() document: Express.Multer.File,
+        @UploadedFile() documents: Array<Express.Multer.File>,
         @Body() dto: CreateNgoVerificationDto,
     ) {
         return handleRequest(
-            () => this.service.applyVerification(userId, ngoId, dto, document),
+            () => this.service.applyVerification(userId, ngoId, dto, documents),
             "Verification request submitted",
         );
     }

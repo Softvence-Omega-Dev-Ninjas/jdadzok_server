@@ -7,7 +7,7 @@ model NgoVerification {
 
   // Verification details
   verificationType IdentityVerificationType
-  documentUrl      String // URL to verification documents
+  documents        String[] // URL to verification documents
   status           VerificationStatus       @default(PENDING) // PENDING, APPROVED, REJECTED
 
   // Admin who processed verification

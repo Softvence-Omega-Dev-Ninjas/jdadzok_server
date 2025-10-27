@@ -1,7 +1,7 @@
 {
     "name": "jdadzok_server",
     "displayName": "JdadZok Server",
-    "version": "1.5.9",
+    "version": "1.6.0",
     "description": "This is backend for jdadzok social media application",
     "author": "Dev Ninja Omega",
     "private": true,
@@ -70,6 +70,7 @@
         "dayjs": "^1.11.13",
         "dev-unique-id": "^1.1.5",
         "dotenv": "^17.2.2",
+        "express": "^5.1.0",
         "firebase-admin": "^13.4.0",
         "google-auth-library": "^9.15.1",
         "ioredis": "^5.7.0",

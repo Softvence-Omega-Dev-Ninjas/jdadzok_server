@@ -1,13 +1,18 @@
+import { IdentityVerificationType, identityVerificationType } from "@constants/enums";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsOptional, IsString } from "class-validator";
-import { IdentityVerificationType } from "@prisma/client";
 
 export class CreateNgoVerificationDto {
     @ApiProperty({
+<<<<<<< HEAD
         enum: IdentityVerificationType,
         example: IdentityVerificationType.GOVERMENT_ID_AND_PASSPORT,
+=======
+        enum: identityVerificationType,
+        example: identityVerificationType[0],
+>>>>>>> 98cea0cac28ca706771e7a8eb0617920bf427394
     })
-    @IsEnum(IdentityVerificationType)
+    @IsEnum(identityVerificationType)
     verificationType: IdentityVerificationType;
 
     @ApiProperty({
@@ -15,7 +20,7 @@ export class CreateNgoVerificationDto {
         format: "binary",
         description: "Upload a document file (e.g., ID card, certificate, license)",
     })
-    document: any; // Multer will handle this file
+    documents: Array<Express.Multer.File>; // Multer will handle this file
 }
 
 export class ReviewNgoVerificationDto {
