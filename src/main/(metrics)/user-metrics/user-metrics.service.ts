@@ -3,7 +3,7 @@ import { UserMetricsRepository } from "./user.metrics.repository";
 
 @Injectable()
 export class UserMetricsService {
-    constructor(private readonly repo: UserMetricsRepository) { }
+    constructor(private readonly repo: UserMetricsRepository) {}
 
     async getUserMetrics(userId: string) {
         const metrics = await this.repo.findByUserId(userId);

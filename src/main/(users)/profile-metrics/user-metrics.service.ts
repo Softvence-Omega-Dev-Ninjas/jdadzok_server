@@ -10,10 +10,9 @@ interface ActivityScoreWeights {
     followers: number;
 }
 
-
 @Injectable()
 export class UserMetricsService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     // Activity score calculation weights
     private readonly scoreWeights: ActivityScoreWeights = {
@@ -63,7 +62,7 @@ export class UserMetricsService {
             engagementData.commentsCount * this.scoreWeights.comments +
             engagementData.likesGivenCount * this.scoreWeights.likes +
             engagementData.sharesCount * this.scoreWeights.shares +
-            engagementData.followersCount * this.scoreWeights.followers
+            engagementData.followersCount * this.scoreWeights.followers;
 
         return Math.round(activityScore * 100) / 100; // Round to 2 decimal places
     }
@@ -116,7 +115,7 @@ export class UserMetricsService {
             likesGivenCount,
             sharesCount,
             followersCount,
-            ...userMetrics
+            ...userMetrics,
         };
     }
 

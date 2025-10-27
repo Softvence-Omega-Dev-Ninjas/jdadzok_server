@@ -1,14 +1,13 @@
+import { verificationStatus } from "@constants/enums";
+import { PrismaService } from "@lib/prisma/prisma.service";
 import {
+    BadRequestException,
+    ForbiddenException,
     Injectable,
     NotFoundException,
-    ForbiddenException,
-    BadRequestException,
 } from "@nestjs/common";
-import { PrismaService } from "@lib/prisma/prisma.service";
-
-import { VerificationStatus } from "@prisma/client";
-import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verification.dto";
 import { S3Service } from "@s3/s3.service";
+import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verification.dto";
 
 @Injectable()
 export class NgoVerificationService {
@@ -22,7 +21,7 @@ export class NgoVerificationService {
         userId: string,
         ngoId: string,
         dto: CreateNgoVerificationDto,
-        document: Express.Multer.File,
+        documents: Array<Express.Multer.File>,
     ) {
         const ngo = await this.prisma.ngo.findUnique({
             where: { id: ngoId },
@@ -45,16 +44,19 @@ export class NgoVerificationService {
         }
 
         // Upload to S3
-        const [documentUrl] = await this.s3Service.uploadFiles<string>([document]);
+        const uploadedDocs = await this.s3Service.uploadFiles(documents);
 
         // Save in DB
-        return await this.prisma.ngoVerification.create({
+        const verification = await this.prisma.ngoVerification.create({
             data: {
                 ngoId,
-                verificationType: dto.verificationType,
-                documentUrl,
+                ...dto,
+                documents: uploadedDocs,
             },
         });
+        // TODO: once verification create successfully then add this verification apply to the queue job
+        // Do here...
+        return verification;
     }
 
     // Get current status
@@ -91,20 +93,12 @@ export class NgoVerificationService {
             },
         });
 
-        if (dto.status === VerificationStatus.APPROVED) {
+        if (verificationStatus.includes(dto.status)) {
             await this.prisma.ngo.update({
                 where: { id: verification.ngoId },
-                data: { isVerified: true },
+                data: { isVerified: dto.status === "APPROVED" ? true : false },
             });
         }
-
-        if (dto.status === VerificationStatus.REJECTED) {
-            await this.prisma.ngo.update({
-                where: { id: verification.ngoId },
-                data: { isVerified: false },
-            });
-        }
-
         return updated;
     }
 }

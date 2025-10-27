@@ -29,6 +29,8 @@ export class S3Service {
         });
     }
 
+    async getFile() {}
+
     async uploadFiles<T extends string>(files: Express.Multer.File[]): Promise<T[]> {
         if (!files || files.length === 0) {
             throw new BadRequestException("No file(s) uploaded");
@@ -38,7 +40,6 @@ export class S3Service {
             throw new BadRequestException("You can upload a maximum of 20 files");
         }
 
-        // const results: S3ResponseDto[] = [];
         const results: string[] = [];
 
         for (const file of files) {
