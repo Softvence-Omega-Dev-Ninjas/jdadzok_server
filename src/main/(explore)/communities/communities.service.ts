@@ -11,7 +11,7 @@ export class CommunitiesService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
-    ) {}
+    ) { }
 
     // create new community......
     //     async createCommunity(userId: string, dto: CreateCommunityDto) {
@@ -93,11 +93,12 @@ export class CommunitiesService {
 
         //---------------- Event payload with recipients---------------
 
+        // ---------------- Fetch all recipients ----------------
         const allUsers = await this.prisma.user.findMany({
             select: { id: true, email: true },
         });
 
-        // -------------------- Build payload with all recipients--------------------
+        // -------------------- Build payload --------------------
         const payload: Community = {
             action: "CREATE",
             meta: {
@@ -114,26 +115,17 @@ export class CommunitiesService {
             },
         };
 
-        // ----------------- Emit event---------------------
-        this.eventEmitter.emit(EVENT_TYPES.Community_CREATE, payload);
+        // ---------------- Emit event ----------------
+        this.eventEmitter.emit(EVENT_TYPES.COMMUNITY_CREATE, payload);
+
         console.log(
-            "📤 EVENT EMITTED:",
-            EVENT_TYPES.Community_CREATE,
+            "✅ EVENT EMITTED:",
+            EVENT_TYPES.COMMUNITY_CREATE,
             JSON.stringify(payload, null, 2),
         );
 
         return newCommunity;
-    }
 
-    // find All data....
-    async findAll() {
-        const community = await this.prisma.community.findMany({
-            include: {
-                profile: true,
-                about: true,
-            },
-        });
-        return community;
     }
 
     // find one community
@@ -341,4 +333,14 @@ export class CommunitiesService {
             likes: community?.likes ?? 0,
         };
     }
+// ---------find all community here---
+    async findAll (){
+        return await this.prisma.community.findMany({
+            include: { profile: true, about: true, memberships: true },
+        });
+
+    }
+ 
+
+
 }

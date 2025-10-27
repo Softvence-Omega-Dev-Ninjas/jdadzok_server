@@ -22,8 +22,7 @@ import { PrismaService } from "../prisma/prisma.service";
 })
 @Injectable()
 export class NotificationGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger = new Logger(NotificationGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private userSockets = new Map<string, string>();
@@ -31,7 +30,7 @@ export class NotificationGateway
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
-    ) {}
+    ) { }
 
     @WebSocketServer()
     server: Server;
@@ -64,19 +63,28 @@ export class NotificationGateway
             });
 
             if (!user) return client.disconnect(true);
-
+            // --------- when disconnect then true-----------
+            if (!user.NotificationToggle?.length) {
+                await this.prisma.notificationToggle.create({
+                    data: { userId: user.id },
+                });
+                user.NotificationToggle = await this.prisma.notificationToggle.findMany({
+                    where: { userId: user.id },
+                });
+            }
             const payloadForSocketClient: PayloadForSocketClient = {
                 sub: user.id,
                 email: user.email,
-                emailToggle: user.NotificationToggle?.[0]?.email || false,
-                userUpdates: user.NotificationToggle?.[0]?.userUpdates || false,
-                communication: user.NotificationToggle?.[0]?.communication || false,
-                community: user.NotificationToggle?.[0]?.community || false,
-                comment: user.NotificationToggle?.[0]?.comment || false,
-                post: user.NotificationToggle?.[0]?.post || false,
-                message: user.NotificationToggle?.[0]?.message || false,
-                userRegistration: user.NotificationToggle?.[0]?.userRegistration || false,
+                emailToggle: user.NotificationToggle?.[0]?.email ?? true,
+                userUpdates: user.NotificationToggle?.[0]?.userUpdates ?? true,
+                communication: user.NotificationToggle?.[0]?.communication ?? true,
+                community: user.NotificationToggle?.[0]?.community ?? true,
+                comment: user.NotificationToggle?.[0]?.comment ?? true,
+                post: user.NotificationToggle?.[0]?.post ?? true,
+                message: user.NotificationToggle?.[0]?.message ?? true,
+                userRegistration: user.NotificationToggle?.[0]?.userRegistration ?? true,
             };
+
 
             client.data.user = payloadForSocketClient;
             this.subscribeClient(user.id, client);
@@ -178,7 +186,7 @@ export class NotificationGateway
     //     console.log("Sockets currently connected:", this.userSockets);
     // }
 
-    @OnEvent(EVENT_TYPES.Community_CREATE)
+    @OnEvent(EVENT_TYPES.COMMUNITY_CREATE)
     async handleCommunityCreated(payload: Community) {
         this.logger.log("📢 Broadcasting Community_CREATE notification");
 
