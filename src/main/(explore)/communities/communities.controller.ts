@@ -68,7 +68,7 @@ export class CommunitiesController {
 
     // user----community followers.
 
-    @Post(":communityId/follower")
+    @Post(":communityId/follow")
     userFollowCommunity(
         @GetUser("userId") userId: string,
         @Param("communityId") communityId: string,
