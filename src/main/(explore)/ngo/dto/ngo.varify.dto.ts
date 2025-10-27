@@ -1,7 +1,6 @@
-import { IdentityVerificationType } from '@prisma/client';
-import { Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsEnum, IsUrl } from 'class-validator';
-
+import { IdentityVerificationType } from "@prisma/client";
+import { Type } from "class-transformer";
+import { ArrayNotEmpty, IsArray, IsEnum, IsUrl } from "class-validator";
 
 export class VerifyNgoDto {
     @IsArray()
@@ -13,4 +12,3 @@ export class VerifyNgoDto {
     @IsEnum(IdentityVerificationType)
     verificationType: IdentityVerificationType;
 }
-
