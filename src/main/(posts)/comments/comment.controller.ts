@@ -1,4 +1,4 @@
-import { GetUser } from "@common/jwt/jwt.decorator";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
     Body,
@@ -11,7 +11,7 @@ import {
     UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { TUser } from "@type/index";
+import { VerifiedUser } from "@type/index";
 import { CommentService } from "./comment.service";
 import { CreateCommentDto } from "./dto/create.comment.dto";
 
@@ -24,18 +24,18 @@ export class CommentController {
     @ApiOperation({ summary: "Create a comment" })
     @Post()
     @UseGuards(JwtAuthGuard)
-    async create(@GetUser() user: TUser, @Body() dto: CreateCommentDto) {
+    async create(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreateCommentDto) {
         try {
             return await this.commentService.createComment({
                 ...dto,
-                authorId: user.userId,
+                authorId: user.id,
             });
         } catch (err) {
             return err;
         }
     }
 
-    @ApiOperation({ summary: "Get comments for a post" })
+    @ApiOperation({ summary: "Get comments for a post. give post ID" })
     @Get(":id")
     @UseGuards(JwtAuthGuard)
     async getComments(@Param("id", ParseUUIDPipe) id: string) {
@@ -46,7 +46,7 @@ export class CommentController {
         }
     }
 
-    @ApiOperation({ summary: "Delete a comment" })
+    @ApiOperation({ summary: "Delete a comment. give comment ID" })
     @Delete(":id")
     @UseGuards(JwtAuthGuard)
     async delete(@Param("id", ParseUUIDPipe) id: string) {

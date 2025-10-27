@@ -5,7 +5,7 @@ import { CapRequirements, User, UserMetrics } from "@prisma/client";
 
 @Injectable()
 export class CapLevelRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async getCapRequirements(capLevel: CapLevel): Promise<CapRequirements | null> {
         return await this.prisma.capRequirements.findUnique({
@@ -20,8 +20,8 @@ export class CapLevelRepository {
     }
 
     async getUserWithMetrics(
-        userId: string,
-    ): Promise<(User & { metrics: UserMetrics | null }) | null> {
+        userId: string
+    ) {
         return await this.prisma.user.findUnique({
             where: { id: userId },
             include: { metrics: true },
@@ -73,7 +73,7 @@ export class CapLevelRepository {
     async createUserMetricsIfNotExists(userId: string): Promise<UserMetrics> {
         return await this.prisma.userMetrics.upsert({
             where: { userId },
-            update: {},
+            update: { userId },
             create: { userId },
         });
     }

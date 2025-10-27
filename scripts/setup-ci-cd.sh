@@ -10,8 +10,8 @@ CI_YAML=".github/workflows/ci.yaml"
 CD_YAML=".github/workflows/cd.yaml"
 
 # Static values
-DOCKER_USERNAME="devlopersabbir"
-EMAIL="devlopersabbir@gmail.com"
+DOCKER_USERNAME="softvence"
+EMAIL="softvenceomega@gmail.com"
 
 # Sensitive keys (skip auto-upload)
 SENSITIVE_KEYS=(
@@ -154,11 +154,11 @@ RUNS_SETUP_LOAD_ENV+="
 generate_action "setup-and-load-env" ENV_KEYS[@] "$RUNS_SETUP_LOAD_ENV"
 
 # 2️⃣ docker-login
-DOCKER_INPUTS=(DOCKER_USERNAME DOCKER_PASSWORD)
+DOCKER_INPUTS=(DOCKER_USERNAME SE_DOCKER_PASSWORD)
 RUNS_DOCKER_LOGIN="    - name: Log in to Docker
       shell: bash
       run: |
-        echo \"\${{ inputs.DOCKER_PASSWORD }}\" | docker login -u \"\${{ inputs.DOCKER_USERNAME }}\" --password-stdin
+        echo \"\${{ inputs.SE_DOCKER_PASSWORD }}\" | docker login -u \"\${{ inputs.DOCKER_USERNAME }}\" --password-stdin
         echo '✅ Docker login successful'"
 
 generate_action "docker-login" DOCKER_INPUTS[@] "$RUNS_DOCKER_LOGIN"
@@ -201,7 +201,7 @@ generate_action "verify-env" VERIFY_INPUTS[@] "$RUNS_VERIFY_ENV"
 # -------------------------
 # Helper for exporting variables
 # -------------------------
-generate_export_vars() {
+generate_ex_vars() {
   local KEYS=("$@")
   for key in "${KEYS[@]}"; do
     printf '          export %s="${{secrets.%s}}"\n' "$key" "$key"
@@ -285,7 +285,7 @@ cat >> "$CI_YAML" <<'EOF'
       - uses: ./.github/actions/docker-login
         with:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          SE_DOCKER_PASSWORD: ${{ secrets.SE_DOCKER_PASSWORD }}
       - run: docker compose --profile prod build
       - run: docker compose --profile prod push
       - if: always()
@@ -335,6 +335,7 @@ cat >> "$CD_YAML" <<'EOF'
           scp docker-compose.yaml deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           scp .env deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           scp Dockerfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+          scp Caddyfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           scp -r scripts deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           echo "✅ Files copied successfully"
       - name: Fix permissions on server
@@ -378,12 +379,12 @@ cat >> "$CD_YAML" <<'EOF'
           if [ ! -f ~/.docker/cli-plugins/docker-compose ]; then
             echo "Installing Docker Compose..."
             mkdir -p ~/.docker/cli-plugins/
-            url -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+            curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
             chmod +x ~/.docker/cli-plugins/docker-compose
           fi
 
           # Login to Docker Hub
-          echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
+          echo "${{secrets.SE_DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
 
           # Explicitly export required variables
 EOF

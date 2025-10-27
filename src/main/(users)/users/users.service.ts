@@ -273,7 +273,11 @@ export class UserService {
                 where: {
                     userId: followerId,
                 },
-                data: {},
+                data: {
+                    totalFollowing: {
+                        decrement: 1,
+                    },
+                },
             }),
         ]);
     }

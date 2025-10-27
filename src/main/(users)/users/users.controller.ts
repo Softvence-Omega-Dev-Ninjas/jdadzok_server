@@ -6,6 +6,7 @@ import {
     Body,
     Controller,
     Delete,
+    Get,
     Param,
     Post,
     UseGuards,
@@ -13,7 +14,7 @@ import {
     ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
-import { TUser } from "@type/index";
+import { TUser, VerifiedUser } from "@type/index";
 import { omit } from "@utils/index";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { UpdateUserDto } from "./dto/update.user.dto";
@@ -71,9 +72,9 @@ export class UserController {
     @Post("update")
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
-    async update(@GetUser() user: TUser, @Body() body: UpdateUserDto) {
+    async update(@GetVerifiedUser() user: VerifiedUser, @Body() body: UpdateUserDto) {
         try {
-            const result = await this.service.updateUser(user.userId, body);
+            const result = await this.service.updateUser(user.id, body);
             return successResponse(result, "User update successfully");
         } catch (err) {
             return err;
@@ -81,7 +82,7 @@ export class UserController {
     }
 
     @ApiBearerAuth()
-    @Post("/me")
+    @Get("/me")
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     async me(@GetUser() user: TUser) {

@@ -1,6 +1,7 @@
 import appMetadata from "@metadata/app-metadata";
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Res } from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import type { Response } from "express";
 
 @ApiTags("App")
 @Controller()
@@ -32,14 +33,31 @@ export class AppController {
         },
     })
     @Get("api/health")
-    async getHealthCheck() {
-        return {
-            status: "healthy",
-            timestamp: new Date().toISOString(),
-            version: appMetadata.version,
+    async getHealthCheck(@Res() res: Response) {
+        res.status(200).json({
+            status: "ok",
             name: appMetadata.displayName,
+            version: appMetadata.version,
             description: appMetadata.description,
+            environment: process.env.NODE_ENV,
             uptime: process.uptime(),
-        };
+            timestamp: new Date().toISOString(),
+            // memory: process.memoryUsage(),
+            // cpu: process.cpuUsage(),
+            team: {
+                name: "Dev Ninja",
+                leader: "Niloy",
+                members: [
+                    {
+                        name: "Milon",
+                        role: "Backend Developer",
+                    },
+                    {
+                        name: "Sujon",
+                        role: "Backend Developer",
+                    },
+                ],
+            },
+        });
     }
 }

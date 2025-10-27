@@ -81,7 +81,7 @@ export class NgoController {
     }
 
     // Ngo unlike
-    @Delete(":ngoId/like")
+    @Delete(":ngoId/unlike")
     @ApiOperation({ summary: "Unlike an Ngo" })
     async unlikeNgo(@GetUser("userId") userId: string, @Param("ngoId") ngoId: string) {
         return handleRequest(() => this.service.unlikeNgo(userId, ngoId), "Unlike successfully");

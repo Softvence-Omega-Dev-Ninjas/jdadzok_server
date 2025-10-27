@@ -1,8 +1,8 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
-import { CapLevelRepository } from "./cap-lavel.repository";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { CapRequirements, User, UserMetrics } from "@prisma/client";
 import { UserMetricsService } from "../../(users)/profile-metrics/user-metrics.service";
 import { CapLevel } from "../../../constants/enums";
-import { CapRequirements, User, UserMetrics } from "@prisma/client";
+import { CapLevelRepository } from "./cap-lavel.repository";
 
 interface CapEligibilityResult {
     currentLevel: CapLevel;
@@ -30,7 +30,7 @@ export class CapLevelService {
     constructor(
         private readonly repository: CapLevelRepository,
         private readonly userMetricsService: UserMetricsService,
-    ) {}
+    ) { }
 
     private readonly capLevelOrder: CapLevel[] = [
         "NONE",

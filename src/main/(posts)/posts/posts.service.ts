@@ -41,8 +41,21 @@ export class PostService {
 
     async index(options?: PostQueryDto) {
         return await this.repository.findAll(options, {
+            id: true,
+            mediaUrls: true,
+            text: true,
             metadata: true,
-            author: true,
+            author: {
+                select: {
+                    id: true,
+                    email: true,
+                    profile: {
+                        select: {
+                            avatarUrl: true,
+                        },
+                    },
+                },
+            },
             likes: true,
             shares: true,
         });
@@ -82,8 +95,7 @@ export class PostService {
     }
 
     async delete(id: string, userId: string) {
-        const post = await this.findOne(id);
-
+        const post = await this.repository.findById(id, { authorId: true });
         // Check if user is authorized to delete this post
         if (post.authorId !== userId) {
             throw new ForbiddenException("You are not authorized to delete this post");
