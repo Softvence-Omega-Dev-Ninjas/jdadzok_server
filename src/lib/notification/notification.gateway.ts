@@ -86,7 +86,6 @@ export class NotificationGateway
                 userRegistration: user.NotificationToggle?.[0]?.userRegistration ?? true,
             };
 
-
             client.data.user = payloadForSocketClient;
             this.subscribeClient(user.id, client);
 

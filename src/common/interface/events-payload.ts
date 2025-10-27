@@ -47,7 +47,6 @@ export interface Comment extends BaseEvent<CommentMeta> {
         title: string;
         message: string;
         recipients: { email: string; id: string }[];
-      
     };
 }
 

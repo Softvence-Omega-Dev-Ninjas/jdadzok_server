@@ -11,7 +11,7 @@ export class CommunitiesService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
-    ) { }
+    ) {}
 
     // create new community......
     //     async createCommunity(userId: string, dto: CreateCommunityDto) {
@@ -125,7 +125,6 @@ export class CommunitiesService {
         );
 
         return newCommunity;
-
     }
 
     // find one community
@@ -333,14 +332,10 @@ export class CommunitiesService {
             likes: community?.likes ?? 0,
         };
     }
-// ---------find all community here---
-    async findAll (){
+    // ---------find all community here---
+    async findAll() {
         return await this.prisma.community.findMany({
             include: { profile: true, about: true, memberships: true },
         });
-
     }
- 
-
-
 }
