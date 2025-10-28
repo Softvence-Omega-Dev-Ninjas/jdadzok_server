@@ -1,5 +1,6 @@
-import { GetUser } from "@common/jwt/jwt.decorator";
+import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { handleRequest } from "@common/utils/handle.request.util";
+import { identityVerificationType } from "@constants/enums";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
     Body,
@@ -8,12 +9,13 @@ import {
     Param,
     Patch,
     Post,
-    UploadedFile,
+    UploadedFiles,
     UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FilesInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { VerifiedUser } from "@type/shared.types";
 import multer from "multer";
 import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verification.dto";
 import { NgoVerificationService } from "./ngo-verification.service";
@@ -28,35 +30,39 @@ export class NgoVerificationController {
     @Post(":ngoId/apply")
     @ApiOperation({ summary: "Apply for NGO verification (upload document to S3)" })
     @ApiConsumes("multipart/form-data")
-    @UseInterceptors(
-        FileInterceptor("document", {
-            storage: multer.memoryStorage(),
-            limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
-        }),
-    )
     @ApiBody({
         schema: {
             type: "object",
             properties: {
                 verificationType: {
                     type: "string",
-                    enum: ["GOVERMENT_ID_OR_PASSPORT", "BUSINESS_CERTIFIED_OR_LICENSE"],
+                    enum: [...identityVerificationType], // ✅ convert readonly to mutable
                 },
-                document: {
-                    type: "string",
-                    format: "binary",
+                files: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        format: "binary",
+                    },
+                    maxItems: 20,
                 },
             },
         },
     })
+    @UseInterceptors(
+        FilesInterceptor("files", 20, {
+            storage: multer.memoryStorage(),
+            limits: { files: 20 }, // TODO: based on the cap level it will be incress and dicress
+        }),
+    )
     async applyVerification(
-        @GetUser("userId") userId: string,
+        @GetVerifiedUser() user: VerifiedUser,
         @Param("ngoId") ngoId: string,
-        @UploadedFile() documents: Array<Express.Multer.File>,
+        @UploadedFiles() files: Array<Express.Multer.File>,
         @Body() dto: CreateNgoVerificationDto,
     ) {
         return handleRequest(
-            () => this.service.applyVerification(userId, ngoId, dto, documents),
+            () => this.service.applyVerification(user.id, ngoId, dto, files),
             "Verification request submitted",
         );
     }

@@ -42,8 +42,8 @@ export class NgoVerificationService {
                 "A verification request already exists or has been approved",
             );
 
-        if (!document) {
-            throw new BadRequestException("Document file is required");
+        if (!documents) {
+            throw new BadRequestException("Documents file is required");
         }
 
         // Upload to S3
