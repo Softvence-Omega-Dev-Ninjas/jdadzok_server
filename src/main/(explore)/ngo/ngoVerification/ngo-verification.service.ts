@@ -1,5 +1,6 @@
 import { verificationStatus } from "@constants/enums";
 import { PrismaService } from "@lib/prisma/prisma.service";
+import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { InjectQueue } from "@nestjs/bullmq";
 import {
     BadRequestException,
@@ -14,10 +15,10 @@ import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verifi
 @Injectable()
 export class NgoVerificationService {
     constructor(
+        @InjectQueue(QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION_PROCESSOR) private readonly verificationQueue: Queue,
         private readonly prisma: PrismaService,
         private readonly s3Service: S3Service,
-        @InjectQueue("ngo-verification") private readonly ngoVerificationQueue: Queue,
-    ) {}
+    ) { }
 
     // NGO applies for verification
     async applyVerification(
@@ -59,6 +60,12 @@ export class NgoVerificationService {
         });
         // TODO: once verification create successfully then add this verification apply to the queue job
         // Do here...
+        await this.verificationQueue.add(QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION, {
+            verificationId: verification.id,
+            documentUrls: uploadedDocs,
+            verificationType: dto.verificationType,
+
+        });
         return verification;
     }
 

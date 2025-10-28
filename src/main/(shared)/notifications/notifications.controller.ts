@@ -50,19 +50,14 @@ export class NotificaitonsController {
         return await this.NotificationsService.getNotificationSetting(userId);
     }
 
+    @Patch()
+    async updateNotificationSetting(
+        @GetUser("userId") userId: string,
+        @Body() dto: NotificationToggleDto,
+    ): Promise<TResponse<any>> {
+        return await this.NotificationsService.updateNotificationSetting(userId, dto);
+    }
 
-      @Patch()
-  async updateNotificationSetting(
-    @GetUser('userId') userId: string,
-    @Body() dto: NotificationToggleDto,
-  ): Promise<TResponse<any>> {
-    return await this.NotificationsService.updateNotificationSetting(
-      userId,
-      dto,
-    );
-  }
-
-  
     // --------------  profile change notification setting ON -----------------
 
     @ApiOperation({
