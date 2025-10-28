@@ -6,13 +6,13 @@ model Ngo {
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   // NGO details
-  foundationDate DateTime
-  ngoType        CommunityType // Reuse community types
- isToggleNotification Boolean @default(false)
+  foundationDate       DateTime
+  ngoType              CommunityType // Reuse community types
+  isToggleNotification Boolean       @default(false)
   // NGO metrics
-  likes      Int      @default(0)
-  isVerified Boolean  @default(false)
-  capLevel   CapLevel @default(NONE)
+  likes                Int           @default(0)
+  isVerified           Boolean       @default(false)
+  capLevel             CapLevel      @default(NONE)
 
   // ---- RELATIONSHIPS ----
   profile NgoProfile? // NGO profile info
