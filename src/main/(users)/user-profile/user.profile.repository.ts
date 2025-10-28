@@ -76,7 +76,18 @@ export class UserProfileRepository {
                 userId,
             },
             include: {
-                user: true,
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        authProvider: true,
+                        isVerified: true,
+                        role: true,
+                        capLevel: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    },
+                },
             },
         });
     }
