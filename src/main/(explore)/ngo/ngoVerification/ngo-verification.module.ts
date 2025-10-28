@@ -1,13 +1,14 @@
-import { Module } from "@nestjs/common";
 import { PrismaService } from "@lib/prisma/prisma.service";
+import { BullModule } from "@nestjs/bullmq";
+import { Module } from "@nestjs/common";
+import { S3BucketModule } from "@s3/s3.module";
 import { NgoVerificationController } from "./ngo-verification.controller";
 import { NgoVerificationService } from "./ngo-verification.service";
-import { S3BucketModule } from "@s3/s3.module";
 
 @Module({
-    imports: [S3BucketModule],
+    imports: [BullModule.registerQueue({ name: "users" }), S3BucketModule],
     controllers: [NgoVerificationController],
     providers: [NgoVerificationService, PrismaService],
     exports: [NgoVerificationService],
 })
-export class NgoVerificationModule {}
+export class NgoVerificationModule { }

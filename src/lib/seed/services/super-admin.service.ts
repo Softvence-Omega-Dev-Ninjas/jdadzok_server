@@ -60,6 +60,7 @@ export class SuperAdminService implements OnModuleInit {
             data: {
                 email: this.superAdminEmail,
                 password,
+                isVerified: true,
                 authProvider: "EMAIL",
                 role: UserEnum.SUPER_ADMIN,
             },

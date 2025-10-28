@@ -4,13 +4,8 @@ import { IsEnum, IsOptional, IsString } from "class-validator";
 
 export class CreateNgoVerificationDto {
     @ApiProperty({
-<<<<<<< HEAD
-        enum: IdentityVerificationType,
-        example: IdentityVerificationType.GOVERMENT_ID_AND_PASSPORT,
-=======
         enum: identityVerificationType,
         example: identityVerificationType[0],
->>>>>>> 98cea0cac28ca706771e7a8eb0617920bf427394
     })
     @IsEnum(identityVerificationType)
     verificationType: IdentityVerificationType;

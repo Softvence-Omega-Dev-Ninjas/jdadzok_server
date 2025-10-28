@@ -16,14 +16,14 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
+
 @WebSocketGateway({
     cors: { origin: "*" },
     namespace: "/js/notification",
 })
 @Injectable()
 export class NotificationGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger = new Logger(NotificationGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private userSockets = new Map<string, string>();
@@ -31,7 +31,7 @@ export class NotificationGateway
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
-    ) {}
+    ) { }
 
     @WebSocketServer()
     server: Server;
@@ -83,6 +83,7 @@ export class NotificationGateway
                 comment: user.NotificationToggle?.[0]?.comment ?? true,
                 post: user.NotificationToggle?.[0]?.post ?? true,
                 message: user.NotificationToggle?.[0]?.message ?? true,
+                ngo: user.NotificationToggle?.[0]?.ngo ?? true,
                 userRegistration: user.NotificationToggle?.[0]?.userRegistration ?? true,
             };
 
@@ -186,6 +187,13 @@ export class NotificationGateway
     //     console.log("Sockets currently connected:", this.userSockets);
     // }
 
+    @SubscribeMessage(EVENT_TYPES.COMMENT_CREATE)
+    handleSomething(purpose: string,client: Socket) {
+        client.broadcast.emit(purpose, {
+            
+        })
+    }
+
     @OnEvent(EVENT_TYPES.COMMUNITY_CREATE)
     async handleCommunityCreated(payload: Community) {
         this.logger.log("📢 Broadcasting Community_CREATE notification");
@@ -202,8 +210,8 @@ export class NotificationGateway
                 const client = Array.from(clients).find((c) => c.id === socketId);
                 if (client && client.data.user.community) {
                     // Check community toggle
-                    this.server.to(socketId).emit("notification", {
-                        type: "Community_CREATE",
+                    this.server.to(socketId).emit(EVENT_TYPES.COMMUNITY_CREATE, {
+                        type: EVENT_TYPES.COMMUNITY_CREATE,
                         title: payload.info.title,
                         message: payload.info.message,
                         createdAt: new Date(),

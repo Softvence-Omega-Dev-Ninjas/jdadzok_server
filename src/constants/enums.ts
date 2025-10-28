@@ -108,11 +108,7 @@ export const membershipStatus = ["PENDING", "APPROVED", "BANNED"] as const;
 export type MembershipStatus = (typeof membershipStatus)[number];
 
 export const identityVerificationType = [
-<<<<<<< HEAD
-    "GOVERMENT_ID_AND_PASSPORT",
-=======
     "GOVERMENT_AND_PASSPORT",
->>>>>>> 98cea0cac28ca706771e7a8eb0617920bf427394
     "BUSINESS_CERTIFIED_AND_LICENSE",
 ] as const;
 export type IdentityVerificationType = (typeof identityVerificationType)[number];
