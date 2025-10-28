@@ -1,6 +1,6 @@
 import { verificationStatus } from "@constants/enums";
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { InjectQueue } from '@nestjs/bullmq';
+import { InjectQueue } from "@nestjs/bullmq";
 import {
     BadRequestException,
     ForbiddenException,
@@ -8,7 +8,7 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { S3Service } from "@s3/s3.service";
-import { Queue } from 'bullmq';
+import { Queue } from "bullmq";
 import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verification.dto";
 
 @Injectable()
@@ -16,8 +16,8 @@ export class NgoVerificationService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly s3Service: S3Service,
-        @InjectQueue('ngo-verification') private readonly ngoVerificationQueue: Queue
-    ) { }
+        @InjectQueue("ngo-verification") private readonly ngoVerificationQueue: Queue,
+    ) {}
 
     // NGO applies for verification
     async applyVerification(
@@ -130,7 +130,6 @@ export class NgoVerificationService {
     //     // 🧾 TODO: enqueue a background job for admin review if needed
     //     return verification;
     // }
-
 
     async getVerificationStatus(ngoId: string) {
         const verification = await this.prisma.ngoVerification.findFirst({

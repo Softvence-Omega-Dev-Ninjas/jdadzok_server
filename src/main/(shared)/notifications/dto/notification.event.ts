@@ -3,5 +3,4 @@ export type NotificationEvents = {
         userId: string;
         message: string;
     };
-
 };

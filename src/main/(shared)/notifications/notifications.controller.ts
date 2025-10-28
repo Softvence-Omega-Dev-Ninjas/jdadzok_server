@@ -50,6 +50,19 @@ export class NotificaitonsController {
         return await this.NotificationsService.getNotificationSetting(userId);
     }
 
+
+      @Patch()
+  async updateNotificationSetting(
+    @GetUser('userId') userId: string,
+    @Body() dto: NotificationToggleDto,
+  ): Promise<TResponse<any>> {
+    return await this.NotificationsService.updateNotificationSetting(
+      userId,
+      dto,
+    );
+  }
+
+  
     // --------------  profile change notification setting ON -----------------
 
     @ApiOperation({
@@ -158,14 +171,14 @@ export class NotificaitonsController {
     // }
 
     // ------------- All connected clients will receive it.---
-    @ApiBearerAuth()
-    @UsePipes(ValidationPipe)
-    @UseGuards(JwtAuthGuard)
-    @Patch("setting")
-    async TestupdateNotificationSetting(
-        @GetUser("userId") userId: string,
-        @Body() dto: NotificationToggleDto,
-    ): Promise<TResponse<any>> {
-        return await this.NotificationsService.TestupdateNotificationSetting(userId, dto);
-    }
+    // @ApiBearerAuth()
+    // @UsePipes(ValidationPipe)
+    // @UseGuards(JwtAuthGuard)
+    // @Patch("setting")
+    // async TestupdateNotificationSetting(
+    //     @GetUser("userId") userId: string,
+    //     @Body() dto: NotificationToggleDto,
+    // ): Promise<TResponse<any>> {
+    //     return await this.NotificationsService.TestupdateNotificationSetting(userId, dto);
+    // }
 }

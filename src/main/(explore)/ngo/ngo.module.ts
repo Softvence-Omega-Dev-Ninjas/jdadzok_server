@@ -2,12 +2,12 @@ import { Module } from "@nestjs/common";
 import { NgoController } from "./ngo.controller";
 import { NgoService } from "./ngo.service";
 import { NgoVerificationModule } from "./ngoVerification/ngo-verification.module";
-import { PrismaService } from "@lib/prisma/prisma.service";
+import { NgoVerificationProcessor } from "./ngoVerification/ngo.processor";
 
 @Module({
     imports: [NgoVerificationModule],
     controllers: [NgoController],
-    providers: [NgoService, PrismaService],
-    exports: [NgoService],
+    providers: [NgoVerificationProcessor, NgoService],
+    exports: [],
 })
-export class NgoModule {}
+export class NgoModule { }
