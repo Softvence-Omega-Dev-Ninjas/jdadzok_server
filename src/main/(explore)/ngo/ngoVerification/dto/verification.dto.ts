@@ -15,7 +15,7 @@ export class CreateNgoVerificationDto {
         format: "binary",
         description: "Upload a document file (e.g., ID card, certificate, license)",
     })
-    documents: Array<Express.Multer.File>; // Multer will handle this file
+    documents: any; // Multer will handle this file
 }
 
 export class ReviewNgoVerificationDto {
