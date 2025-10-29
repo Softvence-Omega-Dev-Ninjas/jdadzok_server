@@ -106,6 +106,7 @@ export class UserRepository {
             data: { isVerified },
         });
     }
+
     async update(id: string, data: UpdateUserDto) {
         const { profile, ...rest } = data;
 
@@ -117,12 +118,13 @@ export class UserRepository {
                     ? {
                           upsert: {
                               where: {
-                                  username: profile.username!,
+                                  userId: id, // ✅ Use userId for matching
                               },
                               create: {
                                   ...profile,
                                   name: profile.name || "",
                                   username: profile.username!,
+                                  // ❌ Do not include userId here — Prisma auto-connects it
                               },
                               update: {
                                   ...profile,
@@ -131,6 +133,7 @@ export class UserRepository {
                       }
                     : undefined,
             },
+            include: { profile: true },
         });
     }
 

@@ -15,7 +15,6 @@ import {
     Post,
     Put,
     Query,
-    Req,
     UploadedFiles,
     UseGuards,
     UseInterceptors,
@@ -70,7 +69,7 @@ export class PostController {
 
             const createInput = {
                 ...body,
-                authorId: user.userId,
+                authorId: user.id,
                 taggedUserIds: tagged,
                 postFrom: this.utils.include(postFrom, body.postFrom),
                 metadata: extractMetaData,

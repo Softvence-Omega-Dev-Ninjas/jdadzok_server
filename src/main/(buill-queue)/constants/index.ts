@@ -5,6 +5,6 @@ export const QUEUE_JOB_NAME = {
     },
     VERIFICATION: {
         NGO_VERIFICATION: "ngo:verification",
-        NGO_VERIFICATION_PROCESSOR: "ngo:verification:processor",
+        NGO_VERIFICATION_PROCESSOR: "ngo_verification_processor",
     },
 } as const;

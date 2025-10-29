@@ -22,7 +22,7 @@ export class PrismaService
     }
 
     async onModuleDestroy() {
-        await this.$disconnect();
+        // await this.$disconnect();
         this.logger.error("🚫 Prisma disconnected");
     }
 }

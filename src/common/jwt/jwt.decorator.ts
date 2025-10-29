@@ -1,7 +1,8 @@
+import { Roles } from "@common/decorators/roles.decorator";
+import { RoleGuard } from "@common/guards/role.guard";
 import { Role } from "@constants/enums";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
-import { RolesGuard } from "@module/(started)/auth/guards/role.guard";
 import {
     applyDecorators,
     createParamDecorator,
@@ -22,7 +23,6 @@ import { RequestWithUser } from "./jwt.interface";
 export const ROLES_KEY = "roles";
 export const IS_PUBLIC_KEY = "isPublic";
 export const IS_LOCAL_KEY = "isLocal";
-export const Roles = <R>(...roles: R[]) => SetMetadata(ROLES_KEY, roles);
 
 export function MakePublic() {
     return SetMetadata(IS_PUBLIC_KEY, true);
@@ -83,7 +83,7 @@ export const GetVerifiedUser = createParamDecorator(
 );
 
 export function ValidateAuth<R extends Role>(...roles: R[]) {
-    const decorators = [UseGuards(JwtAuthGuard, RolesGuard)];
+    const decorators = [UseGuards(JwtAuthGuard, RoleGuard)];
     if (roles.length > 0) {
         decorators.push(Roles(...roles));
     }

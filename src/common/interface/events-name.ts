@@ -1,42 +1,46 @@
 import { Comment, Community, PostEvent, UserRegistration } from "./events-payload";
 
-//  EVENT TYPE CONSTANTS
+// 🚀 EVENT TYPE CONSTANTS (All in UPPERCASE for consistency)
 export const EVENT_TYPES = {
-    Community_CREATE: "Community.create",
-    Community_UPDATE: "Community.update",
-    Community_DELETE: "Community.delete",
+    COMMUNITY_CREATE: "COMMUNITY_CREATE",
+    COMMUNITY_UPDATE: "COMMUNITY_UPDATE",
+    COMMUNITY_DELETE: "COMMUNITY_DELETE",
 
-    Comment_CREATE: "Comment.create",
-    Comment_UPDATE: "Comment.update",
-    Comment_DELETE: "Comment.delete",
+    COMMENT_CREATE: "COMMENT_CREATE",
+    COMMENT_UPDATE: "COMMENT_UPDATE",
+    COMMENT_DELETE: "COMMENT_DELETE",
 
-    UserRegistration_CREATE: "UserRegistration.create",
-    UserRegistration_UPDATE: "UserRegistration.update",
-    UserRegistration_DELETE: "UserRegistration.delete",
+    USERREGISTRATION_CREATE: "USERREGISTRATION_CREATE",
+    USERREGISTRATION_UPDATE: "USERREGISTRATION_UPDATE",
+    USERREGISTRATION_DELETE: "USERREGISTRATION_DELETE",
 
-    Post_CREATE: "Post.create",
-    Post_UPDATE: "Post.update",
-    Post_DELETE: "Post.delete",
-    Message_CREATE: "Message.create",
+    POST_CREATE: "POST_CREATE",
+    POST_UPDATE: "POST_UPDATE",
+    POST_DELETE: "POST_DELETE",
+
+    MESSAGE_CREATE: "MESSAGE_CREATE",
 } as const;
 
+// Type-safe keys for autocomplete
 export type EventType = keyof typeof EVENT_TYPES;
 
+//  Event payload mapping for type safety
 export type EventPayloadMap = {
-    [EVENT_TYPES.Community_CREATE]: Community;
-    [EVENT_TYPES.Community_UPDATE]: Community;
-    [EVENT_TYPES.Community_DELETE]: Community;
+    [EVENT_TYPES.COMMUNITY_CREATE]: Community;
+    [EVENT_TYPES.COMMUNITY_UPDATE]: Community;
+    [EVENT_TYPES.COMMUNITY_DELETE]: Community;
 
-    [EVENT_TYPES.Comment_CREATE]: Comment;
-    [EVENT_TYPES.Comment_UPDATE]: Comment;
-    [EVENT_TYPES.Comment_DELETE]: Comment;
+    [EVENT_TYPES.COMMENT_CREATE]: Comment;
+    [EVENT_TYPES.COMMENT_UPDATE]: Comment;
+    [EVENT_TYPES.COMMENT_DELETE]: Comment;
 
-    [EVENT_TYPES.UserRegistration_CREATE]: UserRegistration;
-    [EVENT_TYPES.UserRegistration_UPDATE]: UserRegistration;
-    [EVENT_TYPES.UserRegistration_DELETE]: UserRegistration;
+    [EVENT_TYPES.USERREGISTRATION_CREATE]: UserRegistration;
+    [EVENT_TYPES.USERREGISTRATION_UPDATE]: UserRegistration;
+    [EVENT_TYPES.USERREGISTRATION_DELETE]: UserRegistration;
 
-    [EVENT_TYPES.Post_CREATE]: PostEvent;
-    [EVENT_TYPES.Post_UPDATE]: PostEvent;
-    [EVENT_TYPES.Post_DELETE]: PostEvent;
-    [EVENT_TYPES.Message_CREATE]?: any;
+    [EVENT_TYPES.POST_CREATE]: PostEvent;
+    [EVENT_TYPES.POST_UPDATE]: PostEvent;
+    [EVENT_TYPES.POST_DELETE]: PostEvent;
+
+    [EVENT_TYPES.MESSAGE_CREATE]?: any;
 };

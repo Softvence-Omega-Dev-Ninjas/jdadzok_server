@@ -1,4 +1,6 @@
-import { GetUser, Roles } from "@common/jwt/jwt.decorator";
+import { Roles } from "@common/decorators/roles.decorator";
+import { RoleGuard } from "@common/guards/role.guard";
+import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { TResponse } from "@common/utils/response.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
@@ -12,8 +14,7 @@ import {
     ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
-import { Role } from "@prisma/client";
-import { TUser } from "@type/index";
+import { TUser, VerifiedUser } from "@type/index";
 import { NotificationToggleDto } from "./dto/notification-toggle";
 import { NotificationsService } from "./notifications.service";
 
@@ -32,8 +33,9 @@ export class NotificaitonsController {
     }
 
     @Put("mark-as-read")
-    @Roles(Role.SUPER_ADMIN, Role.ADMIN)
-    async markAsRead(@GetUser() user: TUser) {
+    @Roles("SUPER_ADMIN", "ADMIN")
+    @UseGuards(RoleGuard)
+    async markAsRead(@GetVerifiedUser() user: VerifiedUser) {
         try {
             console.info(user);
             return "make as reads";
@@ -48,6 +50,14 @@ export class NotificaitonsController {
     @Get()
     async getNotificationSetting(@GetUser("userId") userId: string): Promise<TResponse<any>> {
         return await this.NotificationsService.getNotificationSetting(userId);
+    }
+
+    @Patch()
+    async updateNotificationSetting(
+        @GetUser("userId") userId: string,
+        @Body() dto: NotificationToggleDto,
+    ): Promise<TResponse<any>> {
+        return await this.NotificationsService.updateNotificationSetting(userId, dto);
     }
 
     // --------------  profile change notification setting ON -----------------
@@ -158,14 +168,14 @@ export class NotificaitonsController {
     // }
 
     // ------------- All connected clients will receive it.---
-    @ApiBearerAuth()
-    @UsePipes(ValidationPipe)
-    @UseGuards(JwtAuthGuard)
-    @Patch("setting")
-    async TestupdateNotificationSetting(
-        @GetUser("userId") userId: string,
-        @Body() dto: NotificationToggleDto,
-    ): Promise<TResponse<any>> {
-        return await this.NotificationsService.TestupdateNotificationSetting(userId, dto);
-    }
+    // @ApiBearerAuth()
+    // @UsePipes(ValidationPipe)
+    // @UseGuards(JwtAuthGuard)
+    // @Patch("setting")
+    // async TestupdateNotificationSetting(
+    //     @GetUser("userId") userId: string,
+    //     @Body() dto: NotificationToggleDto,
+    // ): Promise<TResponse<any>> {
+    //     return await this.NotificationsService.TestupdateNotificationSetting(userId, dto);
+    // }
 }
