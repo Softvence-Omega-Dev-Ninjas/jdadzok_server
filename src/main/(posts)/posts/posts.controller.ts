@@ -7,12 +7,15 @@ import {
     Controller,
     Delete,
     Get,
+    HttpException,
+    HttpStatus,
     NotFoundException,
     Param,
     ParseUUIDPipe,
     Post,
     Put,
     Query,
+    Req,
     UploadedFiles,
     UseGuards,
     UseInterceptors,
@@ -60,6 +63,7 @@ export class PostController {
         @Body() req: any,
     ) {
         try {
+            
             const mediaUrls = files?.length ? await this.s3Service.uploadFiles(files) : [];
             const extractMetaData = JSON.parse(req.metadata);
             const body = omit(req, ["files"]);
@@ -67,7 +71,7 @@ export class PostController {
 
             const createInput = {
                 ...body,
-                authorId: user.id,
+                authorId: user.userId,
                 taggedUserIds: tagged,
                 postFrom: this.utils.include(postFrom, body.postFrom),
                 metadata: extractMetaData,
@@ -82,7 +86,7 @@ export class PostController {
             const post = await this.service.create(validated);
             return successResponse(post, "Post created successfully");
         } catch (err) {
-            return err;
+           throw new HttpException(err.message,HttpStatus.BAD_REQUEST)
         }
     }
 
@@ -138,11 +142,27 @@ export class PostController {
         await this.service.delete(id, user.id);
         return successResponse(null, "Post deleted successfully");
     }
-
+     @Get('users-post')
+    @UseGuards(JwtAuthGuard)
+    async get_user_all_post(@GetUser() user:any){
+        try{
+          console.log(user)
+        const res=await this.service.get_all_post_of_user(user.userId)
+        return{
+            status:HttpStatus.ACCEPTED,
+            message:"You post retrive succesfull",
+            data:res
+        }
+        }catch(err){
+            throw new HttpException(err.message,HttpStatus.BAD_REQUEST)
+        }
+    }
     @Get(":id")
     @ApiOperation({ summary: "Get a single post by ID" })
     async findOne(@Param("id", ParseUUIDPipe) id: string) {
         const post = await this.service.findOne(id);
         return successResponse(post, "Post retrieved successfully");
     }
+
+   
 }
