@@ -1,10 +1,10 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 
-import { EventEmitter2 } from "@nestjs/event-emitter";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
-import { Community } from "@common/interface/events-payload";
 import { EVENT_TYPES } from "@common/interface/events-name";
+import { Community } from "@common/interface/events-payload";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
 
 @Injectable()
 export class CommunitiesService {
@@ -91,38 +91,40 @@ export class CommunitiesService {
             },
         });
 
-        // Event payload with recipients
+        //---------------- Event payload with recipients---------------
+
+        // ---------------- Fetch all recipients ----------------
+        const allUsers = await this.prisma.user.findMany({
+            select: { id: true, email: true },
+        });
+
+        // -------------------- Build payload --------------------
         const payload: Community = {
             action: "CREATE",
-            info: {
-                title: newCommunity.profile?.title ?? "New Community",
-                message:
-                    newCommunity.about?.mission ??
-                    `Community "${newCommunity.profile?.title}" has been created.`,
-                recipients: [],
-                sendEmail: newCommunity.isToggleNotification ?? false,
-            },
             meta: {
                 communityId: newCommunity.id,
                 performedBy: userId,
-                publishedAt: new Date(),
+                foundationDate: newCommunity.foundationDate,
+            },
+            info: {
+                title: newCommunity.profile?.title ?? "New Community Created",
+                message:
+                    newCommunity.about?.mission ??
+                    `A new community "${newCommunity.profile?.title}" has been created.`,
+                recipients: allUsers,
             },
         };
 
-        this.eventEmitter.emit(EVENT_TYPES.Community_CREATE, payload);
+        // ---------------- Emit event ----------------
+        this.eventEmitter.emit(EVENT_TYPES.COMMUNITY_CREATE, payload);
+
+        console.log(
+            "✅ EVENT EMITTED:",
+            EVENT_TYPES.COMMUNITY_CREATE,
+            JSON.stringify(payload, null, 2),
+        );
 
         return newCommunity;
-    }
-
-    // find All data....
-    async findAll() {
-        const community = await this.prisma.community.findMany({
-            include: {
-                profile: true,
-                about: true,
-            },
-        });
-        return community;
     }
 
     // find one community
@@ -329,5 +331,11 @@ export class CommunitiesService {
             followersCount: profile?.followersCount ?? 0,
             likes: community?.likes ?? 0,
         };
+    }
+    // ---------find all community here---
+    async findAll() {
+        return await this.prisma.community.findMany({
+            include: { profile: true, about: true, memberships: true },
+        });
     }
 }
