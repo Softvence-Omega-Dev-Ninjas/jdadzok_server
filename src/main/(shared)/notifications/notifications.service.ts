@@ -165,7 +165,7 @@ export class NotificationsService {
 
     //  --- -------- failed to notification--------
     @HandleError("Failed to update notification setting")
-    async TestupdateNotificationSetting(
+    async updateNotificationSetting(
         userId: string,
         dto: NotificationToggleDto,
     ): Promise<TResponse<any>> {
@@ -176,7 +176,9 @@ export class NotificationsService {
             update: {
                 email: dto.email,
                 communication: dto.communication,
-
+                community: dto.community,
+                post: dto.post,
+                comment: dto.comment,
                 message: dto.message,
                 userRegistration: dto.userRegistration,
             },
@@ -184,7 +186,9 @@ export class NotificationsService {
                 userId: userId,
                 email: dto.email,
                 communication: dto.communication,
-
+                community: dto.community,
+                post: dto.post,
+                comment: dto.comment,
                 message: dto.message,
                 userRegistration: dto.userRegistration,
             },
