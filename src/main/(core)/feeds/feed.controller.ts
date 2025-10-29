@@ -8,7 +8,7 @@ import { FeedService } from "./feed.service";
 @ApiBearerAuth()
 @Controller("feeds")
 export class FeedController {
-    constructor(private readonly feedService: FeedService) { }
+    constructor(private readonly feedService: FeedService) {}
     @ValidateAdmin()
     @UseGuards(JwtAuthGuard)
     async getFeed(@GetUser() user: TUser) {

@@ -3,9 +3,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class NewsFeedService {
-    constructor(
-        private readonly prisma: PrismaService,
-    ) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     // -----------show post with top level ---
     async generateUserFeed(userId: string) {
@@ -46,8 +44,7 @@ export class NewsFeedService {
             }
 
             // ---------------(last 24h) post here-------------
-            const hoursSincePost =
-                (Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60);
+            const hoursSincePost = (Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60);
             if (hoursSincePost < 24) score += 5;
 
             return { post, score };

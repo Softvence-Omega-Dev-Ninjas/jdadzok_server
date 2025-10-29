@@ -7,4 +7,4 @@ import { NewsFeedService } from "./service/newsfeed.service";
     controllers: [NewsFeedController],
     providers: [NewsFeedService],
 })
-export class NewsFeedModule { }
+export class NewsFeedModule {}

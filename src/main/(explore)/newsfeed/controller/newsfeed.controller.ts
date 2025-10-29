@@ -7,14 +7,10 @@ import { NewsFeedService } from "../service/newsfeed.service";
 @ApiTags("NewsFeeds")
 @Controller("feeds")
 export class NewsFeedController {
-    constructor(private readonly newsFeedService: NewsFeedService) { }
+    constructor(private readonly newsFeedService: NewsFeedService) {}
     @ValidateAll()
     @ValidateAuth()
-    async generateUserFeed(
-        @GetUser('userId') userId: string
-    ) {
-        return await this.newsFeedService.generateUserFeed(
-            userId
-        );
+    async generateUserFeed(@GetUser("userId") userId: string) {
+        return await this.newsFeedService.generateUserFeed(userId);
     }
 }

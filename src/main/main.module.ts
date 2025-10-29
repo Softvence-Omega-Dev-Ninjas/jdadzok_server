@@ -34,4 +34,4 @@ import { UserGroupModule } from "./(users)/users.group.module";
     providers: [],
     exports: [],
 })
-export class MainModule { }
+export class MainModule {}

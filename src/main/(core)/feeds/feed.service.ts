@@ -9,7 +9,7 @@ export class FeedService {
         private readonly choiceRepository: ChoicesRepository,
         private readonly userRepository: UserRepository,
         private readonly postRepository: PostRepository,
-    ) { }
+    ) {}
 
     async generateUserFeed() {
         // const userChoices = await this.choiceRepository.findAll(userId);

@@ -19,7 +19,7 @@ export class NgoVerificationService {
         private readonly verificationQueue: Queue,
         private readonly prisma: PrismaService,
         private readonly s3Service: S3Service,
-    ) { }
+    ) {}
 
     // NGO applies for verification
     async applyVerification(
@@ -123,21 +123,17 @@ export class NgoVerificationService {
         // -----------------------------------------------------
         // --Add to queue for async verification processing
         // -----------------------------------------------------
-        await this.verificationQueue.add(
-            QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION,
-            {
-                verificationId: verification.id,
-                documentUrls: uploadedDocs,
-                verificationType: dto.verificationType,
-            },
-        );
+        await this.verificationQueue.add(QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION, {
+            verificationId: verification.id,
+            documentUrls: uploadedDocs,
+            verificationType: dto.verificationType,
+        });
 
         // -----------------------------------------------------
         //    Return result
         // -----------------------------------------------------
         return verification;
     }
-
 
     // async applyVerification(
     //     userId: string,
