@@ -100,3 +100,7 @@ export function ValidateAdmin() {
 export function ValidateUser() {
     return ValidateAuth("USER", "SUPER_ADMIN");
 }
+
+export function ValidateAll() {
+    return ValidateAuth("USER", "ADMIN", "SUPER_ADMIN");
+}

@@ -6,7 +6,7 @@ import { Reflector } from "@nestjs/core";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(private reflector: Reflector) {}
+    constructor(private reflector: Reflector) { }
 
     canActivate(ctx: ExecutionContext) {
         const roles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
