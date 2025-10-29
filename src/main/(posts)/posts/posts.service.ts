@@ -2,6 +2,7 @@ import { FollowUnfollowRepository } from "@module/(users)/follow-unfollow/follow
 import {
     BadRequestException,
     ForbiddenException,
+    HttpException,
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
@@ -100,11 +101,15 @@ export class PostService {
     }
 
 
-        async get_all_post_of_user(user_id:string){
+    async get_all_post_of_user(user_id:string){
+        if(!user_id){
+            throw new HttpException("You are unauthorized",400)
+        }
        const res=await this.prisma.post.findMany({
         where:{
             authorId:user_id 
         }
        })
+       return res
     }
 }

@@ -15,6 +15,7 @@ import {
     Post,
     Put,
     Query,
+    Req,
     UploadedFiles,
     UseGuards,
     UseInterceptors,
@@ -141,7 +142,21 @@ export class PostController {
         await this.service.delete(id, user.userId);
         return successResponse(null, "Post deleted successfully");
     }
-
+     @Get('users-post')
+    @UseGuards(JwtAuthGuard)
+    async get_user_all_post(@GetUser() user:any){
+        try{
+          console.log(user)
+        const res=await this.service.get_all_post_of_user(user.userId)
+        return{
+            status:HttpStatus.ACCEPTED,
+            message:"You post retrive succesfull",
+            data:res
+        }
+        }catch(err){
+            throw new HttpException(err.message,HttpStatus.BAD_REQUEST)
+        }
+    }
     @Get(":id")
     @ApiOperation({ summary: "Get a single post by ID" })
     async findOne(@Param("id", ParseUUIDPipe) id: string) {
@@ -149,13 +164,5 @@ export class PostController {
         return successResponse(post, "Post retrieved successfully");
     }
 
-    @Get('users-post')
-    @UseGuards(JwtAuthGuard)
-    async get_user_all_post(){
-        try{
-            
-        }catch(err){
-            throw new HttpException(err.message,HttpStatus.BAD_REQUEST)
-        }
-    }
+   
 }
