@@ -17,9 +17,9 @@ export type VerifiedUser = {
     isVerified: boolean;
     role: Role;
     capLevel: CapLevel;
-    createdAt: string;
-    updatedAt: string;
-    userId:string
+    createdAt: Date | string;
+    updatedAt: Date | string;
+    userId: string;
 };
 
 export type HelperTx = Omit<

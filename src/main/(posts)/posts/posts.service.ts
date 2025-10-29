@@ -16,14 +16,14 @@ export class PostService {
     constructor(
         private readonly repository: PostRepository,
         private readonly followRepository: FollowUnfollowRepository,
-        private prisma:PrismaService
+        private prisma: PrismaService,
     ) {}
 
     async create(input: CreatePostDto) {
         const post = await this.repository.store(input);
 
         if (!post) throw new BadRequestException("Fail to creaete post");
-        console.log(input)
+        console.log(input);
         const followers = await this.followRepository.findManyFollowerId(post?.authorId);
         // send notification to the all followers
         for (const follower of followers) {
@@ -107,22 +107,19 @@ export class PostService {
         return await this.repository.delete(id);
     }
 
-
-
     private validateAuthorId(authorId?: string) {
         if (!authorId) throw new BadRequestException("Author ID is required");
     }
 
-
-    async get_all_post_of_user(user_id:string){
-        if(!user_id){
-            throw new HttpException("You are unauthorized",400)
+    async get_all_post_of_user(user_id: string) {
+        if (!user_id) {
+            throw new HttpException("You are unauthorized", 400);
         }
-       const res=await this.prisma.post.findMany({
-        where:{
-            authorId:user_id 
-        }
-       })
-       return res
+        const res = await this.prisma.post.findMany({
+            where: {
+                authorId: user_id,
+            },
+        });
+        return res;
     }
 }
