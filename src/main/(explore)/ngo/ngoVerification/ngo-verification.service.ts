@@ -15,10 +15,11 @@ import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verifi
 @Injectable()
 export class NgoVerificationService {
     constructor(
-        @InjectQueue(QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION_PROCESSOR) private readonly verificationQueue: Queue,
+        @InjectQueue(QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION_PROCESSOR)
+        private readonly verificationQueue: Queue,
         private readonly prisma: PrismaService,
         private readonly s3Service: S3Service,
-    ) { }
+    ) {}
 
     // NGO applies for verification
     async applyVerification(
@@ -64,7 +65,6 @@ export class NgoVerificationService {
             verificationId: verification.id,
             documentUrls: uploadedDocs,
             verificationType: dto.verificationType,
-
         });
         return verification;
     }

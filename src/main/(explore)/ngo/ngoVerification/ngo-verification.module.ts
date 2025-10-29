@@ -11,9 +11,10 @@ import { NgoVerificationProcessor } from "./ngo.processor";
 @Module({
     imports: [
         BullModule.registerQueue({ name: QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION_PROCESSOR }),
-        S3BucketModule],
+        S3BucketModule,
+    ],
     controllers: [NgoVerificationController],
     providers: [NgoVerificationProcessor, PrismaService, S3Service, NgoVerificationService],
     exports: [NgoVerificationService],
 })
-export class NgoVerificationModule { }
+export class NgoVerificationModule {}

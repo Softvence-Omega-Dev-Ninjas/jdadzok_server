@@ -19,5 +19,5 @@ declare module "idanalyzer2" {
         msg: string;
     }
 
-    export class InvalidArgumentException extends Error { }
+    export class InvalidArgumentException extends Error {}
 }

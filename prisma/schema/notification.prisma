@@ -13,10 +13,10 @@ model Notification {
   read     Boolean          @default(false)
 
   // Additional data as JSON
-  metadata Json? // Extra notification data
-  users UserNotification[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  metadata  Json? // Extra notification data
+  users     UserNotification[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 
   @@index([userId])
   @@index([type])
@@ -24,7 +24,6 @@ model Notification {
   @@index([createdAt])
   @@map("notifications")
 }
-
 
 model UserNotification {
   id String @id @default(uuid())
@@ -40,5 +39,5 @@ model UserNotification {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  @@unique([userId, notificationId]) 
+  @@unique([userId, notificationId])
 }

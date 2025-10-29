@@ -10,4 +10,4 @@ import { NgoVerificationModule } from "./ngoVerification/ngo-verification.module
     providers: [NgoRepository, NgoService],
     exports: [],
 })
-export class NgoModule { }
+export class NgoModule {}
