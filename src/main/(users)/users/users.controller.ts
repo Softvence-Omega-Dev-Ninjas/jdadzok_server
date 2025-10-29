@@ -8,6 +8,7 @@ import {
     Delete,
     Get,
     Param,
+    Patch,
     Post,
     UseGuards,
     UsePipes,
@@ -69,7 +70,7 @@ export class UserController {
     }
 
     @ApiBearerAuth()
-    @Post("update")
+    @Patch("update")
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     async update(@GetVerifiedUser() user: VerifiedUser, @Body() body: UpdateUserDto) {

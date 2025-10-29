@@ -1,7 +1,7 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { HelperTx } from "@type/index";
-import { CreateUserProfileDto } from "./dto/user.profile.dto";
+import { CreateUserProfileDto, UpdateUserProfileDto } from "./dto/user.profile.dto";
 
 @Injectable()
 export class UserProfileRepository {
@@ -91,7 +91,7 @@ export class UserProfileRepository {
             },
         });
     }
-    async updateUserProfile(userId: string, data: CreateUserProfileDto) {
+    async updateUserProfile(userId: string, data: UpdateUserProfileDto) {
         // Check if username is taken by another user
         if (data.username) {
             const existingUser = await this.prisma.user.findFirst({
