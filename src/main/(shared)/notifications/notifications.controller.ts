@@ -1,4 +1,6 @@
-import { GetUser, Roles } from "@common/jwt/jwt.decorator";
+import { Roles } from "@common/decorators/roles.decorator";
+import { RoleGuard } from "@common/guards/role.guard";
+import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { TResponse } from "@common/utils/response.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
@@ -12,14 +14,13 @@ import {
     ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
-import { Role } from "@prisma/client";
-import { TUser } from "@type/index";
+import { TUser, VerifiedUser } from "@type/index";
 import { NotificationToggleDto } from "./dto/notification-toggle";
 import { NotificationsService } from "./notifications.service";
 
 @Controller("notifications")
 export class NotificaitonsController {
-    constructor(private readonly NotificationsService: NotificationsService) {}
+    constructor(private readonly NotificationsService: NotificationsService) { }
 
     @UseGuards(JwtAuthGuard)
     async fetchSystemAdminNotificaiton(@GetUser() user: TUser) {
@@ -32,8 +33,9 @@ export class NotificaitonsController {
     }
 
     @Put("mark-as-read")
-    @Roles(Role.SUPER_ADMIN, Role.ADMIN)
-    async markAsRead(@GetUser() user: TUser) {
+    @Roles("SUPER_ADMIN", "ADMIN")
+    @UseGuards(RoleGuard)
+    async markAsRead(@GetVerifiedUser() user: VerifiedUser) {
         try {
             console.info(user);
             return "make as reads";

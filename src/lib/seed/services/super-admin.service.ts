@@ -1,5 +1,4 @@
 import { ENVEnum } from "@common/enum/env.enum";
-import { UserEnum } from "@common/enum/user.enum";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { UtilsService } from "@lib/utils/utils.service";
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
@@ -61,7 +60,7 @@ export class SuperAdminService implements OnModuleInit {
                 email: this.superAdminEmail,
                 password,
                 authProvider: "EMAIL",
-                role: UserEnum.SUPER_ADMIN,
+                role: "SUPER_ADMIN",
             },
         });
 
