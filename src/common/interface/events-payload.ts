@@ -38,7 +38,6 @@ export interface Community extends BaseEvent<CommunityMeta> {
         title: string;
         message: string;
         recipients: { email: string; id: string }[];
-        sendEmail: boolean;
     };
 }
 
@@ -48,7 +47,6 @@ export interface Comment extends BaseEvent<CommentMeta> {
         title: string;
         message: string;
         recipients: { email: string; id: string }[];
-        sendEmail: boolean;
     };
 }
 

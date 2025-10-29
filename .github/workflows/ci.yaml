@@ -124,7 +124,7 @@ jobs:
       - uses: ./.github/actions/docker-login
         with:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          SE_DOCKER_PASSWORD: ${{ secrets.SE_DOCKER_PASSWORD }}
       - run: docker compose --profile prod build
       - run: docker compose --profile prod push
       - if: always()

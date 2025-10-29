@@ -7,6 +7,8 @@ import {
     Controller,
     Delete,
     Get,
+    HttpException,
+    HttpStatus,
     NotFoundException,
     Param,
     ParseUUIDPipe,
@@ -17,7 +19,7 @@ import {
     UseGuards,
     UseInterceptors,
     UsePipes,
-    ValidationPipe,
+    ValidationPipe
 } from "@nestjs/common";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiExtraModels, ApiOperation } from "@nestjs/swagger";
@@ -40,7 +42,7 @@ export class PostController {
         private readonly service: PostService,
         private readonly s3Service: S3Service,
         private readonly utils: PostUtils,
-    ) {}
+    ) { }
 
     @Post()
     @ApiOperation({ summary: "Create a new post" })
@@ -60,6 +62,7 @@ export class PostController {
         @Body() req: any,
     ) {
         try {
+
             const mediaUrls = files?.length ? await this.s3Service.uploadFiles(files) : [];
             const extractMetaData = JSON.parse(req.metadata);
             const body = omit(req, ["files"]);
@@ -82,7 +85,7 @@ export class PostController {
             const post = await this.service.create(validated);
             return successResponse(post, "Post created successfully");
         } catch (err) {
-            return err;
+            throw new HttpException(err.message, HttpStatus.BAD_REQUEST)
         }
     }
 
@@ -138,11 +141,27 @@ export class PostController {
         await this.service.delete(id, user.id);
         return successResponse(null, "Post deleted successfully");
     }
-
+    @Get('users-post')
+    @UseGuards(JwtAuthGuard)
+    async get_user_all_post(@GetUser() user: any) {
+        try {
+            console.log(user)
+            const res = await this.service.get_all_post_of_user(user.userId)
+            return {
+                status: HttpStatus.ACCEPTED,
+                message: "You post retrive succesfull",
+                data: res
+            }
+        } catch (err) {
+            throw new HttpException(err.message, HttpStatus.BAD_REQUEST)
+        }
+    }
     @Get(":id")
     @ApiOperation({ summary: "Get a single post by ID" })
     async findOne(@Param("id", ParseUUIDPipe) id: string) {
         const post = await this.service.findOne(id);
         return successResponse(post, "Post retrieved successfully");
     }
+
+
 }

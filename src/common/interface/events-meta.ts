@@ -1,14 +1,8 @@
-// Common meta for most events
-export interface AnnouncementMeta {
-    performedBy: string;
-    publishedAt: Date;
-}
-
 // Community specific meta
 export interface CommunityMeta {
     communityId: string;
     performedBy: string;
-    publishedAt: Date;
+    foundationDate: Date;
 }
 
 // Comment specific meta

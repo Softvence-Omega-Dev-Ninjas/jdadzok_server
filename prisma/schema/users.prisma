@@ -8,8 +8,8 @@ model User {
   isVerified   Boolean      @default(false)
 
   // User role and progression
-  role     Role     @default(USER)
-  capLevel CapLevel @default(NONE)
+  role      Role     @default(USER)
+  capLevel  CapLevel @default(NONE)
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -98,8 +98,10 @@ model User {
   CommunityFollower CommunityFollower[]
 
   // payment methods -> a user can has multiple payment methods
-  PaymentMethods PaymentMethods[]
- NotificationToggle NotificationToggle[]
+  PaymentMethods     PaymentMethods[]
+  NotificationToggle NotificationToggle[]
+  userNotifications  UserNotification[]
+
   @@index([email])
   @@index([capLevel])
   @@index([role])

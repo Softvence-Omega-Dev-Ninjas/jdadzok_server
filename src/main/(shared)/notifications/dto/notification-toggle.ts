@@ -57,4 +57,12 @@ export class NotificationToggleDto {
     @IsOptional()
     @IsBoolean()
     userRegistration?: boolean = false;
+
+    @ApiPropertyOptional({
+        description: "Receive ngo notifications",
+        default: false,
+    })
+    @IsOptional()
+    @IsBoolean()
+    ngo?: boolean = false;
 }

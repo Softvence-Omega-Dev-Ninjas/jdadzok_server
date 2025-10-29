@@ -6,18 +6,18 @@ model Profile {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Profile information
-  name      String
-  username  String  @unique
-  title     String? // Professional title
-  bio       String? @db.Text // User bio/description
-  avatarUrl String? // Profile picture URL
-  coverUrl  String? // Cover photo URL
-  location  String?
- isToggleNotification Boolean @default(false)
+  name                 String
+  username             String    @unique
+  title                String? // Professional title
+  bio                  String?   @db.Text // User bio/description
+  avatarUrl            String? // Profile picture URL
+  coverUrl             String? // Cover photo URL
+  location             String?
+  isToggleNotification Boolean   @default(false)
   // personal information
-  dateOfBirth DateTime?
-  gender      Gender    @default(MALE)
-  experience  String?
+  dateOfBirth          DateTime?
+  gender               Gender    @default(MALE)
+  experience           String?
 
   // Social metrics (denormalized for performance)
   followersCount Int @default(0)

@@ -15,13 +15,13 @@ The Cap Level System is a comprehensive gamified progression and revenue-sharing
 
 ### Cap Level Hierarchy
 
-| Level | Name | Ad Revenue Share | Key Benefits | Upgrade Requirements |
-|-------|------|------------------|--------------|---------------------|
-| 🟢 **GREEN** | New Member | 2% | Basic visibility, marketplace access | Sign-up + first post |
-| 🟡 **YELLOW** | Active Contributor | 10% | Enhanced reach, expanded marketplace | Activity score ≥ 50 |
-| 🔴 **RED** | Trusted Creator | 20% | Volunteer hub access, priority support | Activity score ≥ 100 + admin verification |
-| ⚫ **BLACK** | Esteemed Contributor | 45% | High visibility, brand partnerships | 8-week volunteer service completion |
-| 🪶 **OSTRICH_FEATHER** | Global Changemaker | 60% | Global recognition, exclusive deals | Panel nomination after BLACK status |
+| Level                  | Name                 | Ad Revenue Share | Key Benefits                           | Upgrade Requirements                      |
+| ---------------------- | -------------------- | ---------------- | -------------------------------------- | ----------------------------------------- |
+| 🟢 **GREEN**           | New Member           | 2%               | Basic visibility, marketplace access   | Sign-up + first post                      |
+| 🟡 **YELLOW**          | Active Contributor   | 10%              | Enhanced reach, expanded marketplace   | Activity score ≥ 50                       |
+| 🔴 **RED**             | Trusted Creator      | 20%              | Volunteer hub access, priority support | Activity score ≥ 100 + admin verification |
+| ⚫ **BLACK**           | Esteemed Contributor | 45%              | High visibility, brand partnerships    | 8-week volunteer service completion       |
+| 🪶 **OSTRICH_FEATHER** | Global Changemaker   | 60%              | Global recognition, exclusive deals    | Panel nomination after BLACK status       |
 
 ## Activity Scoring Algorithm
 
@@ -30,7 +30,7 @@ The system uses a weighted scoring algorithm to calculate user engagement:
 ```typescript
 interface ActivityScore {
   posts: number * 5;        // 5 points per post
-  comments: number * 2;     // 2 points per comment  
+  comments: number * 2;     // 2 points per comment
   likes: number * 1;        // 1 point per like given
   shares: number * 3;       // 3 points per share
   followers: number * 0.5;  // 0.5 points per follower
@@ -94,12 +94,14 @@ PUT    /user-metrics/config/weights   # Update scoring weights (admin)
 ### CapLevelService
 
 **Primary Responsibilities:**
+
 - Calculate user eligibility for cap level promotions
 - Handle automatic and manual promotions
 - Validate level requirements and progression rules
 - Generate cap level statistics and reports
 
 **Key Methods:**
+
 ```typescript
 async calculateCapEligibility(userId: string): Promise<CapEligibilityResult>
 async promoteUserCapLevel(userId: string, targetLevel?: CapLevel, bypassVerification?: boolean): Promise<User>
@@ -109,12 +111,14 @@ async getUserCapStatus(userId: string): Promise<UserCapStatus>
 ### AdRevenueService
 
 **Primary Responsibilities:**
+
 - Calculate monthly revenue distributions
 - Track user earnings and payout history
 - Generate revenue analytics and forecasting
 - Handle manual revenue adjustments
 
 **Key Methods:**
+
 ```typescript
 async calculateMonthlyRevenue(calculationDto: MonthlyRevenueCalculationDto): Promise<RevenueCalculationResultDto>
 async getUserRevenueSummary(userId: string): Promise<UserRevenueSummaryDto>
@@ -124,12 +128,14 @@ async getPlatformRevenueStats(): Promise<PlatformRevenueStatsDto>
 ### VolunteerTrackingService
 
 **Primary Responsibilities:**
+
 - Track volunteer applications and hours
 - Manage project completions and verifications
 - Handle 8-week service completion requirements
 - Generate volunteer statistics and leaderboards
 
 **Key Methods:**
+
 ```typescript
 async updateVolunteerHours(updateDto: UpdateVolunteerHoursDto): Promise<UserMetrics>
 async completeVolunteerProject(completionDto: ProjectCompletionDto): Promise<CompletionResult>
@@ -139,12 +145,14 @@ async verifyServiceCompletion(serviceDto: ServiceCompletionDto): Promise<Service
 ### UserMetricsService
 
 **Primary Responsibilities:**
+
 - Calculate and update activity scores
 - Track user engagement metrics
 - Generate analytics and rankings
 - Handle batch processing for metrics updates
 
 **Key Methods:**
+
 ```typescript
 async calculateActivityScore(userId: string): Promise<number>
 async recalculateAndUpdateActivityScore(userId: string): Promise<UserMetrics>
@@ -207,12 +215,12 @@ The scoring weights are configurable and can be adjusted via API:
 
 ```typescript
 const defaultWeights = {
-  posts: 5,
-  comments: 2,
-  likes: 1,
-  shares: 3,
-  followers: 0.5,
-  volunteerHours: 10,
+    posts: 5,
+    comments: 2,
+    likes: 1,
+    shares: 3,
+    followers: 0.5,
+    volunteerHours: 10,
 };
 ```
 
@@ -222,32 +230,36 @@ Requirements are stored in the database and can be modified:
 
 ```sql
 -- Example: Update YELLOW cap requirements
-UPDATE cap_requirements 
-SET min_activity_score = 75, ad_share_percentage = 12.0 
+UPDATE cap_requirements
+SET min_activity_score = 75, ad_share_percentage = 12.0
 WHERE cap_level = 'YELLOW';
 ```
 
 ## Implementation Features
 
 ### 🔄 Automated Processing
+
 - **Activity Score Updates**: Real-time calculation when user actions occur
 - **Cap Level Promotions**: Automatic promotion for GREEN/YELLOW levels
 - **Revenue Distribution**: Monthly automated revenue calculations
 - **Metrics Recalculation**: Background jobs for bulk processing
 
 ### 🔒 Security & Validation
+
 - **Admin Verification**: Required for RED+ level promotions
 - **Transaction Safety**: Database transactions for critical operations
 - **Input Validation**: Comprehensive DTO validation with decorators
 - **Authorization**: Role-based access control for admin operations
 
 ### 📊 Analytics & Reporting
+
 - **Real-time Statistics**: Platform-wide metrics and trends
 - **User Rankings**: Activity and revenue leaderboards
 - **Forecasting**: Revenue predictions based on historical data
 - **Export Functionality**: CSV exports for reporting
 
 ### 🎯 Performance Optimization
+
 - **Batch Processing**: Efficient bulk operations for metrics updates
 - **Pagination**: All list endpoints support pagination
 - **Caching Strategy**: Optimized database queries with proper indexing
@@ -269,10 +281,10 @@ console.log(`Activity Score: ${capStatus.eligibility.activityScore}`);
 ```typescript
 // Calculate revenue for January 2025 (dry run)
 const calculation = await adRevenueService.calculateMonthlyRevenue({
-  month: 1,
-  year: 2025,
-  totalPlatformRevenue: 100000,
-  dryRun: true
+    month: 1,
+    year: 2025,
+    totalPlatformRevenue: 100000,
+    dryRun: true,
 });
 console.log(`Would distribute $${calculation.totalDistributed} to ${calculation.totalUsers} users`);
 ```
@@ -282,11 +294,11 @@ console.log(`Would distribute $${calculation.totalDistributed} to ${calculation.
 ```typescript
 // Log volunteer hours for a user
 await volunteerTrackingService.updateVolunteerHours({
-  userId: 'user-123',
-  hours: 8,
-  projectId: 'project-456',
-  workDescription: 'Community cleanup event',
-  workDate: '2025-01-15'
+    userId: "user-123",
+    hours: 8,
+    projectId: "project-456",
+    workDescription: "Community cleanup event",
+    workDate: "2025-01-15",
 });
 ```
 
@@ -296,19 +308,20 @@ The system includes comprehensive error handling:
 
 ```typescript
 try {
-  await capLevelService.promoteUserCapLevel(userId, 'RED');
+    await capLevelService.promoteUserCapLevel(userId, "RED");
 } catch (error) {
-  if (error instanceof BadRequestException) {
-    // Handle validation errors
-    console.log('Promotion failed:', error.message);
-  }
-  // Other error types...
+    if (error instanceof BadRequestException) {
+        // Handle validation errors
+        console.log("Promotion failed:", error.message);
+    }
+    // Other error types...
 }
 ```
 
 ## Future Enhancements
 
 ### Planned Features
+
 1. **Machine Learning**: AI-driven activity score adjustments
 2. **Integration APIs**: Third-party volunteer organization connections
 3. **Mobile Apps**: Real-time push notifications for promotions
@@ -317,6 +330,7 @@ try {
 6. **Social Features**: Cap level-based community features
 
 ### Technical Improvements
+
 1. **Redis Caching**: Cache frequently accessed data
 2. **Event Sourcing**: Track all cap level changes
 3. **Microservices**: Split into dedicated services
@@ -326,18 +340,21 @@ try {
 ## Development Guidelines
 
 ### Code Style
+
 - Follow existing NestJS patterns
 - Use TypeScript strict mode
 - Comprehensive JSDoc comments
 - Proper error handling with logging
 
 ### Testing Strategy
+
 - Unit tests for all service methods
 - Integration tests for API endpoints
 - End-to-end tests for critical user flows
 - Performance tests for batch operations
 
 ### Deployment Considerations
+
 - Database migrations for schema changes
 - Environment-specific configurations
 - Monitoring and alerting setup
@@ -345,4 +362,15 @@ try {
 
 ---
 
-This comprehensive cap level system provides a robust foundation for user engagement, volunteerism incentives, and fair revenue sharing. The modular design ensures maintainability and extensibility for future enhancements.
+### Ngo verification with third party api idanalyzer
+
+### Prerequisites
+
+- Prisma ORM for DB.
+- BullMQ for queue jobs.
+- Env var: IDANALYZER_API_KEY (get from IDAnalyzer dashboard -https://www.idanalyzer.com/).
+- Missing profile fields → REJECTED with console error.
+- Mismatch → REJECTED + detailed reason.
+- Compare the extracted username, gender, and dateOfBirth from the IDAnalyzer response with the data from the user's Prisma Profile model.
+- Handle API/Network Errors.
+- This comprehensive cap level system provides a robust foundation for user engagement, volunteerism incentives, and fair revenue sharing. The modular design ensures maintainability and extensibility for future enhancements.

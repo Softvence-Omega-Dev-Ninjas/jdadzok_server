@@ -5,7 +5,7 @@ model FileInstance {
   filename         String? // Generated filename
   originalFilename String? // Original uploaded filename
   path             String? // File path on server
-  url              String @unique // Public URL to access file
+  url              String  @unique // Public URL to access file
 
   // File metadata
   fileType String? // File extension

@@ -67,6 +67,7 @@ jobs:
           scp docker-compose.yaml deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           scp .env deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           scp Dockerfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
+          scp Caddyfile deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           scp -r scripts deploy-server:~/${{ secrets.PACKAGE_NAME }}/
           echo "✅ Files copied successfully"
       - name: Fix permissions on server
@@ -110,12 +111,12 @@ jobs:
           if [ ! -f ~/.docker/cli-plugins/docker-compose ]; then
             echo "Installing Docker Compose..."
             mkdir -p ~/.docker/cli-plugins/
-            url -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+            curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
             chmod +x ~/.docker/cli-plugins/docker-compose
           fi
 
           # Login to Docker Hub
-          echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
+          echo "${{secrets.SE_DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
 
           # Explicitly export required variables
           export DOCKER_USERNAME="${{secrets.DOCKER_USERNAME}}"
