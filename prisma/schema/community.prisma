@@ -10,13 +10,13 @@ model Community {
   communityType  CommunityType
 
   // Community metrics (denormalized for performance)
-  likes      Int      @default(0)
-  isVerified Boolean  @default(false)
-  capLevel   CapLevel @default(NONE) // Communities can also have cap levels
-
+  likes                Int               @default(0)
+  isVerified           Boolean           @default(false)
+  capLevel             CapLevel          @default(NONE) // Communities can also have cap levels
+  isToggleNotification Boolean           @default(false)
   // ---- RELATIONSHIPS ----
-  profile CommunityProfile? // Community profile info
-  about   CommunityAbout? // Extended community info
+  profile              CommunityProfile? // Community profile info
+  about                CommunityAbout? // Extended community info
 
   // Community posts
   posts Post[] @relation("CommunityPosts")

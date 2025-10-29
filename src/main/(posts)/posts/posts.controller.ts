@@ -138,8 +138,8 @@ export class PostController {
     @Delete(":id")
     @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: "Delete a post" })
-    async delete(@Param("id", ParseUUIDPipe) id: string, @GetUser() user: TUser) {
-        await this.service.delete(id, user.userId);
+    async delete(@Param("id", ParseUUIDPipe) id: string, @GetVerifiedUser() user: VerifiedUser) {
+        await this.service.delete(id, user.id);
         return successResponse(null, "Post deleted successfully");
     }
      @Get('users-post')

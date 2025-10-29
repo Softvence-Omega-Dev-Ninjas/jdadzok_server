@@ -19,9 +19,7 @@ export class CapLevelRepository {
         });
     }
 
-    async getUserWithMetrics(
-        userId: string,
-    ): Promise<(User & { metrics: UserMetrics | null }) | null> {
+    async getUserWithMetrics(userId: string) {
         return await this.prisma.user.findUnique({
             where: { id: userId },
             include: { metrics: true },
@@ -73,7 +71,7 @@ export class CapLevelRepository {
     async createUserMetricsIfNotExists(userId: string): Promise<UserMetrics> {
         return await this.prisma.userMetrics.upsert({
             where: { userId },
-            update: {},
+            update: { userId },
             create: { userId },
         });
     }

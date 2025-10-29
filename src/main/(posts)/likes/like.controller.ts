@@ -1,8 +1,8 @@
-import { GetUser } from "@common/jwt/jwt.decorator";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
-import { TUser } from "@type/index";
+import { VerifiedUser } from "@type/index";
 import { CreateLikeDto } from "./dto/creaete.like.dto";
 import { LikeService } from "./like.service";
 
@@ -14,9 +14,9 @@ export class LikeController {
     @ApiOperation({ summary: "Like / dislike a post or comment" })
     @Post()
     @UseGuards(JwtAuthGuard)
-    async like(@GetUser() user: TUser, @Body() dto: CreateLikeDto) {
+    async like(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreateLikeDto) {
         try {
-            return await this.likeService.likePost(user.userId, dto);
+            return await this.likeService.likePost(user.id, dto);
         } catch (err) {
             return err;
         }
@@ -25,7 +25,7 @@ export class LikeController {
     @ApiOperation({ summary: "Get likes for a post" })
     @Get("post/:id")
     @UseGuards(JwtAuthGuard)
-    async getPostLikes(@Param() id: string) {
+    async getPostLikes(@Param("id") id: string) {
         return await this.likeService.getPostLikes(id);
     }
 }

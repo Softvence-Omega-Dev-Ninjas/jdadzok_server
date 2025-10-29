@@ -16,31 +16,65 @@ export class LikeRepository {
             },
         });
     }
-    async like(data: CreateLikeDto) {
-        const like = await this.prisma.like.create({
-            data: {
-                ...data,
-                userId: data.userId!,
-            },
-        });
 
-        return successResponse(like, data.commentId ? "Comment liked" : "Post liked");
+    async like(data: CreateLikeDto) {
+        return await this.prisma.$transaction(async (tx) => {
+            // Create the like
+            const like = await tx.like.create({
+                data: {
+                    ...data,
+                    userId: data.userId!,
+                },
+            });
+
+            // Update totalLikes in UserMetrics
+            await tx.userMetrics.upsert({
+                where: { userId: data.userId! },
+                create: {
+                    userId: data.userId!,
+                    totalLikes: 1,
+                },
+                update: {
+                    totalLikes: { increment: 1 },
+                    lastUpdated: new Date(),
+                },
+            });
+            //  Return response
+            return successResponse(like, data.commentId ? "Comment liked" : "Post liked");
+        });
     }
 
     async removeLike(userId: string, postId: string, commentId?: string) {
-        const like = await this.prisma.like.deleteMany({
-            where: {
-                userId,
-                postId,
-                commentId,
-            },
+        return await this.prisma.$transaction(async (tx) => {
+            //  Delete like(s)
+            const like = await tx.like.deleteMany({
+                where: {
+                    userId,
+                    postId,
+                    commentId,
+                },
+            });
+
+            //  Only decrement if like existed
+            if (like.count > 0) {
+                await tx.userMetrics.updateMany({
+                    where: { userId },
+                    data: {
+                        totalLikes: { decrement: like.count },
+                        lastUpdated: new Date(),
+                    },
+                });
+            }
+
+            //  Return response
+            return successResponse(like, commentId ? "Comment disliked" : "Post dislike");
         });
-        return successResponse(like, commentId ? "Comment dislikes" : "Post dislike");
     }
 
     async getLikesForPost(postId: string) {
-        return this.prisma.like.findMany({
+        const like = await this.prisma.like.findMany({
             where: { postId },
         });
+        return like;
     }
 }

@@ -2,15 +2,15 @@ model FileInstance {
   id String @id @default(uuid())
 
   // File information
-  filename         String // Generated filename
-  originalFilename String // Original uploaded filename
-  path             String // File path on server
-  url              String @unique // Public URL to access file
+  filename         String? // Generated filename
+  originalFilename String? // Original uploaded filename
+  path             String? // File path on server
+  url              String  @unique // Public URL to access file
 
   // File metadata
-  fileType String // File extension
-  mimeType String // MIME type
-  size     Int // File size in bytes
+  fileType String? // File extension
+  mimeType String? // MIME type
+  size     Int? // File size in bytes
 
   // File ownership
   uploadedById String?

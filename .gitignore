@@ -87,3 +87,5 @@ nginx
 .env.production
 sajib.pem
 jdadzok_server.pem
+*.pem
+*.key

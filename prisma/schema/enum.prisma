@@ -102,8 +102,8 @@ enum Gender {
 }
 
 enum IdentityVerificationType {
-  GOVERMENT_ID_OR_PASSPORT
-  BUSINESS_CERTIFIED_OR_LICENSE
+  GOVERMENT_AND_PASSPORT
+  BUSINESS_CERTIFIED_AND_LICENSE
 }
 
 enum MediaType {

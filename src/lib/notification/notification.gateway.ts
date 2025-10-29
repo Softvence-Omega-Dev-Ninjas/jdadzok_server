@@ -1,4 +1,5 @@
 import { Notification } from "@common/interface/events-payload";
+import { PayloadForSocketClient } from "@common/interface/socket-client-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -7,6 +8,7 @@ import {
     OnGatewayConnection,
     OnGatewayDisconnect,
     OnGatewayInit,
+    SubscribeMessage,
     WebSocketGateway,
     WebSocketServer,
 } from "@nestjs/websockets";
@@ -56,14 +58,23 @@ export class NotificationGateway
                 select: {
                     id: true,
                     email: true,
+                    NotificationToggle: true,
                 },
             });
 
             if (!user) return client.disconnect(true);
 
-            const payloadForSocketClient = {
+            const payloadForSocketClient: PayloadForSocketClient = {
                 sub: user.id,
                 email: user.email,
+                emailToggle: user.NotificationToggle?.[0]?.email || false,
+                userUpdates: user.NotificationToggle?.[0]?.userUpdates || false,
+                communication: user.NotificationToggle?.[0]?.communication || false,
+                community: user.NotificationToggle?.[0]?.community || false,
+                comment: user.NotificationToggle?.[0]?.comment || false,
+                post: user.NotificationToggle?.[0]?.post || false,
+                message: user.NotificationToggle?.[0]?.message || false,
+                userRegistration: user.NotificationToggle?.[0]?.userRegistration || false,
             };
 
             client.data.user = payloadForSocketClient;
@@ -133,5 +144,16 @@ export class NotificationGateway
     public getDelay(publishAt: Date): number {
         const delay = publishAt.getTime() - Date.now();
         return delay > 0 ? delay : 0;
+    }
+
+    @SubscribeMessage("ping")
+    handlePing(client: Socket) {
+        this.logger.debug("Received ping from client");
+        client.emit("pong");
+    }
+    @SubscribeMessage("Community_CREATE")
+    handlePong(client: Socket) {
+        this.logger.debug("Received pong from client");
+        client.emit("Community_CREATE");
     }
 }

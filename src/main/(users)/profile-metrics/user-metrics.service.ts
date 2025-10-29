@@ -1,5 +1,5 @@
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../../../lib/prisma/prisma.service";
 import { UserMetrics } from "@prisma/client";
 
 interface ActivityScoreWeights {
@@ -8,16 +8,6 @@ interface ActivityScoreWeights {
     likes: number;
     shares: number;
     followers: number;
-    volunteerHours: number;
-}
-
-interface UserEngagementData {
-    postsCount: number;
-    commentsCount: number;
-    likesGivenCount: number;
-    sharesCount: number;
-    followersCount: number;
-    volunteerHours: number;
 }
 
 @Injectable()
@@ -31,16 +21,18 @@ export class UserMetricsService {
         likes: 1, // 1 point per like given
         shares: 3, // 3 points per share
         followers: 0.5, // 0.5 points per follower
-        volunteerHours: 10, // 10 points per volunteer hour
     };
 
-    async createUserMetrics(userId: string): Promise<UserMetrics> {
+    async createUserMetrics(userId: string, input: UserMetrics): Promise<UserMetrics> {
         return await this.prisma.userMetrics.create({
-            data: { userId },
+            data: {
+                ...input,
+                userId,
+            },
         });
     }
 
-    async getUserMetrics(userId: string): Promise<UserMetrics | null> {
+    async getUserMetrics(userId: string) {
         return await this.prisma.userMetrics.findUnique({
             where: { userId },
         });
@@ -70,8 +62,7 @@ export class UserMetricsService {
             engagementData.commentsCount * this.scoreWeights.comments +
             engagementData.likesGivenCount * this.scoreWeights.likes +
             engagementData.sharesCount * this.scoreWeights.shares +
-            engagementData.followersCount * this.scoreWeights.followers +
-            engagementData.volunteerHours * this.scoreWeights.volunteerHours;
+            engagementData.followersCount * this.scoreWeights.followers;
 
         return Math.round(activityScore * 100) / 100; // Round to 2 decimal places
     }
@@ -87,11 +78,10 @@ export class UserMetricsService {
             totalLikes: engagementData.likesGivenCount,
             totalShares: engagementData.sharesCount,
             totalFollowers: engagementData.followersCount,
-            volunteerHours: engagementData.volunteerHours,
         });
     }
 
-    private async getUserEngagementData(userId: string): Promise<UserEngagementData> {
+    private async getUserEngagementData(userId: string) {
         // Get posts count
         const postsCount = await this.prisma.post.count({
             where: { authorId: userId },
@@ -117,9 +107,7 @@ export class UserMetricsService {
             where: { followingId: userId },
         });
 
-        // Get volunteer hours from user metrics (since it's tracked separately)
         const userMetrics = await this.getUserMetrics(userId);
-        const volunteerHours = userMetrics?.volunteerHours || 0;
 
         return {
             postsCount,
@@ -127,7 +115,7 @@ export class UserMetricsService {
             likesGivenCount,
             sharesCount,
             followersCount,
-            volunteerHours,
+            ...userMetrics,
         };
     }
 
@@ -213,7 +201,7 @@ export class UserMetricsService {
         const usersWithHigherScore = await this.prisma.userMetrics.count({
             where: {
                 activityScore: {
-                    gt: userMetrics.activityScore,
+                    gt: userMetrics.totalPosts,
                 },
             },
         });
