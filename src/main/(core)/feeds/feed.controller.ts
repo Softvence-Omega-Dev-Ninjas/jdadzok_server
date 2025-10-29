@@ -10,8 +10,7 @@ import { FeedService } from "./feed.service";
 export class FeedController {
     constructor(private readonly feedService: FeedService) { }
     @ValidateAdmin()
-    @UseGuards(JwtAuthGuard)
-    async getFeed(@GetUser() user: TUser) {
+    @UseGuards(JwtAuthGuard) async getFeed(@GetUser() user: TUser) {
         console.info(user.userId);
         try {
             const posts = await this.feedService.generateUserFeed();
