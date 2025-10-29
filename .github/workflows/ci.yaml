@@ -17,6 +17,11 @@ jobs:
           PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
           EMAIL: ${{ secrets.EMAIL }}
           IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
           NODE_ENV: ${{ secrets.NODE_ENV }}
           PG_USERNAME: ${{ secrets.PG_USERNAME }}
           PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
@@ -85,6 +90,11 @@ jobs:
           PACKAGE_VERSION: ${{ secrets.PACKAGE_VERSION }}
           EMAIL: ${{ secrets.EMAIL }}
           IMAGE_TAG: ${{ secrets.IMAGE_TAG }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
           NODE_ENV: ${{ secrets.NODE_ENV }}
           PG_USERNAME: ${{ secrets.PG_USERNAME }}
           PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
