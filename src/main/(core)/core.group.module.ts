@@ -11,4 +11,4 @@ import { RevenueModule } from "./revenue/revenue.module";
     providers: [],
     exports: [],
 })
-export class CoreGroupModule {}
+export class CoreGroupModule { }
