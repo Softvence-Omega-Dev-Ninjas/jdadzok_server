@@ -16,6 +16,21 @@ inputs:
   IMAGE_TAG:
     description: "IMAGE_TAG from .env.production"
     required: true
+  DOCKER_PASSWORD:
+    description: "DOCKER_PASSWORD from .env.production"
+    required: true
+  GIT_TOKEN:
+    description: "GIT_TOKEN from .env.production"
+    required: true
+  VPS_USER:
+    description: "VPS_USER from .env.production"
+    required: true
+  VPS_HOST:
+    description: "VPS_HOST from .env.production"
+    required: true
+  VPS_HOST_IP:
+    description: "VPS_HOST_IP from .env.production"
+    required: true
   NODE_ENV:
     description: "NODE_ENV from .env.production"
     required: true
@@ -122,6 +137,11 @@ runs:
           echo "PACKAGE_VERSION=${{ inputs.PACKAGE_VERSION }}"
           echo "EMAIL=${{ inputs.EMAIL }}"
           echo "IMAGE_TAG=${{ inputs.IMAGE_TAG }}"
+          echo "DOCKER_PASSWORD=${{ inputs.DOCKER_PASSWORD }}"
+          echo "GIT_TOKEN=${{ inputs.GIT_TOKEN }}"
+          echo "VPS_USER=${{ inputs.VPS_USER }}"
+          echo "VPS_HOST=${{ inputs.VPS_HOST }}"
+          echo "VPS_HOST_IP=${{ inputs.VPS_HOST_IP }}"
           echo "NODE_ENV=${{ inputs.NODE_ENV }}"
           echo "PG_USERNAME=${{ inputs.PG_USERNAME }}"
           echo "PG_PASSWORD=${{ inputs.PG_PASSWORD }}"
