@@ -6,7 +6,7 @@ import { NotificationToggleDto } from "./dto/notification-toggle";
 
 @Injectable()
 export class NotificationsService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     @HandleError("Failed to get notification setting")
     async getNotificationSetting(userId: string): Promise<TResponse<any>> {
@@ -32,9 +32,44 @@ export class NotificationsService {
         return successResponse(result, "Notification setting found successfully");
     }
 
+    //  --- -------- failed to notification--------
+    @HandleError("Failed to push  update notification setting")
+    async updateNotificationSetting(
+        userId: string,
+        dto: NotificationToggleDto,
+    ): Promise<TResponse<any>> {
+        const result = await this.prisma.notificationToggle.upsert({
+            where: {
+                userId: userId,
+            },
+            update: {
+                email: dto.email,
+                communication: dto.communication,
+                community: dto.community,
+                post: dto.post,
+                comment: dto.comment,
+                message: dto.message,
+                userRegistration: dto.userRegistration,
+            },
+            create: {
+                userId: userId,
+                email: dto.email,
+                communication: dto.communication,
+                community: dto.community,
+                post: dto.post,
+                comment: dto.comment,
+                message: dto.message,
+                userRegistration: dto.userRegistration,
+            },
+        });
+        return successResponse(result, "Notification setting updated successfully");
+    }
+
+
+
     //   --------------ProfileUpdateNotificationSettingOn update user notification now -------------------
 
-    @HandleError("Failed to update notification setting")
+    @HandleError("Failed to update notification setting ProfileUpdateNotificationSettingOn")
     async ProfileUpdateNotificationSettingOn(userId: string): Promise<TResponse<any>> {
         const changeNotification = await this.prisma.profile.update({
             where: {
@@ -45,7 +80,7 @@ export class NotificationsService {
             },
         });
 
-        return successResponse(changeNotification, "Notification setting updated successfully");
+        return successResponse(changeNotification, " ProfileUpdateNotificationSettingOn Notification setting updated successfully");
     }
 
     // ------------ Profile-ToogleNotificationSettingOff  off-----------
@@ -163,36 +198,5 @@ export class NotificationsService {
         );
     }
 
-    //  --- -------- failed to notification--------
-    @HandleError("Failed to update notification setting")
-    async updateNotificationSetting(
-        userId: string,
-        dto: NotificationToggleDto,
-    ): Promise<TResponse<any>> {
-        const result = await this.prisma.notificationToggle.upsert({
-            where: {
-                userId: userId,
-            },
-            update: {
-                email: dto.email,
-                communication: dto.communication,
-                community: dto.community,
-                post: dto.post,
-                comment: dto.comment,
-                message: dto.message,
-                userRegistration: dto.userRegistration,
-            },
-            create: {
-                userId: userId,
-                email: dto.email,
-                communication: dto.communication,
-                community: dto.community,
-                post: dto.post,
-                comment: dto.comment,
-                message: dto.message,
-                userRegistration: dto.userRegistration,
-            },
-        });
-        return successResponse(result, "Notification setting updated successfully");
-    }
+
 }

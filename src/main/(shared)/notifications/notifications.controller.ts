@@ -20,7 +20,7 @@ import { NotificationsService } from "./notifications.service";
 
 @Controller("notifications")
 export class NotificaitonsController {
-    constructor(private readonly NotificationsService: NotificationsService) {}
+    constructor(private readonly NotificationsService: NotificationsService) { }
 
     @UseGuards(JwtAuthGuard)
     async fetchSystemAdminNotificaiton(@GetUser() user: TUser) {
@@ -52,11 +52,17 @@ export class NotificaitonsController {
         return await this.NotificationsService.getNotificationSetting(userId);
     }
 
+    // ---------update notification push settings
+    @ApiOperation({ summary: (" push notification :-update notification push settings") })
+
+    @UsePipes(ValidationPipe)
+    @UseGuards(JwtAuthGuard)
     @Patch()
     async updateNotificationSetting(
         @GetUser("userId") userId: string,
         @Body() dto: NotificationToggleDto,
-    ): Promise<TResponse<any>> {
+    ) {
+        console.log('the user id', userId);
         return await this.NotificationsService.updateNotificationSetting(userId, dto);
     }
 
