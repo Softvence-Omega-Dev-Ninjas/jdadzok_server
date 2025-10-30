@@ -16,9 +16,10 @@ import { PostController } from "./posts.controller";
 import { PostRepository } from "./posts.repository";
 import { PostService } from "./posts.service";
 import { PostUtils } from "./utils";
+import { FollowModule } from "@module/(users)/follow/follow.module";
 
 @Module({
-    imports: [],
+    imports: [FollowModule],
     controllers: [PostController],
     providers: [
         JwtService,
