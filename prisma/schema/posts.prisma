@@ -8,6 +8,7 @@ model Post {
   // Post content
   text      String?    @db.Text
   mediaUrls String[]   @default([])
+  // mediaUrls Json?      @default("[]")
   mediaType MediaType? @default(IMAGE)
 
   // Post settings

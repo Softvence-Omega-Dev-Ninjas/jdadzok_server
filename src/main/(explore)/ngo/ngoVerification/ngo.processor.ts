@@ -1,4 +1,5 @@
 // src/verification/ngo-verification.processor.ts
+import { IdentityVerificationType } from "@constants/enums";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { Processor, WorkerHost } from "@nestjs/bullmq";
@@ -18,7 +19,11 @@ export class NgoVerificationProcessor extends WorkerHost {
     async process(job: any): Promise<any> {
         if (job.name !== QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION) return;
 
-        const { verificationId, documentUrls, verificationType } = job.data;
+        const { verificationId, documentUrls, verificationType }: {
+            verificationId: string;
+            documentUrls: string[];
+            verificationType: IdentityVerificationType
+        } = job.data;
 
         console.log(`Processing NGO verification for ID: ${verificationId}`);
 
@@ -183,30 +188,32 @@ export class NgoVerificationProcessor extends WorkerHost {
             // -------------------------------------------------
             // SUCCESS → persist
             // -------------------------------------------------
+            const verificationResponseObject =
+            {
+                scans: scanResults,
+                identityCheck: {
+                    expected: {
+                        name: expectedName,
+                        dob: expectedDob,
+                        gender: expectedGender,
+                    },
+                    scanned: {
+                        names: scannedNames,
+                        dobs: scannedDobs,
+                        genders: scannedGenders,
+                    },
+                },
+            }
             await this.prisma.ngoVerification.update({
                 where: { id: verificationId },
                 data: {
                     status: "APPROVED",
-                    verificationResponse: {
-                        scans: scanResults,
-                        identityCheck: {
-                            expected: {
-                                name: expectedName,
-                                dob: expectedDob,
-                                gender: expectedGender,
-                            },
-                            scanned: {
-                                names: scannedNames,
-                                dobs: scannedDobs,
-                                genders: scannedGenders,
-                            },
-                        },
-                    },
-                    verificationType,
+                    verificationType: verificationType,
+                    verificationResponse: verificationResponseObject,
                 },
             });
 
-            console.log(
+            console.info(
                 `User verification complete: ${verificationId} (APPROVED)`,
                 "\nScanner Results:",
                 JSON.stringify(scanResults, null, 2),
@@ -218,8 +225,8 @@ export class NgoVerificationProcessor extends WorkerHost {
                 e instanceof InvalidArgumentException
                     ? e.message
                     : e instanceof APIError
-                      ? `${e.code} - ${e.msg}`
-                      : (e?.message ?? "Unknown error");
+                        ? `${e.code} - ${e.msg}`
+                        : (e?.message ?? "Unknown error");
 
             console.log(
                 `Failed to verify NGO (${verificationId}): ${errMsg}`,

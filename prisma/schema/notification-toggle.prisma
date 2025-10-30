@@ -11,4 +11,6 @@ model NotificationToggle {
   ngo              Boolean @default(true)
   userId           String  @unique
   user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification-toggle")
 }

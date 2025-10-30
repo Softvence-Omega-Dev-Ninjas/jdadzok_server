@@ -2,6 +2,7 @@ model AboutUs {
   id String @id @default(uuid())
 
   photos String[] @default([])
+  // photos Json   @default("[]")
   about  String
 
   createdAt DateTime @default(now())
