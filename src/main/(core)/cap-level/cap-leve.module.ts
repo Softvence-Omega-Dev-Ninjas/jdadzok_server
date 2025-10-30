@@ -6,6 +6,8 @@ import { VolunteerTrackingService } from "../volunteer-tracking/volunteer-tracki
 import { CapLevelRepository } from "./cap-lavel.repository";
 import { CapLevelService } from "./cap-lavel.service";
 import { CapLevelController } from "./cap-level.controller";
+import { ScheduleModule } from "@nestjs/schedule";
+import { CapLevelCronService } from "./corn-jobs/corn.service";
 /**
  * Cap Level Module - Comprehensive cap level management system
  *
@@ -24,7 +26,7 @@ import { CapLevelController } from "./cap-level.controller";
  * - Integration with user engagement systems
  */
 @Module({
-    imports: [],
+    imports: [ ScheduleModule.forRoot()],
     controllers: [CapLevelController, RevenueController],
     providers: [
         CapLevelRepository,
@@ -32,6 +34,8 @@ import { CapLevelController } from "./cap-level.controller";
         UserMetricsService,
         AdRevenueService,
         VolunteerTrackingService,
+        CapLevelCronService
+       
     ],
     exports: [CapLevelService, UserMetricsService, AdRevenueService, VolunteerTrackingService],
 })
