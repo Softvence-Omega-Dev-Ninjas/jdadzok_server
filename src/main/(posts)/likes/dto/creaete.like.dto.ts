@@ -8,7 +8,7 @@ class CreateLike {
     userId?: string;
 
     @ApiProperty({
-        example: "post-uuid-here",
+        example: "82c6a3c7-5db4-4a5d-9b0e-123456789abc",
         type: String,
         format: "uuid",
     })
@@ -16,7 +16,7 @@ class CreateLike {
     postId: string;
 
     @ApiProperty({
-        example: "comment-uuid-here",
+        example: "82c6a3c7-5db4-4a5d-9b0e-123456789abc",
         type: String,
         format: "uuid",
     })

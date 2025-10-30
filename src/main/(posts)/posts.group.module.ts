@@ -6,6 +6,7 @@ import { LocationModule } from "./locations/locations.module";
 import { CategoryModule } from "./post-category/category.module";
 import { PostMetadataModule } from "./post-metadata/post.metadata.module";
 import { PostModule } from "./posts/posts.module";
+import { ShareModule } from "./share/share.module";
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { PostModule } from "./posts/posts.module";
         LocationModule,
         LikeModule,
         CommentModule,
+        ShareModule,
     ],
     controllers: [],
     providers: [],
