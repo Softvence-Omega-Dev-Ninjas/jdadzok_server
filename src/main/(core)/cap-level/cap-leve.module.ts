@@ -34,7 +34,7 @@ import { CapLevelCronService } from "./corn-jobs/corn.service";
         UserMetricsService,
         AdRevenueService,
         VolunteerTrackingService,
-        CapLevelCronService
+        CapLevelCronService,
        
     ],
     exports: [CapLevelService, UserMetricsService, AdRevenueService, VolunteerTrackingService],

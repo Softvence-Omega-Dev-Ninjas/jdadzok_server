@@ -1,8 +1,10 @@
 import { Queue } from "bullmq";
 import IORedis from "ioredis";
 
-// Redis connection
-const connection = new IORedis(6379, "localhost");
+// Use 'redis' — the Docker service name — not localhost
+const connection = new IORedis({
+  host: "redis",
+  port: 6379,
+});
 
-// Export the queue to be used in the Cron job
 export const capQueue = new Queue("capQueue", { connection });
