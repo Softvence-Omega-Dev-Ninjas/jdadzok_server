@@ -19,10 +19,14 @@ export class NgoVerificationProcessor extends WorkerHost {
     async process(job: any): Promise<any> {
         if (job.name !== QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION) return;
 
-        const { verificationId, documentUrls, verificationType }: {
+        const {
+            verificationId,
+            documentUrls,
+            verificationType,
+        }: {
             verificationId: string;
             documentUrls: string[];
-            verificationType: IdentityVerificationType
+            verificationType: IdentityVerificationType;
         } = job.data;
 
         console.log(`Processing NGO verification for ID: ${verificationId}`);
@@ -188,8 +192,7 @@ export class NgoVerificationProcessor extends WorkerHost {
             // -------------------------------------------------
             // SUCCESS → persist
             // -------------------------------------------------
-            const verificationResponseObject =
-            {
+            const verificationResponseObject = {
                 scans: scanResults,
                 identityCheck: {
                     expected: {
@@ -203,7 +206,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                         genders: scannedGenders,
                     },
                 },
-            }
+            };
             await this.prisma.ngoVerification.update({
                 where: { id: verificationId },
                 data: {
@@ -225,8 +228,8 @@ export class NgoVerificationProcessor extends WorkerHost {
                 e instanceof InvalidArgumentException
                     ? e.message
                     : e instanceof APIError
-                        ? `${e.code} - ${e.msg}`
-                        : (e?.message ?? "Unknown error");
+                      ? `${e.code} - ${e.msg}`
+                      : (e?.message ?? "Unknown error");
 
             console.log(
                 `Failed to verify NGO (${verificationId}): ${errMsg}`,
