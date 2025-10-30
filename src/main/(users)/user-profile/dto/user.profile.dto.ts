@@ -1,59 +1,62 @@
 import { ApiPropertyOptional, IntersectionType, PartialType } from "@nestjs/swagger";
-import { IsOptional, IsString, IsUrl } from "class-validator";
+import { Gender } from "@prisma/client";
+import { IsBoolean, IsEnum, IsISO8601, IsOptional, IsString, IsUrl } from "class-validator";
 
 class UserProfile {
-    @ApiPropertyOptional({
-        description: "Full name of the user",
-        example: "John Doe",
-    })
+    @ApiPropertyOptional({ example: "John Doe" })
     @IsOptional()
     @IsString()
     name?: string;
 
-    @ApiPropertyOptional({ description: "Unique username", example: "johndoe" })
+    @ApiPropertyOptional({ example: "john_doe" })
     @IsOptional()
     @IsString()
     username?: string;
 
-    @ApiPropertyOptional({
-        description: "Professional title",
-        example: "Software Engineer",
-    })
+    @ApiPropertyOptional({ example: "Software Engineer" })
     @IsOptional()
     @IsString()
     title?: string;
 
-    @ApiPropertyOptional({
-        description: "User bio or description",
-        example: "Loves TypeScript and NestJS",
-    })
+    @ApiPropertyOptional({ example: "Loves TypeScript and NestJS" })
     @IsOptional()
     @IsString()
     bio?: string;
 
-    @ApiPropertyOptional({
-        description: "URL to avatar image",
-        example: "https://example.com/avatar.png",
-    })
+    @ApiPropertyOptional({ example: "https://example.com/avatar.png" })
     @IsOptional()
     @IsUrl()
     avatarUrl?: string;
 
-    @ApiPropertyOptional({
-        description: "URL to cover photo",
-        example: "https://example.com/cover.jpg",
-    })
+    @ApiPropertyOptional({ example: "https://example.com/cover.jpg" })
     @IsOptional()
     @IsUrl()
     coverUrl?: string;
 
-    @ApiPropertyOptional({
-        description: "User location",
-        example: "New York, USA",
-    })
+    @ApiPropertyOptional({ example: "New York, USA" })
     @IsOptional()
     @IsString()
     location?: string;
+
+    @ApiPropertyOptional({ example: false })
+    @IsOptional()
+    @IsBoolean()
+    isToggleNotification?: boolean;
+
+    @ApiPropertyOptional({ example: "1995-10-10T00:00:00.000Z" })
+    @IsOptional()
+    @IsISO8601()
+    dateOfBirth?: string;
+
+    @ApiPropertyOptional({ enum: Gender, example: Gender.MALE })
+    @IsOptional()
+    @IsEnum(Gender)
+    gender?: Gender;
+
+    @ApiPropertyOptional({ example: "5 years in full-stack development" })
+    @IsOptional()
+    @IsString()
+    experience?: string;
 }
 
 export class CreateUserProfileDto extends IntersectionType(UserProfile) {}
