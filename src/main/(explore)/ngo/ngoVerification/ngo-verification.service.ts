@@ -28,30 +28,90 @@ export class NgoVerificationService {
         dto: CreateNgoVerificationDto,
         documents: Array<Express.Multer.File>,
     ) {
+        // -----------------------------------------------------
+        //  NGO ownership & authorization
+        // -----------------------------------------------------
         const ngo = await this.prisma.ngo.findUnique({
             where: { id: ngoId },
-            include: { owner: true },
+            include: {
+                owner: {
+                    include: { profile: true },
+                },
+            },
         });
-        if (!ngo) throw new NotFoundException("NGO not found");
-        if (ngo.ownerId !== userId)
-            throw new ForbiddenException("You are not authorized for this NGO");
 
-        const existing = await this.prisma.ngoVerification.findFirst({
-            where: { ngoId, status: { in: ["PENDING", "APPROVED"] } },
-        });
-        if (existing)
-            throw new BadRequestException(
-                "A verification request already exists or has been approved",
-            );
-
-        if (!documents) {
-            throw new BadRequestException("Documents file is required");
+        if (!ngo) {
+            throw new NotFoundException("NGO not found");
         }
 
-        // Upload to S3
+        if (ngo.ownerId !== userId) {
+            throw new ForbiddenException("You are not authorized for this NGO");
+        }
+
+        const profile = ngo.owner?.profile;
+        if (!profile) {
+            throw new BadRequestException(
+                "Owner profile not found. Please complete your profile before applying for verification.",
+            );
+        }
+
+        // -----------------------------------------------------
+        //    Profile validation
+        // -----------------------------------------------------
+        const name = profile.name?.trim();
+        const dob = profile.dateOfBirth;
+        const gender = profile.gender;
+
+        if (!name) {
+            throw new BadRequestException(
+                "Owner profile missing name – please update your profile name before applying for verification.",
+            );
+        }
+
+        if (!dob) {
+            throw new BadRequestException(
+                "Owner profile missing date of birth – please update your profile date of birth before applying for verification.",
+            );
+        }
+
+        if (!gender) {
+            throw new BadRequestException(
+                "Owner profile missing gender – please update your profile gender before applying for verification.",
+            );
+        }
+
+        // -----------------------------------------------------
+        //   Prevent duplicate verification
+        // -----------------------------------------------------
+        const existing = await this.prisma.ngoVerification.findFirst({
+            where: {
+                ngoId,
+                status: { in: ["PENDING", "APPROVED"] },
+            },
+        });
+
+        if (existing) {
+            throw new BadRequestException(
+                "A verification request already exists or has been approved.",
+            );
+        }
+
+        // -----------------------------------------------------
+        //   Validate & upload documents
+        // -----------------------------------------------------
+        if (!documents || documents.length === 0) {
+            throw new BadRequestException("At least one verification document is required.");
+        }
+
         const uploadedDocs = await this.s3Service.uploadFiles(documents);
 
-        // Save in DB
+        if (!uploadedDocs || uploadedDocs.length === 0) {
+            throw new BadRequestException("Document upload failed. Please try again.");
+        }
+
+        // -----------------------------------------------------
+        // 5. Save verification request
+        // -----------------------------------------------------
         const verification = await this.prisma.ngoVerification.create({
             data: {
                 ngoId,
@@ -59,13 +119,19 @@ export class NgoVerificationService {
                 documents: uploadedDocs,
             },
         });
-        // TODO: once verification create successfully then add this verification apply to the queue job
-        // Do here...
+
+        // -----------------------------------------------------
+        // --Add to queue for async verification processing
+        // -----------------------------------------------------
         await this.verificationQueue.add(QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION, {
             verificationId: verification.id,
             documentUrls: uploadedDocs,
             verificationType: dto.verificationType,
         });
+
+        // -----------------------------------------------------
+        //    Return result
+        // -----------------------------------------------------
         return verification;
     }
 
