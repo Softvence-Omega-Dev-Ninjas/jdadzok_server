@@ -42,7 +42,7 @@ export class PostController {
         private readonly service: PostService,
         private readonly s3Service: S3Service,
         private readonly utils: PostUtils,
-    ) { }
+    ) {}
 
     @Post()
     @ApiOperation({ summary: "Create a new post" })
@@ -144,7 +144,6 @@ export class PostController {
     @UseGuards(JwtAuthGuard)
     async get_user_all_post(@GetUser() user: any) {
         try {
-
             console.log(user);
 
             const res = await this.service.get_all_post_of_user(user.userId);

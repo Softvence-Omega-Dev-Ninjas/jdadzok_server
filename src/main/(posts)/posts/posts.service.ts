@@ -17,7 +17,7 @@ export class PostService {
         private readonly repository: PostRepository,
         private readonly followRepository: FollowUnfollowRepository,
         private prisma: PrismaService,
-    ) { }
+    ) {}
 
     async create(input: CreatePostDto) {
         const post = await this.repository.store(input);
