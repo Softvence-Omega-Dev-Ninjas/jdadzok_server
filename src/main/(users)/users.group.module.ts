@@ -1,11 +1,11 @@
 import { Module } from "@nestjs/common";
-import { FollowUnfollowModule } from "./follow-unfollow/follow-unfollow.module";
 import { UserProfileModule } from "./user-profile/user.profile.module";
 import { UserModule } from "./users/users.module";
 import { PaymentMethodsModule } from "./payment-method/payment-method.module";
+import { FollowModule } from "./follow/follow.module";
 
 @Module({
-    imports: [UserModule, UserProfileModule, FollowUnfollowModule, PaymentMethodsModule],
+    imports: [UserModule, UserProfileModule, PaymentMethodsModule, FollowModule],
     controllers: [],
     providers: [],
     exports: [],

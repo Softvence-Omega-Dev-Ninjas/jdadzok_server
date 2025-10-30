@@ -1,5 +1,6 @@
+// import { FollowUnfollowRepository } from "@module/(users)/follow-unfollow/follow-unfollow.repository";
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { FollowUnfollowRepository } from "@module/(users)/follow-unfollow/follow-unfollow.repository";
+import { FollowService } from "@module/(users)/follow/follow.service";
 import {
     BadRequestException,
     ForbiddenException,
@@ -15,17 +16,17 @@ import { PostRepository } from "./posts.repository";
 export class PostService {
     constructor(
         private readonly repository: PostRepository,
-        private readonly followRepository: FollowUnfollowRepository,
+        private readonly followService: FollowService,
         private prisma: PrismaService,
-    ) {}
+    ) { }
 
     async create(input: CreatePostDto) {
         const post = await this.repository.store(input);
-
         if (!post) throw new BadRequestException("Fail to creaete post");
+        // fetch followers using FollowService
+        const followersResponse = await this.followService.getFollowers(post.authorId);
+        const followers = followersResponse.data;
 
-        const followers = await this.followRepository.findManyFollowerId(post?.authorId);
-        // send notification to the all followers
         for (const follower of followers) {
             console.info("notificaiton will get: ", follower);
             //   TODO: have to handle on the gateway not on endpoint
