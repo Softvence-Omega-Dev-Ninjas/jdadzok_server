@@ -19,13 +19,17 @@ export class NgoVerificationProcessor extends WorkerHost {
     async process(job: any): Promise<any> {
         if (job.name !== QUEUE_JOB_NAME.VERIFICATION.NGO_VERIFICATION) return;
 
-        const { verificationId, documentUrls, verificationType }: {
+        const {
+            verificationId,
+            documentUrls,
+            verificationType,
+        }: {
             verificationId: string;
             documentUrls: string[];
-            verificationType: IdentityVerificationType
+            verificationType: IdentityVerificationType;
         } = job.data;
 
-        console.log(`Processing NGO verification for ID: ${verificationId}`);
+        // console.log(`Processing NGO verification for ID: ${verificationId}`);
 
         const scanResults: any[] = [];
         let status = "APPROVED";
@@ -87,9 +91,9 @@ export class NgoVerificationProcessor extends WorkerHost {
                 throw new Error("Owner profile missing gender – profile.gender is null");
             }
 
-            console.log(
-                `Owner Check → Name: "${expectedName}" | DOB: "${expectedDob}" | Gender: "${expectedGender}"`,
-            );
+            // console.log(
+            //     `Owner Check → Name: "${expectedName}" | DOB: "${expectedDob}" | Gender: "${expectedGender}"`,
+            // );
 
             // -------------------------------------------------
             // 2. Scan every document
@@ -138,7 +142,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                 scannedDobs.push(dob);
                 scannedGenders.push(gender);
 
-                console.log(`Scanned → Name: "${fullName}" | DOB: "${dob}" | Gender: "${gender}"`);
+                // console.log(`Scanned → Name: "${fullName}" | DOB: "${dob}" | Gender: "${gender}"`);
             }
 
             if (status === "REJECTED") throw new Error(errorReason);
@@ -188,8 +192,7 @@ export class NgoVerificationProcessor extends WorkerHost {
             // -------------------------------------------------
             // SUCCESS → persist
             // -------------------------------------------------
-            const verificationResponseObject =
-            {
+            const verificationResponseObject = {
                 scans: scanResults,
                 identityCheck: {
                     expected: {
@@ -203,7 +206,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                         genders: scannedGenders,
                     },
                 },
-            }
+            };
             await this.prisma.ngoVerification.update({
                 where: { id: verificationId },
                 data: {
@@ -225,18 +228,18 @@ export class NgoVerificationProcessor extends WorkerHost {
                 e instanceof InvalidArgumentException
                     ? e.message
                     : e instanceof APIError
-                        ? `${e.code} - ${e.msg}`
-                        : (e?.message ?? "Unknown error");
+                      ? `${e.code} - ${e.msg}`
+                      : (e?.message ?? "Unknown error");
 
-            console.log(
-                `Failed to verify NGO (${verificationId}): ${errMsg}`,
-                "\nError Reason:",
-                errorReason || errMsg,
-                "\nScanner Results (partial):",
-                JSON.stringify(scanResults, null, 2),
-            );
+            // console.log(
+            //     `Failed to verify NGO (${verificationId}): ${errMsg}`,
+            //     "\nError Reason:",
+            //     errorReason || errMsg,
+            //     "\nScanner Results (partial):",
+            //     JSON.stringify(scanResults, null, 2),
+            // );
 
-            console.log(`Failed to verify NGO (${verificationId}): ${errMsg}`);
+            // console.log(`Failed to verify NGO (${verificationId}): ${errMsg}`);
 
             await this.prisma.ngoVerification.update({
                 where: { id: verificationId },

@@ -1,7 +1,5 @@
 import type { Role } from "@constants/enums";
-import {
-    SetMetadata
-} from "@nestjs/common";
+import { SetMetadata } from "@nestjs/common";
 
 export const ROLES_KEY = "role";
 export const Roles = <R extends Role>(...roles: R[]) => SetMetadata(ROLES_KEY, roles);

@@ -8,6 +8,7 @@ import {
     Delete,
     Get,
     Param,
+    Patch,
     Post,
     UseGuards,
     UsePipes,
@@ -23,7 +24,7 @@ import { UserService } from "./users.service";
 
 @Controller("users")
 export class UserController {
-    constructor(private readonly service: UserService) { }
+    constructor(private readonly service: UserService) {}
 
     @MakePublic()
     @Post("register")
@@ -69,7 +70,7 @@ export class UserController {
     }
 
     @ApiBearerAuth()
-    @Post("update")
+    @Patch("update")
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
     async update(@GetVerifiedUser() user: VerifiedUser, @Body() body: UpdateUserDto) {
