@@ -14,3 +14,8 @@
 - Added Ngo Controller --- create--delete -- update -- get single ngo (api)
 - Added Ngo Service those operation.
 - Ngo schema  foundationDate type change DateTime to  String
+
+# 30- 10 - 25
+- post metrics like and comment isssue fixed.
+- user update fixed and user profile fixed.
+

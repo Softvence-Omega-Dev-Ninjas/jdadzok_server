@@ -124,6 +124,9 @@ export class UserService {
     }
 
     async updateUser(userId: string, input: UpdateUserDto) {
+        if (input.email) {
+            throw new BadRequestException("Email Can't Change");
+        }
         const user = await this.repository.findById(userId);
         if (!user) throw new NotFoundException("User not found!"); // not required for all the time
         if (user.id !== userId)

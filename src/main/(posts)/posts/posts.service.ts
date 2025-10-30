@@ -23,7 +23,10 @@ export class PostService {
         const post = await this.repository.store(input);
 
         if (!post) throw new BadRequestException("Fail to creaete post");
+<<<<<<< HEAD
         console.log(input);
+=======
+>>>>>>> ab32409919d4cc446872b3f7c819149efdf537f4
         const followers = await this.followRepository.findManyFollowerId(post?.authorId);
         // send notification to the all followers
         for (const follower of followers) {
