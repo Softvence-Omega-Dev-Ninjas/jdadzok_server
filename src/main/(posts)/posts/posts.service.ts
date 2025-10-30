@@ -1,4 +1,4 @@
-import { FollowUnfollowRepository } from "@module/(users)/follow-unfollow/follow-unfollow.repository";
+// import { FollowUnfollowRepository } from "@module/(users)/follow-unfollow/follow-unfollow.repository";
 import {
     BadRequestException,
     ForbiddenException,
@@ -15,7 +15,7 @@ import { PrismaService } from "@lib/prisma/prisma.service";
 export class PostService {
     constructor(
         private readonly repository: PostRepository,
-        private readonly followRepository: FollowUnfollowRepository,
+        // private readonly followRepository: FollowUnfollowRepository,
         private prisma: PrismaService,
     ) {}
 
@@ -23,21 +23,21 @@ export class PostService {
         const post = await this.repository.store(input);
 
         if (!post) throw new BadRequestException("Fail to creaete post");
-        const followers = await this.followRepository.findManyFollowerId(post?.authorId);
-        // send notification to the all followers
-        for (const follower of followers) {
-            console.info("notificaiton will get: ", follower);
-            //   TODO: have to handle on the gateway not on endpoint
-            // this.postGetway.emit("post:new", {
-            //   data: post,
-            //   type: "notification",
-            //   from: post.authorId,
-            //   to: follower.followerId,
-            //   meta: {
-            //     message: `${post.author.profile?.name} add a new post`,
-            //   },
-            // });
-        }
+        // const followers = await this.followRepository.findManyFollowerId(post?.authorId);
+        // // send notification to the all followers
+        // for (const follower of followers) {
+        //     console.info("notificaiton will get: ", follower);
+        //     //   TODO: have to handle on the gateway not on endpoint
+        //     // this.postGetway.emit("post:new", {
+        //     //   data: post,
+        //     //   type: "notification",
+        //     //   from: post.authorId,
+        //     //   to: follower.followerId,
+        //     //   meta: {
+        //     //     message: `${post.author.profile?.name} add a new post`,
+        //     //   },
+        //     // });
+        // }
         return post;
     }
 
