@@ -20,7 +20,7 @@ import { NotificationsService } from "./notifications.service";
 
 @Controller("notifications")
 export class NotificaitonsController {
-    constructor(private readonly NotificationsService: NotificationsService) { }
+    constructor(private readonly NotificationsService: NotificationsService) {}
 
     @UseGuards(JwtAuthGuard)
     async fetchSystemAdminNotificaiton(@GetUser() user: TUser) {

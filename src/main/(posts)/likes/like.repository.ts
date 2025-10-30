@@ -24,10 +24,24 @@ export class LikeRepository {
                 data: {
                     ...data,
                     userId: data.userId!,
+                    postId: data.postId!,
                 },
             });
 
             // Update totalLikes in UserMetrics
+            await tx.postMetrics.upsert({
+                where: { postId: data.postId! },
+                create: {
+                    postId: data.postId!,
+                    totalLikes: 1,
+                },
+                update: {
+                    totalLikes: { increment: 1 },
+                    lastUpdated: new Date(),
+                },
+            });
+
+            // Update user metrics
             await tx.userMetrics.upsert({
                 where: { userId: data.userId! },
                 create: {
@@ -39,6 +53,7 @@ export class LikeRepository {
                     lastUpdated: new Date(),
                 },
             });
+
             //  Return response
             return successResponse(like, data.commentId ? "Comment liked" : "Post liked");
         });

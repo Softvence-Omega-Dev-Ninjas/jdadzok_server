@@ -1,10 +1,17 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Type, UnauthorizedException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import {
+    CanActivate,
+    ExecutionContext,
+    ForbiddenException,
+    Injectable,
+    Type,
+    UnauthorizedException,
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 
 export function createBaseGuard<T = any>(metadataKey: string): Type<CanActivate> {
     @Injectable()
     class BaseGuard implements CanActivate {
-        constructor(private readonly reflector: Reflector) { }
+        constructor(private readonly reflector: Reflector) {}
 
         canActivate(context: ExecutionContext): boolean {
             const requiredValues = this.reflector.getAllAndOverride<T[]>(metadataKey, [
@@ -18,7 +25,7 @@ export function createBaseGuard<T = any>(metadataKey: string): Type<CanActivate>
             const user = request.user;
 
             if (!user) {
-                throw new UnauthorizedException('Unauthorized: No user found in request.');
+                throw new UnauthorizedException("Unauthorized: No user found in request.");
             }
 
             const userValue = user?.[metadataKey];
@@ -26,7 +33,10 @@ export function createBaseGuard<T = any>(metadataKey: string): Type<CanActivate>
             if (!userValue) throw new ForbiddenException(`User has no ${metadataKey} value.`);
 
             const isAllowed = requiredValues.includes(userValue as T);
-            if (!isAllowed) throw new ForbiddenException(`Access denied. Required ${metadataKey}: [${requiredValues.join(', ')}]`);
+            if (!isAllowed)
+                throw new ForbiddenException(
+                    `Access denied. Required ${metadataKey}: [${requiredValues.join(", ")}]`,
+                );
 
             return true;
         }
