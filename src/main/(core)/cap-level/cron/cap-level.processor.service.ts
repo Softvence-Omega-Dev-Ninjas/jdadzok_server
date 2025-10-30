@@ -1,157 +1,100 @@
+import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { UserMetricsService } from "@module/(users)/profile-metrics/user-metrics.service";
-import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
+import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { Job, Queue } from "bullmq";
 import { AdRevenueService } from "../../ad-revenue/ad-revenue.service";
 import { VolunteerTrackingService } from "../../volunteer-tracking/volunteer-tracking.service";
 import { CapLevelService } from "../cap-lavel.service";
-import { capLevelJobType } from "../constants";
 import {
     BatchMetricsJobData,
     BatchPromotionJobData,
     MonthlyRevenueJobData,
-    UserEligibilityJobData,
     UserMetricsUpdateJobData,
     UserPromotionJobData,
     VolunteerHoursJobData,
 } from "../types";
 
-/**
- * Cap Level Background Job Processor
- * Handles all automated cap level related tasks using BullMQ
- */
-@Processor("cap-level-queue")
 @Injectable()
-export class CapLevelProcessor extends WorkerHost {
-    private readonly logger = new Logger(CapLevelProcessor.name);
+export class CapLevelProcessorService {
+    private readonly logger = new Logger(CapLevelProcessorService.name);
 
     constructor(
-        private readonly queue: Queue,
+        @InjectQueue(QUEUE_JOB_NAME.CAP_LEVEL.CAP_LEVEL_QUEUE_NAME) private readonly queue: Queue,
         private readonly capLevelService: CapLevelService,
         private readonly userMetricsService: UserMetricsService,
         private readonly adRevenueService: AdRevenueService,
         private readonly volunteerTrackingService: VolunteerTrackingService,
     ) {
-        super();
         this.logger.log("Cap Level Processor initialized");
-    }
-
-    /**
-     * Process individual jobs based on job type
-     */
-    async process(job: Job<any, any, string>) {
-        this.logger.log(`Processing job: ${job.name} (ID: ${job.id})`);
-
-        try {
-            switch (job.name) {
-                case capLevelJobType["CALCULATE_USER_ELIGIBILITY"]:
-                    return await this.processUserEligibility(job);
-
-                case capLevelJobType["PROMOTE_USER"]:
-                    return await this.processUserPromotion(job);
-
-                case capLevelJobType["UPDATE_USER_METRICS"]:
-                    return await this.processUserMetricsUpdate(job);
-
-                case capLevelJobType["RECALCULATE_ACTIVITY_SCORE"]:
-                    return await this.processActivityScoreRecalculation(job);
-
-                case capLevelJobType["BATCH_PROMOTE_USERS"]:
-                    return await this.processBatchPromotion(job);
-
-                case capLevelJobType["BATCH_RECALCULATE_METRICS"]:
-                    return await this.processBatchMetricsRecalculation(job);
-
-                case capLevelJobType["CALCULATE_MONTHLY_REVENUE"]:
-                    return await this.processMonthlyRevenue(job);
-
-                case capLevelJobType["PROCESS_VOLUNTEER_HOURS"]:
-                    return await this.processVolunteerHours(job);
-
-                case capLevelJobType["CHECK_SERVICE_COMPLETION"]:
-                    return await this.processServiceCompletionCheck(job);
-
-                case capLevelJobType["CLEANUP_OLD_DATA"]:
-                    return await this.processDataCleanup(job);
-
-                case capLevelJobType["GENERATE_REPORTS"]:
-                    return await this.processReportGeneration(job);
-
-                default:
-                    throw new Error(`Unknown job type: ${job.name}`);
-            }
-        } catch (error) {
-            this.logger.error(`Job processing failed: ${job.name} (ID: ${job.id})`, error.stack);
-            throw error;
-        }
     }
 
     /**
      * Calculate user eligibility for cap level promotion
      */
-    private async processUserEligibility(job: Job<UserEligibilityJobData>) {
-        const { userId, triggerAction } = job.data;
+    // async processUserEligibility(job: Job<UserEligibilityJobData>) {
+    //     const { userId, triggerAction } = job.data;
 
-        this.logger.log(
-            `Calculating eligibility for user ${userId} (triggered by: ${triggerAction})`,
-        );
+    //     this.logger.log(
+    //         `Calculating eligibility for user ${userId} (triggered by: ${triggerAction})`,
+    //     );
 
-        const eligibility = await this.capLevelService.calculateCapEligibility(userId);
+    //     const eligibility = await this.capLevelService.calculateCapEligibility(userId);
 
-        // If user is eligible for automatic promotion, queue promotion job
-        if (eligibility.canPromote) {
-            const requirements = eligibility.requirements;
+    //     // If user is eligible for automatic promotion, queue promotion job
+    //     if (eligibility.canPromote) {
+    //         const requirements = eligibility.requirements;
 
-            // Auto-promote for levels that don't require verification
-            if (
-                requirements &&
-                !requirements.requiresVerification &&
-                !requirements.requiresNomination
-            ) {
-                await this.queue.add(
-                    capLevelJobType["PROMOTE_USER"],
-                    {
-                        userId,
-                        targetLevel: eligibility.eligibleLevel,
-                        bypassVerification: false,
-                        triggeredBy: "system",
-                    } as UserPromotionJobData,
-                    {
-                        delay: 1000,
-                    },
-                );
+    //         // Auto-promote for levels that don't require verification
+    //         if (
+    //             requirements &&
+    //             !requirements.requiresVerification &&
+    //             !requirements.requiresNomination
+    //         ) {
+    //             await this.queue.add(
+    //                 capLevelJobType["PROMOTE_USER"],
+    //                 {
+    //                     userId,
+    //                     targetLevel: eligibility.eligibleLevel,
+    //                     bypassVerification: false,
+    //                     triggeredBy: "system",
+    //                 } as UserPromotionJobData,
+    //                 {
+    //                     delay: 1000,
+    //                 },
+    //             );
 
-                // await job.addJob(RedisConfig, capLevelJobType["PROMOTE_USER"], {
-                //   userId,
-                //   targetLevel: eligibility.eligibleLevel,
-                //   bypassVerification: false,
-                //   triggeredBy: 'system',
-                // } as UserPromotionJobData, {
-                //   delay: 1000, // Small delay to ensure data consistency
-                // });
+    //             // await job.addJob(RedisConfig, capLevelJobType["PROMOTE_USER"], {
+    //             //   userId,
+    //             //   targetLevel: eligibility.eligibleLevel,
+    //             //   bypassVerification: false,
+    //             //   triggeredBy: 'system',
+    //             // } as UserPromotionJobData, {
+    //             //   delay: 1000, // Small delay to ensure data consistency
+    //             // });
 
-                this.logger.log(
-                    `Queued automatic promotion for user ${userId} to ${eligibility.eligibleLevel}`,
-                );
-            } else {
-                this.logger.log(
-                    `User ${userId} eligible for ${eligibility.eligibleLevel} but requires manual verification`,
-                );
-            }
-        }
+    //             this.logger.log(
+    //                 `Queued automatic promotion for user ${userId} to ${eligibility.eligibleLevel}`,
+    //             );
+    //         } else {
+    //             this.logger.log(
+    //                 `User ${userId} eligible for ${eligibility.eligibleLevel} but requires manual verification`,
+    //             );
+    //         }
+    //     }
 
-        return {
-            userId,
-            eligibility,
-            autoPromotionQueued:
-                eligibility.canPromote && eligibility.requirements?.requiresVerification === false,
-        };
-    }
+    //     return {
+    //         userId,
+    //         eligibility,
+    //         autoPromotionQueued:
+    //             eligibility.canPromote && eligibility.requirements?.requiresVerification === false,
+    //     };
+    // }
 
     /**
      * Process user cap level promotion
      */
-    private async processUserPromotion(job: Job<UserPromotionJobData>): Promise<any> {
+    async processUserPromotion(job: Job<UserPromotionJobData>): Promise<any> {
         const { userId, targetLevel, bypassVerification, triggeredBy } = job.data;
 
         this.logger.log(
@@ -185,7 +128,7 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process user metrics update
      */
-    private async processUserMetricsUpdate(job: Job<UserMetricsUpdateJobData>) {
+    async processUserMetricsUpdate(job: Job<UserMetricsUpdateJobData>) {
         const { userId, metricsUpdate, recalculateScore = true } = job.data;
 
         this.logger.log(`Updating metrics for user ${userId}`);
@@ -201,16 +144,16 @@ export class CapLevelProcessor extends WorkerHost {
             await this.userMetricsService.recalculateAndUpdateActivityScore(userId);
 
             // Queue eligibility check
-            await this.queue.add(
-                capLevelJobType["CALCULATE_USER_ELIGIBILITY"],
-                {
-                    userId,
-                    triggerAction: "metrics_update",
-                } as UserEligibilityJobData,
-                {
-                    delay: 2000, // Delay to ensure score recalculation is complete
-                },
-            );
+            // await this.queue.add(
+            //     capLevelJobType["CALCULATE_USER_ELIGIBILITY"],
+            //     {
+            //         userId,
+            //         triggerAction: "metrics_update",
+            //     } as UserEligibilityJobData,
+            //     {
+            //         delay: 2000, // Delay to ensure score recalculation is complete
+            //     },
+            // );
         }
 
         return {
@@ -223,7 +166,7 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process activity score recalculation
      */
-    private async processActivityScoreRecalculation(job: Job<{ userId: string }>) {
+    async processActivityScoreRecalculation(job: Job<{ userId: string }>) {
         const { userId } = job.data;
 
         this.logger.log(`Recalculating activity score for user ${userId}`);
@@ -233,16 +176,16 @@ export class CapLevelProcessor extends WorkerHost {
         const newScore = updatedMetrics.activityScore;
 
         // Queue eligibility check after score update
-        await this.queue.add(
-            capLevelJobType["CALCULATE_USER_ELIGIBILITY"],
-            {
-                userId,
-                triggerAction: "score_recalculation",
-            } as UserEligibilityJobData,
-            {
-                delay: 1000,
-            },
-        );
+        // await this.queue.add(
+        //     capLevelJobType["CALCULATE_USER_ELIGIBILITY"],
+        //     {
+        //         userId,
+        //         triggerAction: "score_recalculation",
+        //     } as UserEligibilityJobData,
+        //     {
+        //         delay: 1000,
+        //     },
+        // );
 
         return {
             userId,
@@ -255,7 +198,7 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process batch user promotions
      */
-    private async processBatchPromotion(job: Job<BatchPromotionJobData>) {
+    async processBatchPromotion(job: Job<BatchPromotionJobData>) {
         const { capLevel, maxUsers = 100, dryRun = false, adminId } = job.data;
 
         this.logger.log(
@@ -281,7 +224,7 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process batch metrics recalculation
      */
-    private async processBatchMetricsRecalculation(job: Job<BatchMetricsJobData>) {
+    async processBatchMetricsRecalculation(job: Job<BatchMetricsJobData>) {
         const { userIds, capLevel, lastUpdatedBefore, batchSize = 50, adminId } = job.data;
 
         this.logger.log(`Processing batch metrics recalculation (batch size: ${batchSize})`);
@@ -315,7 +258,7 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process monthly revenue calculation
      */
-    private async processMonthlyRevenue(job: Job<MonthlyRevenueJobData>) {
+    async processMonthlyRevenue(job: Job<MonthlyRevenueJobData>) {
         const { month, year, totalPlatformRevenue, dryRun = false, adminId } = job.data;
 
         this.logger.log(
@@ -339,7 +282,7 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process volunteer hours update
      */
-    private async processVolunteerHours(job: Job<VolunteerHoursJobData>) {
+    async processVolunteerHours(job: Job<VolunteerHoursJobData>) {
         const { userId, hours, projectId, workDescription, workDate } = job.data;
 
         this.logger.log(`Processing volunteer hours for user ${userId}: ${hours} hours`);
@@ -363,7 +306,7 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process 8-week service completion check
      */
-    private async processServiceCompletionCheck(job: Job<{ userId: string }>): Promise<any> {
+    async processServiceCompletionCheck(job: Job<{ userId: string }>): Promise<any> {
         const { userId } = job.data;
 
         this.logger.log(`Checking 8-week service completion for user ${userId}`);
@@ -381,7 +324,7 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process data cleanup tasks
      */
-    private async processDataCleanup(job: Job<any>): Promise<any> {
+    async processDataCleanup(job: Job<any>): Promise<any> {
         this.logger.log("Processing data cleanup tasks");
         this.logger.log(`Job name: ${job.name}`);
 
@@ -400,7 +343,7 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process report generation
      */
-    private async processReportGeneration(job: Job<any>): Promise<any> {
+    async processReportGeneration(job: Job<any>): Promise<any> {
         this.logger.log("Processing report generation");
         this.logger.log(`Job name: ${job.name}`);
 
@@ -413,35 +356,5 @@ export class CapLevelProcessor extends WorkerHost {
             generatedAt: new Date(),
             reportsGenerated: ["cap_level_stats", "revenue_report", "volunteer_summary"],
         };
-    }
-
-    /**
-     * Event handlers for job lifecycle
-     */
-    @OnWorkerEvent("completed")
-    onCompleted(job: Job) {
-        this.logger.log(
-            `Job completed: ${job.name} (ID: ${job.id}) in ${job.processedOn ? Date.now() - job.processedOn : "unknown"}ms`,
-        );
-    }
-
-    @OnWorkerEvent("failed")
-    onFailed(job: Job, error: Error) {
-        this.logger.error(`Job failed: ${job.name} (ID: ${job.id})`, error.stack);
-    }
-
-    @OnWorkerEvent("active")
-    onActive(job: Job) {
-        this.logger.debug(`Job started: ${job.name} (ID: ${job.id})`);
-    }
-
-    @OnWorkerEvent("stalled")
-    onStalled(job: Job) {
-        this.logger.warn(`Job stalled: ${job.name} (ID: ${job.id})`);
-    }
-
-    @OnWorkerEvent("progress")
-    onProgress(job: Job, progress: number) {
-        this.logger.debug(`Job progress: ${job.name} (ID: ${job.id}) - ${progress}%`);
     }
 }

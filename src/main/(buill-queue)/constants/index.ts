@@ -7,4 +7,7 @@ export const QUEUE_JOB_NAME = {
         NGO_VERIFICATION: "ngo:verification",
         NGO_VERIFICATION_PROCESSOR: "ngo_verification_processor",
     },
+    CAP_LEVEL: {
+        CAP_LEVEL_QUEUE_NAME: "cap-level-queue",
+    },
 } as const;

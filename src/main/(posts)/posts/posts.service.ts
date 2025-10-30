@@ -1,3 +1,4 @@
+import { PrismaService } from "@lib/prisma/prisma.service";
 import { FollowUnfollowRepository } from "@module/(users)/follow-unfollow/follow-unfollow.repository";
 import {
     BadRequestException,
@@ -9,7 +10,6 @@ import {
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
 import { PostRepository } from "./posts.repository";
-import { PrismaService } from "@lib/prisma/prisma.service";
 
 @Injectable()
 export class PostService {
@@ -23,7 +23,6 @@ export class PostService {
         const post = await this.repository.store(input);
 
         if (!post) throw new BadRequestException("Fail to creaete post");
-        console.log(input);
         const followers = await this.followRepository.findManyFollowerId(post?.authorId);
         // send notification to the all followers
         for (const follower of followers) {

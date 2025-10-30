@@ -28,13 +28,13 @@ export class LikeRepository {
             });
 
             await tx.userMetrics.update({
-                where:{
-                    userId:data.userId
+                where: {
+                    userId: data.userId,
                 },
-                data:{
-                    activityScore:{increment:1}
-                }
-            })
+                data: {
+                    activityScore: { increment: 1 },
+                },
+            });
             // Update totalLikes in UserMetrics
             await tx.userMetrics.upsert({
                 where: { userId: data.userId! },
@@ -62,7 +62,7 @@ export class LikeRepository {
                     commentId,
                 },
             });
-            
+
             //  Only decrement if like existed
             if (like.count > 0) {
                 await tx.userMetrics.updateMany({

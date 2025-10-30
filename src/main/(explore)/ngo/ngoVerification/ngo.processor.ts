@@ -29,7 +29,7 @@ export class NgoVerificationProcessor extends WorkerHost {
             verificationType: IdentityVerificationType;
         } = job.data;
 
-        console.log(`Processing NGO verification for ID: ${verificationId}`);
+        console.info(`Processing NGO verification for ID: ${verificationId}`);
 
         const scanResults: any[] = [];
         let status = "APPROVED";
@@ -91,7 +91,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                 throw new Error("Owner profile missing gender – profile.gender is null");
             }
 
-            console.log(
+            console.info(
                 `Owner Check → Name: "${expectedName}" | DOB: "${expectedDob}" | Gender: "${expectedGender}"`,
             );
 
@@ -142,7 +142,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                 scannedDobs.push(dob);
                 scannedGenders.push(gender);
 
-                console.log(`Scanned → Name: "${fullName}" | DOB: "${dob}" | Gender: "${gender}"`);
+                console.info(`Scanned → Name: "${fullName}" | DOB: "${dob}" | Gender: "${gender}"`);
             }
 
             if (status === "REJECTED") throw new Error(errorReason);
@@ -231,7 +231,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                       ? `${e.code} - ${e.msg}`
                       : (e?.message ?? "Unknown error");
 
-            console.log(
+            console.info(
                 `Failed to verify NGO (${verificationId}): ${errMsg}`,
                 "\nError Reason:",
                 errorReason || errMsg,
@@ -239,7 +239,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                 JSON.stringify(scanResults, null, 2),
             );
 
-            console.log(`Failed to verify NGO (${verificationId}): ${errMsg}`);
+            console.info(`Failed to verify NGO (${verificationId}): ${errMsg}`);
 
             await this.prisma.ngoVerification.update({
                 where: { id: verificationId },
