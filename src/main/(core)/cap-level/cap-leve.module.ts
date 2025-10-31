@@ -11,6 +11,7 @@ import { CapLevelController } from "./cap-level.controller";
 import { CapLevelCronJobProcessor } from "./cron/cap-level.cron-job.processor";
 import { CapLevelCronJobService } from "./cron/cap-level.cron-job.service";
 import { CapLevelProcessorService } from "./cron/cap-level.processor.service";
+// import { CapLevelQueueService } from "./corn-jobs/queueWorker";
 /**
  * Cap Level Module - Comprehensive cap level management system
  *
@@ -36,8 +37,8 @@ import { CapLevelProcessorService } from "./cron/cap-level.processor.service";
     ],
     controllers: [CapLevelController, RevenueController],
     providers: [
-        CapLevelCronJobProcessor, // and this is for processing our cron jobs
-        CapLevelCronJobService, // this is for cron job
+        CapLevelCronJobProcessor,
+        CapLevelCronJobService,
         CapLevelRepository,
         CapLevelService,
         CapLevelProcessorService,

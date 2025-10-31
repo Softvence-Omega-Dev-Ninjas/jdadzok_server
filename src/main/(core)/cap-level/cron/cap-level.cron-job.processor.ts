@@ -8,6 +8,7 @@ import { CapLevelProcessorService } from "./cap-level.processor.service";
 @Processor(QUEUE_JOB_NAME.CAP_LEVEL.CAP_LEVEL_QUEUE_NAME)
 export class CapLevelCronJobProcessor extends WorkerHost {
     private readonly logger = new Logger(CapLevelCronJobProcessor.name);
+
     constructor(private readonly processorService: CapLevelProcessorService) {
         super();
         this.logger.log("Cap Level Processor initialized");
@@ -23,12 +24,13 @@ export class CapLevelCronJobProcessor extends WorkerHost {
                         break;
 
                     case capLevelJobType.BATCH_PROMOTE_USERS:
-                        // example of calling your processor service
-                        return await this.processorService.processBatchPromotion(job);
+                        console.log(job.name)
+                    // example of calling your processor service
+                    // return await this.processorService.processBatchPromotion(job);
                 }
             }
         } catch (err: any) {
-            this.logger.error(`Job processing failed: ${job.name} (ID: ${job.id})`, err.stack);
+            this.logger.error(`Job processing failed: ${job.name}`, err.stack);
         }
     }
 

@@ -28,6 +28,7 @@ export class CapLevelProcessorService {
     ) {
         this.logger.log("Cap Level Processor initialized");
     }
+    
 
     /**
      * Calculate user eligibility for cap level promotion
