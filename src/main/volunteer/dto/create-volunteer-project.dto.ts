@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, IsDateString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, IsISO8601 } from "class-validator";
 
 export class CreateVolunteerProjectDto {
     @ApiProperty({ example: "ngo id" })
@@ -21,13 +21,13 @@ export class CreateVolunteerProjectDto {
     @IsString()
     location?: string;
 
-    @ApiProperty({ example: "2025-12-01", required: false })
+    @ApiProperty({ example: "2025-10-01T00:00:00Z", required: false })
     @IsOptional()
-    @IsDateString()
+    @IsISO8601()
     startDate?: string;
 
-    @ApiProperty({ example: "2025-12-20", required: false })
+    @ApiProperty({ example: "2025-12-01T00:00:00Z", required: false })
     @IsOptional()
-    @IsDateString()
+    @IsISO8601()
     endDate?: string;
 }

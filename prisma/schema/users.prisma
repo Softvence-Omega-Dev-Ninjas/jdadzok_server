@@ -109,4 +109,5 @@ model User {
   @@map("users")
   VolunteerCompletion VolunteerCompletion[]
   VolunteerHour VolunteerHour[]
+  VolunteerApplication VolunteerApplication[] @relation("ConfirmedByNgo")
 }
