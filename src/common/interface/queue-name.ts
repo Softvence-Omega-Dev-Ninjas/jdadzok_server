@@ -4,4 +4,5 @@ export enum QueueName {
     USER_REGISTRATION = "user_registration",
     POST = "post",
     MESSAGE = "message",
+    NGO = "ngo",
 }
