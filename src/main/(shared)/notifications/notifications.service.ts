@@ -32,9 +32,43 @@ export class NotificationsService {
         return successResponse(result, "Notification setting found successfully");
     }
 
+    //  --- -------- failed to notification--------
+    @HandleError("Failed to push  update notification setting")
+    async updateNotificationSetting(
+        userId: string,
+        dto: NotificationToggleDto,
+    ): Promise<TResponse<any>> {
+        const result = await this.prisma.notificationToggle.upsert({
+            where: {
+                userId: userId,
+            },
+            update: {
+                email: dto.email,
+                communication: dto.communication,
+                community: dto.community,
+                post: dto.post,
+                comment: dto.comment,
+                message: dto.message,
+                userRegistration: dto.userRegistration,
+                ngo: dto.ngo,
+            },
+            create: {
+                userId: userId,
+                email: dto.email,
+                communication: dto.communication,
+                community: dto.community,
+                post: dto.post,
+                comment: dto.comment,
+                message: dto.message,
+                userRegistration: dto.userRegistration,
+            },
+        });
+        return successResponse(result, "Notification setting updated successfully");
+    }
+
     //   --------------ProfileUpdateNotificationSettingOn update user notification now -------------------
 
-    @HandleError("Failed to update notification setting")
+    @HandleError("Failed to update notification setting ProfileUpdateNotificationSettingOn")
     async ProfileUpdateNotificationSettingOn(userId: string): Promise<TResponse<any>> {
         const changeNotification = await this.prisma.profile.update({
             where: {
@@ -45,7 +79,10 @@ export class NotificationsService {
             },
         });
 
-        return successResponse(changeNotification, "Notification setting updated successfully");
+        return successResponse(
+            changeNotification,
+            " ProfileUpdateNotificationSettingOn Notification setting updated successfully",
+        );
     }
 
     // ------------ Profile-ToogleNotificationSettingOff  off-----------
@@ -75,13 +112,13 @@ export class NotificationsService {
             data: { isToggleNotification: true },
         });
 
-        if (NgochangeNotification.count === 0) {
-            return {
-                success: false,
-                message: "No NGO found for this user",
-                data: null,
-            };
-        }
+        // if (NgochangeNotification.count === 0) {
+        //     return {
+        //         success: false,
+        //         message: "No NGO found for this user",
+        //         data: null,
+        //     };
+        // }
 
         return successResponse(
             NgochangeNotification,
@@ -161,38 +198,5 @@ export class NotificationsService {
             changeNotification,
             "Community notification setting turned OFF successfully",
         );
-    }
-
-    //  --- -------- failed to notification--------
-    @HandleError("Failed to update notification setting")
-    async updateNotificationSetting(
-        userId: string,
-        dto: NotificationToggleDto,
-    ): Promise<TResponse<any>> {
-        const result = await this.prisma.notificationToggle.upsert({
-            where: {
-                userId: userId,
-            },
-            update: {
-                email: dto.email,
-                communication: dto.communication,
-                community: dto.community,
-                post: dto.post,
-                comment: dto.comment,
-                message: dto.message,
-                userRegistration: dto.userRegistration,
-            },
-            create: {
-                userId: userId,
-                email: dto.email,
-                communication: dto.communication,
-                community: dto.community,
-                post: dto.post,
-                comment: dto.comment,
-                message: dto.message,
-                userRegistration: dto.userRegistration,
-            },
-        });
-        return successResponse(result, "Notification setting updated successfully");
     }
 }

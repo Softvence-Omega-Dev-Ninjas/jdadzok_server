@@ -1,4 +1,6 @@
 // import { FollowUnfollowRepository } from "@module/(users)/follow-unfollow/follow-unfollow.repository";
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { FollowService } from "@module/(users)/follow/follow.service";
 import {
     BadRequestException,
     ForbiddenException,
@@ -9,8 +11,6 @@ import {
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
 import { PostRepository } from "./posts.repository";
-import { PrismaService } from "@lib/prisma/prisma.service";
-import { FollowService } from "@module/(users)/follow/follow.service";
 
 @Injectable()
 export class PostService {

@@ -1,10 +1,18 @@
-import { Comment, Community, PostEvent, UserRegistration } from "./events-payload";
+import { Comment, Community, Ngo, PostEvent, UserRegistration } from "./events-payload";
 
 // 🚀 EVENT TYPE CONSTANTS (All in UPPERCASE for consistency)
 export const EVENT_TYPES = {
-    COMMUNITY_CREATE: "COMMUNITY_CREATE",
-    COMMUNITY_UPDATE: "COMMUNITY_UPDATE",
-    COMMUNITY_DELETE: "COMMUNITY_DELETE",
+    COMMUNITY_CREATE: "community.create",
+    COMMUNITY_UPDATE: "community.update",
+    COMMUNITY_DELETE: "community.delete3",
+
+    POST_CREATE: "post.create",
+    POST_UPDATE: "post.update",
+    POST_DELETE: "post.delete",
+
+    NGO_CREATE: "ngo.create",
+    NGO_UPDATE: "ngo.update",
+    NGO_DELETE: "ngo.delete",
 
     COMMENT_CREATE: "COMMENT_CREATE",
     COMMENT_UPDATE: "COMMENT_UPDATE",
@@ -14,11 +22,7 @@ export const EVENT_TYPES = {
     USERREGISTRATION_UPDATE: "USERREGISTRATION_UPDATE",
     USERREGISTRATION_DELETE: "USERREGISTRATION_DELETE",
 
-    POST_CREATE: "POST_CREATE",
-    POST_UPDATE: "POST_UPDATE",
-    POST_DELETE: "POST_DELETE",
-
-    MESSAGE_CREATE: "MESSAGE_CREATE",
+    MESSAGE_CREATE: "message.crate",
 } as const;
 
 // Type-safe keys for autocomplete
@@ -41,6 +45,10 @@ export type EventPayloadMap = {
     [EVENT_TYPES.POST_CREATE]: PostEvent;
     [EVENT_TYPES.POST_UPDATE]: PostEvent;
     [EVENT_TYPES.POST_DELETE]: PostEvent;
+
+    [EVENT_TYPES.NGO_CREATE]: Ngo;
+    [EVENT_TYPES.NGO_UPDATE]: Ngo;
+    [EVENT_TYPES.NGO_DELETE]: Ngo;
 
     [EVENT_TYPES.MESSAGE_CREATE]?: any;
 };

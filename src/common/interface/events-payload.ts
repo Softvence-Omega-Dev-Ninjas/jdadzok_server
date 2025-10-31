@@ -2,6 +2,7 @@ import {
     CommentMeta,
     CommunityMeta,
     MessageMeta,
+    NgoMeta,
     PostMeta,
     UserRegistrationMeta,
 } from "./events-meta";
@@ -59,7 +60,6 @@ export interface PostEvent {
         message: string;
         authorId: string;
         recipients: { id: string; email: string }[];
-        sendEmail: boolean;
     };
 }
 
@@ -70,5 +70,13 @@ export interface Message extends BaseEvent<MessageMeta> {
         toUserId: string;
         content: string;
         sendEmail: boolean;
+    };
+}
+
+export interface Ngo extends BaseEvent<NgoMeta> {
+    info: {
+        title: string;
+        message: string;
+        recipients: { email: string; id: string }[];
     };
 }
