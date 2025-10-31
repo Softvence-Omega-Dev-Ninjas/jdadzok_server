@@ -7,7 +7,9 @@ import {
 import { CreateVolunteerProjectDto } from "./dto/create-volunteer-project.dto";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { ApplyVolunteerDto } from "./dto/apply-volunteer.dto";
-import { Role } from "@prisma/client";
+import { ApplicationStatus, Role } from "@prisma/client";
+import { LogHoursDto } from "./dto/log-hours.dto";
+import { UpdateStatusDto } from "./dto/update-status.dto";
 @Injectable()
 export class VolunteerService {
     constructor(private prisma: PrismaService) {}
@@ -69,60 +71,96 @@ export class VolunteerService {
         });
     }
 
-    // async logHours(applicationId: string, dto: LogHoursDto, userId: string) {
-    //     const app = await this.prisma.volunteerApplication.findUnique({
-    //         where: { id: applicationId },
-    //     });
-    //     if (!app) throw new NotFoundException("Application not found");
-    //     if (app.volunteerId !== userId)
-    //         throw new ForbiddenException("You can only log hours for your own application");
+    async logHours(applicationId: string, dto: LogHoursDto, userId: string) {
+        const app = await this.prisma.volunteerApplication.findUnique({
+            where: { id: applicationId },
+        });
 
-    //     const total = app.workedHours + dto.hours;
-    //     if (total > 352) throw new BadRequestException("Cannot exceed 352 working hours");
+        if (!app) {
+            throw new NotFoundException("Application not found");
+        }
 
-    //     return this.prisma.volunteerApplication.update({
-    //         where: { id: applicationId },
-    //         data: { workedHours: total },
-    //     });
-    // }
+        if (app.volunteerId !== userId) {
+            throw new ForbiddenException("You can only log hours for your own application");
+        }
 
-    // async updateStatus(applicationId: string, dto: UpdateStatusDto, userId: string) {
-    //     const app = await this.prisma.volunteerApplication.findUnique({
-    //         where: { id: applicationId },
-    //         include: { project: true },
-    //     });
-    //     if (!app) throw new NotFoundException("Application not found");
-    //     if (app.project.createdById !== userId)
-    //         throw new ForbiddenException("Only NGO owner can confirm completion");
+        if (app.status !== "ACCEPTED") {
+            throw new BadRequestException(
+                "You can only log hours after your application has been accepted by the NGO.",
+            );
+        }
 
-    //     const updated = await this.prisma.volunteerApplication.update({
-    //         where: { id: applicationId },
-    //         data: {
-    //             status: dto.status,
-    //             completionNote: dto.completionNote,
-    //             confirmedById: userId,
-    //         },
-    //     });
+        const checkIn = new Date(dto.checkInTime);
+        const checkOut = new Date(dto.checkOutTime);
 
-    // Auto endorsement after COMPLETED
-    //     if (dto.status === ApplicationStatus.COMPLETED) {
-    //         await this.prisma.endorsement.create({
-    //             data: {
-    //                 fromUserId: userId,
-    //                 toUserId: app.volunteerId,
-    //                 message: dto.completionNote || "Excellent volunteer work!",
-    //                 projectId: app.projectId,
-    //             },
-    //         });
-    //     }
+        if (checkOut <= checkIn) {
+            throw new BadRequestException("Check-out time must be after check-in time.");
+        }
 
-    //     return updated;
-    // }
+        // Calculate hours (rounded to 2 decimals)
+        const hoursWorked = (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60);
+        const totalHours = app.workedHours + hoursWorked;
 
-    // async getVolunteerApplications(userId: string) {
-    //     return this.prisma.volunteerApplication.findMany({
-    //         where: { volunteerId: userId },
-    //         include: { project: true },
-    //     });
-    // }
+        if (totalHours > 352) {
+            throw new BadRequestException(
+                "You cannot exceed a total of 352 working hours for this project.",
+            );
+        }
+
+        // Update total worked hours and record a detailed log
+        return this.prisma.$transaction([
+            this.prisma.volunteerApplication.update({
+                where: { id: applicationId },
+                data: { workedHours: totalHours },
+            }),
+            this.prisma.volunteerHour.create({
+                data: {
+                    applicationId,
+                    loggedByUserId: userId,
+                    hours: hoursWorked,
+                    note: `Worked from ${checkIn.toISOString()} to ${checkOut.toISOString()}`,
+                },
+            }),
+        ]);
+    }
+
+    async updateStatus(applicationId: string, dto: UpdateStatusDto, userId: string) {
+        const app = await this.prisma.volunteerApplication.findUnique({
+            where: { id: applicationId },
+            include: { project: true },
+        });
+        if (!app) throw new NotFoundException("Application not found");
+        if (app.project.createdById !== userId)
+            throw new ForbiddenException("Only NGO owner can confirm completion");
+
+        const updated = await this.prisma.volunteerApplication.update({
+            where: { id: applicationId },
+            data: {
+                status: dto.status,
+                completionNote: dto.completionNote,
+                confirmedById: userId,
+            },
+        });
+
+        // Auto endorsement after COMPLETED
+        if (dto.status === ApplicationStatus.ACCEPTED) {
+            await this.prisma.endorsement.create({
+                data: {
+                    fromUserId: userId,
+                    toUserId: app.volunteerId,
+                    message: dto.completionNote || "Excellent volunteer work!",
+                    projectId: app.projectId,
+                },
+            });
+        }
+
+        return updated;
+    }
+
+    async getVolunteerApplications(userId: string) {
+        return this.prisma.volunteerApplication.findMany({
+            where: { volunteerId: userId },
+            include: { project: true },
+        });
+    }
 }
