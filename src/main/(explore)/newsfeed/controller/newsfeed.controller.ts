@@ -1,16 +1,37 @@
-import { GetUser, ValidateAll, ValidateAuth } from "@common/jwt/jwt.decorator";
-import { Controller } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { NewsFeedService } from "../service/newsfeed.service";
+// src/newsfeed/newsfeed.controller.ts
+import { GetUser, ValidateAuth } from '@common/jwt/jwt.decorator';
+import {
+    Controller,
+    Get,
+    Query,
+    UsePipes,
+    ValidationPipe,
+} from '@nestjs/common';
+import {
+    ApiBearerAuth,
+    ApiOperation,
+    ApiTags
+} from '@nestjs/swagger';
+import { FeedQueryDto } from '../dto/feed.dto';
+import { NewsFeedService } from '../service/newsfeed.service';
+;
 
-@ApiBearerAuth()
-@ApiTags("NewsFeeds")
-@Controller("feeds")
+@ApiTags('NewsFeeds-feed')
+@Controller('feeds')
 export class NewsFeedController {
-    constructor(private readonly newsFeedService: NewsFeedService) {}
-    @ValidateAll()
+    constructor(private readonly newsFeedService: NewsFeedService) { }
+
+
+    @ApiOperation({
+        summary: 'Infinite-scroll user News-feed',
+        description:
+            'Returns a page of posts ordered by engagement + interest. Use `cursor` from `meta.nextCursor` for the next page.',
+    })
+    @ApiBearerAuth()
     @ValidateAuth()
-    async generateUserFeed(@GetUser("userId") userId: string) {
-        return await this.newsFeedService.generateUserFeed(userId);
+    @Get('user-feeds')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    async getFeed(@GetUser('userId') userId: string, @Query() query: FeedQueryDto) {
+        return this.newsFeedService.getUserFeed(userId, query.cursor ?? null, query.take);
     }
 }

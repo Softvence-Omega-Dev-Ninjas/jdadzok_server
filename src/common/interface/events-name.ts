@@ -1,10 +1,10 @@
 import { Comment, Community, Ngo, PostEvent, UserRegistration } from "./events-payload";
 
-// 🚀 EVENT TYPE CONSTANTS (All in UPPERCASE for consistency)
+//  EVENT TYPE CONSTANTS (All in UPPERCASE for consistency)
 export const EVENT_TYPES = {
     COMMUNITY_CREATE: "community.create",
     COMMUNITY_UPDATE: "community.update",
-    COMMUNITY_DELETE: "community.delete3",
+    COMMUNITY_DELETE: "community.delete",
 
     POST_CREATE: "post.create",
     POST_UPDATE: "post.update",
@@ -14,13 +14,13 @@ export const EVENT_TYPES = {
     NGO_UPDATE: "ngo.update",
     NGO_DELETE: "ngo.delete",
 
-    COMMENT_CREATE: "COMMENT_CREATE",
-    COMMENT_UPDATE: "COMMENT_UPDATE",
-    COMMENT_DELETE: "COMMENT_DELETE",
+    COMMENT_CREATE: "comment.crate",
+    COMMENT_UPDATE: "comment.update",
+    COMMENT_DELETE: "comment.delete",
 
-    USERREGISTRATION_CREATE: "USERREGISTRATION_CREATE",
-    USERREGISTRATION_UPDATE: "USERREGISTRATION_UPDATE",
-    USERREGISTRATION_DELETE: "USERREGISTRATION_DELETE",
+    USERREGISTRATION_CREATE: "user.create",
+    USERREGISTRATION_UPDATE: "user.update",
+    USERREGISTRATION_DELETE: "user.delete",
 
     MESSAGE_CREATE: "message.crate",
 } as const;

@@ -11,7 +11,7 @@ export class CommunitiesService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
-    ) {}
+    ) { }
 
     // create new community......
     //     async createCommunity(userId: string, dto: CreateCommunityDto) {
@@ -91,11 +91,14 @@ export class CommunitiesService {
             },
         });
 
-        //---------------- Event payload with recipients---------------
-
-        // ---------------- Fetch all recipients ----------------
-        const allUsers = await this.prisma.user.findMany({
-            select: { id: true, email: true },
+        //---------------- -------------------------------
+        //    community notification
+        // ----------------  ----------------------------
+        const recipients = await this.prisma.notificationToggle.findMany({
+            // where: { ngo: true },
+            select: {
+                user: { select: { id: true, email: true } },
+            },
         });
 
         // -------------------- Build payload --------------------
@@ -111,18 +114,21 @@ export class CommunitiesService {
                 message:
                     newCommunity.about?.mission ??
                     `A new community "${newCommunity.profile?.title}" has been created.`,
-                recipients: allUsers,
+                recipients: recipients.map((r) => ({
+                    id: r.user.id,
+                    email: r.user.email,
+                })),
             },
         };
 
         // ---------------- Emit event ----------------
         this.eventEmitter.emit(EVENT_TYPES.COMMUNITY_CREATE, payload);
 
-        // console.log(
-        //     "✅ EVENT EMITTED:",
-        //     EVENT_TYPES.COMMUNITY_CREATE,
-        //     JSON.stringify(payload, null, 2),
-        // );
+        console.log(
+            "✅community EVENT EMITTED:",
+            EVENT_TYPES.COMMUNITY_CREATE,
+            JSON.stringify(payload, null, 2),
+        );
 
         return newCommunity;
     }
