@@ -34,3 +34,9 @@ export interface MessageMeta {
     toUserId: string;
     sentAt: Date;
 }
+
+export interface NgoMeta {
+    ngoId: string;
+    ownerBy: string;
+
+}

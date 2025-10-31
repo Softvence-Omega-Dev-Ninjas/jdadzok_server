@@ -3,12 +3,12 @@ model NotificationToggle {
   email            Boolean @default(false)
   userUpdates      Boolean @default(false)
   communication    Boolean @default(false)
-  community        Boolean @default(false)
-  comment          Boolean @default(false)
-  post             Boolean @default(false)
+  community        Boolean @default(true)
+  comment          Boolean @default(true)
+  post             Boolean @default(true)
   message          Boolean @default(false)
   userRegistration Boolean @default(false)
-  ngo              Boolean @default(false)
+  ngo              Boolean @default(true)
   userId           String  @unique
   user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -50,6 +50,7 @@ export class NotificationsService {
                 comment: dto.comment,
                 message: dto.message,
                 userRegistration: dto.userRegistration,
+                ngo: dto.ngo
             },
             create: {
                 userId: userId,
@@ -110,13 +111,13 @@ export class NotificationsService {
             data: { isToggleNotification: true },
         });
 
-        if (NgochangeNotification.count === 0) {
-            return {
-                success: false,
-                message: "No NGO found for this user",
-                data: null,
-            };
-        }
+        // if (NgochangeNotification.count === 0) {
+        //     return {
+        //         success: false,
+        //         message: "No NGO found for this user",
+        //         data: null,
+        //     };
+        // }
 
         return successResponse(
             NgochangeNotification,
