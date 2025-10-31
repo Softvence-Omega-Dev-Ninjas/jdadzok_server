@@ -1,28 +1,55 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateCommentDto } from "./dto/create.comment.dto";
+import { successResponse } from "@common/utils/response.util";
 
 @Injectable()
 export class CommentRepository {
     constructor(private readonly prisma: PrismaService) {}
 
+    // fix comment
     async createComment(data: CreateCommentDto) {
+        return await this.prisma.$transaction(async (tx) => {
+            const comment = await tx.comment.create({
+                data: {
+                    ...data,
+                    postId: data.postId!,
+                    authorId: data.authorId!,
+                },
+            });
 
-        // find post for get post owner
-        const post=await this.prisma.post.findUnique({
-            where:{id:data.postId}
-        })
+            // Update PostMetrics totalComments
+            await tx.postMetrics.upsert({
+                where: { postId: data.postId! },
+                create: {
+                    postId: data.postId!,
+                    totalComments: 1,
+                },
+                update: {
+                    totalComments: { increment: 1 },
+                    lastUpdated: new Date(),
+                },
+            });
 
-        const adminScore=await this.prisma.activityScore.findFirst()
-        const res= await this.prisma.comment.create({
-            data: {
-                ...data,
-                postId: data.postId!,
-                authorId: data.authorId!,
-            },
-        });
-
-        const userMatrix=await this.prisma.userMetrics.findFirst({
+            // Update UserMetrics (increase total comments for the user)
+            await tx.userMetrics.upsert({
+                where: { userId: data.authorId! },
+                create: {
+                    userId: data.authorId!,
+                    totalComments: 1,
+                },
+                update: {
+                    totalComments: { increment: 1 },
+                    lastUpdated: new Date(),
+                },
+            });
+             const post=await this.prisma.post.findFirst({
+                where:{
+                    id:data.postId
+                }
+            })
+            const adminScore=await this.prisma.activityScore.findFirst()
+              const userMatrix=await this.prisma.userMetrics.findFirst({
             where:{
                 userId:post?.authorId
             }
@@ -38,13 +65,26 @@ export class CommentRepository {
                 }
             })
         }
-        return res
+          
+        });
+
+      
     }
 
     async getCommentsForPost(postId: string) {
         return await this.prisma.comment.findMany({
-            where: { postId },
-            include: { author: true, replies: true, likes: true },
+            where: {
+                postId,
+                parentCommentId: null,
+            },
+            include: {
+                author: true,
+                replies: {
+                    include: { author: true },
+                },
+                likes: true,
+            },
+            orderBy: { createdAt: "desc" },
         });
     }
 

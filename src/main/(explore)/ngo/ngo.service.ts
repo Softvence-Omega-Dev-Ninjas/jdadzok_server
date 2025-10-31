@@ -1,3 +1,6 @@
+import { EVENT_TYPES } from "@common/interface/events-name";
+
+import { Ngo } from "@common/interface/events-payload";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import {
     BadRequestException,
@@ -5,52 +8,115 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { CreateNgoDto, UpdateNgoDto } from "./dto/ngo.dto";
+
 @Injectable()
 export class NgoService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly eventEmitter: EventEmitter2,
+    ) {}
 
     // create new ngo......
+    // async createNgo(userId: string, dto: CreateNgoDto) {
+    //     const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    //     if (!user) {
+    //         throw new ForbiddenException("Unauthorized Access.");
+    //     }
+    //     const ngo = await this.prisma.ngo.findFirst({
+    //         where: {
+    //             ownerId: userId,
+    //             profile: {
+    //                 is: {
+    //                     title: dto.profile?.title,
+    //                 },
+    //             },
+    //         },
+    //     });
+    //     if (ngo) {
+    //         throw new BadRequestException("NGO Already Exist.");
+    //     }
+
+    //     return await this.prisma.ngo.create({
+    //         data: {
+    //             owner: {
+    //                 connect: { id: userId },
+    //             },
+    //             ngoType: dto.ngoType,
+    //             foundationDate: dto.foundationDate,
+    //             about: {
+    //                 create: {
+    //                     ...dto.about,
+    //                 },
+    //             },
+    //             profile: {
+    //                 create: dto.profile,
+    //             },
+    //         },
+    //         include: {
+    //             profile: true,
+    //             about: true,
+    //         },
+    //     });
+    // }
     async createNgo(userId: string, dto: CreateNgoDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
             throw new ForbiddenException("Unauthorized Access.");
         }
+
         const ngo = await this.prisma.ngo.findFirst({
             where: {
                 ownerId: userId,
-                profile: {
-                    is: {
-                        title: dto.profile?.title,
-                    },
-                },
+                profile: { is: { title: dto.profile?.title } },
             },
         });
         if (ngo) {
             throw new BadRequestException("NGO Already Exist.");
         }
 
-        return await this.prisma.ngo.create({
+        const createdNgo = await this.prisma.ngo.create({
             data: {
-                owner: {
-                    connect: { id: userId },
-                },
+                owner: { connect: { id: userId } },
                 ngoType: dto.ngoType,
                 foundationDate: dto.foundationDate,
-                about: {
-                    create: {
-                        ...dto.about,
-                    },
-                },
-                profile: {
-                    create: dto.profile,
-                },
+                about: { create: { ...dto.about } },
+                profile: { create: dto.profile },
             },
-            include: {
-                profile: true,
-                about: true,
+            include: { profile: true, about: true },
+        });
+
+        // --------------------------------------------------------------
+        // NOTIFICATION: Notify all users with NGO toggle ON
+        // --------------------------------------------------------------
+        const recipients = await this.prisma.notificationToggle.findMany({
+            // where: { ngo: true },
+            select: {
+                user: { select: { id: true, email: true } },
             },
         });
+
+        const payload: Ngo = {
+            action: "CREATE",
+            meta: {
+                ngoId: createdNgo.id,
+                ownerBy: userId,
+            },
+            info: {
+                title: `New NGO: ${dto.profile?.title}`,
+                message: `${user.email} created a new NGO "${dto.profile?.title}".`,
+                recipients: recipients.map((r) => ({
+                    id: r.user.id,
+                    email: r.user.email,
+                })),
+            },
+        };
+
+        this.eventEmitter.emit(EVENT_TYPES.NGO_CREATE, payload);
+        // console.log(`handleNgoCreated called for ${payload.info.recipients.length} recipients`);
+
+        return createdNgo;
     }
     // find ngo data....
     async findAll() {

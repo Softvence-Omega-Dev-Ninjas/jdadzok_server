@@ -116,21 +116,17 @@ export class UserRepository {
                 ...rest,
                 profile: profile
                     ? {
-                        upsert: {
-                            where: {
-                                userId: id, // ✅ Use userId for matching
-                            },
-                            create: {
-                                ...profile,
-                                name: profile.name || "",
-                                username: profile.username!,
-                                // ❌ Do not include userId here — Prisma auto-connects it
-                            },
-                            update: {
-                                ...profile,
-                            },
-                        },
-                    }
+                          upsert: {
+                              create: {
+                                  ...profile,
+                                  name: profile.name || "",
+                                  username: profile.username!,
+                              },
+                              update: {
+                                  ...profile,
+                              },
+                          },
+                      }
                     : undefined,
             },
             include: { profile: true },
@@ -144,6 +140,7 @@ export class UserRepository {
             },
         });
     }
+
     async getUserById(id: string, includePrivateData: boolean = false) {
         const user = await this.prisma.user.findUnique({
             where: { id },
@@ -186,7 +183,6 @@ export class UserRepository {
         if (!user) {
             throw new NotFoundException("User not found");
         }
-
         return omit(user, ["password", "email"]);
     }
 

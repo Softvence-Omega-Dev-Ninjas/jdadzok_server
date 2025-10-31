@@ -118,11 +118,19 @@ export class CommunitiesService {
         // ---------------- Emit event ----------------
         this.eventEmitter.emit(EVENT_TYPES.COMMUNITY_CREATE, payload);
 
+<<<<<<< HEAD
         console.info(
             "✅ EVENT EMITTED:",
             EVENT_TYPES.COMMUNITY_CREATE,
             JSON.stringify(payload, null, 2),
         );
+=======
+        // console.log(
+        //     "✅ EVENT EMITTED:",
+        //     EVENT_TYPES.COMMUNITY_CREATE,
+        //     JSON.stringify(payload, null, 2),
+        // );
+>>>>>>> c8846f9f9b9c0e4e07143f52c64a6e1f550f9932
 
         return newCommunity;
     }

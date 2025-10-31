@@ -5,7 +5,7 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { CapLevel, User } from "@prisma/client";
 import { Job, Queue } from "bullmq";
 import { AdRevenueService } from "../../ad-revenue/ad-revenue.service";
-import { VolunteerTrackingService } from "../../volunteer-tracking/volunteer-tracking.service";
+
 import { CapLevelService } from "../cap-lavel.service";
 import {
     BatchMetricsJobData,
@@ -26,7 +26,6 @@ export class CapLevelProcessorService {
         private readonly capLevelService: CapLevelService,
         private readonly userMetricsService: UserMetricsService,
         private readonly adRevenueService: AdRevenueService,
-        private readonly volunteerTrackingService: VolunteerTrackingService,
         private readonly prisma:PrismaService
     ) {
         this.logger.log("Cap Level Processor initialized");
