@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { UserMetricsService } from "../../(users)/profile-metrics/user-metrics.service";
 import { AdRevenueService } from "../ad-revenue/ad-revenue.service";
 import { RevenueController } from "../revenue/revenue.controller";
-import { VolunteerTrackingService } from "../volunteer-tracking/volunteer-tracking.service";
+// import { VolunteerTrackingService } from "../volunteer-tracking/volunteer-tracking.service";
 import { CapLevelRepository } from "./cap-lavel.repository";
 import { CapLevelService } from "./cap-lavel.service";
 import { CapLevelController } from "./cap-level.controller";
@@ -31,8 +31,8 @@ import { CapLevelController } from "./cap-level.controller";
         CapLevelService,
         UserMetricsService,
         AdRevenueService,
-        VolunteerTrackingService,
+        // VolunteerTrackingService,
     ],
-    exports: [CapLevelService, UserMetricsService, AdRevenueService, VolunteerTrackingService],
+    exports: [CapLevelService, UserMetricsService, AdRevenueService],
 })
 export class CapLevelModule {}

@@ -12,6 +12,7 @@ import { SharedGroupModule } from "./(shared)/shared.group.module";
 import { SocketsGroupModule } from "./(sockets)/sockets.group.module";
 import { StartedGroupModule } from "./(started)/started.group.module";
 import { UserGroupModule } from "./(users)/users.group.module";
+import { VolunteerModule } from "./volunteer/volunteer.module";
 
 @Global()
 @Module({
@@ -29,6 +30,7 @@ import { UserGroupModule } from "./(users)/users.group.module";
         BuillQueueModule,
         PublicGroupModule,
         MetricsGroupModule,
+        VolunteerModule,
     ],
     controllers: [],
     providers: [],

@@ -107,4 +107,7 @@ model User {
   @@index([role])
   @@index([createdAt])
   @@map("users")
+  VolunteerCompletion VolunteerCompletion[]
+  VolunteerHour VolunteerHour[]
+  VolunteerApplication VolunteerApplication[] @relation("ConfirmedByNgo")
 }
