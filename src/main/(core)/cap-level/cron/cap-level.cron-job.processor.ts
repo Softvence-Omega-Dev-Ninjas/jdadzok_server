@@ -1,7 +1,7 @@
 import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
-import { User } from "@prisma/client";
+// import { User } from "@prisma/client";
 import { Job } from "bullmq";
 import { capLevelJobType } from "../constants";
 import { CapLevelProcessorService } from "./cap-level.processor.service";

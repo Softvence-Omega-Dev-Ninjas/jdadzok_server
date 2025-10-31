@@ -3,18 +3,18 @@ import { UserMetricsService } from "@module/(users)/profile-metrics/user-metrics
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { CapLevel, User } from "@prisma/client";
-import { Job, Queue } from "bullmq";
+import { Queue } from "bullmq";
 import { AdRevenueService } from "../../ad-revenue/ad-revenue.service";
 
 import { CapLevelService } from "../cap-lavel.service";
-import {
-    BatchMetricsJobData,
-    BatchPromotionJobData,
-    MonthlyRevenueJobData,
-    UserMetricsUpdateJobData,
-    UserPromotionJobData,
-    VolunteerHoursJobData,
-} from "../types";
+// import {
+//     BatchMetricsJobData,
+//     BatchPromotionJobData,
+//     MonthlyRevenueJobData,
+//     UserMetricsUpdateJobData,
+//     UserPromotionJobData,
+//     VolunteerHoursJobData,
+// } from "../types";
 import { PrismaService } from "@lib/prisma/prisma.service";
 
 @Injectable()
@@ -34,39 +34,47 @@ export class CapLevelProcessorService {
     async handleUserCaplevelCheckingAndDedicatedToUserusers(users: User[]) {
         const adminScore = await this.prisma.activityScore.findFirst();
         if (!adminScore) {
-            throw new NotFoundException(
-                "Admin must need to set all activity score for his platfrom..",
-            );
+            throw new NotFoundException("Admin must set all activity scores for the platform.");
         }
+
         for (const user of users) {
-            const UserMatrix = await this.prisma.userMetrics.findFirst({
-                where: {
-                    userId: user.id,
-                },
+            const userMatrix = await this.prisma.userMetrics.findFirst({
+                where: { userId: user.id },
             });
-            if (UserMatrix && UserMatrix.activityScore < 100) {
-                console.log("this user not eligble for cap Promotion");
+
+            if (!userMatrix) {
+                console.log(`User ${user.id} has no metrics — skipping.`);
+                continue;
             }
-            if (UserMatrix && UserMatrix.activityScore >= adminScore.greenCapScore) {
-                if (user.capLevel === CapLevel.GREEN) {
-                    continue;
-                }
-                user.capLevel = CapLevel.GREEN;
-            } else if (UserMatrix && UserMatrix.activityScore >= adminScore.yellowCapScore) {
-                if (user.capLevel === CapLevel.YELLOW) {
-                    continue;
-                }
-                user.capLevel = CapLevel.YELLOW;
-            } else if (UserMatrix && UserMatrix.activityScore >= adminScore.redCapScore) {
-                if (user.capLevel === CapLevel.RED) {
-                    continue;
-                }
-                user.capLevel = CapLevel.BLACK;
-            } else if (UserMatrix && UserMatrix.activityScore >= adminScore.redCapScore) {
-                if (user.capLevel === CapLevel.RED) {
-                    continue;
-                }
-                user.capLevel = CapLevel.RED;
+
+            const score = userMatrix.activityScore;
+
+            // Below threshold
+            if (score < adminScore.greenCapScore) {
+                console.log(`User ${user.id} not eligible for cap promotion.`);
+                continue;
+            }
+
+            let newCapLevel: CapLevel | null = null;
+
+            // Always check highest first
+            if (score >= adminScore.blackCapScore) {
+                newCapLevel = CapLevel.BLACK;
+            } else if (score >= adminScore.redCapScore) {
+                newCapLevel = CapLevel.RED;
+            } else if (score >= adminScore.yellowCapScore) {
+                newCapLevel = CapLevel.YELLOW;
+            } else if (score >= adminScore.greenCapScore) {
+                newCapLevel = CapLevel.GREEN;
+            }
+
+            // If eligible and changed, update DB
+            if (newCapLevel && user.capLevel !== newCapLevel) {
+                await this.prisma.user.update({
+                    where: { id: user.id },
+                    data: { capLevel: newCapLevel },
+                });
+                console.log(`User ${user.id} promoted to ${newCapLevel}`);
             }
         }
     }

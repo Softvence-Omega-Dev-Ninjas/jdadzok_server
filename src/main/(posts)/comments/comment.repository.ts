@@ -1,7 +1,6 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { CreateCommentDto } from "./dto/create.comment.dto";
-import { successResponse } from "@common/utils/response.util";
 
 @Injectable()
 export class CommentRepository {
@@ -10,7 +9,7 @@ export class CommentRepository {
     // fix comment
     async createComment(data: CreateCommentDto) {
         return await this.prisma.$transaction(async (tx) => {
-            const comment = await tx.comment.create({
+            await tx.comment.create({
                 data: {
                     ...data,
                     postId: data.postId!,
