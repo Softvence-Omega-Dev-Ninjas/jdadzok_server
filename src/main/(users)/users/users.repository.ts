@@ -13,7 +13,7 @@ export class UserRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly profileRepo: UserProfileRepository,
-    ) {}
+    ) { }
 
     async store(input: CreateUserDto) {
         return await this.prisma.$transaction(async (tx: HelperTx) => {
@@ -116,21 +116,21 @@ export class UserRepository {
                 ...rest,
                 profile: profile
                     ? {
-                          upsert: {
-                              where: {
-                                  userId: id, // ✅ Use userId for matching
-                              },
-                              create: {
-                                  ...profile,
-                                  name: profile.name || "",
-                                  username: profile.username!,
-                                  // ❌ Do not include userId here — Prisma auto-connects it
-                              },
-                              update: {
-                                  ...profile,
-                              },
-                          },
-                      }
+                        upsert: {
+                            where: {
+                                userId: id, // ✅ Use userId for matching
+                            },
+                            create: {
+                                ...profile,
+                                name: profile.name || "",
+                                username: profile.username!,
+                                // ❌ Do not include userId here — Prisma auto-connects it
+                            },
+                            update: {
+                                ...profile,
+                            },
+                        },
+                    }
                     : undefined,
             },
             include: { profile: true },
@@ -164,13 +164,13 @@ export class UserRepository {
                 },
                 followers: includePrivateData
                     ? {
-                          include: { follower: { include: { profile: true } } },
-                      }
+                        include: { follower: { include: { profile: true } } },
+                    }
                     : false,
                 following: includePrivateData
                     ? {
-                          include: { following: { include: { profile: true } } },
-                      }
+                        include: { following: { include: { profile: true } } },
+                    }
                     : false,
                 _count: {
                     select: {
@@ -188,5 +188,9 @@ export class UserRepository {
         }
 
         return omit(user, ["password", "email"]);
+    }
+
+    async finds(where: Prisma.UserWhereInput = {}) {
+        return await this.prisma.user.findMany({ where })
     }
 }

@@ -1,6 +1,7 @@
 import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
+import { User } from "@prisma/client";
 import { Job } from "bullmq";
 import { capLevelJobType } from "../constants";
 import { CapLevelProcessorService } from "./cap-level.processor.service";
@@ -20,8 +21,8 @@ export class CapLevelCronJobProcessor extends WorkerHost {
                 switch (job.name) {
                     case capLevelJobType.CALCULATE_USER_ELIGIBILITY:
                         // call your user eligibility service from here...
-                        console.info(job.name);
-                        break;
+                        console.log('job data found')
+                        return await this.processorService.handleUserCaplevelChecking(job.data as User[])
 
                     case capLevelJobType.BATCH_PROMOTE_USERS:
                         console.log(job.name)

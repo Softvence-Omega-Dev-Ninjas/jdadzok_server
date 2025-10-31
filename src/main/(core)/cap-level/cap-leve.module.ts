@@ -1,4 +1,5 @@
 import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
+import { UserModule } from "@module/(users)/users/users.module";
 import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
 import { UserMetricsService } from "../../(users)/profile-metrics/user-metrics.service";
@@ -34,6 +35,7 @@ import { CapLevelProcessorService } from "./cron/cap-level.processor.service";
         BullModule.registerQueue({
             name: QUEUE_JOB_NAME.CAP_LEVEL.CAP_LEVEL_QUEUE_NAME,
         }),
+        UserModule
     ],
     controllers: [CapLevelController, RevenueController],
     providers: [
@@ -48,4 +50,4 @@ import { CapLevelProcessorService } from "./cron/cap-level.processor.service";
     ],
     exports: [CapLevelService, UserMetricsService, AdRevenueService, VolunteerTrackingService],
 })
-export class CapLevelModule {}
+export class CapLevelModule { }
