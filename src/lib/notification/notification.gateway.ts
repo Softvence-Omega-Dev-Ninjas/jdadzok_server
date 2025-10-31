@@ -23,7 +23,8 @@ import { PrismaService } from "../prisma/prisma.service";
 })
 @Injectable()
 export class NotificationGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     private readonly logger = new Logger(NotificationGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private userSockets = new Map<string, string>();
@@ -31,7 +32,7 @@ export class NotificationGateway
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
-    ) { }
+    ) {}
 
     @WebSocketServer()
     server: Server;
@@ -263,8 +264,6 @@ export class NotificationGateway
         client.emit("Community_CREATE");
     }
 
-
-
     @SubscribeMessage(EVENT_TYPES.COMMENT_CREATE)
     handleSomething(purpose: string, client: Socket) {
         client.broadcast.emit(purpose, {});
@@ -306,7 +305,6 @@ export class NotificationGateway
     //     this.logger.debug("Sockets currently connected:", Array.from(this.userSockets.entries()));
     // }
 
-
     @OnEvent(EVENT_TYPES.COMMUNITY_CREATE)
     async handlCommnityCreated(payload: Community) {
         this.logger.log("COMMUNITY_CREATE EVENT RECEIVED");
@@ -333,7 +331,9 @@ export class NotificationGateway
             const client = Array.from(clients).find((c) => c.data.user?.ngo === true);
 
             if (!client) {
-                this.logger.warn(`  User ${r.id} has socket but community toggle = false or missing`);
+                this.logger.warn(
+                    `  User ${r.id} has socket but community toggle = false or missing`,
+                );
                 this.logger.debug(
                     `  client.data.user: ${JSON.stringify(Array.from(clients)[0].data.user)}`,
                 );

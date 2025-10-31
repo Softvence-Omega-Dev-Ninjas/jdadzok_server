@@ -1,7 +1,7 @@
 // src/newsfeed/dto/feed.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsInt, IsOptional, IsString, Min } from "class-validator";
 
 export class FeedQueryDto {
     @ApiProperty({ required: false })

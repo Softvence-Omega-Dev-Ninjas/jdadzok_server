@@ -80,5 +80,3 @@ export interface Message extends BaseEvent<MessageMeta> {
         sendEmail: boolean;
     };
 }
-
-

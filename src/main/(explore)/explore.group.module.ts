@@ -11,4 +11,4 @@ import { NgoModule } from "./ngo/ngo.module";
     providers: [],
     exports: [],
 })
-export class ExploreGroupModule { }
+export class ExploreGroupModule {}

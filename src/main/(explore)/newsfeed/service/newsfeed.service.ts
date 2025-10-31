@@ -1,6 +1,6 @@
 // src/newsfeed/newsfeed.service.ts
-import { PrismaService } from '@lib/prisma/prisma.service';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { BadRequestException, Injectable } from "@nestjs/common";
 
 export type FeedResponse = {
     data: any[];
@@ -14,7 +14,7 @@ export type FeedResponse = {
 export class NewsFeedService {
     private readonly PAGE_SIZE = 20;
 
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async getUserFeed(
         userId: string,
@@ -35,14 +35,14 @@ export class NewsFeedService {
         if (cursor) {
             cursorDate = new Date(cursor);
             if (isNaN(cursorDate.getTime())) {
-                throw new BadRequestException('Invalid cursor');
+                throw new BadRequestException("Invalid cursor");
             }
         }
 
         // ----------- Fetch PAGE_SIZE + 1 posts----------
         const rawPosts = await this.prisma.post.findMany({
             where: {
-                visibility: 'PUBLIC',
+                visibility: "PUBLIC",
                 ...(cursorDate && {
                     createdAt: { lt: cursorDate },
                 }),
@@ -64,10 +64,7 @@ export class NewsFeedService {
                     },
                 },
             },
-            orderBy: [
-                { createdAt: 'desc' },
-                { id: 'desc' },
-            ],
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
             take: pageSize + 1,
         });
 
@@ -90,7 +87,9 @@ export class NewsFeedService {
         });
 
         // ------------------  Sort in memory---------------
-        scored.sort((a, b) => b.score - a.score || b.post.createdAt.getTime() - a.post.createdAt.getTime());
+        scored.sort(
+            (a, b) => b.score - a.score || b.post.createdAt.getTime() - a.post.createdAt.getTime(),
+        );
 
         // -----------------Slice----------------
         const hasMore = scored.length > pageSize;

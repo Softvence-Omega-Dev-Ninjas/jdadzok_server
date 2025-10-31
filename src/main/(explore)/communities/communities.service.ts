@@ -11,7 +11,7 @@ export class CommunitiesService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
-    ) { }
+    ) {}
 
     // create new community......
     //     async createCommunity(userId: string, dto: CreateCommunityDto) {
