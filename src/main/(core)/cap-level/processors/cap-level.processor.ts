@@ -3,7 +3,7 @@ import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import { Job, Queue } from "bullmq";
 import { AdRevenueService } from "../../ad-revenue/ad-revenue.service";
-import { VolunteerTrackingService } from "../../volunteer-tracking/volunteer-tracking.service";
+// import { VolunteerTrackingService } from "../../volunteer-tracking/volunteer-tracking.service";
 import { CapLevelService } from "../cap-lavel.service";
 import { capLevelJobType } from "../constants";
 import {
@@ -13,7 +13,6 @@ import {
     UserEligibilityJobData,
     UserMetricsUpdateJobData,
     UserPromotionJobData,
-    VolunteerHoursJobData,
 } from "../types";
 
 /**
@@ -30,7 +29,7 @@ export class CapLevelProcessor extends WorkerHost {
         private readonly capLevelService: CapLevelService,
         private readonly userMetricsService: UserMetricsService,
         private readonly adRevenueService: AdRevenueService,
-        private readonly volunteerTrackingService: VolunteerTrackingService,
+        // private readonly volunteerTrackingService: VolunteerTrackingService,
     ) {
         super();
         this.logger.log("Cap Level Processor initialized");
@@ -65,8 +64,8 @@ export class CapLevelProcessor extends WorkerHost {
                 case capLevelJobType["CALCULATE_MONTHLY_REVENUE"]:
                     return await this.processMonthlyRevenue(job);
 
-                case capLevelJobType["PROCESS_VOLUNTEER_HOURS"]:
-                    return await this.processVolunteerHours(job);
+                // case capLevelJobType["PROCESS_VOLUNTEER_HOURS"]:
+                //     return await this.processVolunteerHours(job);
 
                 case capLevelJobType["CHECK_SERVICE_COMPLETION"]:
                     return await this.processServiceCompletionCheck(job);
@@ -338,27 +337,27 @@ export class CapLevelProcessor extends WorkerHost {
 
     /**
      * Process volunteer hours update
-     */
-    private async processVolunteerHours(job: Job<VolunteerHoursJobData>) {
-        const { userId, hours, projectId, workDescription, workDate } = job.data;
+    //  */
+    // private async processVolunteerHours(job: Job<VolunteerHoursJobData>) {
+    //     const { userId, hours, projectId, workDescription, workDate } = job.data;
 
-        this.logger.log(`Processing volunteer hours for user ${userId}: ${hours} hours`);
+    //     this.logger.log(`Processing volunteer hours for user ${userId}: ${hours} hours`);
 
-        const updatedMetrics = await this.volunteerTrackingService.updateVolunteerHours({
-            userId,
-            hours,
-            projectId,
-            workDescription,
-            workDate,
-        });
+    //     const updatedMetrics = await this.volunteerTrackingService.updateVolunteerHours({
+    //         userId,
+    //         hours,
+    //         projectId,
+    //         workDescription,
+    //         workDate,
+    //     });
 
-        return {
-            userId,
-            hours,
-            updatedMetrics,
-            processedAt: new Date(),
-        };
-    }
+    //     return {
+    //         userId,
+    //         hours,
+    //         updatedMetrics,
+    //         processedAt: new Date(),
+    //     };
+    // }
 
     /**
      * Process 8-week service completion check

@@ -1,16 +1,19 @@
-import { Injectable, ForbiddenException } from "@nestjs/common";
-
+import { Injectable, ForbiddenException, NotFoundException } from "@nestjs/common";
 import { CreateVolunteerProjectDto } from "./dto/create-volunteer-project.dto";
-
 import { PrismaService } from "@lib/prisma/prisma.service";
-
 @Injectable()
 export class VolunteerService {
     constructor(private prisma: PrismaService) {}
 
     async createProject(dto: CreateVolunteerProjectDto, userId: string) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user) throw new ForbiddenException("Only NGO users can create projects");
+        if (!user) throw new ForbiddenException("Unauthorized Access");
+
+        const ngo = await this.prisma.ngo.findUnique({ where: { id: dto.ngoId } });
+        if (!ngo) throw new NotFoundException("NGO is not found");
+
+        if (user.id != ngo.ownerId)
+            throw new ForbiddenException("Only NGO owner can create projects");
 
         return this.prisma.volunteerProject.create({
             data: { ...dto, createdById: userId, ngoId: dto.ngoId },

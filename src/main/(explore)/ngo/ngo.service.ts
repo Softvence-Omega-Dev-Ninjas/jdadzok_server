@@ -114,7 +114,7 @@ export class NgoService {
         };
 
         this.eventEmitter.emit(EVENT_TYPES.NGO_CREATE, payload);
-        console.log(`handleNgoCreated called for ${payload.info.recipients.length} recipients`);
+        // console.log(`handleNgoCreated called for ${payload.info.recipients.length} recipients`);
 
         return createdNgo;
     }
