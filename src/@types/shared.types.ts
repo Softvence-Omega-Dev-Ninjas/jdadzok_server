@@ -19,6 +19,7 @@ export type VerifiedUser = {
     capLevel: CapLevel;
     createdAt: Date | string;
     updatedAt: Date | string;
+    userId: string;
 };
 
 export type HelperTx = Omit<

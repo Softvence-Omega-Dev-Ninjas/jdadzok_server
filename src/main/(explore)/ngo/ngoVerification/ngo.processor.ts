@@ -29,7 +29,7 @@ export class NgoVerificationProcessor extends WorkerHost {
             verificationType: IdentityVerificationType;
         } = job.data;
 
-        // console.log(`Processing NGO verification for ID: ${verificationId}`);
+        console.info(`Processing NGO verification for ID: ${verificationId}`);
 
         const scanResults: any[] = [];
         let status = "APPROVED";

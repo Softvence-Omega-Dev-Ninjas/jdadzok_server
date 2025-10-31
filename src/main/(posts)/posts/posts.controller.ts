@@ -144,7 +144,6 @@ export class PostController {
     @UseGuards(JwtAuthGuard)
     async get_user_all_post(@GetUser() user: any) {
         try {
-            // console.log(user);
             const res = await this.service.get_all_post_of_user(user.userId);
             return {
                 status: HttpStatus.ACCEPTED,
