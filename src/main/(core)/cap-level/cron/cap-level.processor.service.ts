@@ -2,6 +2,7 @@ import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { UserMetricsService } from "@module/(users)/profile-metrics/user-metrics.service";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
+import { User } from "@prisma/client";
 import { Job, Queue } from "bullmq";
 import { AdRevenueService } from "../../ad-revenue/ad-revenue.service";
 import { VolunteerTrackingService } from "../../volunteer-tracking/volunteer-tracking.service";
@@ -27,6 +28,11 @@ export class CapLevelProcessorService {
         private readonly volunteerTrackingService: VolunteerTrackingService,
     ) {
         this.logger.log("Cap Level Processor initialized");
+    }
+
+    async handleUserCaplevelChecking<T extends User>(users: T[]): Promise<void> {
+        // TODO: processable users list
+        console.log(users)
     }
 
     /**
