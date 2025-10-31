@@ -43,32 +43,29 @@ export class CommentRepository {
                     lastUpdated: new Date(),
                 },
             });
-             const post=await this.prisma.post.findFirst({
-                where:{
-                    id:data.postId
-                }
-            })
-            const adminScore=await this.prisma.activityScore.findFirst()
-              const userMatrix=await this.prisma.userMetrics.findFirst({
-            where:{
-                userId:post?.authorId
-            }
-        })
-
-        if(userMatrix){
-            await this.prisma.userMetrics.update({
-                where:{
-                    userId:post?.authorId
+            const post = await this.prisma.post.findFirst({
+                where: {
+                    id: data.postId,
                 },
-                data:{
-                    activityScore:{increment:adminScore?.comment}
-                }
-            })
-        }
-          
-        });
+            });
+            const adminScore = await this.prisma.activityScore.findFirst();
+            const userMatrix = await this.prisma.userMetrics.findFirst({
+                where: {
+                    userId: post?.authorId,
+                },
+            });
 
-      
+            if (userMatrix) {
+                await this.prisma.userMetrics.update({
+                    where: {
+                        userId: post?.authorId,
+                    },
+                    data: {
+                        activityScore: { increment: adminScore?.comment },
+                    },
+                });
+            }
+        });
     }
 
     async getCommentsForPost(postId: string) {

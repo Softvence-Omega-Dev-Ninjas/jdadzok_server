@@ -35,7 +35,7 @@ import { CapLevelProcessorService } from "./cron/cap-level.processor.service";
         BullModule.registerQueue({
             name: QUEUE_JOB_NAME.CAP_LEVEL.CAP_LEVEL_QUEUE_NAME,
         }),
-        UserModule
+        UserModule,
     ],
     controllers: [CapLevelController, RevenueController],
     providers: [
@@ -50,4 +50,4 @@ import { CapLevelProcessorService } from "./cron/cap-level.processor.service";
     ],
     exports: [CapLevelService, UserMetricsService, AdRevenueService],
 })
-export class CapLevelModule { }
+export class CapLevelModule {}

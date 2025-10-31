@@ -26,49 +26,48 @@ export class CapLevelProcessorService {
         private readonly capLevelService: CapLevelService,
         private readonly userMetricsService: UserMetricsService,
         private readonly adRevenueService: AdRevenueService,
-        private readonly prisma:PrismaService
+        private readonly prisma: PrismaService,
     ) {
         this.logger.log("Cap Level Processor initialized");
     }
-    
 
-    async handleUserCaplevelCheckingAndDedicatedToUserusers(users:User[]){
-        const adminScore=await this.prisma.activityScore.findFirst()
-        if(!adminScore){
-            throw new NotFoundException("Admin must need to set all activity score for his platfrom..")
+    async handleUserCaplevelCheckingAndDedicatedToUserusers(users: User[]) {
+        const adminScore = await this.prisma.activityScore.findFirst();
+        if (!adminScore) {
+            throw new NotFoundException(
+                "Admin must need to set all activity score for his platfrom..",
+            );
         }
-       for(const user of users){
-         const UserMatrix=await this.prisma.userMetrics.findFirst({
-            where:{
-                userId:user.id
+        for (const user of users) {
+            const UserMatrix = await this.prisma.userMetrics.findFirst({
+                where: {
+                    userId: user.id,
+                },
+            });
+            if (UserMatrix && UserMatrix.activityScore < 100) {
+                console.log("this user not eligble for cap Promotion");
             }
-         })
-         if(UserMatrix&&UserMatrix.activityScore<100){
-            console.log("this user not eligble for cap Promotion")
-         }
-         if(UserMatrix&&UserMatrix.activityScore>=adminScore.greenCapScore){
-            if(user.capLevel===CapLevel.GREEN){
-               continue
+            if (UserMatrix && UserMatrix.activityScore >= adminScore.greenCapScore) {
+                if (user.capLevel === CapLevel.GREEN) {
+                    continue;
+                }
+                user.capLevel = CapLevel.GREEN;
+            } else if (UserMatrix && UserMatrix.activityScore >= adminScore.yellowCapScore) {
+                if (user.capLevel === CapLevel.YELLOW) {
+                    continue;
+                }
+                user.capLevel = CapLevel.YELLOW;
+            } else if (UserMatrix && UserMatrix.activityScore >= adminScore.redCapScore) {
+                if (user.capLevel === CapLevel.RED) {
+                    continue;
+                }
+                user.capLevel = CapLevel.BLACK;
+            } else if (UserMatrix && UserMatrix.activityScore >= adminScore.redCapScore) {
+                if (user.capLevel === CapLevel.RED) {
+                    continue;
+                }
+                user.capLevel = CapLevel.RED;
             }
-            user.capLevel=CapLevel.GREEN
-         }else if(UserMatrix&&UserMatrix.activityScore>=adminScore.yellowCapScore){
-            if(user.capLevel===CapLevel.YELLOW){
-               continue
-            }
-            user.capLevel=CapLevel.YELLOW
-         }else if(UserMatrix&&UserMatrix.activityScore>=adminScore.redCapScore){
-            if(user.capLevel===CapLevel.RED){
-               continue
-            }
-            user.capLevel=CapLevel.BLACK
-           
-         }else if(UserMatrix&&UserMatrix.activityScore>=adminScore.redCapScore){
-            if(user.capLevel===CapLevel.RED){
-               continue
-            }
-            user.capLevel=CapLevel.RED
-           
-         }
-       }
+        }
     }
 }

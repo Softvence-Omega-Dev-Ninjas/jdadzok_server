@@ -51,21 +51,21 @@ export class ShareService {
                 },
             });
 
-            const userMatrix=await tx.userMetrics.findFirst({
-                where:{
-                    userId:share.userId
-                }
-            })
-            const adminScore=await tx.activityScore.findFirst()
-            if(userMatrix){
+            const userMatrix = await tx.userMetrics.findFirst({
+                where: {
+                    userId: share.userId,
+                },
+            });
+            const adminScore = await tx.activityScore.findFirst();
+            if (userMatrix) {
                 await tx.userMetrics.update({
-                    where:{
-                        userId:share.userId
+                    where: {
+                        userId: share.userId,
                     },
-                    data:{
-                        activityScore:{increment:adminScore?.share}
-                    }
-                })
+                    data: {
+                        activityScore: { increment: adminScore?.share },
+                    },
+                });
             }
 
             return successResponse(share, "Post shared successfully");
@@ -98,22 +98,21 @@ export class ShareService {
                 });
             }
 
-
-              const userMatrix=await tx.userMetrics.findFirst({
-                where:{
-                    userId:userId
-                }
-            })
-            const adminScore=await tx.activityScore.findFirst()
-            if(userMatrix){
+            const userMatrix = await tx.userMetrics.findFirst({
+                where: {
+                    userId: userId,
+                },
+            });
+            const adminScore = await tx.activityScore.findFirst();
+            if (userMatrix) {
                 await tx.userMetrics.update({
-                    where:{
-                        userId:userId
+                    where: {
+                        userId: userId,
                     },
-                    data:{
-                        activityScore:{decrement:adminScore?.share}
-                    }
-                })
+                    data: {
+                        activityScore: { decrement: adminScore?.share },
+                    },
+                });
             }
             return successResponse(result, "Post unshared successfully");
         });

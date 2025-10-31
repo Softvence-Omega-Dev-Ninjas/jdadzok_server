@@ -13,7 +13,7 @@ export class UserRepository {
     constructor(
         private readonly prisma: PrismaService,
         private readonly profileRepo: UserProfileRepository,
-    ) { }
+    ) {}
 
     async store(input: CreateUserDto) {
         return await this.prisma.$transaction(async (tx: HelperTx) => {
@@ -161,13 +161,13 @@ export class UserRepository {
                 },
                 followers: includePrivateData
                     ? {
-                        include: { follower: { include: { profile: true } } },
-                    }
+                          include: { follower: { include: { profile: true } } },
+                      }
                     : false,
                 following: includePrivateData
                     ? {
-                        include: { following: { include: { profile: true } } },
-                    }
+                          include: { following: { include: { profile: true } } },
+                      }
                     : false,
                 _count: {
                     select: {
@@ -187,6 +187,6 @@ export class UserRepository {
     }
 
     async finds(where: Prisma.UserWhereInput = {}) {
-        return await this.prisma.user.findMany({ where })
+        return await this.prisma.user.findMany({ where });
     }
 }
