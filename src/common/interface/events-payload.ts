@@ -60,7 +60,6 @@ export interface PostEvent {
         message: string;
         authorId: string;
         recipients: { id: string; email: string }[];
-
     };
 }
 
@@ -72,8 +71,6 @@ export interface Message extends BaseEvent<MessageMeta> {
         content: string;
         sendEmail: boolean;
     };
-
-
 }
 
 export interface Ngo extends BaseEvent<NgoMeta> {
@@ -83,4 +80,3 @@ export interface Ngo extends BaseEvent<NgoMeta> {
         recipients: { email: string; id: string }[];
     };
 }
-

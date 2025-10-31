@@ -38,5 +38,4 @@ export interface MessageMeta {
 export interface NgoMeta {
     ngoId: string;
     ownerBy: string;
-
 }

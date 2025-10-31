@@ -23,7 +23,8 @@ import { PrismaService } from "../prisma/prisma.service";
 })
 @Injectable()
 export class NotificationGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     private readonly logger = new Logger(NotificationGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private userSockets = new Map<string, string>();
@@ -31,7 +32,7 @@ export class NotificationGateway
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
-    ) { }
+    ) {}
 
     @WebSocketServer()
     server: Server;
@@ -98,14 +99,14 @@ export class NotificationGateway
     }
 
     /**
-  * Handles the disconnection of a client from the server.
-  *
-  * If a user ID is associated with the client, it unsubscribes the client from
-  * the user's notification room and logs the disconnection with the user ID.
-  * If no user ID is associated, logs the disconnection for an unknown user.
-  *
-  * @param client - The socket client that has disconnected.
-  */
+     * Handles the disconnection of a client from the server.
+     *
+     * If a user ID is associated with the client, it unsubscribes the client from
+     * the user's notification room and logs the disconnection with the user ID.
+     * If no user ID is associated, logs the disconnection for an unknown user.
+     *
+     * @param client - The socket client that has disconnected.
+     */
 
     handleDisconnect(client: Socket) {
         const userId = client.data?.user?.sub;
@@ -113,7 +114,7 @@ export class NotificationGateway
             this.unsubscribeClient(userId, client);
             this.logger.log(`Client disconnected: ${userId}`);
         } else {
-            this.logger.log('Client disconnected: unknown user');
+            this.logger.log("Client disconnected: unknown user");
         }
     }
 
@@ -135,14 +136,11 @@ export class NotificationGateway
      * @returns The extracted JWT token or null if not present.
      */
     private extractTokenFromSocket(client: Socket): string | null {
-        const authHeader =
-            client.handshake.headers.authorization || client.handshake.auth?.token;
+        const authHeader = client.handshake.headers.authorization || client.handshake.auth?.token;
 
         if (!authHeader) return null;
 
-        return authHeader.startsWith('Bearer ')
-            ? authHeader.split(' ')[1]
-            : authHeader;
+        return authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
     }
 
     /**
@@ -235,7 +233,7 @@ export class NotificationGateway
         data: Notification,
     ): Promise<void> {
         if (userIds.length === 0) {
-            this.logger.warn('No user IDs provided for notification');
+            this.logger.warn("No user IDs provided for notification");
             return;
         }
 
@@ -244,10 +242,7 @@ export class NotificationGateway
         });
     }
 
-    public async notifyAllUsers(
-        event: string,
-        data: Notification,
-    ): Promise<void> {
+    public async notifyAllUsers(event: string, data: Notification): Promise<void> {
         this.clients.forEach((clients, userId) => {
             clients.forEach((client) => {
                 client.emit(event, data);
@@ -333,11 +328,11 @@ export class NotificationGateway
     // ------listen create ngo----------------
     @OnEvent(EVENT_TYPES.NGO_CREATE)
     async handleNgoCreated(payload: Ngo) {
-        this.logger.log('NGO_CREATE EVENT RECEIVED');
+        this.logger.log("NGO_CREATE EVENT RECEIVED");
         this.logger.log(`Payload: ${JSON.stringify(payload, null, 2)}`);
 
         if (!payload.info?.recipients?.length) {
-            this.logger.warn('No recipients in payload → skipping emit');
+            this.logger.warn("No recipients in payload → skipping emit");
             return;
         }
 
@@ -354,11 +349,13 @@ export class NotificationGateway
                 continue;
             }
 
-            const client = Array.from(clients).find(c => c.data.user?.ngo === true);
+            const client = Array.from(clients).find((c) => c.data.user?.ngo === true);
 
             if (!client) {
                 this.logger.warn(`  User ${r.id} has socket but ngo toggle = false or missing`);
-                this.logger.debug(`  client.data.user: ${JSON.stringify(Array.from(clients)[0].data.user)}`);
+                this.logger.debug(
+                    `  client.data.user: ${JSON.stringify(Array.from(clients)[0].data.user)}`,
+                );
                 continue;
             }
 
@@ -376,6 +373,6 @@ export class NotificationGateway
             this.logger.log(`EMIT SUCCESS → ngo.create sent to user ${r.id}`);
         }
 
-        this.logger.log('NGO_CREATE processing complete');
+        this.logger.log("NGO_CREATE processing complete");
     }
 }

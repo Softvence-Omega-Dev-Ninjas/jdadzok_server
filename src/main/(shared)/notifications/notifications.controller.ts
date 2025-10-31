@@ -11,18 +11,18 @@ import {
     Put,
     UseGuards,
     UsePipes,
-    ValidationPipe
+    ValidationPipe,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { TUser, VerifiedUser } from "@type/index";
 import { NotificationToggleDto } from "./dto/notification-toggle";
 import { NotificationsService } from "./notifications.service";
-@ApiTags('Notification Setting')
+@ApiTags("Notification Setting")
 @ValidateAuth()
 @ApiBearerAuth()
 @Controller("notifications")
 export class NotificaitonsController {
-    constructor(private readonly NotificationsService: NotificationsService) { }
+    constructor(private readonly NotificationsService: NotificationsService) {}
 
     @UseGuards(JwtAuthGuard)
     async fetchSystemAdminNotificaiton(@GetUser() user: TUser) {
@@ -58,13 +58,11 @@ export class NotificaitonsController {
     @Patch("push-settings")
     @ApiOperation({ summary: "Push notification: update notification push settings" })
     async updateNotificationSetting(
-        @GetUser('userId') userId: string,
+        @GetUser("userId") userId: string,
         @Body() dto: NotificationToggleDto,
     ): Promise<TResponse<any>> {
         return await this.NotificationsService.updateNotificationSetting(userId, dto);
     }
-
-
 
     // --------------  profile change notification setting ON -----------------
 
@@ -186,7 +184,6 @@ export class NotificaitonsController {
     //   } as any);
     //   return { success: true };
     // }
-
 
     // @ApiBearerAuth()
     // @UsePipes(ValidationPipe)

@@ -13,9 +13,10 @@ import { CreateNgoDto, UpdateNgoDto } from "./dto/ngo.dto";
 
 @Injectable()
 export class NgoService {
-    constructor(private readonly prisma: PrismaService,
+    constructor(
+        private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
-    ) { }
+    ) {}
 
     // create new ngo......
     // async createNgo(userId: string, dto: CreateNgoDto) {
@@ -101,12 +102,11 @@ export class NgoService {
             meta: {
                 ngoId: createdNgo.id,
                 ownerBy: userId,
-
             },
             info: {
                 title: `New NGO: ${dto.profile?.title}`,
                 message: `${user.email} created a new NGO "${dto.profile?.title}".`,
-                recipients: recipients.map(r => ({
+                recipients: recipients.map((r) => ({
                     id: r.user.id,
                     email: r.user.email,
                 })),
