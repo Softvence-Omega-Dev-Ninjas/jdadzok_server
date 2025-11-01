@@ -1,5 +1,10 @@
 import { GetSocketUser } from "@common/decorators/socket-user.decorator";
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from "@nestjs/websockets";
+import {
+    ConnectedSocket,
+    MessageBody,
+    SubscribeMessage,
+    WebSocketGateway,
+} from "@nestjs/websockets";
 import { Socket } from "socket.io";
 import { SocketUser } from "../@types";
 import { BaseSocketGateway } from "../base/abstract-socket.gateway";
@@ -14,8 +19,12 @@ import { CreateCallDto } from "./dto/create-calls.dto";
     cors: { origin: true, credentials: true },
 })
 export class CallsGateway extends BaseSocketGateway {
-    constructor(redisService: RedisService, socketMiddleware: SocketMiddleware, private readonly svc: CallsService) {
-        super(redisService, socketMiddleware)
+    constructor(
+        redisService: RedisService,
+        socketMiddleware: SocketMiddleware,
+        private readonly svc: CallsService,
+    ) {
+        super(redisService, socketMiddleware);
     }
 
     private readonly CALL_TIMEOUT_MS = 30 * 1000; // 30 secounds timeout for call acceptance

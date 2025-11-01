@@ -10,7 +10,7 @@ import { PaymentMethodRepository } from "./payment-method.repository";
 
 @Injectable()
 export class PaymentMethodService {
-    constructor(private readonly paymentMethodRepository: PaymentMethodRepository) { }
+    constructor(private readonly paymentMethodRepository: PaymentMethodRepository) {}
 
     async createPaymentMethod(
         userId: string,

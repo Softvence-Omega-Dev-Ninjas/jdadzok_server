@@ -13,7 +13,7 @@ export class CapLevelCronJobService {
     constructor(
         @InjectQueue(QUEUE_JOB_NAME.CAP_LEVEL.CAP_LEVEL_QUEUE_NAME) private capLevelQueue: Queue,
         private readonly repo: UserRepository,
-    ) { }
+    ) {}
 
     // @Cron(CronExpression.EVERY_MINUTE)
     // @Cron(CronExpression.EVERY_10_SECONDS)

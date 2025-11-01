@@ -36,7 +36,7 @@ import { PaymentMethodService } from "./payment-method.service";
 @Controller("payment-methods")
 @UseGuards(JwtAuthGuard)
 export class PaymentMethodController {
-    constructor(private readonly paymentMethodService: PaymentMethodService) { }
+    constructor(private readonly paymentMethodService: PaymentMethodService) {}
 
     @Post()
     @ApiOperation({ summary: "Create a new payment method" })
@@ -47,7 +47,10 @@ export class PaymentMethodController {
     })
     @ApiResponse({ status: 400, description: "Bad request" })
     @ApiResponse({ status: 409, description: "Payment method already exists" })
-    async createPaymentMethod(@GetUser() user: TUser, @Body() createDto: CreateGlobalPaymentMethodDto) {
+    async createPaymentMethod(
+        @GetUser() user: TUser,
+        @Body() createDto: CreateGlobalPaymentMethodDto,
+    ) {
         try {
             const pm = await this.paymentMethodService.createPaymentMethod(user.userId, createDto);
             return successResponse(pm, "Payment method created successfully");
