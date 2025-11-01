@@ -71,6 +71,38 @@ export class VolunteerService {
         });
     }
 
+    async getProjectApplications(projectId: string, userId: string) {
+        // get the project and verify ownership
+        const project = await this.prisma.volunteerProject.findUnique({
+            where: { id: projectId },
+        });
+
+        if (!project) throw new NotFoundException("Project not found");
+        if (project.createdById !== userId)
+            throw new ForbiddenException(
+                "You are not authorized to view applications for this project",
+            );
+
+        // fetch all applications for this project
+        const applications = await this.prisma.volunteerApplication.findMany({
+            where: { projectId },
+            include: {
+                volunteer: {
+                    select: {
+                        id: true,
+                        email: true,
+                    },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+
+        return {
+            totalApplications: applications.length,
+            applications,
+        };
+    }
+
     async logHours(applicationId: string, dto: LogHoursDto, userId: string) {
         const app = await this.prisma.volunteerApplication.findUnique({
             where: { id: applicationId },
@@ -162,5 +194,20 @@ export class VolunteerService {
             where: { volunteerId: userId },
             include: { project: true },
         });
+    }
+
+    async removeProject(projectId: string, userId: string) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new BadRequestException("Unauthorized Access");
+
+        const project = await this.prisma.volunteerProject.findUnique({
+            where: { id: projectId, createdById: userId },
+        });
+        if (!project) throw new NotFoundException("Project is not found");
+
+        await this.prisma.volunteerProject.delete({
+            where: { id: projectId, createdById: userId },
+        });
+        return "null";
     }
 }
