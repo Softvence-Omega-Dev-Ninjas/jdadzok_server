@@ -70,6 +70,7 @@ export const GetVerifiedUser = createParamDecorator(
         const obj = omit(isUser, ["password"]);
         return {
             id: obj.id,
+            userId: obj.id,
             email: obj.email,
             role: obj.role,
             authProvider: obj.authProvider,
@@ -99,4 +100,8 @@ export function ValidateAdmin() {
 
 export function ValidateUser() {
     return ValidateAuth("USER", "SUPER_ADMIN");
+}
+
+export function ValidateAll() {
+    return ValidateAuth("USER", "ADMIN", "SUPER_ADMIN");
 }

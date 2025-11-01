@@ -31,8 +31,8 @@ function injectEnumsIntoSchema(schemaPath: string) {
     const newSchema = `${beforeEnums}${startTag}\n\n${enumBlocks}\n\n${endTag}${afterEnums}`;
 
     fs.writeFileSync(schemaPath, newSchema.trim() + "\n", "utf-8");
-    // eslint-disable-next-line
-    console.log("✅ Prisma enums injected successfully into schema.prisma");
+
+    console.info("✅ Prisma enums injected successfully into schema.prisma");
 }
 
 // Run it

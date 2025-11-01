@@ -1,11 +1,12 @@
 import { CapLevel } from "@constants/enums";
+import { CapLevelJobType } from "../constants";
 
 /**
  * Job data interfaces
  */
 export type UserEligibilityJobData = {
     userId: string;
-    triggerAction?: string; // What action triggered this check
+    triggerAction?: keyof CapLevelJobType; // What action triggered this check
 };
 
 export type UserPromotionJobData = {

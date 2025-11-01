@@ -1,6 +1,6 @@
 import { Roles } from "@common/decorators/roles.decorator";
 import { RoleGuard } from "@common/guards/role.guard";
-import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
+import { GetUser, GetVerifiedUser, ValidateAuth } from "@common/jwt/jwt.decorator";
 import { TResponse } from "@common/utils/response.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
@@ -13,11 +13,13 @@ import {
     UsePipes,
     ValidationPipe,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { TUser, VerifiedUser } from "@type/index";
 import { NotificationToggleDto } from "./dto/notification-toggle";
 import { NotificationsService } from "./notifications.service";
-
+@ApiTags("Notification Setting")
+@ValidateAuth()
+@ApiBearerAuth()
 @Controller("notifications")
 export class NotificaitonsController {
     constructor(private readonly NotificationsService: NotificationsService) {}
@@ -52,7 +54,9 @@ export class NotificaitonsController {
         return await this.NotificationsService.getNotificationSetting(userId);
     }
 
-    @Patch()
+    // ---------update notification push settings
+    @Patch("push-settings")
+    @ApiOperation({ summary: "Push notification: update notification push settings" })
     async updateNotificationSetting(
         @GetUser("userId") userId: string,
         @Body() dto: NotificationToggleDto,
@@ -92,6 +96,20 @@ export class NotificaitonsController {
         return await this.NotificationsService.ProfileToogleNotificationSettingOff(userId);
     }
 
+    // @Post('test-ngo-notification')
+    // async testNgoNotification(@Body() body: { userId: string }) {
+    //     const testPayload: Ngo = {
+    //         action: "CREATE",
+    //         meta: { ngoId: "test_123", ownerId: "owner_123" },
+    //         info: {
+    //             title: "TEST NGO",
+    //             message: "This is a test",
+    //             recipients: [{ id: body.userId, email: "test@x.com" }],
+    //         },
+    //     };
+    //     this.eventEmitter.emit(EVENT_TYPES.NGO_CREATE, testPayload);
+    //     return { sent: true };
+    // }
     // --------------  Ngo change notification  ON -----------------
 
     @ApiOperation({
@@ -140,7 +158,7 @@ export class NotificaitonsController {
         return await this.NotificationsService.CommunityUpdateNotificationSettingOn(userId);
     }
 
-    // community update notification change toggle turn of----
+    // community update notification change toggle turn off----
 
     @ApiOperation({
         summary: "Community -Toggle notification setting off",
@@ -167,7 +185,6 @@ export class NotificaitonsController {
     //   return { success: true };
     // }
 
-    // ------------- All connected clients will receive it.---
     // @ApiBearerAuth()
     // @UsePipes(ValidationPipe)
     // @UseGuards(JwtAuthGuard)

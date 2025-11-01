@@ -121,11 +121,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_HOST_IP: ${{ secrets.VPS_HOST_IP }}
+         
       - uses: ./.github/actions/verify-env
         with:
           PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
