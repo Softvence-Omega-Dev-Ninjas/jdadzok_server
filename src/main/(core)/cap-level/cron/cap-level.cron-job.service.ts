@@ -16,8 +16,8 @@ export class CapLevelCronJobService {
     ) { }
 
     // @Cron(CronExpression.EVERY_MINUTE)
-    @Cron(CronExpression.EVERY_10_SECONDS)
-    // @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT) // TODO: enable this for our production
+    // @Cron(CronExpression.EVERY_10_SECONDS)
+    @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT) // TODO: enable this for our production
     async scheduleJob() {
         this.logger.log(
             `Running cap level job scheduler for ${capLevelJobType.CALCULATE_USER_ELIGIBILITY}`,
