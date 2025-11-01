@@ -72,7 +72,6 @@ services:
         image: mysql:oraclelinux9
         restart: always
         profiles:
-            - dev
             - mysql
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}

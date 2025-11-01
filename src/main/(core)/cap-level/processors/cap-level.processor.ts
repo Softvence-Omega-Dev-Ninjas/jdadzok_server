@@ -200,16 +200,16 @@ export class CapLevelProcessor extends WorkerHost {
             await this.userMetricsService.recalculateAndUpdateActivityScore(userId);
 
             // Queue eligibility check
-            await this.queue.add(
-                capLevelJobType["CALCULATE_USER_ELIGIBILITY"],
-                {
-                    userId,
-                    triggerAction: "metrics_update",
-                } as UserEligibilityJobData,
-                {
-                    delay: 2000, // Delay to ensure score recalculation is complete
-                },
-            );
+            // await this.queue.add(
+            //     capLevelJobType["CALCULATE_USER_ELIGIBILITY"],
+            //     {
+            //         userId,
+            //         triggerAction: "metrics_update",
+            //     } as UserEligibilityJobData,
+            //     {
+            //         delay: 2000, // Delay to ensure score recalculation is complete
+            //     },
+            // );
         }
 
         return {
@@ -232,16 +232,16 @@ export class CapLevelProcessor extends WorkerHost {
         const newScore = updatedMetrics.activityScore;
 
         // Queue eligibility check after score update
-        await this.queue.add(
-            capLevelJobType["CALCULATE_USER_ELIGIBILITY"],
-            {
-                userId,
-                triggerAction: "score_recalculation",
-            } as UserEligibilityJobData,
-            {
-                delay: 1000,
-            },
-        );
+        // await this.queue.add(
+        //     capLevelJobType["CALCULATE_USER_ELIGIBILITY"],
+        //     {
+        //         userId,
+        //         triggerAction: "score_recalculation",
+        //     } as UserEligibilityJobData,
+        //     {
+        //         delay: 1000,
+        //     },
+        // );
 
         return {
             userId,

@@ -185,4 +185,8 @@ export class UserRepository {
         }
         return omit(user, ["password", "email"]);
     }
+
+    async finds(where: Prisma.UserWhereInput = {}) {
+        return await this.prisma.user.findMany({ where });
+    }
 }
