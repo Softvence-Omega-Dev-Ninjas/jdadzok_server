@@ -16,39 +16,39 @@ export class NotificationToggleDto {
     })
     @IsOptional()
     @IsBoolean()
-    communication?: boolean = false;
+    communication?: boolean = true;
 
     @ApiPropertyOptional({
         description: "Receive community",
-        default: false,
+        default: true,
     })
     @IsOptional()
     @IsBoolean()
-    community?: boolean = false;
+    community?: boolean = true;
 
     @ApiPropertyOptional({
         description: "Receive tasks and projects notifications",
-        default: false,
+        default: true,
     })
     @IsOptional()
     @IsBoolean()
-    comment?: boolean = false;
+    comment?: boolean = true;
 
     @ApiPropertyOptional({
         description: "Receive post notifications",
-        default: false,
+        default: true,
     })
     @IsOptional()
     @IsBoolean()
-    post?: boolean = false;
+    post?: boolean = true;
 
     @ApiPropertyOptional({
         description: "Receive message notifications",
-        default: false,
+        default: true,
     })
     @IsOptional()
     @IsBoolean()
-    message?: boolean = false;
+    message?: boolean = true;
 
     @ApiPropertyOptional({
         description: "Receive user registration notifications",

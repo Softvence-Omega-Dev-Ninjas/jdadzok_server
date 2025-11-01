@@ -1,59 +1,110 @@
+// src/newsfeed/newsfeed.service.ts
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
+
+export type FeedResponse = {
+    data: any[];
+    meta: {
+        hasNextPage: boolean;
+        nextCursor: string | null;
+    };
+};
 
 @Injectable()
 export class NewsFeedService {
+    private readonly PAGE_SIZE = 20;
+
     constructor(private readonly prisma: PrismaService) {}
 
-    // -----------show post with top level ---
-    async generateUserFeed(userId: string) {
-        //-----------------  Get user's selected choices/interests-----------------
+    async getUserFeed(
+        userId: string,
+        cursor?: string | null,
+        take?: number,
+    ): Promise<FeedResponse> {
+        const pageSize = take ?? this.PAGE_SIZE;
+
+        // ------------------ Get user interests-------------------
         const userChoices = await this.prisma.userChoice.findMany({
             where: { userId },
-            include: { choice: true },
+            select: { choice: { select: { slug: true } } },
         });
-        const choiceSlugs = userChoices.map((uc) => uc.choice.slug);
+        const interestSlugs = userChoices.map((uc) => uc.choice.slug);
 
-        //------------------- Fetch posts with engagement data ------------------
-        const posts = await this.prisma.post.findMany({
-            where: { visibility: "PUBLIC" },
-            include: {
+        // ------- Parse cursor--------------
+        let cursorDate: Date | undefined;
+        if (cursor) {
+            cursorDate = new Date(cursor);
+            if (isNaN(cursorDate.getTime())) {
+                throw new BadRequestException("Invalid cursor");
+            }
+        }
+
+        // ----------- Fetch PAGE_SIZE + 1 posts----------
+        const rawPosts = await this.prisma.post.findMany({
+            where: {
+                visibility: "PUBLIC",
+                ...(cursorDate && {
+                    createdAt: { lt: cursorDate },
+                }),
+            },
+            select: {
+                id: true,
+                createdAt: true,
+                text: true,
+                mediaUrls: true,
+                mediaType: true,
                 author: true,
                 category: true,
-                likes: true,
-                shares: true,
-                comments: true,
+                metrics: true,
+                _count: {
+                    select: {
+                        likes: true,
+                        comments: true,
+                        shares: true,
+                    },
+                },
             },
-            orderBy: { createdAt: "desc" },
-            take: 100,
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+            take: pageSize + 1,
         });
 
-        //----------------  Score each post based on engagement + interest------------------
-        const scoredPosts = posts.map((post) => {
-            let score = 0;
+        // ------------------------ Score----------------------
+        const scored = rawPosts.map((post) => {
+            const likes = post.metrics?.totalLikes ?? post._count.likes;
+            const comments = post.metrics?.totalComments ?? post._count.comments;
+            const shares = post.metrics?.totalShares ?? post._count.shares;
 
-            // ------------------ Engagement scoring -------------------
-            const likesCount = post.likes.length;
-            const sharesCount = post.shares.length;
-            const commentsCount = post.comments.length;
-            score += likesCount * 0.5 + sharesCount * 1 + commentsCount * 0.3;
+            let score = likes * 0.5 + shares * 1 + comments * 0.3;
 
-            // ------------------------Interest match bonus
-            if (post.category && choiceSlugs.includes(post.category.slug)) {
+            if (post.category?.slug && interestSlugs.includes(post.category.slug)) {
                 score += 10;
             }
 
-            // ---------------(last 24h) post here-------------
-            const hoursSincePost = (Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60);
-            if (hoursSincePost < 24) score += 5;
+            const hoursOld = (Date.now() - post.createdAt.getTime()) / 36e5;
+            if (hoursOld < 24) score += 5;
 
             return { post, score };
         });
 
-        // ----------------Sort posts by score -------------
-        scoredPosts.sort((a, b) => b.score - a.score);
+        // ------------------  Sort in memory---------------
+        scored.sort(
+            (a, b) => b.score - a.score || b.post.createdAt.getTime() - a.post.createdAt.getTime(),
+        );
 
-        // ----------------Return only posts-----------------------
-        return scoredPosts.map((sp) => sp.post);
+        // -----------------Slice----------------
+        const hasMore = scored.length > pageSize;
+        const page = hasMore ? scored.slice(0, pageSize) : scored;
+
+        // -------------- Next cursor-----------------------
+        const lastPost = page[page.length - 1]?.post;
+        const nextCursor = lastPost ? lastPost.createdAt.toISOString() : null;
+
+        return {
+            data: page.map((p) => p.post),
+            meta: {
+                hasNextPage: hasMore,
+                nextCursor,
+            },
+        };
     }
 }
