@@ -6,7 +6,7 @@ import { NotificationToggleDto } from "./dto/notification-toggle";
 
 @Injectable()
 export class NotificationsService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     @HandleError("Failed to get notification setting")
     async getNotificationSetting(userId: string): Promise<TResponse<any>> {
@@ -160,13 +160,13 @@ export class NotificationsService {
             },
         });
 
-        if (changeNotification.count === 0) {
-            return {
-                success: false,
-                message: "No community found for this user",
-                data: null,
-            };
-        }
+        // if (changeNotification.count === 0) {
+        //     return {
+        //         success: false,
+        //         message: "No community found for this user",
+        //         data: null,
+        //     };
+        // }
 
         return successResponse(
             changeNotification,
@@ -186,13 +186,13 @@ export class NotificationsService {
             },
         });
 
-        if (changeNotification.count === 0) {
-            return {
-                success: false,
-                message: "No community found for this user",
-                data: null,
-            };
-        }
+        // if (changeNotification.count === 0) {
+        //     return {
+        //         success: false,
+        //         message: "No community found for this user",
+        //         data: null,
+        //     };
+        // }
 
         return successResponse(
             changeNotification,
