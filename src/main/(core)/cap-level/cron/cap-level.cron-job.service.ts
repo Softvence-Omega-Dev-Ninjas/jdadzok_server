@@ -12,12 +12,12 @@ export class CapLevelCronJobService {
 
     constructor(
         @InjectQueue(QUEUE_JOB_NAME.CAP_LEVEL.CAP_LEVEL_QUEUE_NAME) private capLevelQueue: Queue,
-        private readonly repo: UserRepository
+        private readonly repo: UserRepository,
     ) { }
 
     // @Cron(CronExpression.EVERY_MINUTE)
     // @Cron(CronExpression.EVERY_10_SECONDS)
-    @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT) // TODO: enable this for our production
+    @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
     async scheduleJob() {
         this.logger.log(
             `Running cap level job scheduler for ${capLevelJobType.CALCULATE_USER_ELIGIBILITY}`,
@@ -27,7 +27,11 @@ export class CapLevelCronJobService {
 
         // call your queue from here...
         this.capLevelQueue.add(capLevelJobType.CALCULATE_USER_ELIGIBILITY, {
-            userArray: users
+            userArray: users,
+            // TODO: pass your all required data from here that you will receive to your processor based on the queue name you'll get the every single block into the switch case
+        });
+        this.capLevelQueue.add(capLevelJobType.BATCH_PROMOTE_USERS, {
+            message: "hello",
             // TODO: pass your all required data from here that you will receive to your processor based on the queue name you'll get the every single block into the switch case
         });
     }

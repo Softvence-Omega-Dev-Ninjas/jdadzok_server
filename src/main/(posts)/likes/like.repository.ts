@@ -19,23 +19,31 @@ export class LikeRepository {
 
     async like(data: CreateLikeDto) {
         return await this.prisma.$transaction(async (tx) => {
+            // get admin activity score that set by admin
+            const adminActivityScore = await this.prisma.activityScore.findFirst();
             // Create the like
             const like = await tx.like.create({
                 data: {
                     ...data,
                     userId: data.userId!,
+                    postId: data.postId!,
                 },
             });
 
-            await tx.userMetrics.update({
-                where: {
-                    userId: data.userId,
+            // Update totalLikes in UserMetrics
+            await tx.postMetrics.upsert({
+                where: { postId: data.postId! },
+                create: {
+                    postId: data.postId!,
+                    totalLikes: 1,
                 },
-                data: {
-                    activityScore: { increment: 1 },
+                update: {
+                    totalLikes: { increment: 1 },
+                    lastUpdated: new Date(),
                 },
             });
-            // Update totalLikes in UserMetrics
+
+            // Update user metrics
             await tx.userMetrics.upsert({
                 where: { userId: data.userId! },
                 create: {
@@ -47,6 +55,17 @@ export class LikeRepository {
                     lastUpdated: new Date(),
                 },
             });
+
+            // increment activity score
+            await tx.userMetrics.update({
+                where: {
+                    userId: data.userId,
+                },
+                data: {
+                    activityScore: { increment: adminActivityScore?.like },
+                },
+            });
+
             //  Return response
             return successResponse(like, data.commentId ? "Comment liked" : "Post liked");
         });
@@ -54,6 +73,9 @@ export class LikeRepository {
 
     async removeLike(userId: string, postId: string, commentId?: string) {
         return await this.prisma.$transaction(async (tx) => {
+            // get admin activity score that set by admin
+            const adminActivityScore = await this.prisma.activityScore.findFirst();
+
             //  Delete like(s)
             const like = await tx.like.deleteMany({
                 where: {
@@ -74,6 +96,15 @@ export class LikeRepository {
                 });
             }
 
+            // decrement user activity sccore
+            await tx.userMetrics.update({
+                where: {
+                    userId: userId,
+                },
+                data: {
+                    activityScore: { decrement: adminActivityScore?.like },
+                },
+            });
             //  Return response
             return successResponse(like, commentId ? "Comment disliked" : "Post dislike");
         });

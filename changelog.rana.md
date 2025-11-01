@@ -14,3 +14,13 @@
 - Added Ngo Controller --- create--delete -- update -- get single ngo (api)
 - Added Ngo Service those operation.
 - Ngo schema  foundationDate type change DateTime to  String
+
+# 30- 10 - 25
+- post metrics like and comment isssue fixed.
+- user update fixed and user profile fixed.
+
+# 31 - 10 - 25
+- implement volunteer module change in  enum, user , Ngo, VolunteerProject, VolunteerApplication, VolunteerHour, VolunteerCompletion, Endorsement model 
+- main.modules, volunteer module, vplenteer controller, services and dto file change. 
+- fallow chenge log file for happy coding.
+

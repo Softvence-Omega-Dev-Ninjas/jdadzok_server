@@ -91,9 +91,9 @@ export class NgoVerificationProcessor extends WorkerHost {
                 throw new Error("Owner profile missing gender – profile.gender is null");
             }
 
-            console.info(
-                `Owner Check → Name: "${expectedName}" | DOB: "${expectedDob}" | Gender: "${expectedGender}"`,
-            );
+            // console.log(
+            //     `Owner Check → Name: "${expectedName}" | DOB: "${expectedDob}" | Gender: "${expectedGender}"`,
+            // );
 
             // -------------------------------------------------
             // 2. Scan every document
@@ -142,7 +142,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                 scannedDobs.push(dob);
                 scannedGenders.push(gender);
 
-                console.info(`Scanned → Name: "${fullName}" | DOB: "${dob}" | Gender: "${gender}"`);
+                // console.log(`Scanned → Name: "${fullName}" | DOB: "${dob}" | Gender: "${gender}"`);
             }
 
             if (status === "REJECTED") throw new Error(errorReason);
@@ -231,15 +231,15 @@ export class NgoVerificationProcessor extends WorkerHost {
                       ? `${e.code} - ${e.msg}`
                       : (e?.message ?? "Unknown error");
 
-            console.info(
-                `Failed to verify NGO (${verificationId}): ${errMsg}`,
-                "\nError Reason:",
-                errorReason || errMsg,
-                "\nScanner Results (partial):",
-                JSON.stringify(scanResults, null, 2),
-            );
+            // console.log(
+            //     `Failed to verify NGO (${verificationId}): ${errMsg}`,
+            //     "\nError Reason:",
+            //     errorReason || errMsg,
+            //     "\nScanner Results (partial):",
+            //     JSON.stringify(scanResults, null, 2),
+            // );
 
-            console.info(`Failed to verify NGO (${verificationId}): ${errMsg}`);
+            // console.log(`Failed to verify NGO (${verificationId}): ${errMsg}`);
 
             await this.prisma.ngoVerification.update({
                 where: { id: verificationId },

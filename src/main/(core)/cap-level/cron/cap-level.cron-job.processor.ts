@@ -1,7 +1,7 @@
 import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
-import { User } from "@prisma/client";
+// import { User } from "@prisma/client";
 import { Job } from "bullmq";
 import { capLevelJobType } from "../constants";
 import { CapLevelProcessorService } from "./cap-level.processor.service";
@@ -9,6 +9,7 @@ import { CapLevelProcessorService } from "./cap-level.processor.service";
 @Processor(QUEUE_JOB_NAME.CAP_LEVEL.CAP_LEVEL_QUEUE_NAME)
 export class CapLevelCronJobProcessor extends WorkerHost {
     private readonly logger = new Logger(CapLevelCronJobProcessor.name);
+
     constructor(private readonly processorService: CapLevelProcessorService) {
         super();
         this.logger.log("Cap Level Processor initialized");
@@ -20,16 +21,19 @@ export class CapLevelCronJobProcessor extends WorkerHost {
                 switch (job.name) {
                     case capLevelJobType.CALCULATE_USER_ELIGIBILITY:
                         // call your user eligibility service from here...
-                        console.log('job data found')
-                        return await this.processorService.handleUserCaplevelChecking(job.data as User[])
+                        console.log("job data found");
+                        return await this.processorService.handleUserCaplevelCheckingAndDedicatedToUserusers(
+                            job.data.userArray as any,
+                        );
 
                     case capLevelJobType.BATCH_PROMOTE_USERS:
-                        // example of calling your processor service
-                        return await this.processorService.processBatchPromotion(job);
+                        console.log(job.name);
+                    // example of calling your processor service
+                    // return await this.processorService.processBatchPromotion(job);
                 }
             }
         } catch (err: any) {
-            this.logger.error(`Job processing failed: ${job.name} (ID: ${job.id})`, err.stack);
+            this.logger.error(`Job processing failed: ${job.name}`, err.stack);
         }
     }
 
