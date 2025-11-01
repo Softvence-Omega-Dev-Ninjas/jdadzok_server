@@ -41,7 +41,7 @@ class PaymentMethodDto {
     isDefault?: boolean;
 }
 
-export class CreatePaymentMethodDto extends IntersectionType(PaymentMethodDto) {}
+export class CreateGlobalPaymentMethodDto extends IntersectionType(PaymentMethodDto) {}
 
 export class UpdatePaymentMethodDto extends PartialType(IntersectionType(PaymentMethodDto)) {}
 
