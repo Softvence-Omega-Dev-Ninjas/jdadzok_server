@@ -57,7 +57,6 @@ export class CapLevelProcessorService {
 
             let newCapLevel: CapLevel | null = null;
 
-            // Always check highest first
             if (score >= adminScore.blackCapScore) {
                 newCapLevel = CapLevel.BLACK;
             } else if (score >= adminScore.redCapScore) {
