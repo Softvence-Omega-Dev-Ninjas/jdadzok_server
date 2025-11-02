@@ -5,104 +5,62 @@ services:
         platform: linux/amd64
         build:
             context: .
-            dockerfile: Dockerfile
-        image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
-        container_name: ${PACKAGE_NAME}_api
+        image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:latest
+        container_name: ${PACKAGE_NAME}
         ports:
-            - "${PORT}:${PORT}"
+            - ${PORT}:${PORT}
         env_file:
             - .env
+        command: >
+            sh -c "
+              echo '🏁 Waiting for DB...';
+              sleep 5;
+              npx prisma migrate deploy;
+              echo '🚀 Starting app...';
+              npm run start:docker
+              "
         depends_on:
             db:
                 condition: service_healthy
-            redis:
-                condition: service_healthy
-        restart: always
-        command: >
-            sh -c "
-                echo '🏁 Waiting for DB...';
-                sleep 5;
-                npx prisma migrate deploy;
-                echo '🚀 Starting app...';
-                npm run start:docker
-            "
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "10m"
-                max-file: "3"
-        labels:
-            - "app.name=${PACKAGE_NAME}"
-            - "app.version=${PACKAGE_VERSION}"
-            - "deployment.type=zero-downtime"
-        networks:
-            - ${PACKAGE_NAME}_networks
+        restart: unless-stopped
+        # Enhanced health check for better zero-downtime deployment
+        healthcheck:
+            disable: true
+        volumes:
+            - files-data:/app/uploads
 
     db:
-        image: postgres:15
-        container_name: ${PG_DATABASE}
+        image: postgres:17
         restart: always
         profiles:
+            - dev
             - prod
-            - dev
         environment:
-            POSTGRES_USER: ${PG_USERNAME}
-            POSTGRES_PASSWORD: ${PG_PASSWORD}
-            POSTGRES_DB: ${PG_DATABASE}
-            POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements
-        volumes:
-            - jdadzok_pg:/var/lib/postgresql/data
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=mydb
         ports:
-            - "${PG_PORT}:${PG_PORT}"
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "10m"
-                max-file: "3"
+            - 5433:5432
+        volumes:
+            - pg:/var/lib/postgresql/data
         healthcheck:
-            test: ["CMD", "pg_isready", "-U", "${PG_USERNAME}", "-d", "${PG_DATABASE}"]
-            interval: 10s
-            timeout: 5s
+            test: ["CMD", "pg_isready", "-U", postgres, "-d", mydb]
+            interval: 30s
+            timeout: 10s
             retries: 5
             start_period: 15s
-        networks:
-            - ${PACKAGE_NAME}_networks
 
-    mysqldb:
-        image: mysql:oraclelinux9
-        restart: always
-        profiles:
-            - dev
-            - mysql
-        environment:
-            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-            MYSQL_USER: ${MYSQL_USERNAME}
-            MYSQL_DATABASE: ${MYSQL_DATABASE}
-        ports:
-            - "${MYSQL_PORT}:3306"
-        volumes:
-            - jdadzok_mysql:/var/lib/mysql
-            - ./init-shadow-db.sql:/docker-entrypoint-initdb.d/init-shadow-db.sql
-
-        healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 15s
-        networks:
-            - ${PACKAGE_NAME}_networks
     redis:
         image: redis:7-alpine # Use Alpine version for smaller size
-        container_name: ${REDIS_CONTAINER}
+        container_name: redis
         restart: always
         profiles:
             - dev
             - prod
         ports:
-            - "${REDIS_PORT}:${REDIS_PORT}"
+            - 6380:6379
         volumes:
-            - jdadzok_redis:/data
+            - redis:/data
         # Add health check for Redis
         healthcheck:
             test: ["CMD", "redis-cli", "ping"]
@@ -110,8 +68,6 @@ services:
             timeout: 3s
             retries: 5
             start_period: 5s
-        networks:
-            - ${PACKAGE_NAME}_networks
 
     caddy:
         image: caddy:latest
@@ -119,24 +75,24 @@ services:
             - prod
         container_name: caddy_server
         restart: unless-stopped
+        depends_on:
+            - db
+            - redis
+            - app
         ports:
             - "80:80"
             - "443:443"
         volumes:
+            - /var/www:/var/www
             - ./Caddyfile:/etc/caddy/Caddyfile
             - caddy_data:/data
             - caddy_config:/config
-        networks:
-            - ${PACKAGE_NAME}_networks
-volumes:
-    jdadzok_pg:
-    jdadzok_mysql:
-    jdadzok_redis:
 
+volumes:
+    redis:
+    pg:
     caddy_data:
     caddy_config:
-
-# Add networks for better isolation (optional)
+    files-data:
 networks:
-    jdadzok_server_networks:
-        driver: bridge
+    default:

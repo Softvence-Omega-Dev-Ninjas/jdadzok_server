@@ -1,7 +1,6 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { CreateCommentDto } from "./dto/create.comment.dto";
-import { successResponse } from "@common/utils/response.util";
 
 @Injectable()
 export class CommentRepository {
@@ -10,7 +9,7 @@ export class CommentRepository {
     // fix comment
     async createComment(data: CreateCommentDto) {
         return await this.prisma.$transaction(async (tx) => {
-            const comment = await tx.comment.create({
+            await tx.comment.create({
                 data: {
                     ...data,
                     postId: data.postId!,
@@ -43,8 +42,28 @@ export class CommentRepository {
                     lastUpdated: new Date(),
                 },
             });
+            const post = await this.prisma.post.findFirst({
+                where: {
+                    id: data.postId,
+                },
+            });
+            const adminScore = await this.prisma.activityScore.findFirst();
+            const userMatrix = await this.prisma.userMetrics.findFirst({
+                where: {
+                    userId: post?.authorId,
+                },
+            });
 
-            return successResponse(comment, "Comment created");
+            if (userMatrix) {
+                await this.prisma.userMetrics.update({
+                    where: {
+                        userId: post?.authorId,
+                    },
+                    data: {
+                        activityScore: { increment: adminScore?.comment },
+                    },
+                });
+            }
         });
     }
 

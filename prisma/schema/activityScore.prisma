@@ -1,0 +1,13 @@
+model ActivityScore {
+    id String @id @default(uuid())
+    like Float
+    comment Float
+    share Float
+    post Float
+    greenCapScore Float
+    redCapScore Float
+    blackCapScore Float
+    yellowCapScore Float
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

@@ -70,6 +70,7 @@ export const GetVerifiedUser = createParamDecorator(
         const obj = omit(isUser, ["password"]);
         return {
             id: obj.id,
+            userId: obj.id,
             email: obj.email,
             role: obj.role,
             authProvider: obj.authProvider,

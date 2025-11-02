@@ -10,7 +10,6 @@ export class PostCategoryService {
     async create(input: CreatePostCategoryDto) {
         // generate slug from the name
         const slug = slugify(input.name);
-
         return await this.repository.store({ ...input, slug });
     }
     async index() {
