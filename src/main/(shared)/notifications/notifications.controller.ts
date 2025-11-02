@@ -110,6 +110,7 @@ export class NotificaitonsController {
     //     this.eventEmitter.emit(EVENT_TYPES.NGO_CREATE, testPayload);
     //     return { sent: true };
     // }
+
     // --------------  Ngo change notification  ON -----------------
 
     @ApiOperation({
