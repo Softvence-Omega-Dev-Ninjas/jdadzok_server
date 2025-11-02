@@ -110,12 +110,16 @@ export class NotificaitonsController {
     //     this.eventEmitter.emit(EVENT_TYPES.NGO_CREATE, testPayload);
     //     return { sent: true };
     // }
+
+
+
     // --------------  Ngo change notification  ON -----------------
 
     @ApiOperation({
         summary: "Ngo-Toggle notification setting on",
         description: "Ngo-Toggle notification setting on",
     })
+
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)

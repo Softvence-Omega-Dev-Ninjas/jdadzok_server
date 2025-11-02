@@ -42,7 +42,7 @@ export class PostController {
         private readonly service: PostService,
         private readonly s3Service: S3Service,
         private readonly utils: PostUtils,
-    ) {}
+    ) { }
 
     @Post()
     @ApiOperation({ summary: "Create a new post" })

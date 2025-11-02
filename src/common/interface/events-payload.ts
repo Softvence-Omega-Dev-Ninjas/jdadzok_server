@@ -60,7 +60,7 @@ export interface Comment extends BaseEvent<CommentMeta> {
 }
 
 // Post Event
-export interface PostEvent {
+export interface PostEvent extends BaseEvent<PostMeta> {
     action: "CREATE" | "UPDATE" | "DELETE";
     meta: PostMeta;
     info: {

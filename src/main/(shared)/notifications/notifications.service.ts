@@ -7,7 +7,7 @@ import { NotificationToggleDto } from "./dto/notification-toggle";
 @Injectable()
 export class NotificationsService {
     constructor(private readonly prisma: PrismaService) { }
-
+    // --------------  get the notification    -----------------------
     @HandleError("Failed to get notification setting")
     async getNotificationSetting(userId: string): Promise<TResponse<any>> {
         const result = await this.prisma.notificationToggle.findUnique({
@@ -66,6 +66,9 @@ export class NotificationsService {
         return successResponse(result, "Notification setting updated successfully");
     }
 
+
+
+
     //   --------------ProfileUpdateNotificationSettingOn update user notification now -------------------
 
     @HandleError("Failed to update notification setting ProfileUpdateNotificationSettingOn")
@@ -85,7 +88,7 @@ export class NotificationsService {
         );
     }
 
-    // ------------ Profile-ToogleNotificationSettingOff  off-----------
+    // ------------ Profile-Toogle-NotificationSettingOff  off-----------
 
     @HandleError("Failed t off profile update notification setting")
     async ProfileToogleNotificationSettingOff(userId: string): Promise<TResponse<any>> {
@@ -112,13 +115,6 @@ export class NotificationsService {
             data: { isToggleNotification: true },
         });
 
-        // if (NgochangeNotification.count === 0) {
-        //     return {
-        //         success: false,
-        //         message: "No NGO found for this user",
-        //         data: null,
-        //     };
-        // }
 
         return successResponse(
             NgochangeNotification,
@@ -160,13 +156,7 @@ export class NotificationsService {
             },
         });
 
-        // if (changeNotification.count === 0) {
-        //     return {
-        //         success: false,
-        //         message: "No community found for this user",
-        //         data: null,
-        //     };
-        // }
+
 
         return successResponse(
             changeNotification,
@@ -186,13 +176,7 @@ export class NotificationsService {
             },
         });
 
-        // if (changeNotification.count === 0) {
-        //     return {
-        //         success: false,
-        //         message: "No community found for this user",
-        //         data: null,
-        //     };
-        // }
+
 
         return successResponse(
             changeNotification,
