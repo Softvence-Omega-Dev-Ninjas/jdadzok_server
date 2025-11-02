@@ -9,6 +9,7 @@ import { NotificationModule } from "./lib/notification/notification.module";
 import { MainModule } from "./main/main.module";
 import { S3BucketModule } from "./s3/s3.module";
 
+
 @Module({
     imports: [
         ConfigModule.forRoot({

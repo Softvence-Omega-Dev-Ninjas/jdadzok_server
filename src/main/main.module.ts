@@ -13,6 +13,7 @@ import { SocketsGroupModule } from "./(sockets)/sockets.group.module";
 import { StartedGroupModule } from "./(started)/started.group.module";
 import { UserGroupModule } from "./(users)/users.group.module";
 import { VolunteerModule } from "./volunteer/volunteer.module";
+import { AdminModule } from "src/(admin)/adminGroup.module";
 
 @Global()
 @Module({
@@ -31,6 +32,7 @@ import { VolunteerModule } from "./volunteer/volunteer.module";
         PublicGroupModule,
         MetricsGroupModule,
         VolunteerModule,
+        AdminModule
     ],
     controllers: [],
     providers: [],
