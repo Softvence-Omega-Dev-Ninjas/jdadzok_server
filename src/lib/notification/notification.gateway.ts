@@ -23,7 +23,8 @@ import { PrismaService } from "../prisma/prisma.service";
 })
 @Injectable()
 export class NotificationGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     private readonly logger = new Logger(NotificationGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private userSockets = new Map<string, string>();
@@ -31,7 +32,7 @@ export class NotificationGateway
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
-    ) { }
+    ) {}
 
     @WebSocketServer()
     server: Server;
@@ -407,14 +408,13 @@ export class NotificationGateway
         this.logger.log("NGO_CREATE processing complete");
     }
 
-
     @OnEvent(EVENT_TYPES.POST_CREATE)
     async handlePostCreated(payload: PostEvent) {
-        this.logger.log('POST_CREATE EVENT RECEIVED');
+        this.logger.log("POST_CREATE EVENT RECEIVED");
         this.logger.debug(`Payload: ${JSON.stringify(payload, null, 2)}`);
 
         if (!payload.info?.recipients?.length) {
-            this.logger.warn('No recipients → skipping');
+            this.logger.warn("No recipients → skipping");
             return;
         }
 
@@ -430,7 +430,7 @@ export class NotificationGateway
 
             // The toggle check is already done in the service,
             // but we double-check the socket payload just in case.
-            const client = Array.from(clients).find(c => c.data.user?.post === true);
+            const client = Array.from(clients).find((c) => c.data.user?.post === true);
             if (!client) {
                 this.logger.debug(`User ${r.id} has socket but post toggle = false`);
                 continue;
@@ -448,6 +448,6 @@ export class NotificationGateway
             this.logger.log(`POST_CREATE → ${r.id} (socket ${client.id})`);
         }
 
-        this.logger.log('POST_CREATE processing complete');
+        this.logger.log("POST_CREATE processing complete");
     }
 }

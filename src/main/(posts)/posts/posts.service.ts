@@ -15,15 +15,14 @@ import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
 import { PostRepository } from "./posts.repository";
 
-
 @Injectable()
 export class PostService {
     constructor(
         private readonly repository: PostRepository,
         private readonly followService: FollowService,
         private prisma: PrismaService,
-        private readonly eventEmitter: EventEmitter2
-    ) { }
+        private readonly eventEmitter: EventEmitter2,
+    ) {}
 
     // async create(input: CreatePostDto) {
     //     const post = await this.repository.store(input);
@@ -48,21 +47,19 @@ export class PostService {
     //     return post;
     // }
 
-
-
-    // ------------create post 
+    // ------------create post
     async create(input: CreatePostDto) {
         const post = await this.repository.store(input);
-        if (!post) throw new BadRequestException('Fail to create post');
+        if (!post) throw new BadRequestException("Fail to create post");
 
         // 1. Get ONLY the followers of the author
         const followersRes = await this.followService.getFollowers(post.authorId);
-        const followers = followersRes.data;               // [{ followerId: string }]
+        const followers = followersRes.data; // [{ followerId: string }]
 
         // 2. Build the list of users that have the *post* toggle ON
         const toggles = await this.prisma.notificationToggle.findMany({
             where: {
-                userId: { in: followers.map(f => f.followerId) },
+                userId: { in: followers.map((f) => f.followerId) },
                 post: true,
             },
             select: {
@@ -70,7 +67,7 @@ export class PostService {
             },
         });
 
-        const recipients = toggles.map(t => ({
+        const recipients = toggles.map((t) => ({
             id: t.user.id,
             email: t.user.email,
         }));
@@ -84,7 +81,7 @@ export class PostService {
                 publishedAt: post.createdAt ?? new Date(),
             },
             info: {
-                title: `New post by ${post.author.profile?.name ?? 'someone'}`,
+                title: `New post by ${post.author.profile?.name ?? "someone"}`,
                 message: `CREATE NEW POST ${post.text}`,
                 authorId: post.authorId,
                 recipients,

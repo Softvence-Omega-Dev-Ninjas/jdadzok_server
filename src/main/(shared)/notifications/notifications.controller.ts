@@ -22,7 +22,7 @@ import { NotificationsService } from "./notifications.service";
 @ApiBearerAuth()
 @Controller("notifications")
 export class NotificaitonsController {
-    constructor(private readonly NotificationsService: NotificationsService) { }
+    constructor(private readonly NotificationsService: NotificationsService) {}
 
     @UseGuards(JwtAuthGuard)
     async fetchSystemAdminNotificaiton(@GetUser() user: TUser) {
@@ -111,15 +111,12 @@ export class NotificaitonsController {
     //     return { sent: true };
     // }
 
-
-
     // --------------  Ngo change notification  ON -----------------
 
     @ApiOperation({
         summary: "Ngo-Toggle notification setting on",
         description: "Ngo-Toggle notification setting on",
     })
-
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)

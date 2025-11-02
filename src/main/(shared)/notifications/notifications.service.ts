@@ -6,7 +6,7 @@ import { NotificationToggleDto } from "./dto/notification-toggle";
 
 @Injectable()
 export class NotificationsService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
     // --------------  get the notification    -----------------------
     @HandleError("Failed to get notification setting")
     async getNotificationSetting(userId: string): Promise<TResponse<any>> {
@@ -66,9 +66,6 @@ export class NotificationsService {
         return successResponse(result, "Notification setting updated successfully");
     }
 
-
-
-
     //   --------------ProfileUpdateNotificationSettingOn update user notification now -------------------
 
     @HandleError("Failed to update notification setting ProfileUpdateNotificationSettingOn")
@@ -115,7 +112,6 @@ export class NotificationsService {
             data: { isToggleNotification: true },
         });
 
-
         return successResponse(
             NgochangeNotification,
             "NGO notification setting turned ON successfully",
@@ -156,8 +152,6 @@ export class NotificationsService {
             },
         });
 
-
-
         return successResponse(
             changeNotification,
             "Community notification setting turned ON successfully",
@@ -175,8 +169,6 @@ export class NotificationsService {
                 isToggleNotification: false,
             },
         });
-
-
 
         return successResponse(
             changeNotification,
