@@ -2,7 +2,7 @@ import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import {
-    CreatePaymentMethodDto,
+    CreateGlobalPaymentMethodDto,
     PaymentMethodQueryDto,
     UpdatePaymentMethodDto,
 } from "./dto/payment-method.dto";
@@ -11,7 +11,7 @@ import {
 export class PaymentMethodRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    async create(userId: string, data: CreatePaymentMethodDto) {
+    async create(userId: string, data: CreateGlobalPaymentMethodDto) {
         // If this is being set as default, unset other default payment methods for this user
         if (data.isDefault) {
             await this.prisma.paymentMethods.updateMany({

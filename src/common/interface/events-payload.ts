@@ -42,6 +42,14 @@ export interface Community extends BaseEvent<CommunityMeta> {
     };
 }
 
+export interface Ngo extends BaseEvent<NgoMeta> {
+    info: {
+        title: string;
+        message: string;
+        recipients: { email: string; id: string }[];
+    };
+}
+
 // Comment Event
 export interface Comment extends BaseEvent<CommentMeta> {
     info: {
@@ -70,13 +78,5 @@ export interface Message extends BaseEvent<MessageMeta> {
         toUserId: string;
         content: string;
         sendEmail: boolean;
-    };
-}
-
-export interface Ngo extends BaseEvent<NgoMeta> {
-    info: {
-        title: string;
-        message: string;
-        recipients: { email: string; id: string }[];
     };
 }

@@ -16,6 +16,7 @@ export class CapLevelCronJobService {
     ) {}
 
     // @Cron(CronExpression.EVERY_MINUTE)
+
     @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
     async scheduleJob() {
         this.logger.log(

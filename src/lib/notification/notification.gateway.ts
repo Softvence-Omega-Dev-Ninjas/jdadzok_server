@@ -264,65 +264,97 @@ export class NotificationGateway
         client.emit("Community_CREATE");
     }
 
-    // ✅ Listen for Community_CREATE event
-    // @OnEvent(EVENT_TYPES.Community_CREATE)
-    // handleCommunityCreated(payload: Community) {
-    //     console.log('📢 Broadcasting notification to all users');
-
-    //     if (!payload.info?.recipients) return;
-
-    //     for (const recipient of payload.info.recipients) {
-    //         const socketId = this.userSockets.get(recipient.id);
-    //         if (socketId) {
-    //             this.server.to(socketId).emit('notification', {
-    //                 title: payload.info.title,
-    //                 message: payload.info.message,
-    //                 communityId: payload.meta.communityId,
-    //             });
-    //         }
-    //     }
-    //     console.log("Sockets currently connected:", this.userSockets);
-    // }
-
     @SubscribeMessage(EVENT_TYPES.COMMENT_CREATE)
     handleSomething(purpose: string, client: Socket) {
         client.broadcast.emit(purpose, {});
     }
 
-    @OnEvent(EVENT_TYPES.COMMUNITY_CREATE)
-    async handleCommunityCreated(payload: Community) {
-        this.logger.log("📢 Broadcasting Community_CREATE notification");
+    // @OnEvent(EVENT_TYPES.COMMUNITY_CREATE)
+    // async handleCommunityCreated(payload: Community) {
+    //     this.logger.log("📢 Broadcasting Community_CREATE notification");
 
-        if (!payload.info?.recipients) {
-            this.logger.warn("No recipients provided in Community_CREATE payload");
+    //     if (!payload.info?.recipients) {
+    //         this.logger.warn("No recipients provided in Community_CREATE payload");
+    //         return;
+    //     }
+
+    //     for (const recipient of payload.info.recipients) {
+    //         const socketId = this.userSockets.get(recipient.id);
+    //         if (socketId) {
+    //             const clients = this.getClientsForUser(recipient.id);
+    //             const client = Array.from(clients).find((c) => c.id === socketId);
+    //             if (client && client.data.user.community) {
+    //                 // Check community toggle
+    //                 this.server.to(socketId).emit(EVENT_TYPES.COMMUNITY_CREATE, {
+    //                     type: EVENT_TYPES.COMMUNITY_CREATE,
+    //                     title: payload.info.title,
+    //                     message: payload.info.message,
+    //                     createdAt: new Date(),
+    //                     meta: { communityId: payload.meta.communityId },
+    //                 });
+    //                 this.logger.log(
+    //                     `Notification sent to user ${recipient.id} (socket ${socketId})`,
+    //                 );
+    //             } else {
+    //                 this.logger.warn(`User ${recipient.id} has community notifications disabled`);
+    //             }
+    //         } else {
+    //             this.logger.warn(`No socket found for user ${recipient.id}`);
+    //         }
+    //     }
+    //     this.logger.debug("Sockets currently connected:", Array.from(this.userSockets.entries()));
+    // }
+
+    @OnEvent(EVENT_TYPES.COMMUNITY_CREATE)
+    async handlCommnityCreated(payload: Community) {
+        this.logger.log("COMMUNITY_CREATE EVENT RECEIVED");
+        this.logger.log(`Payload: ${JSON.stringify(payload, null, 2)}`);
+
+        if (!payload.info?.recipients?.length) {
+            this.logger.warn("No recipients in payload → skipping emit");
             return;
         }
 
-        for (const recipient of payload.info.recipients) {
-            const socketId = this.userSockets.get(recipient.id);
-            if (socketId) {
-                const clients = this.getClientsForUser(recipient.id);
-                const client = Array.from(clients).find((c) => c.id === socketId);
-                if (client && client.data.user.community) {
-                    // Check community toggle
-                    this.server.to(socketId).emit(EVENT_TYPES.COMMUNITY_CREATE, {
-                        type: EVENT_TYPES.COMMUNITY_CREATE,
-                        title: payload.info.title,
-                        message: payload.info.message,
-                        createdAt: new Date(),
-                        meta: { communityId: payload.meta.communityId },
-                    });
-                    this.logger.log(
-                        `Notification sent to user ${recipient.id} (socket ${socketId})`,
-                    );
-                } else {
-                    this.logger.warn(`User ${recipient.id} has community notifications disabled`);
-                }
-            } else {
-                this.logger.warn(`No socket found for user ${recipient.id}`);
+        this.logger.log(`Found ${payload.info.recipients.length} recipient(s)`);
+
+        for (const r of payload.info.recipients) {
+            this.logger.log(`--- Processing recipient: ${r.id} (${r.email}) ---`);
+
+            const clients = this.getClientsForUser(r.id);
+            this.logger.log(`  → Total connected sockets for this user: ${clients.size}`);
+
+            if (clients.size === 0) {
+                this.logger.warn(`  No active socket for user ${r.id} → notification NOT sent`);
+                continue;
             }
+
+            const client = Array.from(clients).find((c) => c.data.user?.ngo === true);
+
+            if (!client) {
+                this.logger.warn(
+                    `  User ${r.id} has socket but community toggle = false or missing`,
+                );
+                this.logger.debug(
+                    `  client.data.user: ${JSON.stringify(Array.from(clients)[0].data.user)}`,
+                );
+                continue;
+            }
+
+            this.logger.log(`  Sending notification to socket ${client.id}`);
+            this.logger.log(`  User toggle: ngo = ${client.data.user?.ngo}`);
+
+            client.emit(EVENT_TYPES.COMMUNITY_CREATE, {
+                type: EVENT_TYPES.COMMUNITY_CREATE,
+                title: payload.info.title,
+                message: payload.info.message,
+                createdAt: new Date(),
+                meta: payload.meta,
+            } satisfies Notification);
+
+            this.logger.log(`EMIT SUCCESS → COMMUNITY_CREATE sent to user ${r.id}`);
         }
-        this.logger.debug("Sockets currently connected:", Array.from(this.userSockets.entries()));
+
+        this.logger.log("COMMUNITY_CREATE processing complete");
     }
 
     // ------listen create ngo----------------

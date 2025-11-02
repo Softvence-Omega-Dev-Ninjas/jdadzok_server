@@ -24,7 +24,7 @@ import {
 } from "@nestjs/swagger";
 import { TUser } from "@type/index";
 import {
-    CreatePaymentMethodDto,
+    CreateGlobalPaymentMethodDto,
     PaymentMethodQueryDto,
     PaymentMethodResponseDto,
     UpdatePaymentMethodDto,
@@ -47,7 +47,10 @@ export class PaymentMethodController {
     })
     @ApiResponse({ status: 400, description: "Bad request" })
     @ApiResponse({ status: 409, description: "Payment method already exists" })
-    async createPaymentMethod(@GetUser() user: TUser, @Body() createDto: CreatePaymentMethodDto) {
+    async createPaymentMethod(
+        @GetUser() user: TUser,
+        @Body() createDto: CreateGlobalPaymentMethodDto,
+    ) {
         try {
             const pm = await this.paymentMethodService.createPaymentMethod(user.userId, createDto);
             return successResponse(pm, "Payment method created successfully");

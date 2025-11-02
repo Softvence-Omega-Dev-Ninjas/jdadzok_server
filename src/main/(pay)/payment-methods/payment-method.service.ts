@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PaymentMethods } from "@prisma/client";
 import {
-    CreatePaymentMethodDto,
+    CreateGlobalPaymentMethodDto,
     PaymentMethodQueryDto,
     PaymentMethodResponseDto,
     UpdatePaymentMethodDto,
@@ -14,7 +14,7 @@ export class PaymentMethodService {
 
     async createPaymentMethod(
         userId: string,
-        createDto: CreatePaymentMethodDto,
+        createDto: CreateGlobalPaymentMethodDto,
     ): Promise<PaymentMethodResponseDto> {
         try {
             // Check if user already has too many payment methods
@@ -129,7 +129,7 @@ export class PaymentMethodService {
     }
 
     private async encryptSensitiveData(
-        data: CreatePaymentMethodDto | UpdatePaymentMethodDto,
+        data: CreateGlobalPaymentMethodDto | UpdatePaymentMethodDto,
     ): Promise<any> {
         // In a real application, you would encrypt sensitive data here
         // For now, we'll just mask the card number for storage

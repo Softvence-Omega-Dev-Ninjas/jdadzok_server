@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get, Patch, Param } from "@nestjs/common";
+import { Controller, Post, Body, UseGuards, Get, Patch, Param, Delete } from "@nestjs/common";
 import { VolunteerService } from "./volunteer.service";
 import { CreateVolunteerProjectDto } from "./dto/create-volunteer-project.dto";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
@@ -24,6 +24,7 @@ export class VolunteerController {
             "Ngo create volunteer project successfully",
         );
     }
+
     @ApiOperation({ summary: "Get all volunteer projects" })
     @Get("allProjects")
     getAllNgoProjects(@GetVerifiedUser() user: VerifiedUser) {
@@ -32,6 +33,7 @@ export class VolunteerController {
             "Get all ngo volunteer project successfully",
         );
     }
+
     @ApiOperation({
         summary: "Get all volunteer projects created by the logged-in NGO Owner && User",
     })
@@ -42,12 +44,25 @@ export class VolunteerController {
             "Get my ngo volunteer project successfully",
         );
     }
+
     @ApiOperation({ summary: "Apply Volunteer project" })
     @Post("apply")
     applyToProject(@Body() dto: ApplyVolunteerDto, @GetVerifiedUser() user: VerifiedUser) {
         return handleRequest(
             () => this.volunteerService.applyToProject(dto, user.id),
             "Apply volunteer project successfully",
+        );
+    }
+
+    @ApiOperation({ summary: "Get all volunteer applications under a specific project" })
+    @Get("project/:projectId/applications")
+    getProjectApplications(
+        @Param("projectId") projectId: string,
+        @GetVerifiedUser() user: VerifiedUser,
+    ) {
+        return handleRequest(
+            () => this.volunteerService.getProjectApplications(projectId, user.id),
+            "Fetched all volunteer applications for this project successfully",
         );
     }
 
@@ -83,6 +98,15 @@ export class VolunteerController {
         return handleRequest(
             () => this.volunteerService.getVolunteerApplications(user.id),
             "Get My Apply of volunteer project successfully",
+        );
+    }
+
+    @ApiOperation({ summary: "Delete Volunteer Project" })
+    @Delete("delete/:projectId")
+    removeProject(@Param("projectId") projectId: string, @GetVerifiedUser() user: VerifiedUser) {
+        return handleRequest(
+            () => this.volunteerService.removeProject(projectId, user.id),
+            "Delete Project Successfully.",
         );
     }
 }

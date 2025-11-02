@@ -6,5 +6,6 @@ import { NewsFeedService } from "./service/newsfeed.service";
     imports: [],
     controllers: [NewsFeedController],
     providers: [NewsFeedService],
+    exports: [],
 })
 export class NewsFeedModule {}

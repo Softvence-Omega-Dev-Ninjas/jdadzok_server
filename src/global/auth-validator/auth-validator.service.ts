@@ -11,12 +11,6 @@ export class AuthValidatorService {
     ) {}
 
     async validateSocketToken(socket: Socket) {
-        // const rawCookie = this.extractToken(socket);
-        // console.log('row: ', rawCookie);
-        // if (!rawCookie) {
-        //     throw new BadGatewayException("Unauthorized user - cookie not found");
-        // }
-
         // const parsed = cookie.parse(rawCookie);
         const token = this.extractToken(socket);
         if (!token) {

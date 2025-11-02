@@ -1,87 +1,92 @@
-import { WebSocketGateway } from "@nestjs/websockets";
+import { GetSocketUser } from "@common/decorators/socket-user.decorator";
+import {
+    ConnectedSocket,
+    MessageBody,
+    SubscribeMessage,
+    WebSocketGateway,
+} from "@nestjs/websockets";
+import { Socket } from "socket.io";
+import { SocketUser } from "../@types";
 import { BaseSocketGateway } from "../base/abstract-socket.gateway";
+import { SOCKET_EVENTS } from "../constants/socket-events.constant";
+import { SocketMiddleware } from "../middleware/socket.middleware";
+import { RedisService } from "../services/redis.service";
+import { CallsService } from "./calls.service";
+import { CreateCallDto } from "./dto/create-calls.dto";
 
 @WebSocketGateway({
     namespace: "/calls",
     cors: { origin: true, credentials: true },
 })
 export class CallsGateway extends BaseSocketGateway {
-    private readonly CALL_TIMEOUT_MS = 30 * 1000; // 30 secounds timeout for call acceptance
-
-    // Helper to generate call room name
-    protected getCallRoom(callId: string): string {
-        return `call_${callId}`;
+    constructor(
+        redisService: RedisService,
+        socketMiddleware: SocketMiddleware,
+        private readonly svc: CallsService,
+    ) {
+        super(redisService, socketMiddleware);
     }
 
-    // Helper to validate and participant
-    // protected async validateCallParticipant(callId: string, userId: string) {
-    //     return { callId, userId };
-    //     // const call = await this.svc.getCall(callId);
-    //     // if (!call) {
-    //     //     return false;
-    //     // }
-    //     // return call && (call.fromId === userId || call.toId === userId);
-    // }
+    private readonly CALL_TIMEOUT_MS = 30 * 1000; // 30 secounds timeout for call acceptance
 
-    // @SubscribeMessage(SOCKET_EVENTS.CALL.INITIATE)
-    // async handleCallInitiate(
-    //     @GetSocketUser() user: SocketUser,
-    //     @ConnectedSocket() client: Socket,
-    //     @MessageBody() payload: CreateCallDto,
-    // ) {
-    //     console.info(user);
-    //     console.info(client.id);
-    //     console.info(payload);
-    //     // try {
-    //     //     // Create call record in database
-    //     //     const call = await this.svc.createCall(user.id, payload);
-    //     //     const callRoom = this.getCallRoom(call.id);
-    //     //     // Check if target usre is online
-    //     //     const targetSocket = this.getUserById(call.toId);
-    //     //     if (!targetSocket) {
-    //     //         await this.svc.endCall(call.id);
-    //     //         client.emit(SOCKET_EVENTS.CALL.STATUS, {
-    //     //             callId: call.id,
-    //     //             status: "FAILED",
-    //     //             reason: "Target User is offline",
-    //     //         });
-    //     //         return;
-    //     //     }
-    //     //     // Join initiator to call room
-    //     //     client.join(callRoom);
-    //     //     // Notify target user about incomming call
-    //     //     this.server.to(targetSocket.id).emit(SOCKET_EVENTS.CALL.INCOMING, {
-    //     //         callId: call.id,
-    //     //         formId: user.id,
-    //     //         offer: payload.offer,
-    //     //     });
-    //     //     // Notify initiator of ringing status
-    //     //     client.emit(SOCKET_EVENTS.CALL.STATUS, {
-    //     //         callId: call.id,
-    //     //         status: "RINGING",
-    //     //     });
-    //     //     // Set timeout for call acceptance
-    //     //     setTimeout(async () => {
-    //     //         const currentCall = await this.svc.getCall(call.id);
-    //     //         if (currentCall && currentCall.status !== "ACTIVE") {
-    //     //             await this.svc.endCall(call.id);
-    //     //             this.server.to(callRoom).emit(SOCKET_EVENTS.CALL.STATUS, {
-    //     //                 callId: call.id,
-    //     //                 status: "TIMEOUT",
-    //     //                 reason: "Call not accepted withing time limit",
-    //     //             });
-    //     //             this.server.socketsLeave(callRoom);
-    //     //         }
-    //     //     }, this.CALL_TIMEOUT_MS);
-    //     // } catch (error: any) {
-    //     //     this.logger.error(`Failed to initiate call: ${error?.message}`, error?.stack);
-    //     //     client.emit(SOCKET_EVENTS.CALL.ERROR, {
-    //     //         message: "Failed to initiate call",
-    //     //     });
-    //     //     throw new BadRequestException("Call initiation failed");
-    //     // }
-    // }
-
+    @SubscribeMessage(SOCKET_EVENTS.CALL.INITIATE)
+    async handleCallInitiate(
+        @GetSocketUser() user: SocketUser,
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: CreateCallDto,
+    ) {
+        console.info(user);
+        console.info(client.id);
+        console.info(payload);
+        // try {
+        //     // Create call record in database
+        //     const call = await this.svc.createCall(user.id, payload);
+        //     const callRoom = this.getCallRoom(call.id);
+        //     // Check if target usre is online
+        //     const targetSocket = this.getUserById(call.toId);
+        //     if (!targetSocket) {
+        //         await this.svc.endCall(call.id);
+        //         client.emit(SOCKET_EVENTS.CALL.STATUS, {
+        //             callId: call.id,
+        //             status: "FAILED",
+        //             reason: "Target User is offline",
+        //         });
+        //         return;
+        //     }
+        //     // Join initiator to call room
+        //     client.join(callRoom);
+        //     // Notify target user about incomming call
+        //     this.server.to(targetSocket.id).emit(SOCKET_EVENTS.CALL.INCOMING, {
+        //         callId: call.id,
+        //         formId: user.id,
+        //         offer: payload.offer,
+        //     });
+        //     // Notify initiator of ringing status
+        //     client.emit(SOCKET_EVENTS.CALL.STATUS, {
+        //         callId: call.id,
+        //         status: "RINGING",
+        //     });
+        //     // Set timeout for call acceptance
+        //     setTimeout(async () => {
+        //         const currentCall = await this.svc.getCall(call.id);
+        //         if (currentCall && currentCall.status !== "ACTIVE") {
+        //             await this.svc.endCall(call.id);
+        //             this.server.to(callRoom).emit(SOCKET_EVENTS.CALL.STATUS, {
+        //                 callId: call.id,
+        //                 status: "TIMEOUT",
+        //                 reason: "Call not accepted withing time limit",
+        //             });
+        //             this.server.socketsLeave(callRoom);
+        //         }
+        //     }, this.CALL_TIMEOUT_MS);
+        // } catch (error: any) {
+        //     this.logger.error(`Failed to initiate call: ${error?.message}`, error?.stack);
+        //     client.emit(SOCKET_EVENTS.CALL.ERROR, {
+        //         message: "Failed to initiate call",
+        //     });
+        //     throw new BadRequestException("Call initiation failed");
+        // }
+    }
     // // @SubscribeMessage(SOCKET_EVENTS.CALL.ACCEPT)
     // // @UsePipes(new ValidationPipe({ transform: true }))
     // // async hanndleCallAccept(
