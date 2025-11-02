@@ -32,7 +32,7 @@ import { AdminModule } from "src/(admin)/adminGroup.module";
         PublicGroupModule,
         MetricsGroupModule,
         VolunteerModule,
-        AdminModule
+        AdminModule,
     ],
     controllers: [],
     providers: [],
