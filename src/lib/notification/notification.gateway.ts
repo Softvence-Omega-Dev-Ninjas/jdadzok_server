@@ -1,5 +1,5 @@
 import { EVENT_TYPES } from "@common/interface/events-name";
-import { Community, Ngo, Notification } from "@common/interface/events-payload";
+import { Community, Ngo, Notification, PostEvent } from "@common/interface/events-payload";
 import { PayloadForSocketClient } from "@common/interface/socket-client-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable, Logger } from "@nestjs/common";
@@ -406,5 +406,48 @@ export class NotificationGateway
         }
 
         this.logger.log("NGO_CREATE processing complete");
+    }
+
+    @OnEvent(EVENT_TYPES.POST_CREATE)
+    async handlePostCreated(payload: PostEvent) {
+        this.logger.log("POST_CREATE EVENT RECEIVED");
+        this.logger.debug(`Payload: ${JSON.stringify(payload, null, 2)}`);
+
+        if (!payload.info?.recipients?.length) {
+            this.logger.warn("No recipients → skipping");
+            return;
+        }
+
+        this.logger.log(`Sending to ${payload.info.recipients.length} follower(s)`);
+
+        for (const r of payload.info.recipients) {
+            const clients = this.getClientsForUser(r.id);
+
+            if (clients.size === 0) {
+                this.logger.debug(`No socket for user ${r.id}`);
+                continue;
+            }
+
+            // The toggle check is already done in the service,
+            // but we double-check the socket payload just in case.
+            const client = Array.from(clients).find((c) => c.data.user?.post === true);
+            if (!client) {
+                this.logger.debug(`User ${r.id} has socket but post toggle = false`);
+                continue;
+            }
+
+            const notification: Notification = {
+                type: EVENT_TYPES.POST_CREATE,
+                title: payload.info.title,
+                message: payload.info.message,
+                createdAt: new Date(),
+                meta: payload.meta,
+            };
+
+            client.emit(EVENT_TYPES.POST_CREATE, notification);
+            this.logger.log(`POST_CREATE → ${r.id} (socket ${client.id})`);
+        }
+
+        this.logger.log("POST_CREATE processing complete");
     }
 }
