@@ -31,7 +31,7 @@ export class CallService {
     constructor(
         private readonly prisma: PrismaService,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    ) { }
+    ) {}
 
     /**
      * Join a call room
@@ -102,7 +102,7 @@ export class CallService {
             await this.cacheManager.set(
                 `${this.USER_ROOM_PREFIX}${socketId}`,
                 callId,
-                this.CACHE_TTL
+                this.CACHE_TTL,
             );
 
             // Create participant record in database (best effort)
@@ -158,7 +158,9 @@ export class CallService {
             }
 
             // Remove participant
-            const participantName = room.participants.find(p => p.socketId === socketId)?.userName;
+            const participantName = room.participants.find(
+                (p) => p.socketId === socketId,
+            )?.userName;
             room.participants = room.participants.filter((p) => p.socketId !== socketId);
             room.updatedAt = new Date();
 

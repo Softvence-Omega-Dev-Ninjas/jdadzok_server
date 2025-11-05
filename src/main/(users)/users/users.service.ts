@@ -31,7 +31,7 @@ export class UserService {
         private readonly jwtService: JwtServices,
         private readonly otpService: OptService,
         private readonly mailService: MailService,
-    ) { }
+    ) {}
 
     async register(body: CreateUserDto) {
         // has password if provider is email

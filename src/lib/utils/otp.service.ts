@@ -6,7 +6,7 @@ import { OtpOptions, OtpPayload, OtpRedisData, OtpType, OtpVerifyPayload } from 
 
 @Injectable()
 export class OptService {
-    constructor(private readonly redisService: RedisService) { }
+    constructor(private readonly redisService: RedisService) {}
 
     private getRedisKeyByType(type: OtpType, suffix: string) {
         switch (type) {

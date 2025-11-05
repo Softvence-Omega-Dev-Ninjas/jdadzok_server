@@ -22,7 +22,7 @@ import { CallService } from "./service/calling.service";
 @WebSocketGateway({
     cors: {
         origin: "*",
-        credentials: true
+        credentials: true,
     },
     namespace: "/calling",
     pingInterval: 25000,
@@ -32,7 +32,6 @@ import { CallService } from "./service/calling.service";
     allowEIO3: true,
 })
 export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
-
     private readonly logger = new Logger(CallGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private readonly socketToUserId = new Map<string, string>();
@@ -44,7 +43,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
-    ) { }
+    ) {}
 
     @WebSocketServer()
     server: Server;
@@ -74,7 +73,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             await this.authenticateClient(client, token);
         } else {
             // Give client 10 seconds to authenticate via 'authenticate' message
-            this.logger.log(`Client ${client.id} connected without token, waiting for authentication`);
+            this.logger.log(
+                `Client ${client.id} connected without token, waiting for authentication`,
+            );
 
             setTimeout(() => {
                 if (this.pendingAuthentication.has(client.id)) {
@@ -89,7 +90,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @SubscribeMessage("authenticate")
     async handleAuthenticate(
         @ConnectedSocket() client: Socket,
-        @MessageBody() data: { token: string }
+        @MessageBody() data: { token: string },
     ) {
         if (!this.pendingAuthentication.has(client.id)) {
             // Already authenticated
@@ -148,7 +149,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             // Emit connection success
             client.emit("authenticated", {
                 socketId: client.id,
-                userId: user.id
+                userId: user.id,
             });
 
             this.logger.log(`Client authenticated: ${user.id} (socket: ${client.id})`);
@@ -423,7 +424,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const targetSocket = this.server.sockets.sockets.get(data.targetSocketId);
 
             if (!targetSocket) {
-                this.logger.warn(`Target socket ${data.targetSocketId} not found for ICE candidate`);
+                this.logger.warn(
+                    `Target socket ${data.targetSocketId} not found for ICE candidate`,
+                );
                 return;
             }
 
