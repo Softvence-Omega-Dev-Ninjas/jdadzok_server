@@ -52,45 +52,63 @@ export class PostService {
         const post = await this.repository.store(input);
         if (!post) throw new BadRequestException("Fail to create post");
 
-        // 1. Get ONLY the followers of the author
-        const followersRes = await this.followService.getFollowers(post.authorId);
-        const followers = followersRes.data; // [{ followerId: string }]
+        const authorId = post.authorId;
 
-        // 2. Build the list of users that have the *post* toggle ON
-        const toggles = await this.prisma.notificationToggle.findMany({
+        // 1---- Get followers (users who follow the author)
+        const followersRes = await this.followService.getFollowers(authorId);
+        const followers = followersRes.data.map((f) => f.followerId);
+
+        // 2-----------Get followings (users the author follows)
+        const followingRes = await this.followService.getFollowing(authorId);
+        const followings = followingRes.data.map((f) => f.followingId);
+
+        // 3️---------- Combine both (followers + followings)
+        const allRelatedUsers = Array.from(new Set([...followers, ...followings]));
+
+        // 4️-------------- Find users with post notifications enabled
+        const recipients = await this.prisma.notificationToggle.findMany({
             where: {
-                userId: { in: followers.map((f) => f.followerId) },
-                post: true,
+                userId: { in: allRelatedUsers },
             },
             select: {
                 user: { select: { id: true, email: true } },
             },
         });
 
-        const recipients = toggles.map((t) => ({
-            id: t.user.id,
-            email: t.user.email,
-        }));
+        //    const recipients = await this.prisma.notificationToggle.findMany({
+        //     // where: { ngo: true },
+        //     select: {
+        //         user: { select: { id: true, email: true } },
+        //     },
+        // });
+        console.log("recipients", recipients);
 
-        // 3. Emit the event
+        // 5--------------------- Build event payload for toggle notification
         const payload: PostEvent = {
             action: "CREATE",
             meta: {
                 postId: post.id,
-                performedBy: post.authorId,
+                performedBy: authorId,
                 publishedAt: post.createdAt ?? new Date(),
             },
             info: {
                 title: `New post by ${post.author.profile?.name ?? "someone"}`,
                 message: `CREATE NEW POST ${post.text}`,
-                authorId: post.authorId,
-                recipients,
+                authorId,
+                recipients: recipients.map((r) => ({
+                    id: r.user.id,
+                    email: r.user.email,
+                })),
             },
         };
 
+        console.log("the payload is post crete notify", payload);
+        // 6️----------------------Emit notification event
         this.eventEmitter.emit(EVENT_TYPES.POST_CREATE, payload);
+
         return post;
     }
+
     async index(options?: PostQueryDto) {
         return await this.repository.findAll(options, {
             id: true,
