@@ -13,7 +13,7 @@ model NgoProfile {
   avatarUrl String? // NGO logo
   coverUrl  String? // Cover image
   location  String? // NGO location
-
+  balance Float @default(0.0)
   // Social metrics
   followersCount Int @default(0)
   followingCount Int @default(0)
