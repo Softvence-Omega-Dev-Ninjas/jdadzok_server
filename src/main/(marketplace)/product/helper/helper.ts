@@ -38,7 +38,7 @@ export class HelperService {
       return;
     }
 
-    let totalDistributed = 0; // Track total amount distributed
+    let totalDistributed = 0;
     const activityTable=await this.prisma.activityScore.findFirst()
     // Step 2: Prepare all operations for transaction
     const transactionOps = eligiblePosts.map((post) => {
