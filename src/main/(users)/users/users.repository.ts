@@ -1,5 +1,5 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { HelperTx } from "@type/shared.types";
@@ -20,7 +20,20 @@ export class UserRepository {
             const isUser = await tx.user.findFirst({ where: { email: input.email } });
             // if user already has && user is already verified then throw error otherwise processed
             if (isUser && isUser.isVerified) {
-                throw new ConflictException("User already exist, please login");
+                const existingUser = {
+                    id: isUser.id,
+                    email: isUser.email,
+                    role: isUser.role ?? "USER", // default role if missing
+                    isVerified: isUser.isVerified,
+                    capLevel: isUser.capLevel ?? "BEGINNER",
+                    createdAt: isUser.createdAt ?? new Date(),
+                    updatedAt: isUser.updatedAt ?? new Date(),
+                };
+
+                return {
+                    exists: true,
+                    user: existingUser,
+                };
             }
 
             if (isUser && !isUser.isVerified) {

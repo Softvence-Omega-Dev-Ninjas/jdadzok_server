@@ -72,7 +72,7 @@ export class UserService {
 
         return {
             accessToken,
-            user: omit(user, ["password"]),
+            user: user,
             hasAccount,
         };
     }
