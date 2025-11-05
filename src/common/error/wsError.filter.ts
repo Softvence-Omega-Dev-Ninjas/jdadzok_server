@@ -1,5 +1,5 @@
-import { Catch, ArgumentsHost } from '@nestjs/common';
-import { BaseWsExceptionFilter, WsException } from '@nestjs/websockets';
+import { Catch, ArgumentsHost } from "@nestjs/common";
+import { BaseWsExceptionFilter, WsException } from "@nestjs/websockets";
 
 @Catch(WsException)
 export class WebSocketExceptionsFilter extends BaseWsExceptionFilter {
@@ -11,23 +11,23 @@ export class WebSocketExceptionsFilter extends BaseWsExceptionFilter {
         let errorMessage: string;
 
         // Handle different error types
-        if (typeof error === 'string') {
+        if (typeof error === "string") {
             errorMessage = error;
         } else if (error instanceof Error) {
             errorMessage = error.message;
-        } else if (error && typeof error === 'object' && 'message' in error) {
+        } else if (error && typeof error === "object" && "message" in error) {
             errorMessage = error.message as string;
         } else {
-            errorMessage = 'Unknown error';
+            errorMessage = "Unknown error";
         }
 
         const errorResponse = {
-            event: 'error',
+            event: "error",
             data: {
                 id: data?.id || undefined,
                 message: errorMessage,
-                status: 'error'
-            }
+                status: "error",
+            },
         };
 
         client.send(JSON.stringify(errorResponse));

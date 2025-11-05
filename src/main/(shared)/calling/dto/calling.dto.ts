@@ -1,5 +1,5 @@
 // src/call/dto/call.dto.ts
-import { IsBoolean, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsObject, IsOptional, IsString } from "class-validator";
 
 export class JoinCallDto {
     @IsString()
@@ -54,5 +54,5 @@ export class CreateCallDto {
 export class UpdateCallDto {
     @IsString()
     @IsOptional()
-    status?: 'CALLING' | 'ACTIVE' | 'ENDED' | 'CANCELLED' | 'MISSED' | 'DECLINED';
+    status?: "CALLING" | "ACTIVE" | "ENDED" | "CANCELLED" | "MISSED" | "DECLINED";
 }

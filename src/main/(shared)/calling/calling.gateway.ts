@@ -7,24 +7,23 @@ import {
     SubscribeMessage,
     WebSocketGateway,
     WebSocketServer,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+} from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
 
-import { PrismaService } from '@lib/prisma/prisma.service';
-import { Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { IceCandidateDto, JoinCallDto, StartMediaDto, WebRTCSignalDto } from './dto/calling.dto';
-import { CallService } from './service/calling.service';
-
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { IceCandidateDto, JoinCallDto, StartMediaDto, WebRTCSignalDto } from "./dto/calling.dto";
+import { CallService } from "./service/calling.service";
 
 @WebSocketGateway({
-    cors: { origin: '*' },
-    namespace: '/calling',
-    transports: ['websocket'],
+    cors: { origin: "*" },
+    namespace: "/calling",
+    transports: ["websocket"],
     pingInterval: 10000,
     pingTimeout: 5000,
-    connectTimeout: 10000
+    connectTimeout: 10000,
 })
 export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
@@ -34,26 +33,23 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly clients = new Map<string, Set<Socket>>();
     private userSockets = new Map<string, string>();
     // Add to constructor
-    constructor(private readonly callService: CallService,
+    constructor(
+        private readonly callService: CallService,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
     ) {
-        this.server?.on('connect_error', (error) => {
-            this.logger.error('Connection error:', error);
+        this.server?.on("connect_error", (error) => {
+            this.logger.error("Connection error:", error);
         });
 
-        this.server?.on('connect_timeout', () => {
-            this.logger.error('Connection timeout');
+        this.server?.on("connect_timeout", () => {
+            this.logger.error("Connection timeout");
         });
     }
 
-
     afterInit(server: Server) {
-        this.logger.log(
-            "Socket.IO server initialized for calling Gateway",
-            server.adapter.name,
-        );
+        this.logger.log("Socket.IO server initialized for calling Gateway", server.adapter.name);
     }
     async handleConnection(@ConnectedSocket() socket: Socket) {
         try {
@@ -80,7 +76,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.emitActiveUsers();
 
             // Emit connection success to client
-            socket.emit('connectionEstablished', { socketId: socket.id });
+            socket.emit("connectionEstablished", { socketId: socket.id });
         } catch (error) {
             this.logger.error(`Connection error for socket ${socket.id}:`, error);
             socket.disconnect();
@@ -100,11 +96,8 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.emitActiveUsers();
     }
 
-    @SubscribeMessage('joinCall')
-    async handleJoinCall(
-        @ConnectedSocket() socket: Socket,
-        @MessageBody() data: JoinCallDto,
-    ) {
+    @SubscribeMessage("joinCall")
+    async handleJoinCall(@ConnectedSocket() socket: Socket, @MessageBody() data: JoinCallDto) {
         const { callId, userName, hasVideo, hasAudio } = data;
 
         this.logger.log(`User ${socket.id} joining call: ${callId}`);
@@ -127,14 +120,12 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             hasVideo,
             hasAudio,
         );
-        console.log('the room id', room)
+        console.log("the room id", room);
         // Notify existing participants about new user
-        const existingParticipants = room.participants.filter(
-            (p) => p.socketId !== socket.id,
-        );
+        const existingParticipants = room.participants.filter((p) => p.socketId !== socket.id);
 
         // Send existing participants to the new user
-        socket.emit('existingParticipants', {
+        socket.emit("existingParticipants", {
             participants: existingParticipants.map((p) => ({
                 socketId: p.socketId,
                 userName: p.userName,
@@ -144,128 +135,99 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
 
         // Notify others about the new participant
-        socket.to(callId).emit('participantJoined', {
+        socket.to(callId).emit("participantJoined", {
             socketId: socket.id,
             userName,
             hasVideo,
             hasAudio,
         });
 
-        this.logger.log(
-            `Call ${callId} now has ${room.participants.length} participants`,
-        );
+        this.logger.log(`Call ${callId} now has ${room.participants.length} participants`);
     }
 
-    @SubscribeMessage('startVideo')
-    async handleStartVideo(
-        @ConnectedSocket() socket: Socket,
-        @MessageBody() data: StartMediaDto,
-    ) {
+    @SubscribeMessage("startVideo")
+    async handleStartVideo(@ConnectedSocket() socket: Socket, @MessageBody() data: StartMediaDto) {
         const { callId } = data;
 
-        await this.callService.updateMediaState(socket.id, callId, 'video', true);
+        await this.callService.updateMediaState(socket.id, callId, "video", true);
 
-        socket.to(callId).emit('participantVideoStarted', {
+        socket.to(callId).emit("participantVideoStarted", {
             socketId: socket.id,
         });
 
         this.logger.log(`User ${socket.id} started video in call ${callId}`);
     }
 
-    @SubscribeMessage('stopVideo')
-    async handleStopVideo(
-        @ConnectedSocket() socket: Socket,
-        @MessageBody() data: StartMediaDto,
-    ) {
+    @SubscribeMessage("stopVideo")
+    async handleStopVideo(@ConnectedSocket() socket: Socket, @MessageBody() data: StartMediaDto) {
         const { callId } = data;
 
-        await this.callService.updateMediaState(socket.id, callId, 'video', false);
+        await this.callService.updateMediaState(socket.id, callId, "video", false);
 
-        socket.to(callId).emit('participantVideoStopped', {
+        socket.to(callId).emit("participantVideoStopped", {
             socketId: socket.id,
         });
 
         this.logger.log(`User ${socket.id} stopped video in call ${callId}`);
     }
 
-    @SubscribeMessage('startAudio')
-    async handleStartAudio(
-        @ConnectedSocket() socket: Socket,
-        @MessageBody() data: StartMediaDto,
-    ) {
+    @SubscribeMessage("startAudio")
+    async handleStartAudio(@ConnectedSocket() socket: Socket, @MessageBody() data: StartMediaDto) {
         const { callId } = data;
 
-        await this.callService.updateMediaState(socket.id, callId, 'audio', true);
+        await this.callService.updateMediaState(socket.id, callId, "audio", true);
 
-        socket.to(callId).emit('participantAudioStarted', {
+        socket.to(callId).emit("participantAudioStarted", {
             socketId: socket.id,
         });
 
         this.logger.log(`User ${socket.id} started audio in call ${callId}`);
     }
 
-    @SubscribeMessage('stopAudio')
-    async handleStopAudio(
-        @ConnectedSocket() socket: Socket,
-        @MessageBody() data: StartMediaDto,
-    ) {
+    @SubscribeMessage("stopAudio")
+    async handleStopAudio(@ConnectedSocket() socket: Socket, @MessageBody() data: StartMediaDto) {
         const { callId } = data;
 
-        await this.callService.updateMediaState(socket.id, callId, 'audio', false);
+        await this.callService.updateMediaState(socket.id, callId, "audio", false);
 
-        socket.to(callId).emit('participantAudioStopped', {
+        socket.to(callId).emit("participantAudioStopped", {
             socketId: socket.id,
         });
 
         this.logger.log(`User ${socket.id} stopped audio in call ${callId}`);
     }
 
-    @SubscribeMessage('offer')
-    handleOffer(
-        @ConnectedSocket() socket: Socket,
-        @MessageBody() data: WebRTCSignalDto,
-    ) {
-        this.logger.debug(
-            `Relaying offer from ${socket.id} to ${data.targetSocketId}`,
-        );
+    @SubscribeMessage("offer")
+    handleOffer(@ConnectedSocket() socket: Socket, @MessageBody() data: WebRTCSignalDto) {
+        this.logger.debug(`Relaying offer from ${socket.id} to ${data.targetSocketId}`);
 
-        this.server.to(data.targetSocketId).emit('offer', {
+        this.server.to(data.targetSocketId).emit("offer", {
             offer: data.signal,
             senderId: socket.id,
         });
     }
 
-    @SubscribeMessage('answer')
-    handleAnswer(
-        @ConnectedSocket() socket: Socket,
-        @MessageBody() data: WebRTCSignalDto,
-    ) {
-        this.logger.debug(
-            `Relaying answer from ${socket.id} to ${data.targetSocketId}`,
-        );
+    @SubscribeMessage("answer")
+    handleAnswer(@ConnectedSocket() socket: Socket, @MessageBody() data: WebRTCSignalDto) {
+        this.logger.debug(`Relaying answer from ${socket.id} to ${data.targetSocketId}`);
 
-        this.server.to(data.targetSocketId).emit('answer', {
+        this.server.to(data.targetSocketId).emit("answer", {
             answer: data.signal,
             senderId: socket.id,
         });
     }
 
-    @SubscribeMessage('iceCandidate')
-    handleIceCandidate(
-        @ConnectedSocket() socket: Socket,
-        @MessageBody() data: IceCandidateDto,
-    ) {
-        this.logger.debug(
-            `Relaying ICE candidate from ${socket.id} to ${data.targetSocketId}`,
-        );
+    @SubscribeMessage("iceCandidate")
+    handleIceCandidate(@ConnectedSocket() socket: Socket, @MessageBody() data: IceCandidateDto) {
+        this.logger.debug(`Relaying ICE candidate from ${socket.id} to ${data.targetSocketId}`);
 
-        this.server.to(data.targetSocketId).emit('iceCandidate', {
+        this.server.to(data.targetSocketId).emit("iceCandidate", {
             candidate: data.candidate,
             senderId: socket.id,
         });
     }
 
-    @SubscribeMessage('leaveCall')
+    @SubscribeMessage("leaveCall")
     async handleLeaveCall(
         @ConnectedSocket() socket: Socket,
         @MessageBody() data: { callId: string },
@@ -281,7 +243,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const room = await this.callService.leaveCall(socket.id, callId);
 
         // Notify others
-        socket.to(callId).emit('participantLeft', {
+        socket.to(callId).emit("participantLeft", {
             socketId: socket.id,
         });
 
@@ -294,6 +256,6 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     private emitActiveUsers() {
         const activeUsers = this.callService.getActiveUsersCount();
-        this.server.emit('activeUsers', { count: activeUsers });
+        this.server.emit("activeUsers", { count: activeUsers });
     }
 }

@@ -1,10 +1,10 @@
 // src/call/call.service.ts
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 
-import { Inject } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { PrismaService } from '@lib/prisma/prisma.service';
+import { Inject } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
+import { PrismaService } from "@lib/prisma/prisma.service";
 
 export interface Participant {
     socketId: string;
@@ -24,14 +24,14 @@ export interface CallRoom {
 @Injectable()
 export class CallService {
     private readonly logger = new Logger(CallService.name);
-    private readonly ACTIVE_USERS_KEY = 'active_users';
-    private readonly CALL_ROOM_PREFIX = 'call_room:';
-    private readonly USER_ROOM_PREFIX = 'user_room:';
+    private readonly ACTIVE_USERS_KEY = "active_users";
+    private readonly CALL_ROOM_PREFIX = "call_room:";
+    private readonly USER_ROOM_PREFIX = "user_room:";
 
     constructor(
         private readonly prisma: PrismaService,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    ) { }
+    ) {}
 
     async addActiveUser(socketId: string, userId: string): Promise<void> {
         const activeUsers: Map<string, string> =
@@ -45,7 +45,7 @@ export class CallService {
 
     async removeActiveUser(socketId: string): Promise<void> {
         const activeUsers: Map<string, string> =
-            await this.cacheManager.get(this.ACTIVE_USERS_KEY) || new Map();
+            (await this.cacheManager.get(this.ACTIVE_USERS_KEY)) || new Map();
 
         activeUsers.delete(socketId);
         await this.cacheManager.set(this.ACTIVE_USERS_KEY, activeUsers, 0);
@@ -85,14 +85,14 @@ export class CallService {
             await this.prisma.calling.upsert({
                 where: { id: callId },
                 update: {
-                    status: 'ACTIVE',
+                    status: "ACTIVE",
                     startedAt: new Date(),
-                    updatedAt: new Date()
+                    updatedAt: new Date(),
                 },
                 create: {
                     id: callId,
                     hostUserId: socketId,
-                    status: 'ACTIVE',
+                    status: "ACTIVE",
                     startedAt: new Date(),
                 },
             });
@@ -117,11 +117,7 @@ export class CallService {
         await this.cacheManager.set(cacheKey, room, 0);
 
         // Map user to room
-        await this.cacheManager.set(
-            `${this.USER_ROOM_PREFIX}${socketId}`,
-            callId,
-            0,
-        );
+        await this.cacheManager.set(`${this.USER_ROOM_PREFIX}${socketId}`, callId, 0);
 
         // Create participant record in database
         await this.prisma.callParticipant.create({
@@ -150,9 +146,7 @@ export class CallService {
         }
 
         // Remove participant
-        room.participants = room.participants.filter(
-            (p) => p.socketId !== socketId,
-        );
+        room.participants = room.participants.filter((p) => p.socketId !== socketId);
         room.updatedAt = new Date();
 
         if (room.participants.length > 0) {
@@ -186,7 +180,7 @@ export class CallService {
     async updateMediaState(
         socketId: string,
         callId: string,
-        mediaType: 'video' | 'audio',
+        mediaType: "video" | "audio",
         enabled: boolean,
     ): Promise<void> {
         const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
@@ -204,7 +198,7 @@ export class CallService {
             return;
         }
 
-        if (mediaType === 'video') {
+        if (mediaType === "video") {
             participant.hasVideo = enabled;
         } else {
             participant.hasAudio = enabled;
@@ -221,21 +215,23 @@ export class CallService {
                 leftAt: null,
             },
             data: {
-                hasVideo: mediaType === 'video' ? enabled : undefined,
-                hasAudio: mediaType === 'audio' ? enabled : undefined,
+                hasVideo: mediaType === "video" ? enabled : undefined,
+                hasAudio: mediaType === "audio" ? enabled : undefined,
             },
         });
     }
 
     async getUserRoom(socketId: string): Promise<string | null> {
         const result = await this.cacheManager.get(`${this.USER_ROOM_PREFIX}${socketId}`);
-        return typeof result === 'string' ? result : null;
+        return typeof result === "string" ? result : null;
     }
 
     async getCallRoom(callId: string): Promise<CallRoom | null> {
         const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
         const result = await this.cacheManager.get(cacheKey);
-        return (result && typeof result === 'object' && 'callId' in result) ? result as CallRoom : null;
+        return result && typeof result === "object" && "callId" in result
+            ? (result as CallRoom)
+            : null;
     }
 
     async deleteCall(callId: string): Promise<void> {
@@ -246,7 +242,7 @@ export class CallService {
         await this.prisma.calling.update({
             where: { id: callId },
             data: {
-                status: 'END',
+                status: "END",
                 endedAt: new Date(),
             },
         });
@@ -258,7 +254,7 @@ export class CallService {
         return await this.prisma.calling.create({
             data: {
                 hostUserId,
-                status: 'CALLING',
+                status: "CALLING",
             },
         });
     }
@@ -318,7 +314,7 @@ export class CallService {
                 participants: true,
             },
             orderBy: {
-                createdAt: 'desc',
+                createdAt: "desc",
             },
             take: 50,
         });

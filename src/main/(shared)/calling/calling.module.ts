@@ -1,13 +1,13 @@
 // src/call/call.module.ts
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
 
-import { PrismaModule } from '@lib/prisma/prisma.module';
-import { CacheModule } from '@nestjs/cache-manager';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { CallGateway } from './calling.gateway';
-import { CallController } from './controller/calling.controller';
-import { CallService } from './service/calling.service';
+import { PrismaModule } from "@lib/prisma/prisma.module";
+import { CacheModule } from "@nestjs/cache-manager";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { CallGateway } from "./calling.gateway";
+import { CallController } from "./controller/calling.controller";
+import { CallService } from "./service/calling.service";
 
 @Module({
     imports: [
@@ -21,5 +21,4 @@ import { CallService } from './service/calling.service';
     controllers: [CallController],
     exports: [CallService],
 })
-export class CallModule { }
-
+export class CallModule {}

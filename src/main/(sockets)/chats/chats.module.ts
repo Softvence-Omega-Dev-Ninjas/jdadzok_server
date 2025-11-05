@@ -1,10 +1,10 @@
 // src/chat/chat.module.ts
-import { PrismaService } from '@lib/prisma/prisma.service';
-import { AuthModule } from '@module/(started)/auth/auth.module'; // Correct path
-import { Module } from '@nestjs/common';
-import { ChatController } from './chat.controller';
-import { ChatGateway } from './chat.gateway';
-import { ChatService } from './chat.service';
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { AuthModule } from "@module/(started)/auth/auth.module"; // Correct path
+import { Module } from "@nestjs/common";
+import { ChatController } from "./chat.controller";
+import { ChatGateway } from "./chat.gateway";
+import { ChatService } from "./chat.service";
 
 @Module({
     imports: [AuthModule], // This brings in AuthValidatorService
@@ -17,4 +17,4 @@ import { ChatService } from './chat.service';
     controllers: [ChatController],
     exports: [ChatService],
 })
-export class ChatModule { }
+export class ChatModule {}

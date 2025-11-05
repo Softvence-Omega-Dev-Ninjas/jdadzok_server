@@ -25,7 +25,8 @@ import { RedisService } from "../services/redis.service";
 })
 @UseGuards(SocketAuthGuard)
 export abstract class BaseSocketGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     @WebSocketServer() protected server: Server;
     protected readonly logger = new Logger(this.constructor.name);
     private readonly clients = new Map<string, Set<Socket>>();
@@ -33,7 +34,7 @@ export abstract class BaseSocketGateway
     constructor(
         protected readonly redisService: RedisService,
         private readonly socketMiddleware: SocketMiddleware,
-    ) { }
+    ) {}
 
     async afterInit() {
         this.logger.verbose(`(${this.constructor.name}) Gateway initialized`);
@@ -63,9 +64,11 @@ export abstract class BaseSocketGateway
         }
         this.clients.get(user.id)!.add(client);
 
-        this.logger.log(`✅ User ${socketUser.email} connected (Socket: ${client.id}, User: ${socketUser.id})`);
+        this.logger.log(
+            `✅ User ${socketUser.email} connected (Socket: ${client.id}, User: ${socketUser.id})`,
+        );
         this.logger.log(`📊 Total connected users: ${this.clients.size}`);
-        this.logger.log(`👥 Connected user IDs: [${Array.from(this.clients.keys()).join(', ')}]`);
+        this.logger.log(`👥 Connected user IDs: [${Array.from(this.clients.keys()).join(", ")}]`);
 
         // Broadcast join event
         this.server.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
@@ -184,7 +187,11 @@ export abstract class BaseSocketGateway
         return true;
     }
 
-    protected async emitToUserViaClientsMap(userId: string, event: string, data: any): Promise<boolean> {
+    protected async emitToUserViaClientsMap(
+        userId: string,
+        event: string,
+        data: any,
+    ): Promise<boolean> {
         const userSockets = this.clients.get(userId);
 
         this.logger.log(`🔔 Attempting to emit "${event}" to user ${userId}`);
@@ -192,7 +199,7 @@ export abstract class BaseSocketGateway
 
         if (userSockets && userSockets.size > 0) {
             let emittedCount = 0;
-            userSockets.forEach(socket => {
+            userSockets.forEach((socket) => {
                 socket.emit(event, data);
                 emittedCount++;
                 this.logger.log(`  ↳ Emitted to socket ${socket.id}`);
@@ -201,7 +208,9 @@ export abstract class BaseSocketGateway
             return true;
         } else {
             this.logger.warn(`⚠️  User ${userId} has NO active sockets! Message NOT delivered.`);
-            this.logger.warn(`👥 Currently connected users: [${Array.from(this.clients.keys()).join(', ')}]`);
+            this.logger.warn(
+                `👥 Currently connected users: [${Array.from(this.clients.keys()).join(", ")}]`,
+            );
             return false;
         }
     }

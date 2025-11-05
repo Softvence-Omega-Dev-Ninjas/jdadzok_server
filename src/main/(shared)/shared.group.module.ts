@@ -9,4 +9,4 @@ import { NotificaitonsModule } from "./notifications/notifications.module";
     providers: [],
     exports: [NotificaitonsModule, CallModule],
 })
-export class SharedGroupModule { }
+export class SharedGroupModule {}

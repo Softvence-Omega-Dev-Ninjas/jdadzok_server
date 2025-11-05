@@ -1,24 +1,27 @@
-import { GetSocketUser } from '@common/decorators/socket-user.decorator';
-import { PrismaService } from '@lib/prisma/prisma.service';
-import { UseGuards } from '@nestjs/common';
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
-import { BaseSocketGateway } from '../base/abstract-socket.gateway';
-import { SocketAuthGuard } from '../guards/socket-auth.guard';
-import { SocketMiddleware } from '../middleware/socket.middleware';
-import { RedisService } from '../services/redis.service';
-import { ChatService } from './chat.service';
-import { CreateMessageDto } from './dto/create.message.dto';
-
+import { GetSocketUser } from "@common/decorators/socket-user.decorator";
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { UseGuards } from "@nestjs/common";
+import {
+    ConnectedSocket,
+    MessageBody,
+    SubscribeMessage,
+    WebSocketGateway,
+} from "@nestjs/websockets";
+import { Socket } from "socket.io";
+import { BaseSocketGateway } from "../base/abstract-socket.gateway";
+import { SocketAuthGuard } from "../guards/socket-auth.guard";
+import { SocketMiddleware } from "../middleware/socket.middleware";
+import { RedisService } from "../services/redis.service";
+import { ChatService } from "./chat.service";
+import { CreateMessageDto } from "./dto/create.message.dto";
 
 interface SocketUser {
     id: string;
 }
 
-
 @WebSocketGateway({
-    cors: { origin: '*' },
-    namespace: '/chat',
+    cors: { origin: "*" },
+    namespace: "/chat",
 })
 @UseGuards(SocketAuthGuard)
 export class ChatGateway extends BaseSocketGateway {
@@ -32,8 +35,8 @@ export class ChatGateway extends BaseSocketGateway {
     }
 
     // ------------------------ Handle chat message sending -----------------------//
-    @SubscribeMessage('chat:message_send')
-    @SubscribeMessage('chat:message_send')
+    @SubscribeMessage("chat:message_send")
+    @SubscribeMessage("chat:message_send")
     async handleMessage(
         @GetSocketUser() user: SocketUser,
         @ConnectedSocket() client: Socket,
@@ -46,23 +49,23 @@ export class ChatGateway extends BaseSocketGateway {
             where: {
                 participants: {
                     every: {
-                        userId: { in: [user.id, receiverId] }
-                    }
-                }
+                        userId: { in: [user.id, receiverId] },
+                    },
+                },
             },
             include: { participants: true },
         });
 
-        this.logger.log(`handleMessage: chat between ${user.id} and ${receiverId}:chat id now:- ${chat?.id}`, '');
+        this.logger.log(
+            `handleMessage: chat between ${user.id} and ${receiverId}:chat id now:- ${chat?.id}`,
+            "",
+        );
 
         if (!chat) {
             chat = await this.prisma.liveChat.create({
                 data: {
                     participants: {
-                        create: [
-                            { userId: user.id },
-                            { userId: receiverId },
-                        ],
+                        create: [{ userId: user.id }, { userId: receiverId }],
                     },
                 },
                 include: { participants: true },
@@ -70,10 +73,10 @@ export class ChatGateway extends BaseSocketGateway {
         }
 
         // Step 2: Verify sender is indeed part of this chat
-        const isParticipant = chat.participants.some(p => p.userId === user.id);
+        const isParticipant = chat.participants.some((p) => p.userId === user.id);
         if (!isParticipant) {
-            console.log('User not in chat:', user.id, chat.id);
-            return client.emit('error', { message: 'You are not in this chat' });
+            console.log("User not in chat:", user.id, chat.id);
+            return client.emit("error", { message: "You are not in this chat" });
         }
 
         // Step 3: Create the message
@@ -95,14 +98,14 @@ export class ChatGateway extends BaseSocketGateway {
         };
 
         // Step 5: Emit message to receiver and sender (ONCE each)
-        console.log('Emitting to receiver:', receiverId, payload);
-        this.emitToUserViaClientsMap(receiverId, 'chat:message_receive', payload);
+        console.log("Emitting to receiver:", receiverId, payload);
+        this.emitToUserViaClientsMap(receiverId, "chat:message_receive", payload);
 
-        console.log('Emitting to sender:', user.id, payload);
-        this.emitToUserViaClientsMap(user.id, 'chat:message_sent', payload);
+        console.log("Emitting to sender:", user.id, payload);
+        this.emitToUserViaClientsMap(user.id, "chat:message_sent", payload);
     }
     // ------------------------ Handle chat message read -----------------------//
-    @SubscribeMessage('chat:message_read')
+    @SubscribeMessage("chat:message_read")
     async handleRead(
         @GetSocketUser() user: SocketUser,
         @MessageBody() { messageId }: { messageId: string },
@@ -113,12 +116,12 @@ export class ChatGateway extends BaseSocketGateway {
             where: { id: messageId },
             select: { chatId: true, senderId: true },
         });
-        this.logger.log(`handleRead: message ${messageId} read by user ${user.id}`, '');
+        this.logger.log(`handleRead: message ${messageId} read by user ${user.id}`, "");
         if (msg && msg.senderId !== user.id) {
             this.server
                 .to(msg.chatId)
                 .except(user.id)
-                .emit('chat:message_read', { messageId, readBy: user.id });
+                .emit("chat:message_read", { messageId, readBy: user.id });
         }
     }
 }
