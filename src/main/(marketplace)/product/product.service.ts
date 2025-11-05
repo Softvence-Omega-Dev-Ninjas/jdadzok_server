@@ -35,11 +35,13 @@ export class ProductService {
 
   // 4️ Create product
   const { categoryId, ...rest } = dto;
+  const promotionFee=((dto.price/100)*2)
   const newProduct = await this.prisma.product.create({
     data: {
       ...rest,
       sellerId: userId,
       categoryId,
+      promotionFee:promotionFee
     },
     include: { seller: true },
   });

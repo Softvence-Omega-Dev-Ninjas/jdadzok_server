@@ -13,6 +13,7 @@ model Profile {
   avatarUrl            String? // Profile picture URL
   coverUrl             String? // Cover photo URL
   location             String?
+  balance Float @default(0.0)
   isToggleNotification Boolean   @default(false)
   // personal information
   dateOfBirth          DateTime?

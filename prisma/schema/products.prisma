@@ -17,6 +17,7 @@ model Product {
   availability   Int     @default(1) // Stock quantity
   digitalFileUrl String? // For digital products
   spent Float @default(0)
+  promotionFee Float @default(0.0)
   // Product settings
   isVisible Boolean @default(true) // Can be hidden by seller
   status Status @default(CONTINUED)
