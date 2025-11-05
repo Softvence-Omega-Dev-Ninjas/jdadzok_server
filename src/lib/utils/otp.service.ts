@@ -6,7 +6,7 @@ import { OtpOptions, OtpPayload, OtpRedisData, OtpType, OtpVerifyPayload } from 
 
 @Injectable()
 export class OptService {
-    constructor(private readonly redisService: RedisService) {}
+    constructor(private readonly redisService: RedisService) { }
 
     private getRedisKeyByType(type: OtpType, suffix: string) {
         switch (type) {
@@ -21,10 +21,10 @@ export class OptService {
 
     async generateOtp(
         payload: OtpPayload,
-        options: OtpOptions = { ttl: "5m", length: 6 },
+        options: OtpOptions = { ttl: "2m", length: 6 },
     ): Promise<OtpRedisData> {
         const { userId, email, type } = payload;
-        const { ttl = "5m", length } = options; // TODO: need to be change the ttl
+        const { ttl = "2m", length } = options; // TODO: need to be change the ttl
 
         const redisKey = this.getRedisKeyByType(type, userId);
 
@@ -45,7 +45,7 @@ export class OptService {
             email,
         };
 
-        await this.redisService.set(redisKey, data, "1m");
+        await this.redisService.set(redisKey, data, ttl);
         return data;
     }
 
