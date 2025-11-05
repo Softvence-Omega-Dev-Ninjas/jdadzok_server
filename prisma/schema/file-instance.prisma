@@ -18,6 +18,7 @@ model FileInstance {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  // Messenger Messenger[]
 
   @@index([uploadedById])
   @@index([fileType])
