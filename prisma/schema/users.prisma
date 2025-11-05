@@ -51,6 +51,7 @@ model User {
   // Monetization
   payouts                 Payout[]
   adRevenueShares         AdRevenueShare[]
+  revenues                Revenue[]
   creatorSubscriptions    Subscription[]   @relation("CreatorSubscriptions")
   subscriberSubscriptions Subscription[]   @relation("SubscriberSubscriptions")
 

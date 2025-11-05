@@ -16,13 +16,15 @@ model Product {
   location       String? // Physical location if applicable
   availability   Int     @default(1) // Stock quantity
   digitalFileUrl String? // For digital products
-
+  spent Float @default(0)
   // Product settings
   isVisible Boolean @default(true) // Can be hidden by seller
-
+  status Status @default(CONTINUED)
+  dedicatedAd DedicatedAd[]
   // Product interactions
   wishlistItems Wishlist[] // Users who wishlisted this
   orders        Order[] // Orders for this product
+  revenues      Revenue[] // Revenue generated from this product
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -32,4 +34,11 @@ model Product {
   @@index([isVisible])
   @@index([price])
   @@map("products")
+}
+
+
+enum Status {
+  CONTINUED
+  SOLDOUT
+  DISCONTINUED
 }
