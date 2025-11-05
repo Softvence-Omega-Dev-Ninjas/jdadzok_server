@@ -11,6 +11,7 @@ model Post {
   // mediaUrls Json?      @default("[]")
   mediaType MediaType? @default(IMAGE)
 
+  dedicatedAd DedicatedAd[]
   // Post settings
   visibility PostVisibility @default(PUBLIC)
   postFrom   PostFrom       @default(REGULAR_PROFILE)
