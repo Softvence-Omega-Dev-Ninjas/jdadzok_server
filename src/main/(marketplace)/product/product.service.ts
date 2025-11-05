@@ -7,41 +7,56 @@ import {
 } from "@nestjs/common";
 import { CreateProductDto, updateProductDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
+import { HelperService } from "./helper/helper";
+import { UpdateProductStatusDto } from "./dto/updateStatusDto";
 
 @Injectable()
 export class ProductService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService,
+        private readonly helper: HelperService
+    ) {}
     // create product new product
-    async create(userId: string, dto: CreateProductDto) {
-        const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user) {
-            throw new BadRequestException("Unauthorized Access");
-        }
-        const product = await this.prisma.product.findFirst({
-            where: { title: dto.title },
-        });
-        if (product) {
-            throw new BadRequestException("This Product Already Exist.");
-        }
-        const category = await this.prisma.productCategory.findUnique({
-            where: { id: dto.categoryId },
-        });
+ async create(userId: string, dto: CreateProductDto) {
+  // 1️ Verify seller
+  const user = await this.prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new BadRequestException("Unauthorized Access");
 
-        if (!category) {
-            throw new BadRequestException("Invalid categoryId, category does not exist.");
-        }
-        const { categoryId, ...rest } = dto;
-        return await this.prisma.product.create({
-            data: {
-                ...rest,
-                sellerId: userId,
-                categoryId,
-            },
-            include: {
-                seller: true,
-            },
-        });
-    }
+//   // 2️ Prevent duplicate product
+//   const existing = await this.prisma.product.findFirst({
+//     where: { title: dto.title },
+//   });
+//   if (existing) throw new BadRequestException("This Product Already Exists.");
+
+  // 3️ Validate category
+  const category = await this.prisma.productCategory.findUnique({
+    where: { id: dto.categoryId },
+  });
+  if (!category) throw new BadRequestException("Invalid categoryId, category does not exist.");
+
+  const activityTable=await this.prisma.activityScore.findFirst()
+  if(!activityTable){
+    throw new BadRequestException("Activity table not found")
+  }
+  // 4️ Create product
+  const { categoryId, ...rest } = dto;
+  const totalSpentValue=((dto.price/100)*activityTable.productSpentPercentage||4)
+  const promotionFee=((totalSpentValue/100)*activityTable?.productPromotionPercentage||2)
+  const newProduct = await this.prisma.product.create({
+    data: {
+      ...rest,
+      sellerId: userId,
+      categoryId,
+      promotionFee:promotionFee,
+      spent:totalSpentValue
+    },
+    include: { seller: true },
+  });
+
+  await this.helper.attachProductToEligiblePosts(newProduct.id);
+
+  return newProduct;
+}
+
     // get all product...
     async findAll(userId: string, query?: ProductQueryDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -124,4 +139,44 @@ export class ProductService {
             where: { id },
         });
     }
+
+
+
+
+    // update product status
+   async updateProductStatus(productId: string, dto: UpdateProductStatusDto, userId: string) {
+  const product = await this.prisma.product.findUnique({ where: { id: productId } });
+  if (!product) {
+    throw new NotFoundException(`Product with ID ${productId} not found`);
+  }
+
+  if (product.sellerId !== userId) {
+    throw new ForbiddenException("You are not authorized to update this product status");
+  }
+
+  //  update status + remove ad if necessary
+  const result = await this.prisma.$transaction(async (tx) => {
+    const updatedProduct = await tx.product.update({
+      where: { id: productId },
+      data: { status: dto.status },
+    });
+
+    // If product is sold out or discontinued → remove ad
+    if (dto.status === "SOLDOUT" || dto.status === "DISCONTINUED") {
+      await tx.dedicatedAd.updateMany({
+        where: { adId: productId },
+        data:{
+            active: false
+        }
+      });
+    }
+
+    return updatedProduct;
+  });
+
+  return result;
+}
+
+
+// TODO: When revenue calculate for each user.must be dedicated table will be deleted of calculate all reveney
 }

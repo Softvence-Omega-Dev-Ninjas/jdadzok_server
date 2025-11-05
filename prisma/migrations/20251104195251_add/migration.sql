@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "products" ADD COLUMN     "spent" DOUBLE PRECISION NOT NULL DEFAULT 0;
