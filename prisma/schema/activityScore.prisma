@@ -10,6 +10,11 @@ model ActivityScore {
     yellowCapScore Float
     productSpentPercentage Float @default(0.0)
     productPromotionPercentage Float @default(0.0)
+    
+    greenPercentage Float @default(0.0)
+    yellowPercentage Float @default(0.0)
+    blackPercentage Float @default(0.0)
+    redPercentage Float @default(0.0)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }

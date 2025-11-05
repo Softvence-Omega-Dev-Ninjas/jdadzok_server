@@ -39,23 +39,23 @@ export class HelperService {
     }
 
     let totalDistributed = 0; // Track total amount distributed
-
+    const activityTable=await this.prisma.activityScore.findFirst()
     // Step 2: Prepare all operations for transaction
     const transactionOps = eligiblePosts.map((post) => {
       // Determine capLevel percentage
       let percent = 0;
       switch (post.author.capLevel) {
         case "GREEN":
-          percent = 2;
+          percent = activityTable?.greenPercentage as number;
           break;
         case "YELLOW":
-          percent = 3;
+          percent = activityTable?.yellowPercentage as number;
           break;
         case "BLACK":
-          percent = 4;
+          percent = activityTable?.blackPercentage as number;
           break;
         case "RED":
-          percent = 5;
+          percent = activityTable?.redPercentage as number;
           break;
       }
 
