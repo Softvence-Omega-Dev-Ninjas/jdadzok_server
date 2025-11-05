@@ -1,3 +1,4 @@
+import { AuthValidatorService } from "@global/auth-validator/auth-validator.service";
 import { OptService } from "@lib/utils/otp.service";
 import { UserProfileRepository } from "@module/(users)/user-profile/user.profile.repository";
 import { UserRepository } from "@module/(users)/users/users.repository";
@@ -31,7 +32,8 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
         OptService,
         UserRepository,
         UserService,
+        AuthValidatorService,
     ],
-    exports: [AuthRepository, AuthService, JwtModule, JwtStrategy],
+    exports: [AuthRepository, AuthService, JwtModule, JwtStrategy, AuthValidatorService],
 })
-export class AuthModule {}
+export class AuthModule { }

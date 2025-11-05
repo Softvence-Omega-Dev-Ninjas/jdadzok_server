@@ -28,7 +28,7 @@ model Ngo {
   // ngo need verification
   verifications NgoVerification[]
 
-  projects       VolunteerProject[]
+  projects VolunteerProject[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
