@@ -142,13 +142,6 @@ enum NotificationType {
   EARNINGS
 }
 
-enum OrderStatus {
-  PENDING
-  PAID
-  DELIVERED
-  CANCELED
-}
-
 enum PayOutStatus {
   PENDING
   PAID
