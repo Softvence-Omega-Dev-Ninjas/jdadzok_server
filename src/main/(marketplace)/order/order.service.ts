@@ -7,11 +7,15 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { CreateOrderDto } from "./dto/order.dto";
+import { PaymentsService } from "../payment/payments.service";
 // import { OrderQueryDto } from "./dto/order.query.dto";
 
 @Injectable()
 export class OrderService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly paymentsService: PaymentsService,
+    ) {}
 
     // added new order.
     async add(userId: string, dto: CreateOrderDto) {
