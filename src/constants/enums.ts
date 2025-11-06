@@ -133,3 +133,6 @@ export const gender = [
     "PANGENDER",
 ] as const;
 export type Gender = (typeof gender)[number];
+
+export const withdrawStatus = ["PENDING", "PROCESSING", "SUCCESS", "FAILED"] as const;
+export type WithdrawStatus = (typeof withdrawStatus)[number];

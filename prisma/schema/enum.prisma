@@ -209,4 +209,11 @@ enum VolunteerStatus {
   COMPLETED
 }
 
+enum WithdrawStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
 // ENUMS_END
