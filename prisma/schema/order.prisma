@@ -26,4 +26,5 @@ model Order {
   @@index([status])
   @@index([createdAt])
   @@map("orders")
+  payments Payment[]
 }

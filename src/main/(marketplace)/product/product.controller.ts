@@ -33,9 +33,6 @@ export class ProductController {
         );
     }
 
-
-
-
     @Get("/")
     @ApiOperation({ summary: "Get all products with filters" })
     @ApiResponse({ status: 200, description: "List of products" })
@@ -77,20 +74,23 @@ export class ProductController {
         return handleRequest(() => this.service.remove(id, userId), "Product deleted successfully");
     }
 
-
     // update product status
-    @Patch('status/:id')
+    @Patch("status/:id")
     @ApiOperation({ summary: "Update product status by ID" })
-    @ApiConsumes('multipart/formdata')
-    async updateStatus(@Param('id') id: string, @Body() dto: UpdateProductStatusDto,@GetUser("userId") userId:string) {
-        try{
-            const res=await this.service.updateProductStatus(id,dto,userId)
-            return{
-                message:"Product status updated successfully",
-                data:res
-            }
-        }catch(err){
-            throw new HttpException(err.message,err.status)
+    @ApiConsumes("multipart/formdata")
+    async updateStatus(
+        @Param("id") id: string,
+        @Body() dto: UpdateProductStatusDto,
+        @GetUser("userId") userId: string,
+    ) {
+        try {
+            const res = await this.service.updateProductStatus(id, dto, userId);
+            return {
+                message: "Product status updated successfully",
+                data: res,
+            };
+        } catch (err) {
+            throw new HttpException(err.message, err.status);
         }
     }
 
