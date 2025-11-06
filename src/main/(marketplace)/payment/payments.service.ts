@@ -67,7 +67,6 @@ export class PaymentsService {
             console.error(err);
             return { received: false };
         }
-        console.log("Event In Webhook", event);
 
         switch (event.type) {
             // Payment succeeded
