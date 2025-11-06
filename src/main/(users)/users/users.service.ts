@@ -166,6 +166,7 @@ export class UserService {
             "otp",
             {
                 otp: otp.token,
+                expire: "2m",
             },
         );
 

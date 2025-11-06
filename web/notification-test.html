@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <title>NGO Notifications</title>
+        <title>Notifications</title>
         <meta charset="utf-8" />
         <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
         <style>
@@ -45,7 +45,7 @@
 
             function connect() {
                 const token =
-                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkMTQ3OGI1Ni0wMmQ1LTRkNzgtYTY0OS02NDQ0ODFmMWQwYTciLCJyb2xlcyI6IlVTRVIiLCJlbWFpbCI6ImNvZGluZ3g0M0BnbWFpbC5jb20iLCJpYXQiOjE3NjE5NTU3MjMsImV4cCI6MTc2OTczMTcyM30.2qfG-QEuhiZPYCOh-7m9P5XkAl1pY44YUkMFAFBkn4s";
+                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ZmU0YzE2Ny1iOTRhLTQwOTctYWM1My04MzNjZjFjZjgzZGIiLCJyb2xlcyI6IlVTRVIiLCJlbWFpbCI6InNvZnR2YW5jZXdlYkBnbWFpbC5jb20iLCJpYXQiOjE3NjIyMDk0MjQsImV4cCI6MTc2OTk4NTQyNH0.4Uhox6U5eBwEgFrmPxucRl8mPCP_nPKazQ7OoJIQhZ0";
 
                 if (socket) socket.close();
 
@@ -78,8 +78,18 @@
                     showNotification(data);
                     playSound();
                 });
+                socket.on("post.create", (data) => {
+                    console.log("post Notification Received:", data);
+                    showNotification(data);
+                    playSound();
+                });
             }
 
+            socket.on("disconnect", () => {
+                document.getElementById("status").innerHTML = "Disconnected";
+                document.getElementById("status").style.color = "red";
+                console.log("WebSocket Disconnected!");
+            });
             function showNotification(data) {
                 const div = document.createElement("div");
                 div.className = "notification";
