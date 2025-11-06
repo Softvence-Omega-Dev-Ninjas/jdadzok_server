@@ -28,11 +28,5 @@ model Order {
   @@map("orders")
 
 }
-enum OrderStatus {
-  PENDING
-  PAID
-  PAYMENT_FAILED
-  CANCELLED
-  COMPLETED
-}
+
 

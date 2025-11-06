@@ -47,7 +47,7 @@ CREATE TYPE "MessageStatus" AS ENUM ('SENT', 'DELIVERED', 'READ');
 CREATE TYPE "NotificationType" AS ENUM ('VOLUNTEER_MATCH', 'SYSTEM', 'CAP_UPGRADE', 'LIKE', 'COMMENT', 'FOLLOW', 'SHARE', 'MENTION', 'EARNINGS');
 
 -- CreateEnum
-CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAID', 'DELIVERED', 'CANCELED');
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAID', 'COMPLETED', 'PAYMENT_FAILED', 'CANCELED');
 
 -- CreateEnum
 CREATE TYPE "PayOutStatus" AS ENUM ('PENDING', 'PAID');
@@ -79,6 +79,21 @@ CREATE TYPE "VerificationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 -- CreateEnum
 CREATE TYPE "VolunteerStatus" AS ENUM ('OPEN', 'IN_PROGRESS', 'COMPLETED');
 
+-- CreateEnum
+CREATE TYPE "LiveChatType" AS ENUM ('INDIVIDUAL', 'GROUP');
+
+-- CreateEnum
+CREATE TYPE "LiveMessageStatus" AS ENUM ('SENT', 'DELIVERED', 'READ');
+
+-- CreateEnum
+CREATE TYPE "LiveMediaType" AS ENUM ('IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT');
+
+-- CreateEnum
+CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'succeeded', 'failed', 'canceled');
+
+-- CreateEnum
+CREATE TYPE "Status" AS ENUM ('CONTINUED', 'SOLDOUT', 'DISCONTINUED');
+
 -- CreateTable
 CREATE TABLE "about" (
     "id" TEXT NOT NULL,
@@ -102,6 +117,25 @@ CREATE TABLE "about-us" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "about-us_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ActivityScore" (
+    "id" TEXT NOT NULL,
+    "like" DOUBLE PRECISION NOT NULL,
+    "comment" DOUBLE PRECISION NOT NULL,
+    "share" DOUBLE PRECISION NOT NULL,
+    "post" DOUBLE PRECISION NOT NULL,
+    "greenCapScore" DOUBLE PRECISION NOT NULL,
+    "redCapScore" DOUBLE PRECISION NOT NULL,
+    "blackCapScore" DOUBLE PRECISION NOT NULL,
+    "yellowCapScore" DOUBLE PRECISION NOT NULL,
+    "productSpentPercentage" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "productPromotionPercentage" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ActivityScore_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -162,6 +196,37 @@ CREATE TABLE "call" (
 );
 
 -- CreateTable
+CREATE TABLE "calls" (
+    "id" TEXT NOT NULL,
+    "hostUserId" TEXT NOT NULL,
+    "status" "CallStatus" NOT NULL DEFAULT 'CALLING',
+    "title" TEXT,
+    "isPrivate" BOOLEAN NOT NULL DEFAULT false,
+    "startedAt" TIMESTAMP(3),
+    "endedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "calls_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "call_participants" (
+    "id" TEXT NOT NULL,
+    "callId" TEXT NOT NULL,
+    "socketId" TEXT NOT NULL,
+    "userName" TEXT NOT NULL,
+    "hasVideo" BOOLEAN NOT NULL DEFAULT false,
+    "hasAudio" BOOLEAN NOT NULL DEFAULT false,
+    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "leftAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "call_participants_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "cap_requirements" (
     "id" TEXT NOT NULL,
     "capLevel" "CapLevel" NOT NULL,
@@ -178,31 +243,6 @@ CREATE TABLE "cap_requirements" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "cap_requirements_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "chat_participants" (
-    "id" TEXT NOT NULL,
-    "chatId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "leftAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "chat_participants_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "chats" (
-    "id" TEXT NOT NULL,
-    "type" "ChatType" NOT NULL DEFAULT 'TEXT',
-    "name" TEXT,
-    "createdById" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "chats_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -294,6 +334,7 @@ CREATE TABLE "community_profiles" (
     "avatarUrl" TEXT,
     "coverUrl" TEXT,
     "location" TEXT,
+    "balance" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "followersCount" INTEGER NOT NULL DEFAULT 0,
     "followingCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -318,6 +359,17 @@ CREATE TABLE "corporate_memberships" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "corporate_memberships_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "DedicatedAd" (
+    "id" TEXT NOT NULL,
+    "postId" TEXT NOT NULL,
+    "adId" TEXT NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "DedicatedAd_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -383,6 +435,56 @@ CREATE TABLE "likes" (
 );
 
 -- CreateTable
+CREATE TABLE "live_chats" (
+    "id" TEXT NOT NULL,
+    "type" "LiveChatType" NOT NULL DEFAULT 'INDIVIDUAL',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdById" TEXT,
+
+    CONSTRAINT "live_chats_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "chat_participants" (
+    "id" TEXT NOT NULL,
+    "chatId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "leftAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "chat_participants_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "live_messages" (
+    "id" TEXT NOT NULL,
+    "chatId" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "content" TEXT,
+    "mediaUrl" TEXT,
+    "mediaType" "LiveMediaType",
+    "status" "LiveMessageStatus" NOT NULL DEFAULT 'SENT',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "live_messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "live_message_reads" (
+    "id" TEXT NOT NULL,
+    "messageId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "readAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "liveChatId" TEXT,
+
+    CONSTRAINT "live_message_reads_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "locations" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -394,40 +496,13 @@ CREATE TABLE "locations" (
 );
 
 -- CreateTable
-CREATE TABLE "message_reads" (
-    "id" TEXT NOT NULL,
-    "messageId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "readAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "message_reads_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "messages" (
-    "id" TEXT NOT NULL,
-    "chatId" TEXT NOT NULL,
-    "senderId" TEXT NOT NULL,
-    "content" TEXT,
-    "mediaUrl" TEXT,
-    "mediaType" "MediaType",
-    "status" "MessageStatus" NOT NULL DEFAULT 'SENT',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "messages_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "ngo_verifications" (
     "id" TEXT NOT NULL,
     "ngoId" TEXT NOT NULL,
     "verificationType" "IdentityVerificationType" NOT NULL,
     "documents" TEXT[],
     "status" "VerificationStatus" NOT NULL DEFAULT 'PENDING',
-    "verificationResponse" JSONB NOT NULL,
+    "verificationResponse" JSONB,
     "reviewedById" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -476,6 +551,7 @@ CREATE TABLE "ngo_profiles" (
     "avatarUrl" TEXT,
     "coverUrl" TEXT,
     "location" TEXT,
+    "balance" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "followersCount" INTEGER NOT NULL DEFAULT 0,
     "followingCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -560,6 +636,20 @@ CREATE TABLE "payment-methods" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "payment-methods_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "payments" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "stripePaymentId" TEXT NOT NULL,
+    "amount" DOUBLE PRECISION NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'usd',
+    "status" "PaymentStatus" NOT NULL DEFAULT 'pending',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -685,7 +775,10 @@ CREATE TABLE "products" (
     "location" TEXT,
     "availability" INTEGER NOT NULL DEFAULT 1,
     "digitalFileUrl" TEXT,
+    "spent" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "promotionFee" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "isVisible" BOOLEAN NOT NULL DEFAULT true,
+    "status" "Status" NOT NULL DEFAULT 'CONTINUED',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -703,6 +796,7 @@ CREATE TABLE "profiles" (
     "avatarUrl" TEXT,
     "coverUrl" TEXT,
     "location" TEXT,
+    "balance" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "isToggleNotification" BOOLEAN NOT NULL DEFAULT false,
     "dateOfBirth" TIMESTAMP(3),
     "gender" "Gender" NOT NULL DEFAULT 'MALE',
@@ -730,6 +824,19 @@ CREATE TABLE "reports" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "reports_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Revenue" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "postId" TEXT,
+    "adId" TEXT,
+    "amount" DOUBLE PRECISION NOT NULL,
+    "type" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Revenue_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -839,35 +946,61 @@ CREATE TABLE "users" (
 );
 
 -- CreateTable
-CREATE TABLE "volunteer_applications" (
+CREATE TABLE "VolunteerApplication" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "volunteerId" TEXT NOT NULL,
     "projectId" TEXT NOT NULL,
     "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
-    "coverLetter" TEXT,
-    "availableStartDate" TIMESTAMP(3),
+    "workedHours" INTEGER NOT NULL DEFAULT 0,
+    "completionNote" TEXT,
+    "confirmedById" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "volunteer_applications_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "VolunteerApplication_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "volunteer_projects" (
+CREATE TABLE "VolunteerCompletion" (
     "id" TEXT NOT NULL,
-    "createdById" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "location" TEXT,
-    "remoteAllowed" BOOLEAN NOT NULL DEFAULT false,
-    "status" "VolunteerStatus" NOT NULL DEFAULT 'OPEN',
-    "requiredSkills" TEXT,
-    "timeCommitment" TEXT,
-    "duration" TEXT,
+    "applicationId" TEXT NOT NULL,
+    "ngoConfirmed" BOOLEAN NOT NULL DEFAULT false,
+    "confirmationNote" TEXT,
+    "confirmedById" TEXT,
+    "confirmedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "volunteer_projects_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "VolunteerCompletion_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VolunteerHour" (
+    "id" TEXT NOT NULL,
+    "applicationId" TEXT NOT NULL,
+    "loggedByUserId" TEXT NOT NULL,
+    "hours" INTEGER NOT NULL,
+    "note" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "VolunteerHour_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VolunteerProject" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "location" TEXT,
+    "startDate" TIMESTAMP(3),
+    "endDate" TIMESTAMP(3),
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "ngoId" TEXT NOT NULL,
+    "createdById" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "VolunteerProject_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -938,22 +1071,13 @@ CREATE INDEX "call_toId_idx" ON "call"("toId");
 CREATE INDEX "call_status_idx" ON "call"("status");
 
 -- CreateIndex
+CREATE INDEX "call_participants_callId_idx" ON "call_participants"("callId");
+
+-- CreateIndex
+CREATE INDEX "call_participants_socketId_idx" ON "call_participants"("socketId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "cap_requirements_capLevel_key" ON "cap_requirements"("capLevel");
-
--- CreateIndex
-CREATE INDEX "chat_participants_chatId_idx" ON "chat_participants"("chatId");
-
--- CreateIndex
-CREATE INDEX "chat_participants_userId_idx" ON "chat_participants"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "chat_participants_chatId_userId_key" ON "chat_participants"("chatId", "userId");
-
--- CreateIndex
-CREATE INDEX "chats_createdById_idx" ON "chats"("createdById");
-
--- CreateIndex
-CREATE INDEX "chats_type_idx" ON "chats"("type");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "choices_text_key" ON "choices"("text");
@@ -1073,25 +1197,43 @@ CREATE INDEX "likes_commentId_idx" ON "likes"("commentId");
 CREATE UNIQUE INDEX "likes_userId_postId_commentId_key" ON "likes"("userId", "postId", "commentId");
 
 -- CreateIndex
+CREATE INDEX "live_chats_createdById_idx" ON "live_chats"("createdById");
+
+-- CreateIndex
+CREATE INDEX "live_chats_type_idx" ON "live_chats"("type");
+
+-- CreateIndex
+CREATE INDEX "chat_participants_chatId_idx" ON "chat_participants"("chatId");
+
+-- CreateIndex
+CREATE INDEX "chat_participants_userId_idx" ON "chat_participants"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "chat_participants_chatId_userId_key" ON "chat_participants"("chatId", "userId");
+
+-- CreateIndex
+CREATE INDEX "live_messages_chatId_idx" ON "live_messages"("chatId");
+
+-- CreateIndex
+CREATE INDEX "live_messages_senderId_idx" ON "live_messages"("senderId");
+
+-- CreateIndex
+CREATE INDEX "live_messages_createdAt_idx" ON "live_messages"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "live_message_reads_messageId_idx" ON "live_message_reads"("messageId");
+
+-- CreateIndex
+CREATE INDEX "live_message_reads_userId_idx" ON "live_message_reads"("userId");
+
+-- CreateIndex
+CREATE INDEX "live_message_reads_liveChatId_idx" ON "live_message_reads"("liveChatId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "live_message_reads_messageId_userId_key" ON "live_message_reads"("messageId", "userId");
+
+-- CreateIndex
 CREATE INDEX "locations_name_idx" ON "locations"("name");
-
--- CreateIndex
-CREATE INDEX "message_reads_messageId_idx" ON "message_reads"("messageId");
-
--- CreateIndex
-CREATE INDEX "message_reads_userId_idx" ON "message_reads"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "message_reads_messageId_userId_key" ON "message_reads"("messageId", "userId");
-
--- CreateIndex
-CREATE INDEX "messages_chatId_idx" ON "messages"("chatId");
-
--- CreateIndex
-CREATE INDEX "messages_senderId_idx" ON "messages"("senderId");
-
--- CreateIndex
-CREATE INDEX "messages_createdAt_idx" ON "messages"("createdAt");
 
 -- CreateIndex
 CREATE INDEX "ngo_verifications_ngoId_idx" ON "ngo_verifications"("ngoId");
@@ -1145,9 +1287,6 @@ CREATE INDEX "orders_buyerId_idx" ON "orders"("buyerId");
 CREATE INDEX "orders_productId_idx" ON "orders"("productId");
 
 -- CreateIndex
-CREATE INDEX "orders_status_idx" ON "orders"("status");
-
--- CreateIndex
 CREATE INDEX "orders_createdAt_idx" ON "orders"("createdAt");
 
 -- CreateIndex
@@ -1158,6 +1297,15 @@ CREATE INDEX "payment-methods_method_idx" ON "payment-methods"("method");
 
 -- CreateIndex
 CREATE INDEX "payment-methods_createdAt_idx" ON "payment-methods"("createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "payments_stripePaymentId_key" ON "payments"("stripePaymentId");
+
+-- CreateIndex
+CREATE INDEX "payments_orderId_idx" ON "payments"("orderId");
+
+-- CreateIndex
+CREATE INDEX "payments_status_idx" ON "payments"("status");
 
 -- CreateIndex
 CREATE INDEX "payouts_userId_idx" ON "payouts"("userId");
@@ -1304,25 +1452,7 @@ CREATE INDEX "users_role_idx" ON "users"("role");
 CREATE INDEX "users_createdAt_idx" ON "users"("createdAt");
 
 -- CreateIndex
-CREATE INDEX "volunteer_applications_userId_idx" ON "volunteer_applications"("userId");
-
--- CreateIndex
-CREATE INDEX "volunteer_applications_projectId_idx" ON "volunteer_applications"("projectId");
-
--- CreateIndex
-CREATE INDEX "volunteer_applications_status_idx" ON "volunteer_applications"("status");
-
--- CreateIndex
-CREATE UNIQUE INDEX "volunteer_applications_userId_projectId_key" ON "volunteer_applications"("userId", "projectId");
-
--- CreateIndex
-CREATE INDEX "volunteer_projects_createdById_idx" ON "volunteer_projects"("createdById");
-
--- CreateIndex
-CREATE INDEX "volunteer_projects_status_idx" ON "volunteer_projects"("status");
-
--- CreateIndex
-CREATE INDEX "volunteer_projects_remoteAllowed_idx" ON "volunteer_projects"("remoteAllowed");
+CREATE UNIQUE INDEX "VolunteerCompletion_applicationId_key" ON "VolunteerCompletion"("applicationId");
 
 -- CreateIndex
 CREATE INDEX "wishlists_userId_idx" ON "wishlists"("userId");
@@ -1361,13 +1491,10 @@ ALTER TABLE "call" ADD CONSTRAINT "call_fromId_fkey" FOREIGN KEY ("fromId") REFE
 ALTER TABLE "call" ADD CONSTRAINT "call_toId_fkey" FOREIGN KEY ("toId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "chats"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "calls" ADD CONSTRAINT "calls_hostUserId_fkey" FOREIGN KEY ("hostUserId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "chats" ADD CONSTRAINT "chats_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "call_participants" ADD CONSTRAINT "call_participants_callId_fkey" FOREIGN KEY ("callId") REFERENCES "calls"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "comments" ADD CONSTRAINT "comments_postId_fkey" FOREIGN KEY ("postId") REFERENCES "posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1403,13 +1530,19 @@ ALTER TABLE "community_profiles" ADD CONSTRAINT "community_profiles_communityId_
 ALTER TABLE "corporate_memberships" ADD CONSTRAINT "corporate_memberships_contactPersonId_fkey" FOREIGN KEY ("contactPersonId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "DedicatedAd" ADD CONSTRAINT "DedicatedAd_postId_fkey" FOREIGN KEY ("postId") REFERENCES "posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DedicatedAd" ADD CONSTRAINT "DedicatedAd_adId_fkey" FOREIGN KEY ("adId") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "endorsements" ADD CONSTRAINT "endorsements_fromUserId_fkey" FOREIGN KEY ("fromUserId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "endorsements" ADD CONSTRAINT "endorsements_toUserId_fkey" FOREIGN KEY ("toUserId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "endorsements" ADD CONSTRAINT "endorsements_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "volunteer_projects"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "endorsements" ADD CONSTRAINT "endorsements_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "VolunteerProject"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "file_instances" ADD CONSTRAINT "file_instances_uploadedById_fkey" FOREIGN KEY ("uploadedById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1430,16 +1563,28 @@ ALTER TABLE "likes" ADD CONSTRAINT "likes_postId_fkey" FOREIGN KEY ("postId") RE
 ALTER TABLE "likes" ADD CONSTRAINT "likes_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "message_reads" ADD CONSTRAINT "message_reads_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "messages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "live_chats" ADD CONSTRAINT "live_chats_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "message_reads" ADD CONSTRAINT "message_reads_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "live_chats"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "messages" ADD CONSTRAINT "messages_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "chats"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "chat_participants" ADD CONSTRAINT "chat_participants_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "messages" ADD CONSTRAINT "messages_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "live_messages" ADD CONSTRAINT "live_messages_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "live_chats"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "live_messages" ADD CONSTRAINT "live_messages_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "live_message_reads" ADD CONSTRAINT "live_message_reads_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "live_messages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "live_message_reads" ADD CONSTRAINT "live_message_reads_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "live_message_reads" ADD CONSTRAINT "live_message_reads_liveChatId_fkey" FOREIGN KEY ("liveChatId") REFERENCES "live_chats"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ngo_verifications" ADD CONSTRAINT "ngo_verifications_ngoId_fkey" FOREIGN KEY ("ngoId") REFERENCES "ngos"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1476,6 +1621,9 @@ ALTER TABLE "orders" ADD CONSTRAINT "orders_productId_fkey" FOREIGN KEY ("produc
 
 -- AddForeignKey
 ALTER TABLE "payment-methods" ADD CONSTRAINT "payment-methods_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payments" ADD CONSTRAINT "payments_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "payouts" ADD CONSTRAINT "payouts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1526,6 +1674,12 @@ ALTER TABLE "reports" ADD CONSTRAINT "reports_reporterId_fkey" FOREIGN KEY ("rep
 ALTER TABLE "reports" ADD CONSTRAINT "reports_reviewedById_fkey" FOREIGN KEY ("reviewedById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Revenue" ADD CONSTRAINT "Revenue_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Revenue" ADD CONSTRAINT "Revenue_adId_fkey" FOREIGN KEY ("adId") REFERENCES "products"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "shares" ADD CONSTRAINT "shares_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1556,13 +1710,31 @@ ALTER TABLE "UserFollow" ADD CONSTRAINT "UserFollow_followerId_fkey" FOREIGN KEY
 ALTER TABLE "UserFollow" ADD CONSTRAINT "UserFollow_followedId_fkey" FOREIGN KEY ("followedId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "volunteer_applications" ADD CONSTRAINT "volunteer_applications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "VolunteerApplication" ADD CONSTRAINT "VolunteerApplication_volunteerId_fkey" FOREIGN KEY ("volunteerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "volunteer_applications" ADD CONSTRAINT "volunteer_applications_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "volunteer_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "VolunteerApplication" ADD CONSTRAINT "VolunteerApplication_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "VolunteerProject"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "volunteer_projects" ADD CONSTRAINT "volunteer_projects_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "VolunteerApplication" ADD CONSTRAINT "VolunteerApplication_confirmedById_fkey" FOREIGN KEY ("confirmedById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VolunteerCompletion" ADD CONSTRAINT "VolunteerCompletion_applicationId_fkey" FOREIGN KEY ("applicationId") REFERENCES "VolunteerApplication"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VolunteerCompletion" ADD CONSTRAINT "VolunteerCompletion_confirmedById_fkey" FOREIGN KEY ("confirmedById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VolunteerHour" ADD CONSTRAINT "VolunteerHour_applicationId_fkey" FOREIGN KEY ("applicationId") REFERENCES "VolunteerApplication"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VolunteerHour" ADD CONSTRAINT "VolunteerHour_loggedByUserId_fkey" FOREIGN KEY ("loggedByUserId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VolunteerProject" ADD CONSTRAINT "VolunteerProject_ngoId_fkey" FOREIGN KEY ("ngoId") REFERENCES "ngos"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VolunteerProject" ADD CONSTRAINT "VolunteerProject_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "wishlists" ADD CONSTRAINT "wishlists_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;

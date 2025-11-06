@@ -1,15 +1,20 @@
 model ActivityScore {
-    id String @id @default(uuid())
-    like Float
-    comment Float
-    share Float
-    post Float
-    greenCapScore Float
-    redCapScore Float
-    blackCapScore Float
-    yellowCapScore Float
-    productSpentPercentage Float @default(0.0)
-    productPromotionPercentage Float @default(0.0)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id                         String   @id @default(uuid())
+    // Comment author
+    authorId                   String
+    author                     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+    like                       Float
+    comment                    Float
+    share                      Float
+    post                       Float
+    greenCapScore              Float
+    redCapScore                Float
+    blackCapScore              Float
+    yellowCapScore             Float
+    productSpentPercentage     Float    @default(0.0)
+    productPromotionPercentage Float    @default(0.0)
+    createdAt                  DateTime @default(now())
+    updatedAt                  DateTime @updatedAt
+
+    @@map("activity-score")
 }

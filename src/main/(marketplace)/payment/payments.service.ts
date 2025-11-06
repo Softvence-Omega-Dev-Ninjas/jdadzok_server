@@ -1,101 +1,119 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
-import Stripe from "stripe";
+import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { PrismaService } from "src/lib/prisma/prisma.service";
-import { OrderStatus } from "@prisma/client";
+import Stripe from "stripe";
 
 @Injectable()
 export class PaymentsService {
     private stripe: Stripe;
+    private webHookSecret: string;
 
     constructor(
-        private prisma: PrismaService,
-        private config: ConfigService,
+        private readonly prisma: PrismaService,
+        private readonly config: ConfigService,
     ) {
         const secret = this.config.get<string>("STRIPE_SECRET");
-        if (!secret) throw new Error("Missing STRIPE_SECRET");
-        this.stripe = new Stripe(secret, {
-            apiVersion: (this.config.get<string>("STRIPE_API_VERSION") ||
-                "2025-10-29.clover") as Stripe.LatestApiVersion,
-        });
+        if (!secret) throw new Error("Missing STRIPE_SECRET in .env file");
+
+        this.stripe = new Stripe(secret);
+        this.webHookSecret = this.config.getOrThrow("STRIPE_WEBHOOK_SECRET");
     }
 
-    // create a PaymentIntent for a given order
+    // create stripe paymentIntent for an order and save payment record in DB
+
     async createPaymentIntentForOrder(orderId: string, amount: number, currency = "usd") {
-        // amount must be in cents for stripe
-        const paymentIntent = await this.stripe.paymentIntents.create({
+        // amount must be in cents
+        const stripeIntent = await this.stripe.paymentIntents.create({
             amount: Math.round(amount * 100),
             currency,
             metadata: { orderId },
         });
 
-        // save payment record
+        // save payment record in prisma
         const payment = await this.prisma.payment.create({
             data: {
                 orderId,
-                stripePaymentId: paymentIntent.id,
+                stripePaymentId: stripeIntent.id,
                 amount,
                 currency,
-                status: paymentIntent.status as any, // 'requires_payment_method' / 'requires_confirmation'/ etc
+                status: PaymentStatus.pending,
             },
         });
 
         return {
-            clientSecret: paymentIntent.client_secret,
-            payment,
-            paymentIntentId: paymentIntent.id,
+            clientSecret: stripeIntent.client_secret,
+            paymentId: payment.id,
+            paymentIntentId: stripeIntent.id,
         };
     }
 
-    // get payment by order ID
+    // get payment details for an order
     async getPaymentByOrder(orderId: string) {
-        return this.prisma.payment.findFirst({ where: { orderId } });
+        return this.prisma.payment.findFirst({
+            where: { orderId },
+            include: { order: true },
+        });
     }
 
-    // handle webhook: verify signature, parse event, update payment and order
-    async handleStripeWebhook(rawBody: Buffer, sig: string, endpointSecret: string) {
+    // stripe Webhook — verifies signature and updates DB
+    async handleStripeWebhook(rawBody: Buffer, sig: string) {
         let event: Stripe.Event;
+
         try {
-            event = this.stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
+            event = this.stripe.webhooks.constructEvent(rawBody, sig, this.webHookSecret);
         } catch (err: any) {
-            throw new BadRequestException(`Webhook signature verification failed: ${err.message}`);
+            // throw new BadRequestException(`Webhook signature verification failed: ${err.message}`);
+            console.error(err);
+            return { received: false };
         }
+        console.log("Event In Webhook", event);
 
-        // handle successful payment
-        if (event.type === "payment_intent.succeeded") {
-            const pi = event.data.object as Stripe.PaymentIntent;
-            const orderId = pi.metadata?.orderId;
+        switch (event.type) {
+            // Payment succeeded
+            case "payment_intent.succeeded": {
+                const intent = event.data.object as Stripe.PaymentIntent;
+                const orderId = intent.metadata?.orderId;
 
-            // update payment status
-            await this.prisma.payment.updateMany({
-                where: { stripePaymentId: pi.id },
-                data: { status: "succeeded" },
-            });
-
-            if (orderId) {
-                await this.prisma.order.update({
-                    where: { id: orderId },
-                    data: { status: "PAID" }, // adjust to your enum/status
+                await this.prisma.payment.updateMany({
+                    where: { stripePaymentId: intent.id },
+                    data: { status: PaymentStatus.succeeded },
                 });
+
+                if (orderId) {
+                    await this.prisma.order.update({
+                        where: { id: orderId },
+                        data: { status: OrderStatus.PAID },
+                    });
+                }
+
+                break;
             }
-        }
 
-        // handle failed/canceled intents
-        if (event.type === "payment_intent.payment_failed") {
-            const pi = event.data.object as Stripe.PaymentIntent;
-            await this.prisma.payment.updateMany({
-                where: { stripePaymentId: pi.id },
-                data: { status: "failed" },
-            });
+            //  Payment failed
+            case "payment_intent.payment_failed": {
+                const intent = event.data.object as Stripe.PaymentIntent;
+                const orderId = intent.metadata?.orderId;
 
-            const orderId = pi.metadata?.orderId;
-            if (orderId) {
-                await this.prisma.order.update({
-                    where: { id: orderId },
-                    data: { status: OrderStatus.PAYMENT_FAILED },
+                await this.prisma.payment.updateMany({
+                    where: { stripePaymentId: intent.id },
+                    data: { status: PaymentStatus.failed },
                 });
+
+                if (orderId) {
+                    await this.prisma.order.update({
+                        where: { id: orderId },
+                        data: { status: OrderStatus.PAYMENT_FAILED },
+                    });
+                }
+
+                break;
             }
+
+            default:
+                console.log(`Unhandled Stripe event type: ${event.type}`);
         }
+
         return { received: true };
     }
 }

@@ -7,8 +7,8 @@ import {
 } from "@nestjs/common";
 import { CreateProductDto, updateProductDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
-import { HelperService } from "./helper/helper";
 import { UpdateProductStatusDto } from "./dto/updateStatusDto";
+import { HelperService } from "./helper/helper";
 
 @Injectable()
 export class ProductService {
@@ -23,10 +23,10 @@ export class ProductService {
         if (!user) throw new BadRequestException("Unauthorized Access");
 
         //   // 2️ Prevent duplicate product
-        //   const existing = await this.prisma.product.findFirst({
-        //     where: { title: dto.title },
-        //   });
-        //   if (existing) throw new BadRequestException("This Product Already Exists.");
+        const existing = await this.prisma.product.findFirst({
+            where: { title: dto.title },
+        });
+        if (existing) throw new BadRequestException("This Product Already Exists.");
 
         // 3️ Validate category
         const category = await this.prisma.productCategory.findUnique({
@@ -35,27 +35,27 @@ export class ProductService {
         if (!category)
             throw new BadRequestException("Invalid categoryId, category does not exist.");
 
-        const activityTable = await this.prisma.activityScore.findFirst();
-        if (!activityTable) {
-            throw new BadRequestException("Activity table not found");
-        }
+        // const activityTable = await this.prisma.activityScore.findFirst();
+        // if (!activityTable) {
+        //     throw new BadRequestException("Activity data not found");
+        // }
         // 4️ Create product
         const { categoryId, ...rest } = dto;
-        const totalSpentValue = (dto.price / 100) * activityTable.productSpentPercentage || 4;
-        const promotionFee =
-            (totalSpentValue / 100) * activityTable?.productPromotionPercentage || 2;
+        // const totalSpentValue = (dto.price / 100) * activityTable.productSpentPercentage || 4;
+        // const promotionFee =
+        //     (totalSpentValue / 100) * activityTable?.productPromotionPercentage || 2;
         const newProduct = await this.prisma.product.create({
             data: {
                 ...rest,
                 sellerId: userId,
                 categoryId,
-                promotionFee: promotionFee,
-                spent: totalSpentValue,
+                // promotionFee: promotionFee,
+                // spent: totalSpentValue,
             },
             include: { seller: true },
         });
 
-        await this.helper.attachProductToEligiblePosts(newProduct.id);
+        // await this.helper.attachProductToEligiblePosts(newProduct.id);
 
         return newProduct;
     }

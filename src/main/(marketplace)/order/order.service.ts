@@ -20,44 +20,50 @@ export class OrderService {
     // added new order.
     async add(userId: string, dto: CreateOrderDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user?.isVerified) {
-            throw new BadRequestException("Please Verify your email.");
-        }
-        const product = await this.prisma.product.findUnique({
-            where: { id: dto.productId },
-        });
-        if (product?.sellerId === userId) {
+        if (!user?.isVerified) throw new BadRequestException("Please Verify your email.");
+
+        const product = await this.prisma.product.findUnique({ where: { id: dto.productId } });
+        if (!product) throw new BadRequestException("Product not found.");
+        if (product.sellerId === userId) {
             throw new BadRequestException("This Product is unavailable for you.");
         }
-        if (product?.price === undefined) {
-            throw new Error("Product price is missing, cannot calculate order total.");
-        }
-        const productPrice = product?.price * dto.quantity;
         if (product.availability < dto.quantity) {
             throw new BadRequestException("Invalid Order.");
         }
-        const productQuantity = product.availability - dto.quantity;
 
-        await this.prisma.product.update({
-            where: { id: dto.productId },
-            data: { availability: productQuantity },
-        });
-
+        const productPrice = product.price * dto.quantity;
         if (productPrice > dto.totalPrice) {
             throw new BadRequestException("Please Enter Valid Price.");
         }
 
+        // decrement availability
+        await this.prisma.product.update({
+            where: { id: dto.productId },
+            data: { availability: product.availability - dto.quantity },
+        });
+
+        // create order in DB (status PENDING)
         const order = await this.prisma.order.create({
             data: {
                 buyerId: userId,
-                ...dto,
+                productId: dto.productId,
+                quantity: dto.quantity,
+                totalPrice: dto.totalPrice,
+                status: "PENDING",
+                shippingAddress: dto.shippingAddress,
             },
-            include: {
-                buyer: true,
-                product: true,
-            },
+            include: { buyer: true, product: true },
         });
-        return order;
+
+        // create stripe payment intent and store payment record
+        const { clientSecret } = await this.paymentsService.createPaymentIntentForOrder(
+            order.id,
+            dto.totalPrice,
+            "usd",
+        );
+
+        // return client secret to frontend so it can confirm the payment
+        return { message: "Order created successfully. Proceed to payment.", clientSecret, order };
     }
 
     // get all order...

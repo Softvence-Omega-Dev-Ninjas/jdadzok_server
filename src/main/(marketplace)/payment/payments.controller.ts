@@ -1,6 +1,6 @@
-import { Controller, Post, Req, Headers, Res, Get, Param } from "@nestjs/common";
-import { Response } from "express";
+import { Controller, Get, Headers, Param, Post, Req, Res } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
+import { Request, Response } from "express";
 import { PaymentsService } from "./payments.service";
 
 @ApiTags("Payments")
@@ -10,23 +10,15 @@ export class PaymentsController {
 
     // stripe webhook raw body main.ts set raw body.
     @Post("webhook")
-    async webhook(@Req() req: any, @Headers("stripe-signature") sig: string, @Res() res: Response) {
-        const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-        if (!endpointSecret) {
-            throw new Error("Missing STRIPE_WEBHOOK_SECRET env var");
-        }
+    async webhook(
+        @Req() req: Request,
+        @Headers("stripe-signature") sig: string,
+        @Res() res: Response,
+    ) {
+        const rawBody: Buffer = req.body; // express.raw set in main.ts for this route
 
-        const rawBody: Buffer = req.body;
-        try {
-            const result = await this.paymentsService.handleStripeWebhook(
-                rawBody,
-                sig,
-                endpointSecret,
-            );
-            return res.json(result);
-        } catch (err) {
-            return res.status(400).json({ error: err.message || "Webhook error" });
-        }
+        const result = await this.paymentsService.handleStripeWebhook(rawBody, sig);
+        return res.json(result);
     }
 
     //  fetch payment by order id

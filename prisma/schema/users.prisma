@@ -111,7 +111,8 @@ model User {
   // conversationsAsMemberTwo MessengerConversation[] @relation("MemberTwo")
 
   // Calling relations
-  hostedCalls Calling[] @relation("HostedCalls")
+  hostedCalls    Calling[]       @relation("HostedCalls")
+  activityScores ActivityScore[]
 
   @@index([email])
   @@index([capLevel])

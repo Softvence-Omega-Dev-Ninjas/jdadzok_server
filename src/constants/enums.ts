@@ -19,7 +19,7 @@ export type VolunteerStatus = (typeof volunteerStatus)[number];
 export const applicationStatus = ["PENDING", "ACCEPTED", "REJECTED"] as const;
 export type ApplicationStatus = (typeof applicationStatus)[number];
 
-export const orderStatus = ["PENDING", "PAID", "DELIVERED", "CANCELED"] as const;
+export const orderStatus = ["PENDING", "PAID", "COMPLETED", "PAYMENT_FAILED", "CANCELED"] as const;
 export type OrderStatus = (typeof orderStatus)[number];
 
 export const paymentMethod = ["STRIPE", "PAYPAL"] as const;
