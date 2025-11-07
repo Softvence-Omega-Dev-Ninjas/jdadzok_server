@@ -1,4 +1,3 @@
-// import { FollowUnfollowRepository } from "@module/(users)/follow-unfollow/follow-unfollow.repository";
 import { EVENT_TYPES } from "@common/interface/events-name";
 import { PostEvent } from "@common/interface/events-payload";
 import { PrismaService } from "@lib/prisma/prisma.service";
@@ -81,7 +80,6 @@ export class PostService {
         //         user: { select: { id: true, email: true } },
         //     },
         // });
-        console.log("recipients", recipients);
 
         // 5--------------------- Build event payload for toggle notification
         const payload: PostEvent = {
@@ -102,7 +100,6 @@ export class PostService {
             },
         };
 
-        console.log("the payload is post crete notify", payload);
         // 6️----------------------Emit notification event
         this.eventEmitter.emit(EVENT_TYPES.POST_CREATE, payload);
 

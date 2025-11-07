@@ -75,7 +75,6 @@ export class ChatGateway extends BaseSocketGateway {
         // Step 2: Verify sender is indeed part of this chat
         const isParticipant = chat.participants.some((p) => p.userId === user.id);
         if (!isParticipant) {
-            console.log("User not in chat:", user.id, chat.id);
             return client.emit("error", { message: "You are not in this chat" });
         }
 
@@ -98,10 +97,8 @@ export class ChatGateway extends BaseSocketGateway {
         };
 
         // Step 5: Emit message to receiver and sender (ONCE each)
-        console.log("Emitting to receiver:", receiverId, payload);
         this.emitToUserViaClientsMap(receiverId, "chat:message_receive", payload);
 
-        console.log("Emitting to sender:", user.id, payload);
         this.emitToUserViaClientsMap(user.id, "chat:message_sent", payload);
     }
     // ------------------------ Handle chat message read -----------------------//

@@ -35,8 +35,6 @@ services:
             - "app.name=${PACKAGE_NAME}"
             - "app.version=${PACKAGE_VERSION}"
             - "deployment.type=zero-downtime"
-        networks:
-            - ${PACKAGE_NAME}_networks
 
     db:
         image: postgres:15
@@ -65,8 +63,6 @@ services:
             timeout: 5s
             retries: 5
             start_period: 15s
-        networks:
-            - ${PACKAGE_NAME}_networks
 
     mysqldb:
         image: mysql:oraclelinux9
@@ -89,8 +85,7 @@ services:
             timeout: 5s
             retries: 5
             start_period: 15s
-        networks:
-            - ${PACKAGE_NAME}_networks
+
     redis:
         image: redis:7-alpine # Use Alpine version for smaller size
         container_name: ${REDIS_CONTAINER}
@@ -125,8 +120,7 @@ services:
             - ./Caddyfile:/etc/caddy/Caddyfile
             - caddy_data:/data
             - caddy_config:/config
-        networks:
-            - ${PACKAGE_NAME}_networks
+
 volumes:
     jdadzok_pg:
     jdadzok_mysql:
@@ -137,5 +131,4 @@ volumes:
 
 # Add networks for better isolation (optional)
 networks:
-    jdadzok_server_networks:
-        driver: bridge
+    default:

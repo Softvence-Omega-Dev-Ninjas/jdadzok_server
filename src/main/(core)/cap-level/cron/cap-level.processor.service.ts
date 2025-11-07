@@ -43,7 +43,7 @@ export class CapLevelProcessorService {
             });
 
             if (!userMatrix) {
-                console.log(`User ${user.id} has no metrics — skipping.`);
+                console.info(`User ${user.id} has no metrics — skipping.`);
                 continue;
             }
 
@@ -51,7 +51,7 @@ export class CapLevelProcessorService {
 
             // Below threshold
             if (score < adminScore.greenCapScore) {
-                console.log(`User ${user.id} not eligible for cap promotion.`);
+                console.info(`User ${user.id} not eligible for cap promotion.`);
                 continue;
             }
 
@@ -73,7 +73,7 @@ export class CapLevelProcessorService {
                     where: { id: user.id },
                     data: { capLevel: newCapLevel },
                 });
-                console.log(`User ${user.id} promoted to ${newCapLevel}`);
+                console.info(`User ${user.id} promoted to ${newCapLevel}`);
             }
         }
     }

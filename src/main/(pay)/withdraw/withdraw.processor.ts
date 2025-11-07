@@ -19,7 +19,7 @@ export class WithdrawProcessor extends WorkerHost {
     }
 
     async process(job: Job): Promise<any> {
-        console.log(job.name);
+        console.info(job.name);
         try {
             if (job.queueName === QUEUE_JOB_NAME.CAP_LEVEL.CAP_LEVEL_QUEUE_NAME) {
                 switch (job.name) {

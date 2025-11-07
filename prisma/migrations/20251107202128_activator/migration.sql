@@ -4,8 +4,11 @@
   - You are about to drop the `ActivityScore` table. If the table is not empty, all the data it contains will be lost.
 
 */
+-- DropForeignKey
+ALTER TABLE "public"."ActivityScore" DROP CONSTRAINT "ActivityScore_userId_fkey";
+
 -- DropTable
-DROP TABLE "ActivityScore";
+DROP TABLE "public"."ActivityScore";
 
 -- CreateTable
 CREATE TABLE "activity-score" (

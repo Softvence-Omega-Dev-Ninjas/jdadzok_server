@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from "@nestjs/common";
+import { Body, Controller, Post } from "@nestjs/common";
 
 import { CreateWithdrawDto } from "./dto/create-withdraw.dto";
 import { WithdrawService } from "./withdraw.service";
@@ -16,7 +16,7 @@ export class WithdrawController {
     // User requests withdraw manually
     @Post("request")
     async requestWithdraw(@Body() dto: CreateWithdrawDto) {
-        console.log(dto);
+        console.info(dto);
         return this.withdrawService.requestWithdraw(dto);
     }
 }

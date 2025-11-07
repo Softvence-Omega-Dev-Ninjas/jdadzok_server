@@ -61,3 +61,7 @@
 - Denormalized counters for better performance
 - Proper cascading deletes to maintain data integrity
 - Unique constraints to prevent duplicates
+
+## Docker run
+
+- docker compose --profile dev up -d

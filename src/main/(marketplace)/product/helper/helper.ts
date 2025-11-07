@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@lib/prisma/prisma.service";
+import { Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class HelperService {
@@ -16,7 +16,7 @@ export class HelperService {
         }
 
         if (product.promotionFee <= 0) {
-            console.log("Product has no promotion fee to distribute.");
+            console.info("Product has no promotion fee to distribute.");
             return;
         }
 
@@ -34,7 +34,7 @@ export class HelperService {
         });
 
         if (!eligiblePosts.length) {
-            console.log("No eligible posts found for this product.");
+            console.info("No eligible posts found for this product.");
             return;
         }
 
@@ -99,7 +99,7 @@ export class HelperService {
             },
         });
 
-        console.log(
+        console.info(
             `Product (${productId}) attached to ${eligiblePosts.length} posts. Total distributed: ${totalDistributed}`,
         );
     }

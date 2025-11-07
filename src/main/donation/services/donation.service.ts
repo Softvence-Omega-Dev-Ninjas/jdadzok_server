@@ -8,7 +8,7 @@ export class DonationService {
     private stripe: Stripe;
 
     constructor(private readonly prisma: PrismaService) {
-        this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
+        this.stripe = new Stripe(process.env.STRIPE_SECRET!, {});
     }
 
     async createCheckoutSession(userId: string, communityId: string, payload: CreateDonationDto) {

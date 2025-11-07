@@ -110,7 +110,7 @@ export class PaymentsService {
             }
 
             default:
-                console.log(`Unhandled Stripe event type: ${event.type}`);
+                console.info(`Unhandled Stripe event type: ${event.type}`);
         }
 
         return { received: true };
