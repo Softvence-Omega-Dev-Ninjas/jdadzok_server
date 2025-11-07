@@ -5,6 +5,6 @@ import { HelperService } from "./helper/helper";
 
 @Module({
     controllers: [ProductController],
-    providers: [ProductService,HelperService],
+    providers: [ProductService, HelperService],
 })
 export class ProductModule {}
