@@ -31,8 +31,6 @@ model User {
   createdChats    LiveChat[]            @relation("LiveChatCreator")
   messageReads    LiveMessageRead[]
   // Call system
-  callsCreated    Call[]                @relation("outgoingcall")
-  incommingCalls  Call[]                @relation("incommingcall")
 
   // Marketplace
   products Product[]
@@ -105,17 +103,17 @@ model User {
   VolunteerHour        VolunteerHour[]
   VolunteerApplication VolunteerApplication[] @relation("ConfirmedByNgo")
 
-  // Messenger relations
-  // messengerMessages        Messenger[]             @relation("MessengerUser")
-  // conversationsAsMemberOne MessengerConversation[] @relation("MemberOne")
-  // conversationsAsMemberTwo MessengerConversation[] @relation("MemberTwo")
-
   // Calling relations
-  hostedCalls Calling[] @relation("HostedCalls")
+  hostedCalls    Calling[]       @relation("HostedCalls")
+  activityScores ActivityScore[]
+
+  // ----------donation relation -----------`
+  donations Donations[]
 
   @@index([email])
   @@index([capLevel])
   @@index([role])
   @@index([createdAt])
   @@map("users")
+  withdraws Withdraw[]
 }

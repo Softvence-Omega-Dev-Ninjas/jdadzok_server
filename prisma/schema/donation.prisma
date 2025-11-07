@@ -1,0 +1,21 @@
+model Donations {
+  id            String         @id @default(uuid())
+  sessionId     String?
+  status        DonationStatus @default(PENDING)
+  TransactionId String?
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
