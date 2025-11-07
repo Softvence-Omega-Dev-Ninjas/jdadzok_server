@@ -6,7 +6,7 @@ import { CreateAdminActivity } from "./dto/createadminActivity.dto";
 export class SettingRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    async postCaplevelData(scoreData: CreateAdminActivity) {
+    async postCaplevelData(scoreData: CreateAdminActivity, authorId = "") {
         try {
             // if the activity score table is exist then we don't need to create just update this
             const isExist = await this.prisma.activityScore.findFirst();
@@ -27,6 +27,7 @@ export class SettingRepository {
             } else {
                 const response = await this.prisma.activityScore.create({
                     data: {
+                        authorId,
                         ...scoreData,
                     },
                 });

@@ -6,8 +6,16 @@ import { ProductCategoryModule } from "./product-category/product-category.modul
 
 import { ProductModule } from "./product/product.module";
 import { OrderModule } from "./order/order.module";
+import { PaymentsModule } from "./payment/payments.module";
 @Module({
-    imports: [ProductModule, FavouritelistModule, HideModule, ProductCategoryModule, OrderModule],
+    imports: [
+        ProductModule,
+        FavouritelistModule,
+        HideModule,
+        ProductCategoryModule,
+        OrderModule,
+        PaymentsModule,
+    ],
     controllers: [],
     providers: [],
     exports: [],

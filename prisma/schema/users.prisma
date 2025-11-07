@@ -50,6 +50,7 @@ model User {
   // Monetization
   payouts                 Payout[]
   adRevenueShares         AdRevenueShare[]
+  revenues                Revenue[]
   creatorSubscriptions    Subscription[]   @relation("CreatorSubscriptions")
   subscriberSubscriptions Subscription[]   @relation("SubscriberSubscriptions")
 
@@ -110,11 +111,13 @@ model User {
   // conversationsAsMemberTwo MessengerConversation[] @relation("MemberTwo")
 
   // Calling relations
-  hostedCalls Calling[] @relation("HostedCalls")
+  hostedCalls    Calling[]       @relation("HostedCalls")
+  activityScores ActivityScore[]
 
   @@index([email])
   @@index([capLevel])
   @@index([role])
   @@index([createdAt])
   @@map("users")
+  withdraws Withdraw[]
 }
