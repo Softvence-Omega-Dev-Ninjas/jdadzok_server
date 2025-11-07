@@ -10,4 +10,8 @@ export const QUEUE_JOB_NAME = {
     CAP_LEVEL: {
         CAP_LEVEL_QUEUE_NAME: "cap-level-queue",
     },
+    WITHDRAW: {
+        WITHDRAW_QUEUE: "withdraw_payout",
+        WITHDRAW_QUEUE_PROCESSOR: "withdraw_processor",
+    },
 } as const;

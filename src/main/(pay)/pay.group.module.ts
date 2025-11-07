@@ -1,7 +1,8 @@
 import { Module } from "@nestjs/common";
+import { WithdrawModule } from "./withdraw/withdraw.module";
 
 @Module({
-    imports: [],
+    imports: [WithdrawModule],
     providers: [],
     exports: [],
 })

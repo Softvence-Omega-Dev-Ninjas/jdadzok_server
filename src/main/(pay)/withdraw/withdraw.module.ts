@@ -1,18 +1,18 @@
+import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
+import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
-import { BullModule } from "@nestjs/bull";
 import { WithdrawController } from "./withdraw.controller";
-import { WithdrawService } from "./withdraw.service";
+import { WithdrawCron } from "./withdraw.cron";
 import { WithdrawProcessor } from "./withdraw.processor";
-import { ConfigService } from "@nestjs/config";
-import { PrismaService } from "@lib/prisma/prisma.service";
+import { WithdrawService } from "./withdraw.service";
 
 @Module({
     imports: [
         BullModule.registerQueue({
-            name: "withdraw-queue",
+            name: QUEUE_JOB_NAME.WITHDRAW.WITHDRAW_QUEUE,
         }),
     ],
     controllers: [WithdrawController],
-    providers: [WithdrawService, WithdrawProcessor, PrismaService, ConfigService],
+    providers: [WithdrawProcessor, WithdrawCron, WithdrawService],
 })
 export class WithdrawModule {}

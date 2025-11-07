@@ -16,6 +16,7 @@ export class WithdrawController {
     // User requests withdraw manually
     @Post("request")
     async requestWithdraw(@Body() dto: CreateWithdrawDto) {
+        console.log(dto);
         return this.withdrawService.requestWithdraw(dto);
     }
 }

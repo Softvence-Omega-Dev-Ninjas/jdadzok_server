@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
-import { InjectQueue } from "@nestjs/bull";
-import { Queue } from "bull";
-import Stripe from "stripe";
-import { ConfigService } from "@nestjs/config";
-import { CreateWithdrawDto } from "./dto/create-withdraw.dto";
 import { PrismaService } from "@lib/prisma/prisma.service";
+import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
+import { InjectQueue } from "@nestjs/bullmq";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Queue } from "bullmq";
+import Stripe from "stripe";
 
 @Injectable()
 export class WithdrawService {
@@ -12,10 +12,10 @@ export class WithdrawService {
     constructor(
         private prisma: PrismaService,
         private config: ConfigService,
-        @InjectQueue("withdraw-queue") private withdrawQueue: Queue,
+        @InjectQueue(QUEUE_JOB_NAME.WITHDRAW.WITHDRAW_QUEUE) private withdrawQueue: Queue,
     ) {
-        const secretKey = process.env.STRIPE_SECRET_KEY;
-        if (!secretKey) throw new Error("STRIPE_SECRET_KEY not configured");
+        const secretKey = process.env.STRIPE_SECRET;
+        if (!secretKey) throw new Error("STRIPE_SECRET not configured");
 
         this.stripe = new Stripe(secretKey, {
             apiVersion: "2025-10-29.clover",
@@ -23,7 +23,17 @@ export class WithdrawService {
     }
 
     // user requests withdraw manually
-    async requestWithdraw(dto: CreateWithdrawDto) {
+    async requestWithdraw(dto: { userId: string; amount: number }) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: dto.userId },
+            include: { PaymentMethods: true },
+        });
+        if (!user) throw new NotFoundException("User not found");
+
+        const card = user.PaymentMethods.find((c) => c.isDefault);
+        if (!card) throw new BadRequestException("No default payment method found");
+
+        // Create withdraw record in DB
         const withdraw = await this.prisma.withdraw.create({
             data: {
                 userId: dto.userId,
@@ -31,8 +41,16 @@ export class WithdrawService {
             },
         });
 
-        await this.withdrawQueue.add("process-withdraw", { withdrawId: withdraw.id });
-        return { message: "Withdraw queued successfully", withdraw };
+        // Queue the withdraw for async processing
+        await this.withdrawQueue.add("process-withdraw", {
+            withdrawId: withdraw.id,
+            cardId: card.id,
+        });
+
+        return {
+            message: "Withdraw queued successfully",
+            // withdraw,
+        };
     }
 
     // monthly payout scheduler
@@ -44,19 +62,17 @@ export class WithdrawService {
             include: { revenues: true },
         });
 
-        type Revenue = { amount: number; };
-        type User = { id: string; revenues: Revenue[] };
-
+        type Revenue = { amount: number };
+        // type User = { id: string; revenues: Revenue[] };
 
         for (const user of pendingUsers) {
             const total = user.revenues.reduce((a: number, r: Revenue) => a + r.amount, 0);
 
-            await this.withdrawQueue.add("process-withdraw", {
+            await this.withdrawQueue.add(QUEUE_JOB_NAME.WITHDRAW.WITHDRAW_QUEUE, {
                 userId: user.id,
                 amount: total,
             });
         }
-
 
         return { message: "All user withdraws enqueued" };
     }
@@ -80,9 +96,11 @@ export class WithdrawService {
 
         await this.prisma.withdraw.updateMany({
             where: { userId, status: "PENDING" },
-            data: { status: "SUCCESS", stripeId: payout.id, processedAt: new Date() },
+            data: {
+                status: "SUCCESS",
+                stripeTxnId: payout.id,
+            },
         });
-
         return payout;
     }
 }
