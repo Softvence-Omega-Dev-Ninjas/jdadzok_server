@@ -1,7 +1,5 @@
-// src/call/call.controller.ts
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
-    Body,
     Controller,
     Delete,
     Get,
@@ -14,7 +12,6 @@ import {
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { AuthenticatedRequest } from "@type/apiResponse";
-import { CreateCallDto } from "../dto/calling.dto";
 import { CallService } from "../service/calling.service";
 
 @Controller("calls")
@@ -25,9 +22,8 @@ export class CallController {
 
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    async createCall(@Request() req: AuthenticatedRequest, @Body() createCallDto?: CreateCallDto) {
+    async createCall(@Request() req: AuthenticatedRequest) {
         const userId = req.user.userId;
-        console.log(createCallDto);
         return await this.callService.createCall(userId);
     }
 
