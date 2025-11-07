@@ -6,7 +6,7 @@ model PaymentMethods {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Card info 
-  method      PaymentMethod // How they want to be paid
+  method      PaymentMethod
   cardHolder  String
   cardNumber  String
   expireMonth String

@@ -23,6 +23,7 @@ export const EVENT_TYPES = {
     USERREGISTRATION_DELETE: "user.delete",
 
     MESSAGE_CREATE: "message.crate",
+    CONVERSATION_CREATE: "conversation.create",
 } as const;
 
 // Type-safe keys for autocomplete

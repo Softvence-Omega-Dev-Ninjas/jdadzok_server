@@ -8,6 +8,7 @@ import { LibModule } from "./lib/lib.module";
 import { NotificationModule } from "./lib/notification/notification.module";
 import { MainModule } from "./main/main.module";
 import { S3BucketModule } from "./s3/s3.module";
+import { DonationModule } from "./main/donation/donation.module";
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import { S3BucketModule } from "./s3/s3.module";
         LibModule,
         MainModule,
         S3BucketModule,
+        DonationModule,
     ],
     providers: [],
     controllers: [AppController],

@@ -6,16 +6,18 @@ import {
     Controller,
     Delete,
     Get,
+    HttpException,
     Param,
     Patch,
     Post,
     Query,
     UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { CreateProductDto, updateProductDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
 import { ProductService } from "./product.service";
+import { UpdateProductStatusDto } from "./dto/updateStatusDto";
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("products")
@@ -70,6 +72,26 @@ export class ProductController {
     @ApiResponse({ status: 200, description: "Product deleted successfully" })
     async remove(@Param("id") id: string, @GetUser("userId") userId: string) {
         return handleRequest(() => this.service.remove(id, userId), "Product deleted successfully");
+    }
+
+    // update product status
+    @Patch("status/:id")
+    @ApiOperation({ summary: "Update product status by ID" })
+    @ApiConsumes("multipart/formdata")
+    async updateStatus(
+        @Param("id") id: string,
+        @Body() dto: UpdateProductStatusDto,
+        @GetUser("userId") userId: string,
+    ) {
+        try {
+            const res = await this.service.updateProductStatus(id, dto, userId);
+            return {
+                message: "Product status updated successfully",
+                data: res,
+            };
+        } catch (err) {
+            throw new HttpException(err.message, err.status);
+        }
     }
 
     // Todo--------

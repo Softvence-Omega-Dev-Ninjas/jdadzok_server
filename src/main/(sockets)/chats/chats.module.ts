@@ -1,24 +1,20 @@
-import { AuthValidatorService } from "@global/auth-validator/auth-validator.service";
-import { UserProfileRepository } from "@module/(users)/user-profile/user.profile.repository";
-import { UserRepository } from "@module/(users)/users/users.repository";
+// src/chat/chat.module.ts
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { AuthModule } from "@module/(started)/auth/auth.module"; // Correct path
 import { Module } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { JwtServices } from "@service/jwt.service";
+import { ChatController } from "./chat.controller";
 import { ChatGateway } from "./chat.gateway";
 import { ChatService } from "./chat.service";
 
 @Module({
-    imports: [],
-    controllers: [],
+    imports: [AuthModule], // This brings in AuthValidatorService
     providers: [
-        JwtService,
-        UserProfileRepository,
-        UserRepository,
-        JwtServices,
-        AuthValidatorService,
         ChatService,
         ChatGateway,
+        PrismaService,
+        // DO NOT ADD AuthValidatorService here
     ],
-    exports: [],
+    controllers: [ChatController],
+    exports: [ChatService],
 })
 export class ChatModule {}

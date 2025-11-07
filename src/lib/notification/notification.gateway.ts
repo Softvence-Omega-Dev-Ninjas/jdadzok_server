@@ -120,19 +120,8 @@ export class NotificationGateway
 
     /**
      * Extracts the JWT token from the client's headers or query.
-     *
-     * If the token is present in the Authorization header, it is extracted.
-     * If the token is not present in the Authorization header, the query
-     * parameter 'token' is checked for the token. If the token is present in
-     * the query parameter, it is extracted.
-     *
-     * If the token is not present in either the Authorization header or the
-     * query parameter, null is returned.
-     *
-     * If the token is present in the Authorization header but is not a Bearer
-     * token, the raw token is returned.
-     *
-     * @param client - The socket client.
+     
+   
      * @returns The extracted JWT token or null if not present.
      */
     private extractTokenFromSocket(client: Socket): string | null {
@@ -146,12 +135,7 @@ export class NotificationGateway
     /**
      * Subscribes a client to a user's notification room.
      *
-     * If the user ID is not present in the clients map, a new Set is created
-     * and associated with the user ID. The client is then added to the Set.
-     * A log message is recorded with the user ID.
-     *
-     * @param userId - The ID of the user to subscribe the client to.
-     * @param client - The client socket to subscribe.
+  
      */
     private subscribeClient(userId: string, client: Socket) {
         if (!this.clients.has(userId)) {
@@ -164,15 +148,7 @@ export class NotificationGateway
     /**
      * Unsubscribes a client from a user's notification room.
      *
-     * If the user ID is not present in the clients map, the function does
-     * nothing.
-     * If the user ID is present in the clients map, the client is removed
-     * from the Set associated with the user ID. If the Set is then empty, it
-     * is removed from the map.
-     * A log message is recorded with the user ID.
-     *
-     * @param userId - The ID of the user to unsubscribe the client from.
-     * @param client - The client socket to unsubscribe.
+    
      */
     private unsubscribeClient(userId: string, client: Socket) {
         const set = this.clients.get(userId);
@@ -269,41 +245,7 @@ export class NotificationGateway
         client.broadcast.emit(purpose, {});
     }
 
-    // @OnEvent(EVENT_TYPES.COMMUNITY_CREATE)
-    // async handleCommunityCreated(payload: Community) {
-    //     this.logger.log("📢 Broadcasting Community_CREATE notification");
-
-    //     if (!payload.info?.recipients) {
-    //         this.logger.warn("No recipients provided in Community_CREATE payload");
-    //         return;
-    //     }
-
-    //     for (const recipient of payload.info.recipients) {
-    //         const socketId = this.userSockets.get(recipient.id);
-    //         if (socketId) {
-    //             const clients = this.getClientsForUser(recipient.id);
-    //             const client = Array.from(clients).find((c) => c.id === socketId);
-    //             if (client && client.data.user.community) {
-    //                 // Check community toggle
-    //                 this.server.to(socketId).emit(EVENT_TYPES.COMMUNITY_CREATE, {
-    //                     type: EVENT_TYPES.COMMUNITY_CREATE,
-    //                     title: payload.info.title,
-    //                     message: payload.info.message,
-    //                     createdAt: new Date(),
-    //                     meta: { communityId: payload.meta.communityId },
-    //                 });
-    //                 this.logger.log(
-    //                     `Notification sent to user ${recipient.id} (socket ${socketId})`,
-    //                 );
-    //             } else {
-    //                 this.logger.warn(`User ${recipient.id} has community notifications disabled`);
-    //             }
-    //         } else {
-    //             this.logger.warn(`No socket found for user ${recipient.id}`);
-    //         }
-    //     }
-    //     this.logger.debug("Sockets currently connected:", Array.from(this.userSockets.entries()));
-    // }
+    // ------listen create community----------------
 
     @OnEvent(EVENT_TYPES.COMMUNITY_CREATE)
     async handlCommnityCreated(payload: Community) {
@@ -407,6 +349,7 @@ export class NotificationGateway
 
         this.logger.log("NGO_CREATE processing complete");
     }
+    // ------listen create post----------------
 
     @OnEvent(EVENT_TYPES.POST_CREATE)
     async handlePostCreated(payload: PostEvent) {

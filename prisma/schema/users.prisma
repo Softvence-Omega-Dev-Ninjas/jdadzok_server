@@ -26,14 +26,11 @@ model User {
   shares   Share[]
 
   // Chat system
-  messages        Message[]
-  chatParticipant ChatParticipant[]
-  createdChats    Chat[]
-  messageReads    MessageRead[]
-
+  messages        LiveMessage[]
+  chatParticipant LiveChatParticipant[]
+  createdChats    LiveChat[]            @relation("LiveChatCreator")
+  messageReads    LiveMessageRead[]
   // Call system
-  callsCreated   Call[] @relation("outgoingcall")
-  incommingCalls Call[] @relation("incommingcall")
 
   // Marketplace
   products Product[]
@@ -51,6 +48,7 @@ model User {
   // Monetization
   payouts                 Payout[]
   adRevenueShares         AdRevenueShare[]
+  revenues                Revenue[]
   creatorSubscriptions    Subscription[]   @relation("CreatorSubscriptions")
   subscriberSubscriptions Subscription[]   @relation("SubscriberSubscriptions")
 
@@ -98,16 +96,24 @@ model User {
   CommunityFollower CommunityFollower[]
 
   // payment methods -> a user can has multiple payment methods
-  PaymentMethods     PaymentMethods[]
-  NotificationToggle NotificationToggle[]
-  userNotifications  UserNotification[]
+  PaymentMethods       PaymentMethods[]
+  NotificationToggle   NotificationToggle[]
+  userNotifications    UserNotification[]
+  VolunteerCompletion  VolunteerCompletion[]
+  VolunteerHour        VolunteerHour[]
+  VolunteerApplication VolunteerApplication[] @relation("ConfirmedByNgo")
+
+  // Calling relations
+  hostedCalls    Calling[]       @relation("HostedCalls")
+  activityScores ActivityScore[]
+
+  // ----------donation relation -----------`
+  donations Donations[]
 
   @@index([email])
   @@index([capLevel])
   @@index([role])
   @@index([createdAt])
   @@map("users")
-  VolunteerCompletion VolunteerCompletion[]
-  VolunteerHour VolunteerHour[]
-  VolunteerApplication VolunteerApplication[] @relation("ConfirmedByNgo")
+  withdraws Withdraw[]
 }
