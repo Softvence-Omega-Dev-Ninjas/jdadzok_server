@@ -12,53 +12,57 @@ export class DonationService {
     }
 
     async createCheckoutSession(userId: string, communityId: string, payload: CreateDonationDto) {
-        const { amount } = payload;
+        try {
+            const { amount } = payload;
 
-        // Fetch community
-        const community = await this.prisma.community.findUnique({
-            where: { id: communityId },
-            include: { owner: true },
-        });
-        if (!community) throw new NotFoundException("Community not found");
+            // Fetch community
+            const community = await this.prisma.community.findUnique({
+                where: { id: communityId },
+                include: { owner: true },
+            });
+            if (!community) throw new NotFoundException("Community not found");
 
-        const ownerPaymentMethod = await this.prisma.paymentMethods.findFirst({
-            where: { userId: community.ownerId, isDefault: true },
-        });
-        if (!ownerPaymentMethod)
-            throw new BadRequestException("Community owner has not added a payment method yet");
+            const ownerPaymentMethod = await this.prisma.paymentMethods.findFirst({
+                where: { userId: community.ownerId, isDefault: true },
+            });
+            if (!ownerPaymentMethod)
+                throw new BadRequestException("Community owner has not added a payment method yet");
 
-        // Create Stripe Checkout session
-        const session = await this.stripe.checkout.sessions.create({
-            payment_method_types: ["card"],
-            line_items: [
-                {
-                    price_data: {
-                        currency: "usd",
-                        product_data: { name: `Donation to Community ${community.id}` },
-                        unit_amount: Math.round(amount * 100),
+            // Create Stripe Checkout session
+            const session = await this.stripe.checkout.sessions.create({
+                payment_method_types: ["card"],
+                line_items: [
+                    {
+                        price_data: {
+                            currency: "usd",
+                            product_data: { name: `Donation to ${community.owner.email || community.id}` },
+                            unit_amount: Math.round(amount * 100),
+                        },
+                        quantity: 1,
                     },
-                    quantity: 1,
+                ],
+                mode: "payment",
+                success_url: `${process.env.FRONTEND_URL}/donation/success?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${process.env.FRONTEND_URL}/donation/cancel`,
+                metadata: { donorId: userId, communityId },
+            });
+
+            // Save donation record (PENDING)
+            await this.prisma.donations.create({
+                data: {
+                    sessionId: session.id,
+                    amount,
+                    status: "PENDING",
+                    userId,
                 },
-            ],
-            mode: "payment",
-            success_url: `${process.env.FRONTEND_URL}/donation/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.FRONTEND_URL}/donation/cancel`,
-            metadata: { donorId: userId, communityId },
-        });
+            });
 
-        // Save donation record (PENDING)
-        await this.prisma.donations.create({
-            data: {
-                sessionId: session.id,
-                amount,
-                status: "PENDING",
-                userId,
-            },
-        });
-
-        return { url: session.url };
+            return { url: session.url };
+        } catch (error) {
+            console.error("Error creating checkout session:", error);
+            throw error;
+        }
     }
-
     async findMyPayments(userId: string) {
         return this.prisma.donations.findMany({
             where: { userId },
