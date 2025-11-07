@@ -13,8 +13,8 @@ model Post {
 
   dedicatedAd DedicatedAd[]
   // Post settings
-  visibility PostVisibility @default(PUBLIC)
-  postFrom   PostFrom       @default(REGULAR_PROFILE)
+  visibility  PostVisibility @default(PUBLIC)
+  postFrom    PostFrom       @default(REGULAR_PROFILE)
 
   // Content category (one of the 10 main areas)
   categoryId String?

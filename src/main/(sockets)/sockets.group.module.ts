@@ -7,7 +7,6 @@ import { APP_GUARD } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { JwtServices } from "@service/jwt.service";
 import { RootGetway } from "./base/root.getway";
-import { CallsModule } from "./calls/calls.module";
 
 import { ChatModule } from "./chats/chats.module";
 import { SocketAuthGuard } from "./guards/socket-auth.guard";
@@ -16,7 +15,7 @@ import { RedisService } from "./services/redis.service";
 
 @Global()
 @Module({
-    imports: [ConfigModule.forRoot({ isGlobal: true }), CallsModule, ChatModule],
+    imports: [ConfigModule.forRoot({ isGlobal: true }), ChatModule],
     controllers: [],
     providers: [
         {

@@ -88,7 +88,6 @@ export class PostRepository {
                 },
             });
 
-
             // Create add for user's post according to users eligiblity
 
             // const user=await tx.user.findFirst({

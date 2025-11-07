@@ -11,21 +11,21 @@ model Product {
 
   // Product details
   title          String
-  description    String  @db.Text
+  description    String        @db.Text
   price          Float // Product price
   location       String? // Physical location if applicable
-  availability   Int     @default(1) // Stock quantity
+  availability   Int           @default(1) // Stock quantity
   digitalFileUrl String? // For digital products
-  spent Float @default(0)
-  promotionFee Float @default(0.0)
+  spent          Float         @default(0)
+  promotionFee   Float         @default(0.0)
   // Product settings
-  isVisible Boolean @default(true) // Can be hidden by seller
-  status Status @default(CONTINUED)
-  dedicatedAd DedicatedAd[]
+  isVisible      Boolean       @default(true) // Can be hidden by seller
+  status         Status        @default(CONTINUED)
+  dedicatedAd    DedicatedAd[]
   // Product interactions
-  wishlistItems Wishlist[] // Users who wishlisted this
-  orders        Order[] // Orders for this product
-  revenues      Revenue[] // Revenue generated from this product
+  wishlistItems  Wishlist[] // Users who wishlisted this
+  orders         Order[] // Orders for this product
+  revenues       Revenue[] // Revenue generated from this product
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -36,7 +36,6 @@ model Product {
   @@index([price])
   @@map("products")
 }
-
 
 enum Status {
   CONTINUED
