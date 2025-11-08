@@ -6,6 +6,7 @@ import type { PrismaConfig } from "prisma";
 // Explicitly load environment variables
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 
+console.log("load env: ", process.env.DATABASE_URL);
 export default {
     schema: path.join("prisma", "schema"),
 

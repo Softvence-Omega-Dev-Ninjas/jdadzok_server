@@ -31,8 +31,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
             this.redisClient = new Redis(REDIS_PORT, REDIS_HOST);
 
             // Separate clients for pub/sub (recommended by Redis)
-            this.redisSubscriber = new Redis(REDIS_PORT, REDIS_HOST);
-            this.redisPublisher = new Redis(REDIS_PORT, REDIS_HOST);
+            // this.redisSubscriber = new Redis(REDIS_PORT, REDIS_HOST);
+            // this.redisPublisher = new Redis(REDIS_PORT, REDIS_HOST);
 
             await Promise.all([
                 // await this.redisClient.connect(),
@@ -47,13 +47,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
                 this.logger.error("Redis Client Error:", err);
             });
 
-            this.redisSubscriber.on("error", (err) => {
-                this.logger.error("Redis Subscriber Error:", err);
-            });
+            // this.redisSubscriber.on("error", (err) => {
+            //     this.logger.error("Redis Subscriber Error:", err);
+            // });
 
-            this.redisPublisher.on("error", (err) => {
-                this.logger.error("Redis Publisher Error:", err);
-            });
+            // this.redisPublisher.on("error", (err) => {
+            //     this.logger.error("Redis Publisher Error:", err);
+            // });
         } catch (error) {
             console.info(error.message);
             this.logger.error("Failed to connect to Redis");

@@ -35,7 +35,9 @@ export class DonationService {
                     {
                         price_data: {
                             currency: "usd",
-                            product_data: { name: `Donation to ${community.owner.email || community.id}` },
+                            product_data: {
+                                name: `Donation to ${community.owner.email || community.id}`,
+                            },
                             unit_amount: Math.round(amount * 100),
                         },
                         quantity: 1,
