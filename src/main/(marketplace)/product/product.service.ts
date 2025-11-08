@@ -18,17 +18,11 @@ export class ProductService {
     ) {}
     // create product new product
     async create(userId: string, dto: CreateProductDto) {
-        // 1️ Verify seller
+        //  Verify seller
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new BadRequestException("Unauthorized Access");
 
-        //   // 2️ Prevent duplicate product
-        const existing = await this.prisma.product.findFirst({
-            where: { title: dto.title },
-        });
-        if (existing) throw new BadRequestException("This Product Already Exists.");
-
-        // 3️ Validate category
+        // validate category
         const category = await this.prisma.productCategory.findUnique({
             where: { id: dto.categoryId },
         });
