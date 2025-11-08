@@ -34,7 +34,6 @@ import { FollowModule } from "@module/(users)/follow/follow.module";
         GifRepository,
         PostMetadataRepository,
         UserRepository,
-        UserProfileRepository,
         PostGateway,
         S3Service,
         PostUtils,
