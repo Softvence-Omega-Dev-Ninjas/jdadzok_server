@@ -35,27 +35,27 @@ export class ProductService {
         if (!category)
             throw new BadRequestException("Invalid categoryId, category does not exist.");
 
-        // const activityTable = await this.prisma.activityScore.findFirst();
-        // if (!activityTable) {
-        //     throw new BadRequestException("Activity data not found");
-        // }
+        const activityTable = await this.prisma.activityScore.findFirst();
+        if (!activityTable) {
+            throw new BadRequestException("Activity data not found");
+        }
         // 4️ Create product
         const { categoryId, ...rest } = dto;
-        // const totalSpentValue = (dto.price / 100) * activityTable.productSpentPercentage || 4;
-        // const promotionFee =
-        //     (totalSpentValue / 100) * activityTable?.productPromotionPercentage || 2;
+        const totalSpentValue = (dto.price / 100) * activityTable.productSpentPercentage || 4;
+        const promotionFee =
+            (totalSpentValue / 100) * activityTable?.productPromotionPercentage || 2;
         const newProduct = await this.prisma.product.create({
             data: {
                 ...rest,
                 sellerId: userId,
                 categoryId,
-                // promotionFee: promotionFee,
-                // spent: totalSpentValue,
+                promotionFee: promotionFee,
+                spent: totalSpentValue,
             },
             include: { seller: true },
         });
 
-        // await this.helper.attachProductToEligiblePosts(newProduct.id);
+        await this.helper.attachProductToEligiblePosts(newProduct.id);
 
         return newProduct;
     }

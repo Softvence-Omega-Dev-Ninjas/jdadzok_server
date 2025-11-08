@@ -1,8 +1,6 @@
 model ActivityScore {
   id                         String   @id @default(uuid())
   // Comment author
-  authorId                   String
-  author                     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   like                       Float
   comment                    Float
   share                      Float

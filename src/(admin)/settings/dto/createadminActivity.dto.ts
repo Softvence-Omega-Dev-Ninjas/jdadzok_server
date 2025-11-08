@@ -65,4 +65,20 @@ export class CreateAdminActivity {
     @IsNumber()
     @IsNotEmpty()
     yellowCapScore: number;
+
+    @ApiProperty({
+        description: "set the percentage for product spent",
+        example: 4,
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    productSpentPercentage: number;
+
+    @ApiProperty({
+        description: "set the percentage for product promotion",
+        example: 2,
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    productPromotionPercentage: number;
 }

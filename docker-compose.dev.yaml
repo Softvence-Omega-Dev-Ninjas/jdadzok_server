@@ -1,48 +1,8 @@
 services:
-    app:
-        profiles:
-            - prod
-        platform: linux/amd64
-        build:
-            context: .
-            dockerfile: Dockerfile
-        image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}
-        container_name: ${PACKAGE_NAME}_api
-        ports:
-            - "${PORT}:${PORT}"
-        env_file:
-            - .env
-        depends_on:
-            db:
-                condition: service_healthy
-            redis:
-                condition: service_healthy
-        restart: always
-        command: >
-            sh -c "
-                echo '🏁 Waiting for DB...';
-                sleep 5;
-                npx prisma migrate deploy;
-                echo '🚀 Starting app...';
-                npm run start:docker
-            "
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "10m"
-                max-file: "3"
-        labels:
-            - "app.name=${PACKAGE_NAME}"
-            - "app.version=${PACKAGE_VERSION}"
-            - "deployment.type=zero-downtime"
-
     db:
         image: postgres:15
         container_name: ${PG_DATABASE}
         restart: always
-        profiles:
-            - prod
-            - dev
         environment:
             POSTGRES_USER: ${PG_USERNAME}
             POSTGRES_PASSWORD: ${PG_PASSWORD}
@@ -64,35 +24,10 @@ services:
             retries: 5
             start_period: 15s
 
-    mysqldb:
-        image: mysql:oraclelinux9
-        restart: always
-        profiles:
-            - mysql
-        environment:
-            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-            MYSQL_USER: ${MYSQL_USERNAME}
-            MYSQL_DATABASE: ${MYSQL_DATABASE}
-        ports:
-            - "${MYSQL_PORT}:3306"
-        volumes:
-            - jdadzok_mysql:/var/lib/mysql
-            - ./init-shadow-db.sql:/docker-entrypoint-initdb.d/init-shadow-db.sql
-
-        healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 15s
-
     redis:
         image: redis:7-alpine # Use Alpine version for smaller size
         container_name: ${REDIS_CONTAINER}
         restart: always
-        profiles:
-            - dev
-            - prod
         ports:
             - "${REDIS_PORT}:${REDIS_PORT}"
         volumes:
@@ -104,30 +39,10 @@ services:
             timeout: 3s
             retries: 5
             start_period: 5s
-        networks:
-            - ${PACKAGE_NAME}_networks
-
-    caddy:
-        image: caddy:latest
-        profiles:
-            - prod
-        container_name: caddy_server
-        restart: unless-stopped
-        ports:
-            - "80:80"
-            - "443:443"
-        volumes:
-            - ./Caddyfile:/etc/caddy/Caddyfile
-            - caddy_data:/data
-            - caddy_config:/config
 
 volumes:
     jdadzok_pg:
-    jdadzok_mysql:
     jdadzok_redis:
-
-    caddy_data:
-    caddy_config:
 
 # Add networks for better isolation (optional)
 networks:
