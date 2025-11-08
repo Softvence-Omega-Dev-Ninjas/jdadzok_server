@@ -5,12 +5,15 @@ model Donations {
   TransactionId String?
   userId        String
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityId   String? // Optional - for community donations
+  community     Community?     @relation(fields: [communityId], references: [id], onDelete: Cascade)
   amount        Float
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([communityId])
   @@index([createdAt])
 }
 
@@ -18,4 +21,5 @@ enum DonationStatus {
   PENDING
   COMPLETED
   FAILED
+  CANCELED
 }
