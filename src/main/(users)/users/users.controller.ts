@@ -89,7 +89,7 @@ export class UserController {
     async me(@GetUser() user: TUser) {
         try {
             const result = await this.service.getUserById(user.userId);
-            return result;
+            return successResponse(result, "User retrive successfully");
         } catch (err) {
             return err;
         }

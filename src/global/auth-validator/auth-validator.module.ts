@@ -1,4 +1,4 @@
-import { UserProfileRepository } from "@module/(users)/user-profile/user.profile.repository";
+// import { UserProfileRepository } from "@module/(users)/user-profile/user.profile.repository";
 import { UserRepository } from "@module/(users)/users/users.repository";
 import { Module } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -9,7 +9,7 @@ import { AuthValidatorService } from "./auth-validator.service";
     imports: [],
     providers: [
         JwtService,
-        UserProfileRepository,
+        // UserProfileRepository,
         UserRepository,
         JwtServices,
         AuthValidatorService,
