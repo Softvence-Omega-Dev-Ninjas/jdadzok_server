@@ -123,7 +123,7 @@ export class UserRepository {
     async update(id: string, data: UpdateUserDto) {
         const { profile, ...rest } = data;
 
-        return await this.prisma.user.update({
+        await this.prisma.user.update({
             where: { id },
             data: {
                 ...rest,

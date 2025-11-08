@@ -73,7 +73,7 @@ export class NgoService {
             },
         });
         if (ngo) {
-            throw new BadRequestException("NGO Already Exist.");
+            throw new BadRequestException("This User Create another NGO using this title.");
         }
 
         const createdNgo = await this.prisma.ngo.create({
