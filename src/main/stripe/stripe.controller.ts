@@ -1,11 +1,10 @@
-import { Body, Controller, Post, Req, Headers, UseGuards } from "@nestjs/common";
-import { StripeService } from "./stripe.service";
-import { Request } from "express";
-import Stripe from "stripe";
 import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
-import { VerifiedUser } from "@type/shared.types";
-import { ApiBearerAuth } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
+import { Body, Controller, Get, Headers, Post, Req, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth } from "@nestjs/swagger";
+import { VerifiedUser } from "@type/shared.types";
+import { Request } from "express";
+import { StripeService } from "./stripe.service";
 
 @Controller("stripe")
 export class StripeController {
@@ -16,6 +15,13 @@ export class StripeController {
     @Post("create-account")
     createAccount(@GetVerifiedUser() user: VerifiedUser) {
         return this.stripeService.createExpressAccount(user.id);
+    }
+
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get("account")
+    getAccount(@GetVerifiedUser() user: VerifiedUser) {
+        return this.stripeService.getExpressAccount(user.id);
     }
 
     @Post("create-payment-intent")
@@ -30,14 +36,6 @@ export class StripeController {
 
     @Post("webhook")
     async stripeWebhook(@Req() req: Request, @Headers("stripe-signature") signature: string) {
-        const stripe = new Stripe(process.env.STRIPE_SECRET!, { apiVersion: "2025-10-29.clover" });
-
-        const event = stripe.webhooks.constructEvent(
-            req.body,
-            signature,
-            process.env.STRIPE_WEBHOOK_SECRET!,
-        );
-
-        return this.stripeService.handleWebhook(event);
+        return this.stripeService.handleWebhook(req, signature);
     }
 }

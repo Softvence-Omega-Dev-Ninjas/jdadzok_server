@@ -1,6 +1,7 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { PaymentStatus } from "@prisma/client";
+import { Request } from "express";
 import Stripe from "stripe";
 import { ApiResponse } from "./utils/api-response";
 
@@ -16,11 +17,10 @@ export class StripeService {
     /** Create Express Account for Seller */
     async createExpressAccount(userId: string) {
         try {
-            // 1️⃣ Ensure Stripe secret exists
             const stripeSecret = process.env.STRIPE_SECRET;
             if (!stripeSecret) throw new Error("STRIPE_SECRET environment variable is missing");
 
-            // 2️⃣ Create Stripe instance
+            //  create Stripe instance
             const stripe = new Stripe(stripeSecret);
 
             const user = await this.prisma.user.findUnique({
@@ -33,7 +33,7 @@ export class StripeService {
 
             if (!user) throw new NotFoundException("user not found");
 
-            // 3️⃣ Create Stripe Express account
+            // create stripe express account
             const account = await stripe.accounts.create({
                 type: "express",
                 country: "US",
@@ -45,13 +45,13 @@ export class StripeService {
                 metadata: { userId, email: user?.email },
             });
             console.log(account);
-            // 4️⃣ Save account ID in database
+            // save account ID in database
             await this.prisma.user.update({
                 where: { id: userId },
                 data: { stripeAccountId: account.id },
             });
 
-            // 5️⃣ Generate onboarding link
+            // generate onboarding link
             const link = await stripe.accountLinks.create({
                 account: account.id,
                 refresh_url: "https://example.com/refresh",
@@ -59,7 +59,6 @@ export class StripeService {
                 type: "account_onboarding",
             });
 
-            // 6️⃣ Return success
             return ApiResponse.success("Stripe account created", { url: link.url });
         } catch (error) {
             this.logger.error(error);
@@ -72,7 +71,49 @@ export class StripeService {
         }
     }
 
-    /** Buyer Payment (Checkout Intent) */
+    // get Express Account for user
+    async getExpressAccount(userId: string) {
+        try {
+            const stripeSecret = process.env.STRIPE_SECRET;
+            if (!stripeSecret) throw new Error("STRIPE_SECRET environment variable is missing");
+
+            // Create Stripe instance
+            const stripe = new Stripe(stripeSecret);
+            // Fetch user from DB
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { stripeAccountId: true },
+            });
+
+            if (!user || !user.stripeAccountId) {
+                throw new NotFoundException("Stripe account not found for this user");
+            }
+
+            // Retrieve Stripe account details
+            const account = await stripe.accounts.retrieve(user.stripeAccountId);
+
+            // Return relevant information (optional: you can return full object if needed)
+            return ApiResponse.success("Stripe account retrieved", {
+                id: account.id,
+                email: account.email,
+                type: account.type,
+                charges_enabled: account.charges_enabled,
+                payouts_enabled: account.payouts_enabled,
+                details_submitted: account.details_submitted,
+                capabilities: account.capabilities,
+                business_type: account.business_type,
+            });
+        } catch (error) {
+            this.logger.error(error);
+
+            return ApiResponse.error(
+                "Failed to retrieve Stripe account",
+                error instanceof Error ? error.message : "Unknown error",
+            );
+        }
+    }
+
+    // buyer payment (checkout intent)
     async createPaymentIntent(orderId: string) {
         const order = await this.prisma.order.findUnique({
             where: { id: orderId },
@@ -80,9 +121,7 @@ export class StripeService {
         });
 
         if (!order) return ApiResponse.error("Order not found");
-
-        const amount = Math.round(order.totalPrice * 100); // in cents
-
+        const amount = Math.round(order.totalPrice * 100);
         try {
             const paymentIntent = await this.stripe.paymentIntents.create({
                 amount,
@@ -95,7 +134,7 @@ export class StripeService {
                 data: {
                     stripeId: paymentIntent.id,
                     amount: order.totalPrice,
-                    status: PaymentStatus.CANCELED,
+                    status: PaymentStatus.PENDING,
                     orderId: order.id,
                 },
             });
@@ -152,37 +191,83 @@ export class StripeService {
     }
 
     /** Webhook for Stripe Payment Confirmation */
-    async handleWebhook(event: Stripe.Event) {
-        switch (event.type) {
-            case "payment_intent.succeeded":
-                const paymentIntent = event.data.object as Stripe.PaymentIntent;
-                const orderId = paymentIntent.metadata.orderId;
+    async handleWebhook(req: Request, signature: string) {
+        try {
+            const stripeSecret = process.env.STRIPE_SECRET;
+            const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-                await this.prisma.order.update({
-                    where: { id: orderId },
-                    data: { status: "PAID" },
-                });
+            if (!stripeSecret) {
+                this.logger.error("STRIPE_SECRET environment variable is missing");
+                return ApiResponse.error("Server misconfiguration: STRIPE_SECRET missing");
+            }
 
-                // Calculate admin commission (e.g. 10%)
-                const order = await this.prisma.order.findUnique({
-                    where: { id: orderId },
-                    include: { product: { include: { seller: true } } },
-                });
-                if (!order) {
-                    this.logger.error(`Order not found: ${orderId}`);
-                    throw new Error("Order not found");
+            if (!webhookSecret) {
+                this.logger.error("STRIPE_WEBHOOK_SECRET environment variable is missing");
+                return ApiResponse.error("Server misconfiguration: STRIPE_WEBHOOK_SECRET missing");
+            }
+
+            const stripe = new Stripe(stripeSecret);
+
+            let event: Stripe.Event;
+            try {
+                event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
+            } catch (err) {
+                this.logger.error("Webhook signature verification failed", err);
+                return ApiResponse.error("Invalid webhook signature");
+            }
+
+            this.logger.log(`Received Stripe event: ${event.type}`);
+
+            switch (event.type) {
+                case "payment_intent.succeeded": {
+                    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+                    const orderId = paymentIntent.metadata.orderId;
+
+                    if (!orderId) {
+                        this.logger.error("PaymentIntent metadata missing orderId", paymentIntent);
+                        return ApiResponse.error("Order ID missing in PaymentIntent metadata");
+                    }
+
+                    const order = await this.prisma.order.findUnique({
+                        where: { id: orderId },
+                        include: { product: { include: { seller: true } } },
+                    });
+
+                    if (!order) {
+                        this.logger.error(`Order not found: ${orderId}`);
+                        return ApiResponse.error("Order not found");
+                    }
+
+                    // Update order status
+                    await this.prisma.order.update({
+                        where: { id: orderId },
+                        data: { status: "PAID" },
+                    });
+
+                    // Calculate admin commission (e.g. 10%)
+                    const adminCommission = order.totalPrice * 0.1;
+                    const sellerAmount = order.totalPrice - adminCommission;
+
+                    try {
+                        await this.handlePayout(order.product.sellerId, sellerAmount);
+                    } catch (err) {
+                        this.logger.error(
+                            `Failed to process payout for seller ${order.product.sellerId}`,
+                            err,
+                        );
+                        return ApiResponse.error("Failed to process payout");
+                    }
+
+                    break;
                 }
+                default:
+                    this.logger.log(`Unhandled Stripe event type: ${event.type}`);
+            }
 
-                const adminCommission = order.totalPrice * 0.1;
-                const sellerAmount = order.totalPrice - adminCommission;
-
-                await this.handlePayout(order.product.sellerId, sellerAmount);
-
-                break;
-            default:
-                this.logger.log(`Unhandled Stripe event: ${event.type}`);
+            return ApiResponse.success("Webhook processed successfully");
+        } catch (err) {
+            this.logger.error("Unexpected error in Stripe webhook handler", err);
+            return ApiResponse.error("Internal server error");
         }
-
-        return ApiResponse.success("Webhook processed");
     }
 }
