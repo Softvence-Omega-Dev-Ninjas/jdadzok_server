@@ -1,10 +1,9 @@
 import { Module } from "@nestjs/common";
-import { PaymentMethodModule } from "./payment-methods/payment.method.module";
-import { PayoutModule } from "./payout/payout.module";
+import { WithdrawModule } from "./withdraw/withdraw.module";
 
 @Module({
-    imports: [PaymentMethodModule, PayoutModule],
+    imports: [WithdrawModule],
     providers: [],
-    exports: [PaymentMethodModule, PayoutModule],
+    exports: [],
 })
 export class PayGroupModule {}

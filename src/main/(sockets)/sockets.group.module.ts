@@ -16,7 +16,7 @@ import { RedisService } from "./services/redis.service";
 
 @Global()
 @Module({
-    imports: [ConfigModule.forRoot({ isGlobal: true }), CallsModule, ChatModule],
+    imports: [ConfigModule.forRoot({ isGlobal: true }), ChatModule],
     controllers: [],
     providers: [
         {

@@ -6,17 +6,17 @@ model CommunityProfile {
   community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
 
   // Profile information
-  name      String
-  username  String  @unique
-  title     String? // Community tagline
-  bio       String? @db.Text
-  avatarUrl String? // Community logo
-  coverUrl  String? // Cover image
-  location  String? // Community location
-
+  name           String
+  username       String  @unique
+  title          String? // Community tagline
+  bio            String? @db.Text
+  avatarUrl      String? // Community logo
+  coverUrl       String? // Cover image
+  location       String? // Community location
+  balance        Float   @default(0.0)
   // Social metrics
-  followersCount Int @default(0)
-  followingCount Int @default(0)
+  followersCount Int     @default(0)
+  followingCount Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

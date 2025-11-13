@@ -1,18 +1,18 @@
-import { PrismaService } from '@lib/prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { Injectable } from "@nestjs/common";
 
-import { LiveChat } from '@prisma/client';
-import { CreateMessageDto } from './dto/create.message.dto';
+import { LiveChat } from "@prisma/client";
+import { CreateMessageDto } from "./dto/create.message.dto";
 
 @Injectable()
 export class ChatService {
-    constructor(private prisma: PrismaService) { }
+    constructor(private prisma: PrismaService) {}
 
     /** Find or create 1-to-1 chat */
     async getOrCreatePrivateChat(userA: string, userB: string): Promise<LiveChat> {
         const existing = await this.prisma.liveChat.findFirst({
             where: {
-                type: 'INDIVIDUAL',
+                type: "INDIVIDUAL",
                 participants: {
                     every: { userId: { in: [userA, userB] } },
                 },
@@ -27,7 +27,7 @@ export class ChatService {
         return this.prisma.$transaction(async (tx) => {
             const chat = await tx.liveChat.create({
                 data: {
-                    type: 'INDIVIDUAL',
+                    type: "INDIVIDUAL",
                     createdById: userA,
                 },
             });
@@ -70,6 +70,62 @@ export class ChatService {
             where: { messageId_userId: { messageId, userId } },
             create: { messageId, userId },
             update: {},
+        });
+    }
+
+    /** List my private chats with last message & unread count */
+    async getMyChats(userId: string) {
+        const chats = await this.prisma.liveChat.findMany({
+            where: {
+                type: "INDIVIDUAL",
+                participants: { some: { userId } },
+            },
+            include: {
+                participants: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                profile: { select: { name: true, avatarUrl: true } },
+                            },
+                        },
+                    },
+                },
+                messages: {
+                    orderBy: { createdAt: "desc" },
+                    take: 1,
+                    select: { id: true, content: true, createdAt: true, senderId: true },
+                },
+            },
+        });
+
+        return Promise.all(
+            chats.map(async (chat) => {
+                const unread = await this.prisma.liveMessage.count({
+                    where: {
+                        chatId: chat.id,
+                        senderId: { not: userId },
+                        readBy: { none: { userId } },
+                    },
+                });
+                return { ...chat, unread };
+            }),
+        );
+    }
+
+    /** Get paginated messages */
+    async getMessages(chatId: string, cursor?: string, take = 20) {
+        return this.prisma.liveMessage.findMany({
+            where: { chatId },
+            orderBy: { createdAt: "desc" },
+            take,
+            cursor: cursor ? { id: cursor } : undefined,
+            include: {
+                sender: {
+                    select: { id: true, profile: { select: { name: true, avatarUrl: true } } },
+                },
+                readBy: { select: { userId: true } },
+            },
         });
     }
 

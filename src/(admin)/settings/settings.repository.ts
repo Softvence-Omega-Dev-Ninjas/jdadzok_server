@@ -19,7 +19,6 @@ export class SettingRepository {
                         ...scoreData,
                     },
                 });
-                console.log(response);
                 return {
                     message: "updated successfully",
                     data: response,
@@ -30,7 +29,6 @@ export class SettingRepository {
                         ...scoreData,
                     },
                 });
-                console.log(response);
                 return {
                     message: "created successfully",
                     data: response,

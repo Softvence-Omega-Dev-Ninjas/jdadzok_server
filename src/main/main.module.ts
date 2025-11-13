@@ -1,5 +1,6 @@
 import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { AdminModule } from "src/(admin)/adminGroup.module";
 import { BuillQueueModule } from "./(buill-queue)/buill-queue.module";
 import { CoreGroupModule } from "./(core)/core.group.module";
 import { ExploreGroupModule } from "./(explore)/explore.group.module";
@@ -12,6 +13,7 @@ import { SharedGroupModule } from "./(shared)/shared.group.module";
 import { SocketsGroupModule } from "./(sockets)/sockets.group.module";
 import { StartedGroupModule } from "./(started)/started.group.module";
 import { UserGroupModule } from "./(users)/users.group.module";
+import { DonationModule } from "./donation/donation.module";
 import { VolunteerModule } from "./volunteer/volunteer.module";
 import { AdminModule } from "src/(admin)/adminGroup.module";
 import { DashboardModule } from './dashboard/dashboard.module';

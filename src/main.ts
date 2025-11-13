@@ -12,11 +12,18 @@ import z from "zod";
 import { AppModule } from "./app.module";
 import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
+import bodyParser from "body-parser";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const configService = app.get(ConfigService);
+
+    // for all other routes use json parser
+    app.use(bodyParser.json());
+
+    // use raw body for only /payments/webhook (or bookings/webhook etc.)
+    app.use("/payments/webhook", bodyParser.raw({ type: "application/json" }));
 
     // CORS configuration
     app.enableCors({
@@ -57,7 +64,7 @@ async function bootstrap() {
 
     const port = parseInt(configService.get<string>(ENVEnum.PORT) ?? "5056", 10);
 
-    await app.listen(port);
+    await app.listen(port, "0.0.0.0");
 }
 
 void bootstrap();
