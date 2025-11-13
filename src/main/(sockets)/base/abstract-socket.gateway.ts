@@ -25,7 +25,8 @@ import { RedisService } from "../services/redis.service";
 })
 @UseGuards(SocketAuthGuard)
 export abstract class BaseSocketGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     @WebSocketServer() protected server: Server;
     protected readonly logger = new Logger(this.constructor.name);
     private readonly clients = new Map<string, Set<Socket>>();
@@ -33,7 +34,7 @@ export abstract class BaseSocketGateway
     constructor(
         protected readonly redisService: RedisService,
         private readonly socketMiddleware: SocketMiddleware,
-    ) { }
+    ) {}
 
     async afterInit() {
         this.logger.verbose(`(${this.constructor.name}) Gateway initialized`);
@@ -58,7 +59,9 @@ export abstract class BaseSocketGateway
         await client.join(`user:${socketUser.id}`);
         this.clients.set(user?.id, (this.clients.get(user?.id) || new Set()).add(client));
 
-        this.logger.log(`User ${socketUser.email} connected with socket ID ${client.id} and user ID ${socketUser.id}`);
+        this.logger.log(
+            `User ${socketUser.email} connected with socket ID ${client.id} and user ID ${socketUser.id}`,
+        );
         // Add to clients map
         if (!this.clients.has(user.id)) {
             this.clients.set(user.id, new Set());

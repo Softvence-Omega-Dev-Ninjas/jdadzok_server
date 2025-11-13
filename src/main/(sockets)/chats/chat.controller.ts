@@ -1,35 +1,28 @@
-import { ReqUser } from '@common/decorators/req-user.decorator';
-import { JwtAuthGuard } from '@module/(started)/auth/guards/jwt-auth';
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { ChatService } from './chat.service';
-import { StartPrivateChatDto } from './dto/start-private.dto';
+import { ReqUser } from "@common/decorators/req-user.decorator";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
+import { ChatService } from "./chat.service";
+import { StartPrivateChatDto } from "./dto/start-private.dto";
 
-
-interface AuthRequest extends Request {
-    user: { id: string };
-}
-@ApiTags('Chat API')
-@Controller('chat')
+@ApiTags("Chat API")
+@Controller("chat")
 @UseGuards(JwtAuthGuard)
 export class ChatController {
-    constructor(private chatService: ChatService) { }
+    constructor(private chatService: ChatService) {}
 
-    @Post('private')
+    @Post("private")
     async startPrivateChat(@ReqUser() me: { id: string }, @Body() dto: StartPrivateChatDto) {
         return this.chatService.getOrCreatePrivateChat(me.id, dto.otherUserId);
     }
 
-    @Get('my')
+    @Get("my")
     async getMyChats(@ReqUser() me: { id: string }) {
         return this.chatService.getMyChats(me.id);
     }
 
-    @Get(':chatId/messages')
-    async getMessages(
-        @Param('chatId') chatId: string,
-        @Query('cursor') cursor?: string,
-    ) {
+    @Get(":chatId/messages")
+    async getMessages(@Param("chatId") chatId: string, @Query("cursor") cursor?: string) {
         return this.chatService.getMessages(chatId, cursor);
     }
 }
