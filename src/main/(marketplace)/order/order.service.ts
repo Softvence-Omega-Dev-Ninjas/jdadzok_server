@@ -7,42 +7,36 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { CreateOrderDto } from "./dto/order.dto";
-import { PaymentsService } from "../payment/payments.service";
-// import { OrderQueryDto } from "./dto/order.query.dto";
-
 @Injectable()
 export class OrderService {
-    constructor(
-        private readonly prisma: PrismaService,
-        private readonly paymentsService: PaymentsService,
-    ) {}
+    constructor(private readonly prisma: PrismaService) {}
 
     // added new order.
     async add(userId: string, dto: CreateOrderDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user?.isVerified) throw new BadRequestException("Please Verify your email.");
+        if (!user?.isVerified) throw new BadRequestException("Please verify your email.");
 
         const product = await this.prisma.product.findUnique({ where: { id: dto.productId } });
         if (!product) throw new BadRequestException("Product not found.");
         if (product.sellerId === userId) {
-            throw new BadRequestException("This Product is unavailable for you.");
+            throw new BadRequestException("This product is unavailable for you.");
         }
         if (product.availability < dto.quantity) {
-            throw new BadRequestException("Invalid Order.");
+            throw new BadRequestException("Invalid order quantity.");
         }
 
         const productPrice = product.price * dto.quantity;
         if (productPrice > dto.totalPrice) {
-            throw new BadRequestException("Please Enter Valid Price.");
+            throw new BadRequestException("Please enter a valid price.");
         }
 
-        // decrement availability
+        // Decrement product availability
         await this.prisma.product.update({
             where: { id: dto.productId },
             data: { availability: product.availability - dto.quantity },
         });
 
-        // create order in DB (status PENDING)
+        // Create order in DB (status PENDING)
         const order = await this.prisma.order.create({
             data: {
                 buyerId: userId,
@@ -55,15 +49,7 @@ export class OrderService {
             include: { buyer: true, product: true },
         });
 
-        // create stripe payment intent and store payment record
-        const { clientSecret } = await this.paymentsService.createPaymentIntentForOrder(
-            order.id,
-            dto.totalPrice,
-            "usd",
-        );
-
-        // return client secret to frontend so it can confirm the payment
-        return { message: "Order created successfully. Proceed to payment.", clientSecret, order };
+        return { message: "Order created successfully.", order };
     }
 
     // get all order...
