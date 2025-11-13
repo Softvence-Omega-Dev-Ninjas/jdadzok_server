@@ -4,7 +4,7 @@ import { Socket } from "socket.io";
 
 @Injectable()
 export class SocketAuthGuard implements CanActivate {
-    constructor(private jwtService: JwtService) {}
+    constructor(private jwtService: JwtService) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const client = context.switchToWs().getClient<Socket>();
