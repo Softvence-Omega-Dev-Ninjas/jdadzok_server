@@ -13,10 +13,8 @@ import { SharedGroupModule } from "./(shared)/shared.group.module";
 import { SocketsGroupModule } from "./(sockets)/sockets.group.module";
 import { StartedGroupModule } from "./(started)/started.group.module";
 import { UserGroupModule } from "./(users)/users.group.module";
-import { DonationModule } from "./donation/donation.module";
-import { VolunteerModule } from "./volunteer/volunteer.module";
-import { AdminModule } from "src/(admin)/adminGroup.module";
 import { DashboardModule } from './dashboard/dashboard.module';
+import { VolunteerModule } from "./volunteer/volunteer.module";
 
 @Global()
 @Module({
@@ -42,4 +40,4 @@ import { DashboardModule } from './dashboard/dashboard.module';
     providers: [],
     exports: [],
 })
-export class MainModule {}
+export class MainModule { }

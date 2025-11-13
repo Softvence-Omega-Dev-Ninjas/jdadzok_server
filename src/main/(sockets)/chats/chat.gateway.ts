@@ -36,7 +36,6 @@ export class ChatGateway extends BaseSocketGateway {
         @GetSocketUser() user: SocketUser,
         @ConnectedSocket() client: Socket,
         @MessageBody() data: { receiverId: string } & CreateMessageDto,
-        @MessageBody() data: { receiverId: string } & CreateMessageDto,
     ) {
         const { receiverId } = data;
 

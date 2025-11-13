@@ -29,7 +29,6 @@ export abstract class BaseSocketGateway
     @WebSocketServer() protected server: Server;
     protected readonly logger = new Logger(this.constructor.name);
     private readonly clients = new Map<string, Set<Socket>>();
-    private readonly clients = new Map<string, Set<Socket>>();
 
     constructor(
         protected readonly redisService: RedisService,
@@ -187,11 +186,6 @@ export abstract class BaseSocketGateway
 
         socket.emit(event, data);
         return true;
-    }
-
-    protected async emitToUserViaClientsMap(userId: string, event: string, data: any): Promise<boolean> {
-        this.logger.log(`Checking userId: ${userId} against target userId: ${userId}`);
-        return false;
     }
 
     protected async emitToUserViaClientsMap(
