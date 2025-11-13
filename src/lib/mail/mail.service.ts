@@ -56,7 +56,7 @@ export class MailService {
     private renderTemplate(type: MailTemplateType, context: MailContext): string {
         switch (type) {
             case "otp":
-                return generateOtpEmail(context.otp!);
+                return generateOtpEmail(context.otp!, context.expire!);
             case "friend-request":
                 return generateFriendRequestEmail(context.senderName!, context.avatarUrl!);
             // if we have then make case here...

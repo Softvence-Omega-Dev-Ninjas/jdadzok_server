@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #!/bin/sh
+=======
+#!/bin/bash
+>>>>>>> c58b7ff64a6ec71bd206268e10c7995d60e6cdb0
 
 echo "⚡ Running CI hook..."
 if ! node ./scripts/ci-hooks.js; then

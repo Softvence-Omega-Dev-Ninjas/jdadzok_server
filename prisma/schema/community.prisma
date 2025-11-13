@@ -27,6 +27,9 @@ model Community {
   // Community social interactions
   likers User[] @relation("CommunityLikers")
 
+  // Community donations
+  donations Donations[]
+
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   CommunityFollower CommunityFollower[]

@@ -145,7 +145,8 @@ enum NotificationType {
 enum OrderStatus {
   PENDING
   PAID
-  DELIVERED
+  COMPLETED
+  PAYMENT_FAILED
   CANCELED
 }
 
@@ -206,6 +207,13 @@ enum VolunteerStatus {
   OPEN
   IN_PROGRESS
   COMPLETED
+}
+
+enum WithdrawStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
 }
 
 // ENUMS_END

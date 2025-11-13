@@ -1,6 +1,6 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Socket } from 'socket.io';
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { Socket } from "socket.io";
 
 @Injectable()
 export class SocketAuthGuard implements CanActivate {
@@ -8,7 +8,8 @@ export class SocketAuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const client = context.switchToWs().getClient<Socket>();
-        const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.split(' ')[1];
+        const token =
+            client.handshake.auth?.token || client.handshake.headers?.authorization?.split(" ")[1];
 
         if (!token) return false;
 
@@ -20,4 +21,8 @@ export class SocketAuthGuard implements CanActivate {
             return false;
         }
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> c58b7ff64a6ec71bd206268e10c7995d60e6cdb0

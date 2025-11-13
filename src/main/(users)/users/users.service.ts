@@ -72,7 +72,7 @@ export class UserService {
 
         return {
             accessToken,
-            user: omit(user, ["password"]),
+            user: user,
             hasAccount,
         };
     }
@@ -164,7 +164,10 @@ export class UserService {
             user.email,
             "Please verify your email with that otp",
             "otp",
-            { otp: otp.token },
+            {
+                otp: otp.token,
+                expire: "2m",
+            },
         );
 
         return otp;

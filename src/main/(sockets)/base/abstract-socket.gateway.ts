@@ -18,7 +18,7 @@ import { RedisService } from "../services/redis.service";
         origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",
         credentials: true,
     },
-    wsEngineL: "",
+    wsEngine: "",
     transports: ["websocket", "polling"],
     pingTimeout: 60000,
     pingInterval: 25000,
@@ -39,12 +39,8 @@ export abstract class BaseSocketGateway
         this.logger.verbose(`(${this.constructor.name}) Gateway initialized`);
         this.server.use(this.socketMiddleware.authenticate());
         this.server.use(this.socketMiddleware.logging());
-
-        // await this.redisService.subscribe(SOCKET_EVENTS.CHAT.MESSAGE, (message: any) => {
-        //     const parsed = JSON.parse(message);
-        //     this.server.to(parsed.roomId).emit(SOCKET_EVENTS.CHAT.NEW_MESSAGE, parsed);
-        // });
     }
+
     async handleConnection(client: Socket) {
         const user = client.data.user;
         if (!user?.id) return client.disconnect(true);
@@ -62,7 +58,17 @@ export abstract class BaseSocketGateway
         await client.join(`user:${socketUser.id}`);
         this.clients.set(user?.id, (this.clients.get(user?.id) || new Set()).add(client));
 
-        this.logger.log(`User ${socketUser.email} connected with socket ID ${client.id} and user ID ${socketUser.id}`);
+        // Add to clients map
+        if (!this.clients.has(user.id)) {
+            this.clients.set(user.id, new Set());
+        }
+        this.clients.get(user.id)!.add(client);
+
+        this.logger.log(
+            `✅ User ${socketUser.email} connected (Socket: ${client.id}, User: ${socketUser.id})`,
+        );
+        this.logger.log(`📊 Total connected users: ${this.clients.size}`);
+        this.logger.log(`👥 Connected user IDs: [${Array.from(this.clients.keys()).join(", ")}]`);
 
         // Broadcast join event
         this.server.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
@@ -72,6 +78,17 @@ export abstract class BaseSocketGateway
         const user = await this.redisService.getConnectedUser(client.id);
         if (!user) return;
 
+        // Remove socket from clients map
+        const userSockets = this.clients.get(user.id);
+        if (userSockets) {
+            userSockets.delete(client);
+
+            // If no more sockets for this user, remove from map
+            if (userSockets.size === 0) {
+                this.clients.delete(user.id);
+            }
+        }
+
         await this.redisService.removeConnectedUser(client.id);
 
         this.server.emit(SOCKET_EVENTS.CONNECTION.USER_LEFT, {
@@ -79,7 +96,8 @@ export abstract class BaseSocketGateway
             reason: "disconnect",
         });
 
-        this.logger.log(`User ${user.email} disconnected`);
+        this.logger.log(`❌ User ${user.email} disconnected (Socket: ${client.id})`);
+        this.logger.log(`📊 Total connected users: ${this.clients.size}`);
     }
 
     protected createResponse<T>(success: boolean, data?: T, error?: string): SocketResponse<T> {
@@ -126,7 +144,6 @@ export abstract class BaseSocketGateway
                     createdAt: new Date(),
                     metadata: roomData?.metadata || {},
                 };
-                // await this.rooms.set(roomId, room);
                 await this.redisService.addUserToRoom(roomId, user.id);
             }
 
@@ -136,7 +153,6 @@ export abstract class BaseSocketGateway
                 const user = await this.redisService.getConnectedUser(client.id);
                 if (user) {
                     await this.redisService.addUserToRoom(roomId, user.id);
-                    // room.users.push(user);
                 }
             }
 
@@ -171,9 +187,32 @@ export abstract class BaseSocketGateway
         return true;
     }
 
-    protected async emitToUserViaClientsMap(userId: string, event: string, data: any): Promise<boolean> {
-        this.logger.log(`Checking userId: ${userId} against target userId: ${userId}`);
-        return false;
+    protected async emitToUserViaClientsMap(
+        userId: string,
+        event: string,
+        data: any,
+    ): Promise<boolean> {
+        const userSockets = this.clients.get(userId);
+
+        this.logger.log(`🔔 Attempting to emit "${event}" to user ${userId}`);
+        this.logger.log(`📱 Found ${userSockets?.size || 0} active socket(s) for user ${userId}`);
+
+        if (userSockets && userSockets.size > 0) {
+            let emittedCount = 0;
+            userSockets.forEach((socket) => {
+                socket.emit(event, data);
+                emittedCount++;
+                this.logger.log(`  ↳ Emitted to socket ${socket.id}`);
+            });
+            this.logger.log(`✅ Successfully emitted to ${emittedCount} socket(s)`);
+            return true;
+        } else {
+            this.logger.warn(`⚠️  User ${userId} has NO active sockets! Message NOT delivered.`);
+            this.logger.warn(
+                `👥 Currently connected users: [${Array.from(this.clients.keys()).join(", ")}]`,
+            );
+            return false;
+        }
     }
 
     protected emitToRoom(roomId: string, event: string, data: any, excludeSocketId?: string): void {

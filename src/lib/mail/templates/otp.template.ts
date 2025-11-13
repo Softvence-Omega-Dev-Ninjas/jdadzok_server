@@ -1,7 +1,7 @@
 import { TTLKey } from "@constants/ttl.constants";
 import generateBaseLayout from "./base-layout";
 
-export const generateOtpEmail = (otp: string, expire: TTLKey = "5m"): string => {
+export const generateOtpEmail = (otp: string, expire: TTLKey): string => {
     const content = `
     <h1>One-Time Password (OTP)</h1>
     <p>Your OTP is:</p>

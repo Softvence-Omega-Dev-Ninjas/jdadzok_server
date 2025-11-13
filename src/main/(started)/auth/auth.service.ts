@@ -1,3 +1,4 @@
+import { MailContext } from "@lib/mail/mail-context.type";
 import { MailService } from "@lib/mail/mail.service";
 import { OptService } from "@lib/utils/otp.service";
 import { UtilsService } from "@lib/utils/utils.service";
@@ -122,7 +123,7 @@ export class AuthService {
         return user;
     }
 
-    private async sendOtpMail(user: Omit<TUser, "role">) {
+    private async sendOtpMail(user: Omit<TUser, "role">, context: MailContext = {}) {
         const otp = await this.otpService.generateOtp({
             userId: user.userId,
             email: user.email,
@@ -133,7 +134,7 @@ export class AuthService {
             user.email,
             "Please verify token to reset password",
             "otp",
-            { otp: otp.token },
+            { otp: otp.token, ...context },
         );
         return otp;
     }

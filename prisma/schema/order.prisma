@@ -17,13 +17,15 @@ model Order {
   // Shipping information
   shippingAddress String? @db.Text
   trackingNumber  String?
+  payments Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([buyerId])
   @@index([productId])
-  @@index([status])
   @@index([createdAt])
   @@map("orders")
 }
+
+
