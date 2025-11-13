@@ -41,4 +41,3 @@ import { VolunteerModule } from "./volunteer/volunteer.module";
     exports: [],
 })
 export class MainModule { }
-export class MainModule { }
