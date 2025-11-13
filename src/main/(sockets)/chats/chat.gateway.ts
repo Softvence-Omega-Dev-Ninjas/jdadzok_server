@@ -34,8 +34,6 @@ export class ChatGateway extends BaseSocketGateway {
         super(redisService, socketMiddleware);
     }
 
-    // ------------------------ Handle chat message sending -----------------------//
-    @SubscribeMessage("chat:message_send")
     @SubscribeMessage("chat:message_send")
     async handleMessage(
         @GetSocketUser() user: SocketUser,
@@ -47,19 +45,15 @@ export class ChatGateway extends BaseSocketGateway {
         // Step 1: Find or create a chat between sender and receiver
         let chat = await this.prisma.liveChat.findFirst({
             where: {
-                participants: {
-                    every: {
-                        userId: { in: [user.id, receiverId] },
+                OR: [
+                    {
+                        participants: { some: { userId: user.id } },
+                        AND: { participants: { some: { userId: receiverId } } },
                     },
-                },
+                ],
             },
             include: { participants: true },
         });
-
-        this.logger.log(
-            `handleMessage: chat between ${user.id} and ${receiverId}:chat id now:- ${chat?.id}`,
-            "",
-        );
 
         if (!chat) {
             chat = await this.prisma.liveChat.create({
@@ -75,6 +69,7 @@ export class ChatGateway extends BaseSocketGateway {
         // Step 2: Verify sender is indeed part of this chat
         const isParticipant = chat.participants.some((p) => p.userId === user.id);
         if (!isParticipant) {
+            console.log("User not in chat:", user.id, chat.id);
             return client.emit("error", { message: "You are not in this chat" });
         }
 
@@ -96,12 +91,11 @@ export class ChatGateway extends BaseSocketGateway {
             createdAt: message.createdAt,
         };
 
-        // Step 5: Emit message to receiver and sender (ONCE each)
+        // Step 5: Emit message to both users (sender & receiver)
         this.emitToUserViaClientsMap(receiverId, "chat:message_receive", payload);
-
         this.emitToUserViaClientsMap(user.id, "chat:message_sent", payload);
     }
-    // ------------------------ Handle chat message read -----------------------//
+
     @SubscribeMessage("chat:message_read")
     async handleRead(
         @GetSocketUser() user: SocketUser,
@@ -113,7 +107,7 @@ export class ChatGateway extends BaseSocketGateway {
             where: { id: messageId },
             select: { chatId: true, senderId: true },
         });
-        this.logger.log(`handleRead: message ${messageId} read by user ${user.id}`, "");
+
         if (msg && msg.senderId !== user.id) {
             this.server
                 .to(msg.chatId)

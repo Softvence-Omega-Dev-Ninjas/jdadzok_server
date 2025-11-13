@@ -5,10 +5,6 @@ import { ApiTags } from "@nestjs/swagger";
 import { ChatService } from "./chat.service";
 import { StartPrivateChatDto } from "./dto/start-private.dto";
 
-// interface AuthRequest extends Request {
-//     user: { id: string };
-// }
-// console.log(A)
 @ApiTags("Chat API")
 @Controller("chat")
 @UseGuards(JwtAuthGuard)

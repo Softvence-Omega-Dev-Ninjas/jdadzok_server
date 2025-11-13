@@ -57,7 +57,11 @@ export abstract class BaseSocketGateway
 
         await this.redisService.setConnectedUser(client.id, socketUser);
         await client.join(`user:${socketUser.id}`);
+        this.clients.set(user?.id, (this.clients.get(user?.id) || new Set()).add(client));
 
+        this.logger.log(
+            `User ${socketUser.email} connected with socket ID ${client.id} and user ID ${socketUser.id}`,
+        );
         // Add to clients map
         if (!this.clients.has(user.id)) {
             this.clients.set(user.id, new Set());
