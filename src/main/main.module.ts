@@ -14,6 +14,7 @@ import { StartedGroupModule } from "./(started)/started.group.module";
 import { UserGroupModule } from "./(users)/users.group.module";
 import { VolunteerModule } from "./volunteer/volunteer.module";
 import { AdminModule } from "src/(admin)/adminGroup.module";
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Global()
 @Module({
@@ -33,6 +34,7 @@ import { AdminModule } from "src/(admin)/adminGroup.module";
         MetricsGroupModule,
         VolunteerModule,
         AdminModule,
+        DashboardModule,
     ],
     controllers: [],
     providers: [],

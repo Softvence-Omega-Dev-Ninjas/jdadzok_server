@@ -25,15 +25,15 @@ import { RedisService } from "../services/redis.service";
 })
 @UseGuards(SocketAuthGuard)
 export abstract class BaseSocketGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer() protected server: Server;
     protected readonly logger = new Logger(this.constructor.name);
+    private readonly clients = new Map<string, Set<Socket>>();
 
     constructor(
         protected readonly redisService: RedisService,
         private readonly socketMiddleware: SocketMiddleware,
-    ) {}
+    ) { }
 
     async afterInit() {
         this.logger.verbose(`(${this.constructor.name}) Gateway initialized`);
@@ -60,8 +60,9 @@ export abstract class BaseSocketGateway
 
         await this.redisService.setConnectedUser(client.id, socketUser);
         await client.join(`user:${socketUser.id}`);
+        this.clients.set(user?.id, (this.clients.get(user?.id) || new Set()).add(client));
 
-        this.logger.log(`User ${socketUser.email} connected`);
+        this.logger.log(`User ${socketUser.email} connected with socket ID ${client.id} and user ID ${socketUser.id}`);
 
         // Broadcast join event
         this.server.emit(SOCKET_EVENTS.CONNECTION.USER_JOINED, user);
@@ -168,6 +169,11 @@ export abstract class BaseSocketGateway
 
         socket.emit(event, data);
         return true;
+    }
+
+    protected async emitToUserViaClientsMap(userId: string, event: string, data: any): Promise<boolean> {
+        this.logger.log(`Checking userId: ${userId} against target userId: ${userId}`);
+        return false;
     }
 
     protected emitToRoom(roomId: string, event: string, data: any, excludeSocketId?: string): void {
