@@ -45,14 +45,17 @@ export class CreateProductDto {
     price: number;
 
     @ApiProperty({
-        example: "https://example.com/product-image.png",
-        description: "Digital file or product image URL",
-        type: String,
+        example: [
+            "https://example.com/product-image1.png",
+            "https://example.com/product-image2.png",
+        ],
+        description: "List of digital file URLs or product image URLs",
+        type: [String],
         required: false,
     })
     @IsOptional()
-    @IsUrl()
-    digitalFileUrl?: string;
+    @IsUrl({}, { each: true })
+    digitalFileUrl?: string[];
 
     @ApiProperty({ example: true, description: "Is product visible" })
     @IsOptional()

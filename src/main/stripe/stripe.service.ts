@@ -45,7 +45,7 @@ export class StripeService {
                 business_type: "individual",
                 metadata: { userId, email: user?.email },
             });
-            console.log(account);
+
             // save account ID in database
             await this.prisma.user.update({
                 where: { id: userId },
