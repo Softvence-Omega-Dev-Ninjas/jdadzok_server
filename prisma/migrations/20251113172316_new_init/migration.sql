@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "DonationStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED');
+CREATE TYPE "DonationStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'CANCELED');
 
 -- CreateEnum
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
@@ -126,7 +126,7 @@ CREATE TABLE "about-us" (
 );
 
 -- CreateTable
-CREATE TABLE "ActivityScore" (
+CREATE TABLE "activity-score" (
     "id" TEXT NOT NULL,
     "like" DOUBLE PRECISION NOT NULL,
     "comment" DOUBLE PRECISION NOT NULL,
@@ -140,9 +140,8 @@ CREATE TABLE "ActivityScore" (
     "productPromotionPercentage" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userId" TEXT,
 
-    CONSTRAINT "ActivityScore_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "activity-score_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -370,6 +369,7 @@ CREATE TABLE "Donations" (
     "status" "DonationStatus" NOT NULL DEFAULT 'PENDING',
     "TransactionId" TEXT,
     "userId" TEXT NOT NULL,
+    "communityId" TEXT,
     "amount" DOUBLE PRECISION NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -550,7 +550,7 @@ CREATE TABLE "ngo_profiles" (
     "id" TEXT NOT NULL,
     "ngoId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "username" TEXT NOT NULL,
+    "username" TEXT,
     "title" TEXT,
     "bio" TEXT,
     "avatarUrl" TEXT,
@@ -1165,6 +1165,9 @@ CREATE INDEX "corporate_memberships_contactEmail_idx" ON "corporate_memberships"
 CREATE INDEX "Donations_userId_idx" ON "Donations"("userId");
 
 -- CreateIndex
+CREATE INDEX "Donations_communityId_idx" ON "Donations"("communityId");
+
+-- CreateIndex
 CREATE INDEX "Donations_createdAt_idx" ON "Donations"("createdAt");
 
 -- CreateIndex
@@ -1274,9 +1277,6 @@ CREATE INDEX "ngos_isVerified_idx" ON "ngos"("isVerified");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ngo_profiles_ngoId_key" ON "ngo_profiles"("ngoId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ngo_profiles_username_key" ON "ngo_profiles"("username");
 
 -- CreateIndex
 CREATE INDEX "ngo_profiles_username_idx" ON "ngo_profiles"("username");
@@ -1495,9 +1495,6 @@ CREATE INDEX "_NgoLikers_B_index" ON "_NgoLikers"("B");
 ALTER TABLE "about" ADD CONSTRAINT "about_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ActivityScore" ADD CONSTRAINT "ActivityScore_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "ad_revenue_shares" ADD CONSTRAINT "ad_revenue_shares_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1553,6 +1550,9 @@ ALTER TABLE "DedicatedAd" ADD CONSTRAINT "DedicatedAd_adId_fkey" FOREIGN KEY ("a
 
 -- AddForeignKey
 ALTER TABLE "Donations" ADD CONSTRAINT "Donations_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Donations" ADD CONSTRAINT "Donations_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "endorsements" ADD CONSTRAINT "endorsements_fromUserId_fkey" FOREIGN KEY ("fromUserId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

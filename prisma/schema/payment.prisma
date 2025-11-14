@@ -1,23 +1,16 @@
 model Payment {
-  id              String        @id @default(uuid())
-  orderId         String
-  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  stripePaymentId String        @unique
-  amount          Float
-  currency        String        @default("usd")
-  status          PaymentStatus @default(pending)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id        String        @id @default(uuid())
+  orderId   String
+  order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  stripeId  String?
+  amount    Float
+  currency  String        @default("usd")
+  status    PaymentStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@index([orderId])
-  @@index([status])
+ 
   @@map("payments")
 }
 
-// new enum (if you want typed status)
-enum PaymentStatus {
-  pending
-  succeeded
-  failed
-  canceled
-}

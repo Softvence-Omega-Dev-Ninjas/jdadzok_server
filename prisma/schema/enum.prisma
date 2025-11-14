@@ -145,9 +145,10 @@ enum NotificationType {
 enum OrderStatus {
   PENDING
   PAID
-  COMPLETED
-  PAYMENT_FAILED
-  CANCELED
+   SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
 }
 
 enum PayOutStatus {
@@ -158,6 +159,13 @@ enum PayOutStatus {
 enum PaymentMethod {
   STRIPE
   PAYPAL
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
 }
 
 enum PostFrom {
