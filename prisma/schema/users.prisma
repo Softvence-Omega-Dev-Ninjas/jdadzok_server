@@ -37,6 +37,10 @@ model User {
   orders   Order[]    @relation("UserOrders")
   wishlist Wishlist[]
 
+  stripeAccountId String?
+  stripeCustomerId String?
+  sellerEarnings  SellerEarnings?
+
   // Volunteer system
   volunteerApps     VolunteerApplication[]
   volunteerProjects VolunteerProject[]

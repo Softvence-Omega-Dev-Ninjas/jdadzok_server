@@ -216,4 +216,12 @@ enum WithdrawStatus {
   FAILED
 }
 
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+
 // ENUMS_END

@@ -7,63 +7,71 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { CreateOrderDto } from "./dto/order.dto";
-import { PaymentsService } from "../payment/payments.service";
-// import { OrderQueryDto } from "./dto/order.query.dto";
-
+import { PaymentStatus } from "@prisma/client";
+import Stripe from "stripe";
+import { ApiResponse } from "@module/stripe/utils/api-response";
 @Injectable()
 export class OrderService {
-    constructor(
-        private readonly prisma: PrismaService,
-        private readonly paymentsService: PaymentsService,
-    ) {}
+    private stripe: Stripe;
+
+    constructor(private readonly prisma: PrismaService) {
+        this.stripe = new Stripe(process.env.STRIPE_SECRET!);
+    }
 
     // added new order.
     async add(userId: string, dto: CreateOrderDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user?.isVerified) throw new BadRequestException("Please Verify your email.");
+        if (!user?.isVerified) throw new BadRequestException("Please verify your email.");
 
         const product = await this.prisma.product.findUnique({ where: { id: dto.productId } });
         if (!product) throw new BadRequestException("Product not found.");
-        if (product.sellerId === userId) {
-            throw new BadRequestException("This Product is unavailable for you.");
-        }
-        if (product.availability < dto.quantity) {
-            throw new BadRequestException("Invalid Order.");
-        }
+        if (product.sellerId === userId)
+            throw new BadRequestException("This product is unavailable for you.");
+        if (product.availability < dto.quantity)
+            throw new BadRequestException("Invalid order quantity.");
 
-        const productPrice = product.price * dto.quantity;
-        if (productPrice > dto.totalPrice) {
-            throw new BadRequestException("Please Enter Valid Price.");
-        }
+        const totalPrice = product.price * dto.quantity;
+        if (totalPrice !== dto.totalPrice)
+            throw new BadRequestException("Please enter a valid total price.");
 
-        // decrement availability
         await this.prisma.product.update({
             where: { id: dto.productId },
             data: { availability: product.availability - dto.quantity },
         });
 
-        // create order in DB (status PENDING)
         const order = await this.prisma.order.create({
             data: {
                 buyerId: userId,
                 productId: dto.productId,
                 quantity: dto.quantity,
-                totalPrice: dto.totalPrice,
+                totalPrice,
                 status: "PENDING",
                 shippingAddress: dto.shippingAddress,
             },
             include: { buyer: true, product: true },
         });
 
-        // create stripe payment intent and store payment record
-        const { clientSecret } = await this.paymentsService.createPaymentIntentForOrder(
-            order.id,
-            dto.totalPrice,
-            "usd",
-        );
+        const amount = Math.round(totalPrice * 100);
+        const paymentIntent = await this.stripe.paymentIntents.create({
+            amount,
+            currency: "usd",
+            automatic_payment_methods: { enabled: true },
+            metadata: { orderId: order.id },
+        });
 
-        // return client secret to frontend so it can confirm the payment
-        return { message: "Order created successfully. Proceed to payment.", clientSecret, order };
+        await this.prisma.payment.create({
+            data: {
+                stripeId: paymentIntent.id,
+                amount: totalPrice,
+                status: PaymentStatus.PENDING,
+                orderId: order.id,
+            },
+        });
+
+        return ApiResponse.success("Order created and payment intent generated", {
+            order,
+            clientSecret: paymentIntent.client_secret,
+        });
     }
 
     // get all order...
