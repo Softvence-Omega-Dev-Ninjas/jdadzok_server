@@ -90,8 +90,13 @@ export class StripeService {
                 throw new NotFoundException("Stripe account not found for this user");
             }
 
-            // Retrieve Stripe account details
+            // retrieve Stripe account details
             const account = await stripe.accounts.retrieve(user.stripeAccountId);
+
+            // retrieve balance for the connected account
+            const balance = await stripe.balance.retrieve({
+                stripeAccount: user.stripeAccountId,
+            });
 
             // Return relevant information (optional: you can return full object if needed)
             return ApiResponse.success("Stripe account retrieved", {
@@ -103,6 +108,7 @@ export class StripeService {
                 details_submitted: account.details_submitted,
                 capabilities: account.capabilities,
                 business_type: account.business_type,
+                balance: balance,
             });
         } catch (error) {
             this.logger.error(error);
