@@ -18,11 +18,11 @@ export class ProductService {
     ) {}
     // create product new product
     async create(userId: string, dto: CreateProductDto) {
-        //  Verify seller
+        // Verify seller
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new BadRequestException("Unauthorized Access");
 
-        // validate category
+        // Validate category
         const category = await this.prisma.productCategory.findUnique({
             where: { id: dto.categoryId },
         });
@@ -33,11 +33,13 @@ export class ProductService {
         if (!activityTable) {
             throw new BadRequestException("Activity data not found");
         }
-        // 4️ Create product
+
+        // Create product
         const { categoryId, ...rest } = dto;
         const totalSpentValue = (dto.price / 100) * activityTable.productSpentPercentage || 4;
         const promotionFee =
             (totalSpentValue / 100) * activityTable?.productPromotionPercentage || 2;
+
         const newProduct = await this.prisma.product.create({
             data: {
                 ...rest,
@@ -45,6 +47,7 @@ export class ProductService {
                 categoryId,
                 promotionFee: promotionFee,
                 spent: totalSpentValue,
+                digitalFileUrl: dto.digitalFileUrl,
             },
             include: { seller: true },
         });
