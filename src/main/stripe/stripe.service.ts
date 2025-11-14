@@ -1,8 +1,9 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { PaymentStatus } from "@prisma/client";
 import { Request } from "express";
 import Stripe from "stripe";
+
+import { CreatePayoutDto } from "./dto/create-payout.dto";
 import { ApiResponse } from "./utils/api-response";
 
 @Injectable()
@@ -113,84 +114,60 @@ export class StripeService {
         }
     }
 
-    // buyer payment (checkout intent)
-    async createPaymentIntent(orderId: string) {
-        const order = await this.prisma.order.findUnique({
-            where: { id: orderId },
-            include: { product: { include: { seller: true } } },
-        });
-
-        if (!order) return ApiResponse.error("Order not found");
-        const amount = Math.round(order.totalPrice * 100);
-        try {
-            const paymentIntent = await this.stripe.paymentIntents.create({
-                amount,
-                currency: "usd",
-                automatic_payment_methods: { enabled: true },
-                metadata: { orderId },
-            });
-
-            await this.prisma.payment.create({
-                data: {
-                    stripeId: paymentIntent.id,
-                    amount: order.totalPrice,
-                    status: PaymentStatus.PENDING,
-                    orderId: order.id,
-                },
-            });
-
-            return ApiResponse.success("Payment intent created", {
-                clientSecret: paymentIntent.client_secret,
-            });
-        } catch (error) {
-            this.logger.error(error);
-            return ApiResponse.error("Failed to create payment intent", error.message);
-        }
-    }
-
-    /** Handle Seller Payout */
-    async handlePayout(sellerId: string, amount: number) {
+    // handle seller payout
+    async handlePayout(sellerId: string, dto: CreatePayoutDto) {
         this.logger.log(`Processing payout for seller ${sellerId}`);
 
         const seller = await this.prisma.user.findUnique({ where: { id: sellerId } });
-        if (!seller) return ApiResponse.error("Seller not found");
+        if (!seller) return { status: "error", message: "Seller not found" };
 
-        const amountInCents = Math.round(amount * 100);
+        const amountInCents = Math.round(dto.amount * 100);
 
         try {
             if (seller.stripeAccountId) {
-                // Auto payout via Stripe
-                await this.stripe.transfers.create({
+                // Stripe payout
+                const transfer: any = await this.stripe.transfers.create({
                     amount: amountInCents,
                     currency: "usd",
                     destination: seller.stripeAccountId,
                 });
-                this.logger.log(`Stripe payout successful for ${sellerId}`);
+
+                // Check if transfer is reversed
+                if (!transfer.reversed) {
+                    this.logger.log(`Stripe payout successful for ${sellerId}`);
+                    return {
+                        status: "success",
+                        message: "Payout processed successfully",
+                        data: transfer,
+                    };
+                } else {
+                    this.logger.warn(`Stripe payout was reversed`, transfer);
+                    return { status: "error", message: "Payout was reversed", data: transfer };
+                }
             } else {
-                // Manual payout record
+                // Manual payout
                 await this.prisma.sellerEarnings.upsert({
                     where: { sellerId },
                     update: {
-                        totalEarned: { increment: amount },
-                        pending: { increment: amount },
+                        totalEarned: { increment: dto.amount },
+                        pending: { increment: dto.amount },
                     },
                     create: {
                         sellerId,
-                        totalEarned: amount,
-                        pending: amount,
+                        totalEarned: dto.amount,
+                        pending: dto.amount,
                     },
                 });
                 this.logger.warn(`Seller ${sellerId} has no Stripe account. Marked as pending.`);
+                return { status: "success", message: "Payout marked as pending (manual)" };
             }
-
-            return ApiResponse.success("Payout processed successfully");
-        } catch (error) {
+        } catch (error: any) {
             this.logger.error(error);
-            return ApiResponse.error("Payout failed", error.message);
+            return { status: "error", message: "Payout failed", error: error.message };
         }
     }
 
-    /** Webhook for Stripe Payment Confirmation */
+    // Webhook for Stripe Payment Confirmation
     async handleWebhook(req: Request, signature: string) {
         try {
             const stripeSecret = process.env.STRIPE_SECRET;
@@ -249,7 +226,9 @@ export class StripeService {
                     const sellerAmount = order.totalPrice - adminCommission;
 
                     try {
-                        await this.handlePayout(order.product.sellerId, sellerAmount);
+                        await this.handlePayout(order.product.sellerId, {
+                            amount: sellerAmount,
+                        });
                     } catch (err) {
                         this.logger.error(
                             `Failed to process payout for seller ${order.product.sellerId}`,

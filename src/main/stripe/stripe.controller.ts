@@ -5,6 +5,7 @@ import { ApiBearerAuth } from "@nestjs/swagger";
 import { VerifiedUser } from "@type/shared.types";
 import { Request } from "express";
 import { StripeService } from "./stripe.service";
+import { CreatePayoutDto } from "./dto/create-payout.dto";
 
 @Controller("stripe")
 export class StripeController {
@@ -24,14 +25,12 @@ export class StripeController {
         return this.stripeService.getExpressAccount(user.id);
     }
 
-    @Post("create-payment-intent")
-    createPayment(@Body("orderId") orderId: string) {
-        return this.stripeService.createPaymentIntent(orderId);
-    }
-
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @Post("payout")
-    payout(@Body("sellerId") sellerId: string, @Body("amount") amount: number) {
-        return this.stripeService.handlePayout(sellerId, amount);
+    payout(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreatePayoutDto) {
+        console.log(user.id, dto);
+        return this.stripeService.handlePayout(user.id, dto);
     }
 
     @Post("webhook")
