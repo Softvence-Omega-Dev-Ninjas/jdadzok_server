@@ -26,7 +26,6 @@ model Order {
   @@index([productId])
   @@index([createdAt])
   @@map("orders")
-
 }
 
 

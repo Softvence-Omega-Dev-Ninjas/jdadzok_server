@@ -3,7 +3,7 @@ import { IsNumber } from "class-validator";
 
 export class CreateDonationDto {
     @ApiProperty({
-        description: "Amount to donate (in USD dollor)",
+        description: "Amount to donate (in USD dollor only)",
         example: 50.0,
     })
     @IsNumber()
