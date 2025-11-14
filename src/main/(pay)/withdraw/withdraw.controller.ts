@@ -1,22 +1,25 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 
 import { CreateWithdrawDto } from "./dto/create-withdraw.dto";
 import { WithdrawService } from "./withdraw.service";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
+import { VerifiedUser } from "@type/shared.types";
+import { ApiBearerAuth } from "@nestjs/swagger";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 
-@Controller("admin/withdraw")
+@Controller("withdraw")
 export class WithdrawController {
     constructor(private readonly withdrawService: WithdrawService) {}
 
-    // Admin triggers monthly payouts manually or via cron
-    @Post("schedule")
-    async scheduleMonthlyWithdraws() {
-        return this.withdrawService.enqueueMonthlyWithdraws();
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Post("request")
+    async request(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreateWithdrawDto) {
+        return this.withdrawService.requestWithdraw(user.id, dto);
     }
 
-    // User requests withdraw manually
-    @Post("request")
-    async requestWithdraw(@Body() dto: CreateWithdrawDto) {
-        console.info(dto);
-        return this.withdrawService.requestWithdraw(dto);
+    @Post("schedule")
+    async runScheduler() {
+        return this.withdrawService.enqueueMonthlyWithdraws();
     }
 }
