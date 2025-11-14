@@ -88,7 +88,13 @@ export class ProductService {
             where: { id },
             include: {
                 orders: true,
-                seller: true,
+                seller: {
+                    include: {
+                        profile: true,
+                        about: true,
+                        metrics: true,
+                    },
+                },
             },
         });
         if (!product) {
