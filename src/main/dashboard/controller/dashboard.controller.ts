@@ -1,40 +1,74 @@
-import { Controller, Delete, Get, Param } from "@nestjs/common";
-
-import { ValidateSuperAdmin } from "@common/jwt/jwt.decorator";
+import {
+    Controller,
+    Get,
+    Query,
+    Patch,
+    Param,
+    UseGuards,
+    ForbiddenException,
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
+import { VerifiedUser } from "@type/index";
 import { DashboardService } from "../service/dashboard.service";
+import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
+import { PrismaService } from "@lib/prisma/prisma.service";
+import { GetUsersQueryDto } from "../dto/query.dto";
 
-@ApiTags("dashboard-Overview")
-@Controller("dashboard")
+@ApiTags("Admin Dashboard")
+@Controller("admin/dashboard")
 export class DashboardController {
-    constructor(private readonly dashboardService: DashboardService) {}
+    constructor(
+        private readonly dashboardService: DashboardService,
+        private readonly prisma: PrismaService,
+    ) {}
 
-    // ---------------admin dashboard user overview-------------
-    @ApiOperation({ summary: "Super Admin get all user overview" })
+    // ---------------- SUMMARY OVERVIEW ----------------
+    @ApiOperation({ summary: "Super Admin: Get all user overview statistics" })
     @ApiBearerAuth()
-    @ValidateSuperAdmin()
+    @UseGuards(JwtAuthGuard)
     @Get("user-overview")
-    async getUserOverview() {
+    async getUserOverview(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbiden accesss");
         return this.dashboardService.getUserOverview();
     }
 
-    // @Post()
-    // create(@Body() createDashboardDto: CreateDashboardDto) {
-    //     return this.dashboardService.create(createDashboardDto);
-    // }
+    // ---------------- USER LIST ----------------
+    @ApiOperation({ summary: "Super Admin: List users with search & filters" })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get("users")
+    async getUsers(@GetVerifiedUser() user: VerifiedUser, @Query() query: GetUsersQueryDto) {
+        if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbiden accesss");
+        const { search, status, role, page, limit } = query;
+        const users = await this.dashboardService.getUsers({
+            search,
+            status,
+            role,
+            page: page ?? 1,
+            limit: limit ?? 10,
+        });
 
-    @Get()
-    findAll() {
-        return this.dashboardService.findAll();
+        return users;
     }
 
-    @Get(":id")
-    findOne(@Param("id") id: string) {
-        return this.dashboardService.findOne(+id);
+    // ---------------- SUSPEND USER ----------------
+    @ApiOperation({ summary: "Super Admin: Suspend a user" })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Patch("users/:id/suspend")
+    async suspendUser(@GetVerifiedUser() user: VerifiedUser, @Param("id") id: string) {
+        if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbiden accesss");
+        return this.dashboardService.suspendUser(id);
     }
 
-    @Delete(":id")
-    remove(@Param("id") id: string) {
-        return this.dashboardService.remove(+id);
+    // ---------------- ACTIVATE USER ----------------
+    @ApiOperation({ summary: "Super Admin: Activate a user" })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Patch("users/:id/activate")
+    async activateUser(@GetVerifiedUser() user: VerifiedUser, @Param("id") id: string) {
+        if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbiden accesss");
+        return this.dashboardService.activateUser(id);
     }
 }
