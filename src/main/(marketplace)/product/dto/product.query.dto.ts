@@ -25,4 +25,9 @@ export class ProductQueryDto {
     @IsOptional()
     @IsNumber()
     maxPrice?: number;
+
+    @ApiPropertyOptional({ example: "Electronics", description: "Category name from frontend" })
+    @IsOptional()
+    @IsString()
+    categoryName?: string;
 }

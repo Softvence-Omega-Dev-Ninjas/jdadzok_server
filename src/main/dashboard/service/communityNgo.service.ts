@@ -1,5 +1,7 @@
+import { verificationStatus } from "@constants/enums";
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { Injectable } from "@nestjs/common";
+import { ReviewNgoVerificationDto } from "@module/(explore)/ngo/ngoVerification/dto/verification.dto";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class CommunityNgoService {
@@ -31,5 +33,141 @@ export class CommunityNgoService {
             PendingVerification: pending,
             totalFollowers: (ngo._sum.followersCount || 0) + (community._sum.followersCount || 0),
         };
+    }
+
+    async getOrganizations({
+        search,
+        page,
+        limit,
+    }: {
+        search?: string;
+        page: number;
+        limit: number;
+    }) {
+        // ---------------- NGO ----------------
+        const ngoWhere: any = {};
+        if (search) {
+            ngoWhere.profile = {
+                title: { contains: search, mode: "insensitive" },
+            };
+        }
+
+        const communityWhere: any = {};
+        if (search) {
+            communityWhere.profile = {
+                title: { contains: search, mode: "insensitive" },
+            };
+        }
+
+        const ngos = await this.prisma.ngo.findMany({
+            where: ngoWhere,
+            include: {
+                owner: {
+                    include: { profile: true },
+                },
+                profile: true,
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: { createdAt: "desc" },
+        });
+
+        const ngoData = ngos.map((ngo) => ({
+            type: "NGO",
+            id: ngo.id,
+            title: ngo.profile?.title,
+            ownerId: ngo.ownerId,
+            ownerName: ngo.owner.profile?.name,
+            followersCount: ngo.profile?.followersCount ?? 0,
+            status: ngo.isVerified ? "verified" : "pending",
+        }));
+
+        // ---------------- COMMUNITY ----------------
+        const communities = await this.prisma.community.findMany({
+            where: communityWhere,
+            include: {
+                owner: {
+                    include: { profile: true }, // <-- include profile
+                },
+                profile: true,
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: { createdAt: "desc" },
+        });
+
+        const communityData = communities.map((c) => ({
+            type: "COMMUNITY",
+            id: c.id,
+            title: c.profile?.title,
+            ownerId: c.ownerId,
+            ownerName: c.owner.profile?.name,
+            followersCount: c.profile?.followersCount ?? 0,
+        }));
+
+        // ---------------- MERGE ----------------
+        const merged = [...ngoData, ...communityData];
+
+        // Total count
+        const total = merged.length;
+
+        return {
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit),
+            },
+            data: merged,
+        };
+    }
+
+    async listNgoVerificationsSimple() {
+        const verifications = await this.prisma.ngoVerification.findMany({
+            select: {
+                id: true,
+                status: true,
+            },
+            orderBy: { createdAt: "desc" },
+        });
+
+        return verifications;
+    }
+
+    async reviewVerification(
+        adminId: string,
+        verificationId: string,
+        dto: ReviewNgoVerificationDto,
+    ) {
+        // Check admin role
+        const user = await this.prisma.user.findUnique({ where: { id: adminId } });
+        if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+            throw new BadRequestException("Unauthorized access.");
+        }
+
+        // Check verification exists
+        const verification = await this.prisma.ngoVerification.findUnique({
+            where: { id: verificationId },
+        });
+        if (!verification) throw new NotFoundException("Verification request not found");
+
+        // Update verification status
+        const updated = await this.prisma.ngoVerification.update({
+            where: { id: verificationId },
+            data: {
+                status: dto.status,
+                reviewedById: adminId,
+            },
+        });
+
+        // Update NGO verification if approved
+        if (verificationStatus.includes(dto.status)) {
+            await this.prisma.ngo.update({
+                where: { id: verification.ngoId },
+                data: { isVerified: dto.status === "APPROVED" },
+            });
+        }
+
+        return updated;
     }
 }
