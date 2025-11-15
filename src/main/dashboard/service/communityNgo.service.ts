@@ -1,5 +1,7 @@
+import { verificationStatus } from "@constants/enums";
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { Injectable } from "@nestjs/common";
+import { ReviewNgoVerificationDto } from "@module/(explore)/ngo/ngoVerification/dto/verification.dto";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class CommunityNgoService {
@@ -118,5 +120,54 @@ export class CommunityNgoService {
             },
             data: merged,
         };
+    }
+
+    async listNgoVerificationsSimple() {
+        const verifications = await this.prisma.ngoVerification.findMany({
+            select: {
+                id: true,
+                status: true,
+            },
+            orderBy: { createdAt: "desc" },
+        });
+
+        return verifications;
+    }
+
+    async reviewVerification(
+        adminId: string,
+        verificationId: string,
+        dto: ReviewNgoVerificationDto,
+    ) {
+        // Check admin role
+        const user = await this.prisma.user.findUnique({ where: { id: adminId } });
+        if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+            throw new BadRequestException("Unauthorized access.");
+        }
+
+        // Check verification exists
+        const verification = await this.prisma.ngoVerification.findUnique({
+            where: { id: verificationId },
+        });
+        if (!verification) throw new NotFoundException("Verification request not found");
+
+        // Update verification status
+        const updated = await this.prisma.ngoVerification.update({
+            where: { id: verificationId },
+            data: {
+                status: dto.status,
+                reviewedById: adminId,
+            },
+        });
+
+        // Update NGO verification if approved
+        if (verificationStatus.includes(dto.status)) {
+            await this.prisma.ngo.update({
+                where: { id: verification.ngoId },
+                data: { isVerified: dto.status === "APPROVED" },
+            });
+        }
+
+        return updated;
     }
 }
