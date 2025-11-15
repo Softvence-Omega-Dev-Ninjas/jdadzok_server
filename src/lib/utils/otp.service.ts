@@ -60,7 +60,7 @@ export class OptService {
             throw new ForbiddenException("OTP expired or not found");
         }
 
-        if (data.attempt >= 5) {
+        if (data.attempt >= 2) {
             // Do not delete the OTP — just block the attempt
             throw new ForbiddenException("Too many failed attempts, please try again later");
         }
@@ -73,7 +73,7 @@ export class OptService {
                     ...data,
                     attempt: data.attempt + 1,
                 },
-                "1m", // TODO: need to be add minimum 10m
+                "2m", // TODO: need to be add minimum 10m
             ); // Keep the remaining TTL
 
             throw new ForbiddenException("Wrong OTP");
