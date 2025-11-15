@@ -57,52 +57,24 @@ export class ProductService {
         return newProduct;
     }
 
-    // get all product...
-    // async findAll(userId: string, query?: ProductQueryDto) {
-    //     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    //     if (!user) {
-    //         throw new BadRequestException("Unauthorized Access");
-    //     }
-    //     return this.prisma.product.findMany({
-    //         where: {
-    //             title: query?.search ? { contains: query.search, mode: "insensitive" } : undefined,
-    //             price: {
-    //                 gte: query?.minPrice,
-    //                 lte: query?.maxPrice,
-    //             },
-    //             isVisible: true,
-    //         },
-    //         orderBy: { createdAt: "desc" },
-    //         include: {
-    //             seller: true,
-    //         },
-    //     });
-    // }
-
     async findAll(userId: string, query?: ProductQueryDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new BadRequestException("Unauthorized Access");
 
         const where: any = { isVisible: true };
 
-        // Title/Description search
         if (query?.search) {
             where.OR = [
                 { title: { contains: query.search, mode: "insensitive" } },
                 { description: { contains: query.search, mode: "insensitive" } },
             ];
         }
-
-        // Price filter
         if (query?.minPrice || query?.maxPrice) {
             where.price = {};
             if (query?.minPrice !== undefined) where.price.gte = query.minPrice;
             if (query?.maxPrice !== undefined) where.price.lte = query.maxPrice;
         }
-
-        // Category filter: convert frontend name to slug
         if (query?.categoryName) {
-            // Convert name to slug: lowercase, replace spaces with hyphens
             const slug = query.categoryName.trim().toLowerCase().replace(/\s+/g, "-");
             where.category = { slug };
         }
