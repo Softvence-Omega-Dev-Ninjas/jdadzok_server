@@ -1,4 +1,4 @@
-import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { handleRequest } from "@common/utils/handle.request.util";
 import { identityVerificationType } from "@constants/enums";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
@@ -75,16 +75,16 @@ export class NgoVerificationController {
             "Fetched verification status",
         );
     }
-
+    @UseGuards(JwtAuthGuard)
     @Patch(":verificationId/review")
     @ApiOperation({ summary: "Admin review NGO verification" })
     async reviewVerification(
-        @GetUser("userId") adminId: string,
+        @GetVerifiedUser() user: VerifiedUser,
         @Param("verificationId") verificationId: string,
         @Body() dto: ReviewNgoVerificationDto,
     ) {
         return handleRequest(
-            () => this.service.reviewVerification(adminId, verificationId, dto),
+            () => this.service.reviewVerification(user.id, verificationId, dto),
             "Verification reviewed",
         );
     }
