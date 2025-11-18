@@ -58,14 +58,21 @@ export class CommunityNgoService {
                 title: { contains: search, mode: "insensitive" },
             };
         }
-
         const ngos = await this.prisma.ngo.findMany({
             where: ngoWhere,
             include: {
+                profile: true,
                 owner: {
                     include: { profile: true },
                 },
-                profile: true,
+                _count: {
+                    select: { projects: true }, // counts the number of projects
+                },
+                verifications: {
+                    select: { id: true, status: true },
+                    orderBy: { createdAt: "desc" },
+                    take: 1,
+                },
             },
             skip: (page - 1) * limit,
             take: limit,
@@ -75,11 +82,13 @@ export class CommunityNgoService {
         const ngoData = ngos.map((ngo) => ({
             type: "NGO",
             id: ngo.id,
-            title: ngo.profile?.title,
-            ownerId: ngo.ownerId,
-            ownerName: ngo.owner.profile?.name,
+            title: ngo.profile?.name,
+            ownerName: ngo.owner.profile?.name ?? "Unknown", // NGO name
             followersCount: ngo.profile?.followersCount ?? 0,
             status: ngo.isVerified ? "verified" : "pending",
+            projectsCount: ngo._count.projects,
+            verificationId: ngo.verifications?.[0]?.id ?? null,
+            verificationStatus: ngo.verifications?.[0]?.status ?? null,
         }));
 
         // ---------------- COMMUNITY ----------------
@@ -100,9 +109,10 @@ export class CommunityNgoService {
             type: "COMMUNITY",
             id: c.id,
             title: c.profile?.title,
-            ownerId: c.ownerId,
             ownerName: c.owner.profile?.name,
             followersCount: c.profile?.followersCount ?? 0,
+            verificationId: null,
+            verificationStatus: null,
         }));
 
         // ---------------- MERGE ----------------
@@ -120,18 +130,6 @@ export class CommunityNgoService {
             },
             data: merged,
         };
-    }
-
-    async listNgoVerificationsSimple() {
-        const verifications = await this.prisma.ngoVerification.findMany({
-            select: {
-                id: true,
-                status: true,
-            },
-            orderBy: { createdAt: "desc" },
-        });
-
-        return verifications;
     }
 
     async reviewVerification(
