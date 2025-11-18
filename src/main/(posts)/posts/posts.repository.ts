@@ -45,19 +45,16 @@ export class PostRepository {
         return await this.prisma.$transaction(async (tx) => {
             if (!postData.authorId) throw new NotFoundException("Request user not found!");
 
-            // Handle metadata
             let metadataId = input.metadataId;
             if (metadata && !metadataId) {
                 metadataId = await this.createMetadata(tx, metadata);
             }
-
-            // Log post type
             switch (input.postFrom) {
                 case "NGO":
                     console.info("ngo");
                     break;
                 case "COMMUNITY":
-                    console.info("comm");
+                    console.info("community");
                     break;
                 case "REGULAR_PROFILE":
                     console.info("regular");
@@ -65,8 +62,6 @@ export class PostRepository {
                 default:
                     console.info("default");
             }
-
-            // ✅ Create the post
             const postForAuthor = await tx.post.create({
                 data: {
                     ...postData,
@@ -79,42 +74,18 @@ export class PostRepository {
                     category: true,
                     community: { include: { profile: true } },
                     ngo: { include: { profile: true } },
-                    metadata: {
-                        include: {
-                            checkIn: true,
-                            gif: true,
-                        },
-                    },
+                    metadata: { include: { checkIn: true, gif: true } },
                 },
             });
 
-            // Create add for user's post according to users eligiblity
-
-            // const user=await tx.user.findFirst({
-            //     where:{
-            //         id:postData.authorId
-            //     }
-            // })
-
-            // ✅ Create post metrics entry
             await this.postMetricsRepository.create({ postId: postForAuthor.id }, tx);
 
-            // ✅ Update user metrics (increase totalPosts)
             await tx.userMetrics.upsert({
                 where: { userId: postData.authorId },
-                create: {
-                    userId: postData.authorId,
-                    totalPosts: 1,
-                },
-                update: {
-                    totalPosts: {
-                        increment: 1,
-                    },
-                    lastUpdated: new Date(),
-                },
+                create: { userId: postData.authorId, totalPosts: 1 },
+                update: { totalPosts: { increment: 1 }, lastUpdated: new Date() },
             });
 
-            // ✅ Handle tagged users
             if (taggedUserIds && taggedUserIds.length > 0) {
                 await this.handleTaggedUsers(
                     tx,
@@ -129,8 +100,6 @@ export class PostRepository {
                     taggedUserIds,
                 );
             }
-
-            // ✅ Return post with relations
             return tx.post.findUnique({
                 where: { id: postForAuthor.id },
                 include: {
@@ -154,25 +123,64 @@ export class PostRepository {
         });
     }
 
-    async findAll(options?: PostQueryDto, select: Prisma.PostSelect = {}) {
+    async findAll(
+        options?: PostQueryDto,
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+        p0?: {
+            id: boolean;
+            mediaUrls: boolean;
+            text: boolean;
+            metadata: boolean;
+            author: {
+                select: {
+                    id: boolean;
+                    email: boolean;
+                    profile: { select: { avatarUrl: boolean; name: boolean } };
+                };
+            };
+            likes: boolean;
+            shares: boolean;
+            createdAt: boolean;
+        },
+    ) {
         const limit = options?.limit ?? 10;
+
         const posts = await this.prisma.post.findMany({
             take: limit + 1,
             ...(options?.cursor ? { skip: 1, cursor: { id: options.cursor } } : {}),
-            orderBy: {
-                createdAt: "desc",
+            orderBy: { createdAt: "desc" },
+            include: {
+                author: {
+                    include: {
+                        profile: { select: { name: true, avatarUrl: true } },
+                    },
+                },
+                likes: true,
+                shares: true,
+                metadata: true,
             },
-            select,
         });
 
-        let nextCursor: string | undefined = undefined;
+        let nextCursor: string | undefined;
         if (posts.length > limit) {
             const nextItem = posts.pop();
             nextCursor = nextItem?.id;
         }
 
+        // Flatten author.profile into author
+        const formattedPosts = posts.map((post) => ({
+            ...post,
+            author: {
+                id: post.author.id,
+                email: post.author.email,
+                name: post.author.profile?.name ?? "Unknown",
+                avatarUrl:
+                    post.author.profile?.avatarUrl ?? "https://example.com/default-avatar.png",
+            },
+        }));
+
         return {
-            data: posts,
+            data: formattedPosts,
             metadata: {
                 nextCursor,
                 limit,
