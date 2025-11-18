@@ -30,7 +30,6 @@ import { transformAndValidate } from "@utils/zod-utility/transform-validation";
 import multer from "multer";
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
-import { fromDataExample } from "./example";
 import { PostService } from "./posts.service";
 import { PostUtils } from "./utils";
 
@@ -47,7 +46,7 @@ export class PostController {
     @Post()
     @ApiOperation({ summary: "Create a new post" })
     @ApiConsumes("multipart/form-data")
-    @ApiBody(fromDataExample)
+    @ApiBody({ type: CreatePostDto }) // make sure your DTO is reflected
     @UseInterceptors(
         FilesInterceptor("files", 20, {
             storage: multer.memoryStorage(),
@@ -62,10 +61,15 @@ export class PostController {
         @Body() req: any,
     ) {
         try {
+            // 1️⃣ Upload files to S3 and get URLs
             const mediaUrls = files?.length ? await this.s3Service.uploadFiles(files) : [];
-            const extractMetaData = JSON.parse(req.metadata);
+
+            // 2️⃣ Parse metadata
+            const extractMetaData = req.metadata ? JSON.parse(req.metadata) : null;
+
+            // 3️⃣ Prepare DTO input
             const body = omit(req, ["files"]);
-            const tagged = body.taggedUserIds && this.utils.extractTagsId(body.taggedUserIds);
+            const tagged = body.taggedUserIds ? this.utils.extractTagsId(body.taggedUserIds) : [];
 
             const createInput = {
                 ...body,
@@ -73,15 +77,17 @@ export class PostController {
                 taggedUserIds: tagged,
                 postFrom: this.utils.include(postFrom, body.postFrom),
                 metadata: extractMetaData,
-                mediaUrls,
-                // boolean
+                mediaUrls, // ✅ Only URLs here
                 acceptVolunteer: this.utils.extractBoolean(body.acceptVolunteer),
                 acceptDonation: this.utils.extractBoolean(body.acceptDonation),
             };
 
+            // 4️⃣ Validate DTO
             const validated = await transformAndValidate(CreatePostDto, createInput);
 
+            // 5️⃣ Create post
             const post = await this.service.create(validated);
+
             return successResponse(post, "Post created successfully");
         } catch (err) {
             throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
