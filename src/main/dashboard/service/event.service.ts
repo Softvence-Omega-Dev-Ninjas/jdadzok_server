@@ -1,6 +1,7 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { EventQueryDto } from "../dto/eventQuery.dto";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class EventService {
@@ -58,40 +59,60 @@ export class EventService {
 
     // ---------- LIST PROJECTS WITH SEARCH ----------
     async listEvents(dto: EventQueryDto) {
-        const { search } = dto;
+        const { search, page = 1, limit = 10 } = dto;
 
-        const events = await this.prisma.volunteerProject.findMany({
-            where: search
-                ? {
-                      OR: [
-                          // Search in project title
-                          { title: { contains: search, mode: "insensitive" } },
+        const skip = (page - 1) * limit;
 
-                          // Search in NGO profile name
-                          {
-                              ngo: {
-                                  profile: {
-                                      name: {
-                                          contains: search,
-                                          mode: "insensitive",
-                                      },
+        const where: Prisma.VolunteerProjectWhereInput | undefined = search
+            ? {
+                  OR: [
+                      {
+                          title: {
+                              contains: search,
+                              mode: Prisma.QueryMode.insensitive,
+                          },
+                      },
+                      {
+                          ngo: {
+                              profile: {
+                                  name: {
+                                      contains: search,
+                                      mode: Prisma.QueryMode.insensitive,
                                   },
                               },
                           },
-                      ],
-                  }
-                : undefined,
+                      },
+                  ],
+              }
+            : undefined;
 
-            include: {
-                ngo: { include: { profile: true } },
-                applications: true,
+        // Fetch paginated data + total count
+        const [events, total] = await this.prisma.$transaction([
+            this.prisma.volunteerProject.findMany({
+                where,
+                include: {
+                    ngo: { include: { profile: true } },
+                    applications: true,
+                },
+                orderBy: { createdAt: "desc" },
+                skip,
+                take: limit,
+            }),
+
+            this.prisma.volunteerProject.count({ where }),
+        ]);
+
+        return {
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
             },
-
-            orderBy: { createdAt: "desc" },
-        });
-
-        return this.formatEvents(events);
+            data: this.formatEvents(events),
+        };
     }
+
     private formatEvents(events: any[]) {
         return events.map((event) => {
             const approved = event.applications.filter((a: any) => a.status === "APPROVED").length;
