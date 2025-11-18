@@ -51,15 +51,6 @@ export class CommunityNgoController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @Get("verification/simple-list")
-    @ApiOperation({ summary: "List all NGO verifications (id & status only)" })
-    async getSimpleNgoVerifications(@GetVerifiedUser() user: VerifiedUser) {
-        if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbidden access");
-        return this.communityNgoService.listNgoVerificationsSimple();
-    }
-
-    @UseGuards(JwtAuthGuard)
     @Patch(":verificationId/review")
     @ApiBearerAuth()
     @ApiOperation({ summary: "Admin review NGO verification" })
