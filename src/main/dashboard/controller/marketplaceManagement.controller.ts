@@ -1,9 +1,10 @@
-import { Controller, ForbiddenException, Get, UseGuards } from "@nestjs/common";
+import { Controller, ForbiddenException, Get, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { MarketplaceManagementService } from "../service/marketplaceManagement.service";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { VerifiedUser } from "@type/shared.types";
+import { ProductQueryDto } from "../dto/producQuery.dto";
 
 @ApiTags("Marketplace")
 @Controller("marketplace")
@@ -18,11 +19,11 @@ export class MarketplaceManagementController {
         return this.service.getMarketplaceStats();
     }
 
-    // @ApiBearerAuth()
-    // @UseGuards(JwtAuthGuard)
-    // @Get('products')
-    // async listProducts(@GetVerifiedUser() user: VerifiedUser,@Query() query: ProductQueryDto) {
-    //    if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbidden access");
-    //   return this.service.listProducts(query);
-    // }
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get("products")
+    async listProducts(@GetVerifiedUser() user: VerifiedUser, @Query() query: ProductQueryDto) {
+        if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbidden access");
+        return this.service.listProducts(query);
+    }
 }
