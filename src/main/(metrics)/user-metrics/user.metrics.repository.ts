@@ -10,6 +10,12 @@ export class UserMetricsRepository {
         return await this.prisma.userMetrics.findUnique({ where: { userId } });
     }
 
+    async findUser(userId: string) {
+        return await this.prisma.userMetrics.findUnique({
+            where: { userId },
+        });
+    }
+
     async createDefault(userId: string) {
         return await this.prisma.userMetrics.create({
             data: { userId },

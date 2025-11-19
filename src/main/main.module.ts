@@ -15,6 +15,8 @@ import { StartedGroupModule } from "./(started)/started.group.module";
 import { UserGroupModule } from "./(users)/users.group.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { VolunteerModule } from "./volunteer/volunteer.module";
+import { StripeModule } from "./stripe/stripe.module";
+import { DonationModule } from "./donation/donation.module";
 
 @Global()
 @Module({
@@ -34,6 +36,8 @@ import { VolunteerModule } from "./volunteer/volunteer.module";
         MetricsGroupModule,
         VolunteerModule,
         AdminModule,
+        DonationModule,
+        StripeModule,
         DashboardModule,
     ],
     controllers: [],

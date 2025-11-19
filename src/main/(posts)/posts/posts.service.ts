@@ -11,7 +11,6 @@ import {
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
-import { PostQueryDto } from "./dto/posts.query.dto";
 import { PostRepository } from "./posts.repository";
 
 @Injectable()
@@ -23,65 +22,22 @@ export class PostService {
         private readonly eventEmitter: EventEmitter2,
     ) {}
 
-    // async create(input: CreatePostDto) {
-    //     const post = await this.repository.store(input);
-    //     if (!post) throw new BadRequestException("Fail to creaete post");
-    //     // fetch followers using FollowService
-    //     const followersResponse = await this.followService.getFollowers(post.authorId);
-    //     const followers = followersResponse.data;
-
-    //     for (const follower of followers) {
-    //         console.info("notificaiton will get: ", follower);
-    //         //   TODO: have to handle on the gateway not on endpoint
-    //         // this.postGetway.emit("post:new", {
-    //         //   data: post,
-    //         //   type: "notification",
-    //         //   from: post.authorId,
-    //         //   to: follower.followerId,
-    //         //   meta: {
-    //         //     message: `${post.author.profile?.name} add a new post`,
-    //         //   },
-    //         // });
-    //     }
-    //     return post;
-    // }
-
-    // ------------create post
     async create(input: CreatePostDto) {
-        const post = await this.repository.store(input);
+        const post = await this.repository.store(input); // call store (DB transaction)
         if (!post) throw new BadRequestException("Fail to create post");
 
         const authorId = post.authorId;
-
-        // 1---- Get followers (users who follow the author)
         const followersRes = await this.followService.getFollowers(authorId);
         const followers = followersRes.data.map((f) => f.followerId);
-
-        // 2-----------Get followings (users the author follows)
         const followingRes = await this.followService.getFollowing(authorId);
         const followings = followingRes.data.map((f) => f.followingId);
 
-        // 3️---------- Combine both (followers + followings)
         const allRelatedUsers = Array.from(new Set([...followers, ...followings]));
-
-        // 4️-------------- Find users with post notifications enabled
         const recipients = await this.prisma.notificationToggle.findMany({
-            where: {
-                userId: { in: allRelatedUsers },
-            },
-            select: {
-                user: { select: { id: true, email: true } },
-            },
+            where: { userId: { in: allRelatedUsers } },
+            select: { user: { select: { id: true, email: true } } },
         });
 
-        //    const recipients = await this.prisma.notificationToggle.findMany({
-        //     // where: { ngo: true },
-        //     select: {
-        //         user: { select: { id: true, email: true } },
-        //     },
-        // });
-
-        // 5--------------------- Build event payload for toggle notification
         const payload: PostEvent = {
             action: "CREATE",
             meta: {
@@ -93,20 +49,18 @@ export class PostService {
                 title: `New post by ${post.author.profile?.name ?? "someone"}`,
                 message: `CREATE NEW POST ${post.text}`,
                 authorId,
-                recipients: recipients.map((r) => ({
-                    id: r.user.id,
-                    email: r.user.email,
-                })),
+                recipients: recipients.map((r) => ({ id: r.user.id, email: r.user.email })),
             },
         };
 
-        // 6️----------------------Emit notification event
+        // 6️⃣ Emit notification
         this.eventEmitter.emit(EVENT_TYPES.POST_CREATE, payload);
 
         return post;
     }
 
-    async index(options?: PostQueryDto) {
+    /** Fetch posts with selected fields */
+    async index(options?: any) {
         return await this.repository.findAll(options, {
             id: true,
             mediaUrls: true,
@@ -119,12 +73,14 @@ export class PostService {
                     profile: {
                         select: {
                             avatarUrl: true,
+                            name: true,
                         },
                     },
                 },
             },
             likes: true,
             shares: true,
+            createdAt: false,
         });
     }
 

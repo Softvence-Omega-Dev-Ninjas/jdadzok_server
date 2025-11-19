@@ -1,4 +1,4 @@
-import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { handleRequest } from "@common/utils/handle.request.util";
 import { identityVerificationType } from "@constants/enums";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
@@ -7,7 +7,6 @@ import {
     Controller,
     Get,
     Param,
-    Patch,
     Post,
     UploadedFiles,
     UseGuards,
@@ -17,7 +16,7 @@ import { FilesInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { VerifiedUser } from "@type/shared.types";
 import multer from "multer";
-import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verification.dto";
+import { CreateNgoVerificationDto } from "./dto/verification.dto";
 import { NgoVerificationService } from "./ngo-verification.service";
 
 @ApiTags("NGO Verification")
@@ -73,19 +72,6 @@ export class NgoVerificationController {
         return handleRequest(
             () => this.service.getVerificationStatus(ngoId),
             "Fetched verification status",
-        );
-    }
-
-    @Patch(":verificationId/review")
-    @ApiOperation({ summary: "Admin review NGO verification" })
-    async reviewVerification(
-        @GetUser("userId") adminId: string,
-        @Param("verificationId") verificationId: string,
-        @Body() dto: ReviewNgoVerificationDto,
-    ) {
-        return handleRequest(
-            () => this.service.reviewVerification(adminId, verificationId, dto),
-            "Verification reviewed",
         );
     }
 }

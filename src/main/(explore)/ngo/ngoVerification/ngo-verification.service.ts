@@ -1,4 +1,3 @@
-import { verificationStatus } from "@constants/enums";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { InjectQueue } from "@nestjs/bullmq";
@@ -10,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { S3Service } from "@s3/s3.service";
 import { Queue } from "bullmq";
-import { CreateNgoVerificationDto, ReviewNgoVerificationDto } from "./dto/verification.dto";
+import { CreateNgoVerificationDto } from "./dto/verification.dto";
 
 @Injectable()
 export class NgoVerificationService {
@@ -212,37 +211,5 @@ export class NgoVerificationService {
         if (!verification) throw new NotFoundException("No verification record found");
 
         return verification;
-    }
-
-    // Admin reviews a verification request
-    async reviewVerification(
-        adminId: string,
-        verificationId: string,
-        dto: ReviewNgoVerificationDto,
-    ) {
-        const user = await this.prisma.user.findUnique({ where: { id: adminId } });
-        if (user?.role !== "ADMIN" && user?.role !== "SUPER_ADMIN") {
-            throw new BadRequestException("Sorry unauthorized access.");
-        }
-        const verification = await this.prisma.ngoVerification.findUnique({
-            where: { id: verificationId },
-        });
-        if (!verification) throw new NotFoundException("Verification request not found");
-
-        const updated = await this.prisma.ngoVerification.update({
-            where: { id: verificationId },
-            data: {
-                status: dto.status,
-                reviewedById: adminId,
-            },
-        });
-
-        if (verificationStatus.includes(dto.status)) {
-            await this.prisma.ngo.update({
-                where: { id: verification.ngoId },
-                data: { isVerified: dto.status === "APPROVED" ? true : false },
-            });
-        }
-        return updated;
     }
 }

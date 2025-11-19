@@ -1,7 +1,7 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { QUEUE_JOB_NAME } from "@module/(buill-queue)/constants";
 import { InjectQueue } from "@nestjs/bullmq";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Queue } from "bullmq";
 import Stripe from "stripe";
@@ -9,98 +9,67 @@ import Stripe from "stripe";
 @Injectable()
 export class WithdrawService {
     private stripe: Stripe;
+
     constructor(
         private prisma: PrismaService,
         private config: ConfigService,
-        @InjectQueue(QUEUE_JOB_NAME.WITHDRAW.WITHDRAW_QUEUE) private withdrawQueue: Queue,
+        @InjectQueue(QUEUE_JOB_NAME.WITHDRAW.WITHDRAW_QUEUE)
+        private withdrawQueue: Queue,
     ) {
         const secretKey = process.env.STRIPE_SECRET;
         if (!secretKey) throw new Error("STRIPE_SECRET not configured");
 
-        this.stripe = new Stripe(secretKey, {
-            apiVersion: "2025-10-29.clover",
-        });
+        this.stripe = new Stripe(secretKey);
     }
 
-    // user requests withdraw manually
-    async requestWithdraw(dto: { userId: string; amount: number }) {
+    // USER manually requests withdraw (adds to queue)
+    async requestWithdraw(userId: string, dto: { amount: number }) {
         const user = await this.prisma.user.findUnique({
-            where: { id: dto.userId },
-            include: { PaymentMethods: true },
+            where: { id: userId },
+            select: { stripeAccountId: true },
         });
-        if (!user) throw new NotFoundException("User not found");
 
-        const card = user.PaymentMethods.find((c) => c.isDefault);
-        if (!card) throw new BadRequestException("No default payment method found");
+        if (!user || !user.stripeAccountId) {
+            throw new BadRequestException("User has no Stripe Express Account");
+        }
 
-        // Create withdraw record in DB
+        // Save withdraw request
         const withdraw = await this.prisma.withdraw.create({
             data: {
-                userId: dto.userId,
+                userId: userId,
                 amount: dto.amount,
+                status: "PENDING",
             },
         });
 
-        // Queue the withdraw for async processing
+        // Add job to queue
         await this.withdrawQueue.add("process-withdraw", {
             withdrawId: withdraw.id,
-            cardId: card.id,
+            stripeAccountId: user.stripeAccountId,
         });
 
-        return {
-            message: "Withdraw queued successfully",
-            // withdraw,
-        };
+        return { message: "Withdraw request queued", withdrawId: withdraw.id };
     }
 
-    // monthly payout scheduler
+    // monthly auto withdraw (15 date)
     async enqueueMonthlyWithdraws() {
-        const pendingUsers = await this.prisma.user.findMany({
+        const users = await this.prisma.user.findMany({
             where: {
                 revenues: { some: { amount: { gt: 0 } } },
             },
             include: { revenues: true },
         });
 
-        type Revenue = { amount: number };
-        // type User = { id: string; revenues: Revenue[] };
+        for (const user of users) {
+            const total = user.revenues.reduce((a, r) => a + r.amount, 0);
 
-        for (const user of pendingUsers) {
-            const total = user.revenues.reduce((a: number, r: Revenue) => a + r.amount, 0);
-
-            await this.withdrawQueue.add(QUEUE_JOB_NAME.WITHDRAW.WITHDRAW_QUEUE, {
+            await this.withdrawQueue.add("process-withdraw", {
                 userId: user.id,
                 amount: total,
+                stripeAccountId: user.stripeAccountId,
             });
         }
 
-        return { message: "All user withdraws enqueued" };
-    }
-
-    async processWithdraw(userId: string, amount: number) {
-        const paymentMethod = await this.prisma.paymentMethods.findFirst({
-            where: { userId, method: "STRIPE", isDefault: true },
-        });
-
-        if (!paymentMethod) throw new Error("No default Stripe account found");
-        //  stripe_account_id
-        const stripeAccountId = paymentMethod.cardNumber;
-
-        const payout = await this.stripe.payouts.create(
-            {
-                amount: Math.floor(amount * 100), // cents
-                currency: "usd",
-            },
-            { stripeAccount: stripeAccountId },
-        );
-
-        await this.prisma.withdraw.updateMany({
-            where: { userId, status: "PENDING" },
-            data: {
-                status: "SUCCESS",
-                stripeTxnId: payout.id,
-            },
-        });
-        return payout;
+        return { message: "Monthly withdraw queued" };
     }
 }

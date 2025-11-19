@@ -4,6 +4,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import bodyParser from "body-parser";
 import { config } from "dotenv";
 import { expand } from "dotenv-expand";
 import path from "path";
@@ -12,7 +13,6 @@ import z from "zod";
 import { AppModule } from "./app.module";
 import { ENVEnum } from "./common/enum/env.enum";
 import { AllExceptionsFilter } from "./common/filter/http-exception.filter";
-import bodyParser from "body-parser";
 
 expand(config({ path: path.resolve(process.cwd(), ".env") }));
 async function bootstrap() {
@@ -23,11 +23,23 @@ async function bootstrap() {
     app.use(bodyParser.json());
 
     // use raw body for only /payments/webhook (or bookings/webhook etc.)
-    app.use("/payments/webhook", bodyParser.raw({ type: "application/json" }));
+    app.use("/stripe/webhook", bodyParser.raw({ type: "application/json" }));
 
     // CORS configuration
     app.enableCors({
-        origin: "*",
+        origin: [
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:3002",
+            "http://localhost:3003",
+            "http://localhost:3004",
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:5175",
+            "http://localhost:5176",
+            "http://localhost:5177",
+            "https://jdadzok-admin-dashboard.netlify.app",
+        ],
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
         credentials: true,
     });

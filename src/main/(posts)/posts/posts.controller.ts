@@ -1,6 +1,5 @@
 import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { successResponse } from "@common/utils/response.util";
-import { postFrom } from "@constants/enums";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
     Body,
@@ -12,25 +11,19 @@ import {
     NotFoundException,
     Param,
     ParseUUIDPipe,
+    Patch,
     Post,
-    Put,
     Query,
-    UploadedFiles,
     UseGuards,
-    UseInterceptors,
     UsePipes,
     ValidationPipe,
 } from "@nestjs/common";
-import { FilesInterceptor } from "@nestjs/platform-express";
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiExtraModels, ApiOperation } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiExtraModels, ApiOperation } from "@nestjs/swagger";
 import { S3Service } from "@s3/s3.service";
 import { TUser, VerifiedUser } from "@type/index";
-import { omit } from "@utils/index";
 import { transformAndValidate } from "@utils/zod-utility/transform-validation";
-import multer from "multer";
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostQueryDto } from "./dto/posts.query.dto";
-import { fromDataExample } from "./example";
 import { PostService } from "./posts.service";
 import { PostUtils } from "./utils";
 
@@ -45,43 +38,23 @@ export class PostController {
     ) {}
 
     @Post()
-    @ApiOperation({ summary: "Create a new post" })
-    @ApiConsumes("multipart/form-data")
-    @ApiBody(fromDataExample)
-    @UseInterceptors(
-        FilesInterceptor("files", 20, {
-            storage: multer.memoryStorage(),
-            limits: { files: 20 },
-        }),
-    )
+    @ApiOperation({ summary: "Create a new post via JSON" })
     @UseGuards(JwtAuthGuard)
     @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-    async store(
-        @GetVerifiedUser() user: VerifiedUser,
-        @UploadedFiles() files: Array<Express.Multer.File>,
-        @Body() req: any,
-    ) {
+    async store(@GetVerifiedUser() user: any, @Body() req: CreatePostDto) {
         try {
-            const mediaUrls = files?.length ? await this.s3Service.uploadFiles(files) : [];
-            const extractMetaData = JSON.parse(req.metadata);
-            const body = omit(req, ["files"]);
-            const tagged = body.taggedUserIds && this.utils.extractTagsId(body.taggedUserIds);
-
+            // Attach authorId and prepare DTO
             const createInput = {
-                ...body,
+                ...req,
                 authorId: user.id,
-                taggedUserIds: tagged,
-                postFrom: this.utils.include(postFrom, body.postFrom),
-                metadata: extractMetaData,
-                mediaUrls,
-                // boolean
-                acceptVolunteer: this.utils.extractBoolean(body.acceptVolunteer),
-                acceptDonation: this.utils.extractBoolean(body.acceptDonation),
             };
 
+            // Validate DTO
             const validated = await transformAndValidate(CreatePostDto, createInput);
 
+            // Create post
             const post = await this.service.create(validated);
+
             return successResponse(post, "Post created successfully");
         } catch (err) {
             throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
@@ -117,7 +90,7 @@ export class PostController {
         }
     }
 
-    @Put(":id")
+    @Patch(":id")
     @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: "Update a post" })
     async update(

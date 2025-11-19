@@ -11,6 +11,12 @@ export class UserMetricsService {
         return metrics;
     }
 
+    async getUserMetricsById(userId: string) {
+        const metrics = await this.repo.findUser(userId);
+        if (!metrics) throw new NotFoundException("User metrics not found");
+        return metrics;
+    }
+
     // async updateMetrics(dto: UpdateUserMetricsDto) {
     //     const metrics = await this.repo.findByUserId(dto.userId);
     //     if (!metrics) {

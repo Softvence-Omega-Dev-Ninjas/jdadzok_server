@@ -18,11 +18,11 @@ export class ProductService {
     ) {}
     // create product new product
     async create(userId: string, dto: CreateProductDto) {
-        //  Verify seller
+        // Verify seller
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new BadRequestException("Unauthorized Access");
 
-        // validate category
+        // Validate category
         const category = await this.prisma.productCategory.findUnique({
             where: { id: dto.categoryId },
         });
@@ -33,11 +33,13 @@ export class ProductService {
         if (!activityTable) {
             throw new BadRequestException("Activity data not found");
         }
-        // 4️ Create product
+
+        // Create product
         const { categoryId, ...rest } = dto;
         const totalSpentValue = (dto.price / 100) * activityTable.productSpentPercentage || 4;
         const promotionFee =
             (totalSpentValue / 100) * activityTable?.productPromotionPercentage || 2;
+
         const newProduct = await this.prisma.product.create({
             data: {
                 ...rest,
@@ -45,6 +47,7 @@ export class ProductService {
                 categoryId,
                 promotionFee: promotionFee,
                 spent: totalSpentValue,
+                digitalFileUrl: dto.digitalFileUrl,
             },
             include: { seller: true },
         });
@@ -54,27 +57,35 @@ export class ProductService {
         return newProduct;
     }
 
-    // get all product...
     async findAll(userId: string, query?: ProductQueryDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user) {
-            throw new BadRequestException("Unauthorized Access");
+        if (!user) throw new BadRequestException("Unauthorized Access");
+
+        const where: any = { isVisible: true };
+
+        if (query?.search) {
+            where.OR = [
+                { title: { contains: query.search, mode: "insensitive" } },
+                { description: { contains: query.search, mode: "insensitive" } },
+            ];
         }
+        if (query?.minPrice || query?.maxPrice) {
+            where.price = {};
+            if (query?.minPrice !== undefined) where.price.gte = query.minPrice;
+            if (query?.maxPrice !== undefined) where.price.lte = query.maxPrice;
+        }
+        if (query?.categoryName) {
+            const slug = query.categoryName.trim().toLowerCase().replace(/\s+/g, "-");
+            where.category = { slug };
+        }
+
         return this.prisma.product.findMany({
-            where: {
-                title: query?.search ? { contains: query.search, mode: "insensitive" } : undefined,
-                price: {
-                    gte: query?.minPrice,
-                    lte: query?.maxPrice,
-                },
-                isVisible: true,
-            },
+            where,
             orderBy: { createdAt: "desc" },
-            include: {
-                seller: true,
-            },
+            include: { seller: true, category: true },
         });
     }
+
     // get a single product by id.
     async findOne(userId: string, id: string) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -85,7 +96,13 @@ export class ProductService {
             where: { id },
             include: {
                 orders: true,
-                seller: true,
+                seller: {
+                    include: {
+                        profile: true,
+                        about: true,
+                        metrics: true,
+                    },
+                },
             },
         });
         if (!product) {

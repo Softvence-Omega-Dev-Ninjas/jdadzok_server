@@ -48,4 +48,4 @@
  
 
 
-docker compose --profile prod up -d --build
+docker compose --profile prod up -d 
