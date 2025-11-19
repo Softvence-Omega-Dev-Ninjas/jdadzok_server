@@ -96,21 +96,15 @@ export class DashboardService {
         return { userGrowth: data };
     }
 
-    // --------------------------------------------------
-    // REVENUE TRENDS (last 6 months)
-    // --------------------------------------------------
-
     async getRevenueTrends() {
         const data = [];
 
         for (let i = 5; i >= 0; i--) {
             const monthStart = startOfMonth(subMonths(new Date(), i));
             const monthEnd = endOfMonth(subMonths(new Date(), i));
-
-            // Sum promotionFee from Product table for this month
             const total = await this.prisma.product.aggregate({
                 where: {
-                    createdAt: { gte: monthStart, lte: monthEnd }, // or updatedAt if you prefer
+                    createdAt: { gte: monthStart, lte: monthEnd },
                 },
                 _sum: {
                     promotionFee: true,
@@ -126,24 +120,22 @@ export class DashboardService {
         return { revenueTrends: data };
     }
 
-    //   // --------------------------------------------------
-    //   // ACTIVITY DIVISION (percentage)
-    //   // --------------------------------------------------
-    //   async getActivityDivision() {
-    //     const events = await this.prisma.event.count();
-    //     const volunteer = await this.prisma.volunteerProject.count();
-    //     const promotions = await this.prisma.promotionPayment.count();
+    async getActivityDivision() {
+        const volunteer = await this.prisma.volunteerProject.count();
+        const promotions = await this.prisma.product.count({
+            where: { promotionFee: { gt: 0 } },
+        });
+        const donations = 0;
+        const total = volunteer + promotions + donations;
 
-    //     const total = events + volunteer + promotions;
-
-    //     return {
-    //       activityDivision: {
-    //         events: total ? Math.round((events / total) * 100) : 0,
-    //         volunteerProjects: total ? Math.round((volunteer / total) * 100) : 0,
-    //         marketplacePromotions: total ? Math.round((promotions / total) * 100) : 0,
-    //       },
-    //     };
-    //   }
+        return {
+            activityDivision: {
+                volunteerProjects: total ? Math.round((volunteer / total) * 100) : 0,
+                marketplacePromotions: total ? Math.round((promotions / total) * 100) : 0,
+                donations: total ? Math.round((donations / total) * 100) : 0,
+            },
+        };
+    }
 
     //   // --------------------------------------------------
     //   // Pending Applications
