@@ -1,156 +1,187 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { startOfMonth, startOfWeek, subWeeks } from "date-fns";
+import { Injectable } from "@nestjs/common";
+import { endOfMonth, startOfMonth, subMonths } from "date-fns";
 
 @Injectable()
 export class DashboardService {
     constructor(private prisma: PrismaService) {}
 
-    // ---------------- USER OVERVIEW SUMMARY ----------------
-    async getUserOverview() {
-        const totalUsers = await this.prisma.user.count();
-
-        const totalUsersLastMonth = await this.prisma.user.count({
-            where: {
-                createdAt: {
-                    lt: startOfMonth(new Date()),
-                },
-            },
+    async getSummary() {
+        const now = new Date();
+        const startThisMonth = startOfMonth(now);
+        const startLastMonth = startOfMonth(subMonths(now, 1));
+        const endLastMonth = endOfMonth(subMonths(now, 1));
+        const usersThisMonth = await this.prisma.user.count({
+            where: { createdAt: { gte: startThisMonth } },
         });
 
-        const totalUsersGrowth =
-            totalUsersLastMonth === 0
+        const usersLastMonth = await this.prisma.user.count({
+            where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
+        });
+
+        const userIncreasePercent =
+            usersLastMonth === 0 ? 100 : ((usersThisMonth - usersLastMonth) / usersLastMonth) * 100;
+
+        const totalCommunities = await this.prisma.ngo.count();
+
+        const communitiesThisMonth = await this.prisma.ngo.count({
+            where: { foundationDate: { gte: startThisMonth } },
+        });
+
+        const communitiesLastMonth = await this.prisma.ngo.count({
+            where: { foundationDate: { gte: startLastMonth, lte: endLastMonth } },
+        });
+
+        const communitiesIncreasePercent =
+            communitiesLastMonth === 0
                 ? 100
-                : ((totalUsers - totalUsersLastMonth) / totalUsersLastMonth) * 100;
-
-        const activeUsers = await this.prisma.user.count({
-            where: { bans: { none: {} } },
+                : ((communitiesThisMonth - communitiesLastMonth) / communitiesLastMonth) * 100;
+        const activeVolunteerProjectsCount = await this.prisma.volunteerProject.count({
+            where: { isActive: true },
         });
 
-        const activeUserPercent = totalUsers ? (activeUsers / totalUsers) * 100 : 0;
-
-        const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-        const lastWeekStart = subWeeks(thisWeekStart, 1);
-
-        const newThisWeek = await this.prisma.user.count({
-            where: { createdAt: { gte: thisWeekStart } },
+        const volunteerProjectsThisMonth = await this.prisma.volunteerProject.count({
+            where: { createdAt: { gte: startThisMonth } },
         });
-
-        const newLastWeek = await this.prisma.user.count({
+        const volunteerProjectsLastMonth = await this.prisma.volunteerProject.count({
             where: {
-                createdAt: {
-                    gte: lastWeekStart,
-                    lt: thisWeekStart,
-                },
+                createdAt: { gte: startLastMonth, lte: endLastMonth },
             },
         });
 
-        const newWeekPercent =
-            newLastWeek === 0 ? 100 : ((newThisWeek - newLastWeek) / newLastWeek) * 100;
-
-        const suspendedUsers = await this.prisma.user.count({
-            where: { bans: { some: {} } },
+        const volunteerProjectsIncreasePercent =
+            volunteerProjectsLastMonth === 0
+                ? 100
+                : ((volunteerProjectsThisMonth - volunteerProjectsLastMonth) /
+                      volunteerProjectsLastMonth) *
+                  100;
+        const productsThisMonth = await this.prisma.product.findMany({
+            where: { createdAt: { gte: startThisMonth } },
+            select: { promotionFee: true, spent: true },
         });
 
-        return {
-            totalUsers,
-            totalUsersGrowth: Number(totalUsersGrowth.toFixed(2)),
-            activeUsers,
-            activeUserPercent: Number(activeUserPercent.toFixed(2)),
-            newThisWeek,
-            newWeekPercent: Number(newWeekPercent.toFixed(2)),
-            suspendedUsers,
-        };
-    }
-
-    // ---------------- USER LIST + SEARCH + FILTER ----------------
-    async getUsers({
-        search,
-        status,
-        role,
-        page,
-        limit,
-    }: {
-        search?: string;
-        status?: "active" | "suspended";
-        role?: string;
-        page: number;
-        limit: number;
-    }) {
-        const where: any = {};
-
-        // ---------------- SEARCH FILTER ----------------
-        if (search) {
-            where.OR = [
-                { email: { contains: search, mode: "insensitive" } },
-                { profile: { name: { contains: search, mode: "insensitive" } } },
-            ];
+        let promoThisMonth = 0;
+        for (const p of productsThisMonth) {
+            const adminEarned = p.promotionFee - p.spent;
+            promoThisMonth += adminEarned > 0 ? adminEarned : 0;
         }
 
-        // ---------------- STATUS FILTER ----------------
-        if (status === "active") where.bans = { none: {} };
-        if (status === "suspended") where.bans = { some: { isActive: true } };
-
-        // ---------------- ROLE FILTER ----------------
-        if (role) where.role = role;
-
-        // ---------------- QUERY USERS ----------------
-        const users = await this.prisma.user.findMany({
-            where,
-            skip: (page - 1) * limit,
-            take: limit,
-            include: {
-                profile: true,
-                bans: { where: { isActive: true } }, // only active bans
+        const productsPrevMonth = await this.prisma.product.findMany({
+            where: {
+                createdAt: { gte: startLastMonth, lte: endLastMonth },
             },
-            orderBy: { createdAt: "desc" },
+            select: { promotionFee: true, spent: true },
         });
 
-        const total = await this.prisma.user.count({ where });
+        let promoPrevMonth = 0;
+        for (const p of productsPrevMonth) {
+            const adminEarned = p.promotionFee - p.spent;
+            promoPrevMonth += adminEarned > 0 ? adminEarned : 0;
+        }
+
+        const promoIncreasePercent =
+            promoPrevMonth === 0 ? 100 : ((promoThisMonth - promoPrevMonth) / promoPrevMonth) * 100;
 
         return {
-            pagination: {
-                page,
-                limit,
-                total,
-                pages: Math.ceil(total / limit),
-            },
-            data: users.map((u) => ({
-                id: u.id,
-                name: u.profile?.name,
-                email: u.email,
-                role: u.role,
-                status: u.bans.length > 0 ? "suspended" : "active",
-                level: u.capLevel,
-                joinedAt: u.createdAt,
-            })),
+            usersThisMonth,
+            userIncreasePercent,
+            totalCommunities,
+            communitiesIncreasePercent,
+            activeVolunteerProjectsCount,
+            volunteerProjectsIncreasePercent,
+            marketplacePromotionEarningsThisMonth: promoThisMonth,
+            promoIncreasePercent,
         };
     }
 
-    // ---------------- SUSPEND USER ----------------
-    async suspendUser(id: string) {
-        const user = await this.prisma.user.findUnique({ where: { id } });
-        if (!user) throw new NotFoundException("User not found");
+    // --------------------------------------------------
+    // USER GROWTH (last 6 months)
+    // --------------------------------------------------
+    async getUserGrowth() {
+        const data = [];
 
-        await this.prisma.ban.create({
-            data: {
-                userId: id,
-                reason: "Suspended by admin",
-            },
-        });
+        for (let i = 5; i >= 0; i--) {
+            const monthStart = startOfMonth(subMonths(new Date(), i));
+            const monthEnd = endOfMonth(subMonths(new Date(), i));
 
-        return { message: "User suspended successfully" };
+            const count = await this.prisma.user.count({
+                where: { createdAt: { gte: monthStart, lte: monthEnd } },
+            });
+
+            data.push({
+                month: monthStart.toLocaleString("en-US", { month: "long" }),
+                count,
+            });
+        }
+
+        return { userGrowth: data };
     }
 
-    // ---------------- ACTIVATE USER ----------------
-    async activateUser(id: string) {
-        const user = await this.prisma.user.findUnique({ where: { id } });
-        if (!user) throw new NotFoundException("User not found");
+    // --------------------------------------------------
+    // REVENUE TRENDS (last 6 months)
+    // --------------------------------------------------
+    //   async getRevenueTrends() {
+    //     const data = [];
 
-        await this.prisma.ban.deleteMany({
-            where: { userId: id },
-        });
+    //     for (let i = 5; i >= 0; i--) {
+    //       const monthStart = startOfMonth(subMonths(new Date(), i));
+    //       const monthEnd = endOfMonth(subMonths(new Date(), i));
 
-        return { message: "User activated successfully" };
-    }
+    //       const total = await this.prisma.promotionPayment.aggregate({
+    //         where: { createdAt: { gte: monthStart, lte: monthEnd } },
+    //         _sum: { amount: true },
+    //       });
+
+    //       data.push({
+    //         month: monthStart.toLocaleString('en-US', { month: 'long' }),
+    //         total: total._sum.amount || 0,
+    //       });
+    //     }
+
+    //     return { revenueTrends: data };
+    //   }
+
+    //   // --------------------------------------------------
+    //   // ACTIVITY DIVISION (percentage)
+    //   // --------------------------------------------------
+    //   async getActivityDivision() {
+    //     const events = await this.prisma.event.count();
+    //     const volunteer = await this.prisma.volunteerProject.count();
+    //     const promotions = await this.prisma.promotionPayment.count();
+
+    //     const total = events + volunteer + promotions;
+
+    //     return {
+    //       activityDivision: {
+    //         events: total ? Math.round((events / total) * 100) : 0,
+    //         volunteerProjects: total ? Math.round((volunteer / total) * 100) : 0,
+    //         marketplacePromotions: total ? Math.round((promotions / total) * 100) : 0,
+    //       },
+    //     };
+    //   }
+
+    //   // --------------------------------------------------
+    //   // Pending Applications
+    //   // --------------------------------------------------
+    //   async getPendingApplications() {
+    //     const communityRequests = await this.prisma.ngo.count({
+    //       where: { approvalStatus: 'PENDING' },
+    //     });
+
+    //     const eventRequests = await this.prisma.event.count({
+    //       where: { approvalStatus: 'PENDING' },
+    //     });
+
+    //     const volunteerRequests = await this.prisma.volunteerProject.count({
+    //       where: { approvalStatus: 'PENDING' },
+    //     });
+
+    //     return {
+    //       pendingApplications: {
+    //         communityRequests,
+    //         eventRequests,
+    //         volunteerRequests,
+    //       },
+    //     };
+    //   }
 }
