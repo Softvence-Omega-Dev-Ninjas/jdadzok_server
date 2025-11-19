@@ -23,7 +23,6 @@ export class UserManagementController {
         private readonly prisma: PrismaService,
     ) {}
 
-    // ---------------- SUMMARY OVERVIEW ----------------
     @ApiOperation({ summary: "Super Admin: Get all user overview statistics" })
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
@@ -33,7 +32,6 @@ export class UserManagementController {
         return this.userManagementService.getUserOverview();
     }
 
-    // ---------------- USER LIST ----------------
     @ApiOperation({ summary: "Super Admin: List users with search & filters" })
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
@@ -52,7 +50,6 @@ export class UserManagementController {
         return users;
     }
 
-    // ---------------- SUSPEND USER ----------------
     @ApiOperation({ summary: "Super Admin: Suspend a user" })
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
@@ -62,7 +59,6 @@ export class UserManagementController {
         return this.userManagementService.suspendUser(id);
     }
 
-    // ---------------- ACTIVATE USER ----------------
     @ApiOperation({ summary: "Super Admin: Activate a user" })
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)

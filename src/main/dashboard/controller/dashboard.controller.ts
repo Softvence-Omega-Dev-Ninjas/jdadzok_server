@@ -54,10 +54,10 @@ export class DashboardController {
 
     @ApiOperation({ summary: "Super Admin: Get pending application counts" })
     @Get("pending-applications")
-    async getPendingApplications(@GetVerifiedUser() user: VerifiedUser) {
+    async getPendingApplicationsDetailed(@GetVerifiedUser() user: VerifiedUser) {
         if (user.role !== "SUPER_ADMIN") {
             throw new ForbiddenException("Forbidden access");
         }
-        return this.dashboardService.getPendingApplications();
+        return this.dashboardService.getPendingApplicationsDetailed();
     }
 }
