@@ -34,39 +34,30 @@ export class DashboardController {
         return this.dashboardService.getUserGrowth();
     }
 
-    // ---------------------------------------------
-    // REVENUE TRENDS (last 6 months)
-    // ---------------------------------------------
-    //   @ApiOperation({ summary: "Super Admin: Get revenue trends for last 6 months" })
-    //   @Get('revenue-trends')
-    //   async getRevenueTrends(@GetVerifiedUser() user: VerifiedUser) {
-    //     if (user.role !== 'SUPER_ADMIN') {
-    //       throw new ForbiddenException('Forbidden access');
-    //     }
-    //     return this.dashboardService.getRevenueTrends();
-    //   }
+    @ApiOperation({ summary: "Super Admin: Get revenue trends for last 6 months" })
+    @Get("revenue-trends")
+    async getRevenueTrends(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+        return this.dashboardService.getRevenueTrends();
+    }
 
-    // ---------------------------------------------
-    // ACTIVITY DIVISION (percentage)
-    // ---------------------------------------------
-    //   @ApiOperation({ summary: "Super Admin: Get activity division breakdown" })
-    //   @Get('activity-division')
-    //   async getActivityDivision(@GetVerifiedUser() user: VerifiedUser) {
-    //     if (user.role !== 'SUPER_ADMIN') {
-    //       throw new ForbiddenException('Forbidden access');
-    //     }
-    //     return this.dashboardService.getActivityDivision();
-    //   }
+    @ApiOperation({ summary: "Super Admin: Get activity division breakdown" })
+    @Get("activity-division")
+    async getActivityDivision(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+        return this.dashboardService.getActivityDivision();
+    }
 
-    // ---------------------------------------------
-    // PENDING APPLICATIONS
-    // ---------------------------------------------
-    //   @ApiOperation({ summary: "Super Admin: Get pending application counts" })
-    //   @Get('pending-applications')
-    //   async getPendingApplications(@GetVerifiedUser() user: VerifiedUser) {
-    //     if (user.role !== 'SUPER_ADMIN') {
-    //       throw new ForbiddenException('Forbidden access');
-    //     }
-    //     return this.dashboardService.getPendingApplications();
-    //   }
+    @ApiOperation({ summary: "Super Admin: Get pending application counts" })
+    @Get("pending-applications")
+    async getPendingApplications(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+        return this.dashboardService.getPendingApplications();
+    }
 }

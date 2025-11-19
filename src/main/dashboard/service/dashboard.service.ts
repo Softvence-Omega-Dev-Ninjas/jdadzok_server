@@ -11,73 +11,55 @@ export class DashboardService {
         const startThisMonth = startOfMonth(now);
         const startLastMonth = startOfMonth(subMonths(now, 1));
         const endLastMonth = endOfMonth(subMonths(now, 1));
+
         const usersThisMonth = await this.prisma.user.count({
             where: { createdAt: { gte: startThisMonth } },
         });
-
         const usersLastMonth = await this.prisma.user.count({
             where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
         });
-
         const userIncreasePercent =
             usersLastMonth === 0 ? 100 : ((usersThisMonth - usersLastMonth) / usersLastMonth) * 100;
 
         const totalCommunities = await this.prisma.ngo.count();
-
         const communitiesThisMonth = await this.prisma.ngo.count({
             where: { foundationDate: { gte: startThisMonth } },
         });
-
         const communitiesLastMonth = await this.prisma.ngo.count({
             where: { foundationDate: { gte: startLastMonth, lte: endLastMonth } },
         });
-
         const communitiesIncreasePercent =
             communitiesLastMonth === 0
                 ? 100
                 : ((communitiesThisMonth - communitiesLastMonth) / communitiesLastMonth) * 100;
+
         const activeVolunteerProjectsCount = await this.prisma.volunteerProject.count({
             where: { isActive: true },
         });
-
         const volunteerProjectsThisMonth = await this.prisma.volunteerProject.count({
             where: { createdAt: { gte: startThisMonth } },
         });
         const volunteerProjectsLastMonth = await this.prisma.volunteerProject.count({
-            where: {
-                createdAt: { gte: startLastMonth, lte: endLastMonth },
-            },
+            where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
         });
-
         const volunteerProjectsIncreasePercent =
             volunteerProjectsLastMonth === 0
                 ? 100
                 : ((volunteerProjectsThisMonth - volunteerProjectsLastMonth) /
                       volunteerProjectsLastMonth) *
                   100;
-        const productsThisMonth = await this.prisma.product.findMany({
+
+        const promoThisMonthAgg = await this.prisma.product.aggregate({
             where: { createdAt: { gte: startThisMonth } },
-            select: { promotionFee: true, spent: true },
+            _sum: { promotionFee: true },
+        });
+        const promoPrevMonthAgg = await this.prisma.product.aggregate({
+            where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
+            _sum: { promotionFee: true },
         });
 
-        let promoThisMonth = 0;
-        for (const p of productsThisMonth) {
-            const adminEarned = p.promotionFee - p.spent;
-            promoThisMonth += adminEarned > 0 ? adminEarned : 0;
-        }
-
-        const productsPrevMonth = await this.prisma.product.findMany({
-            where: {
-                createdAt: { gte: startLastMonth, lte: endLastMonth },
-            },
-            select: { promotionFee: true, spent: true },
-        });
-
-        let promoPrevMonth = 0;
-        for (const p of productsPrevMonth) {
-            const adminEarned = p.promotionFee - p.spent;
-            promoPrevMonth += adminEarned > 0 ? adminEarned : 0;
-        }
+        const promoThisMonth = promoThisMonthAgg._sum.promotionFee || 0;
+        const promoPrevMonth = promoPrevMonthAgg._sum.promotionFee || 0;
 
         const promoIncreasePercent =
             promoPrevMonth === 0 ? 100 : ((promoThisMonth - promoPrevMonth) / promoPrevMonth) * 100;
@@ -94,9 +76,6 @@ export class DashboardService {
         };
     }
 
-    // --------------------------------------------------
-    // USER GROWTH (last 6 months)
-    // --------------------------------------------------
     async getUserGrowth() {
         const data = [];
 
@@ -117,71 +96,62 @@ export class DashboardService {
         return { userGrowth: data };
     }
 
-    // --------------------------------------------------
-    // REVENUE TRENDS (last 6 months)
-    // --------------------------------------------------
-    //   async getRevenueTrends() {
-    //     const data = [];
+    async getRevenueTrends() {
+        const data = [];
 
-    //     for (let i = 5; i >= 0; i--) {
-    //       const monthStart = startOfMonth(subMonths(new Date(), i));
-    //       const monthEnd = endOfMonth(subMonths(new Date(), i));
+        for (let i = 5; i >= 0; i--) {
+            const monthStart = startOfMonth(subMonths(new Date(), i));
+            const monthEnd = endOfMonth(subMonths(new Date(), i));
+            const total = await this.prisma.product.aggregate({
+                where: {
+                    createdAt: { gte: monthStart, lte: monthEnd },
+                },
+                _sum: {
+                    promotionFee: true,
+                },
+            });
 
-    //       const total = await this.prisma.promotionPayment.aggregate({
-    //         where: { createdAt: { gte: monthStart, lte: monthEnd } },
-    //         _sum: { amount: true },
-    //       });
+            data.push({
+                month: monthStart.toLocaleString("en-US", { month: "long" }),
+                total: total._sum.promotionFee || 0,
+            });
+        }
 
-    //       data.push({
-    //         month: monthStart.toLocaleString('en-US', { month: 'long' }),
-    //         total: total._sum.amount || 0,
-    //       });
-    //     }
+        return { revenueTrends: data };
+    }
 
-    //     return { revenueTrends: data };
-    //   }
+    async getActivityDivision() {
+        const volunteer = await this.prisma.volunteerProject.count();
+        const promotions = await this.prisma.product.count({
+            where: { promotionFee: { gt: 0 } },
+        });
+        const donations = 0;
+        const total = volunteer + promotions + donations;
 
-    //   // --------------------------------------------------
-    //   // ACTIVITY DIVISION (percentage)
-    //   // --------------------------------------------------
-    //   async getActivityDivision() {
-    //     const events = await this.prisma.event.count();
-    //     const volunteer = await this.prisma.volunteerProject.count();
-    //     const promotions = await this.prisma.promotionPayment.count();
-
-    //     const total = events + volunteer + promotions;
-
-    //     return {
-    //       activityDivision: {
-    //         events: total ? Math.round((events / total) * 100) : 0,
-    //         volunteerProjects: total ? Math.round((volunteer / total) * 100) : 0,
-    //         marketplacePromotions: total ? Math.round((promotions / total) * 100) : 0,
-    //       },
-    //     };
-    //   }
-
-    //   // --------------------------------------------------
-    //   // Pending Applications
-    //   // --------------------------------------------------
-    //   async getPendingApplications() {
-    //     const communityRequests = await this.prisma.ngo.count({
-    //       where: { approvalStatus: 'PENDING' },
-    //     });
-
-    //     const eventRequests = await this.prisma.event.count({
-    //       where: { approvalStatus: 'PENDING' },
-    //     });
-
-    //     const volunteerRequests = await this.prisma.volunteerProject.count({
-    //       where: { approvalStatus: 'PENDING' },
-    //     });
-
-    //     return {
-    //       pendingApplications: {
-    //         communityRequests,
-    //         eventRequests,
-    //         volunteerRequests,
-    //       },
-    //     };
-    //   }
+        return {
+            activityDivision: {
+                volunteerProjects: total ? Math.round((volunteer / total) * 100) : 0,
+                marketplacePromotions: total ? Math.round((promotions / total) * 100) : 0,
+                donations: total ? Math.round((donations / total) * 100) : 0,
+            },
+        };
+    }
+    async getPendingApplications() {
+        const ngoVerifications = await this.prisma.ngoVerification.count({
+            where: { status: "PENDING" },
+        });
+        const volunteerApplications = await this.prisma.volunteerApplication.count({
+            where: { status: "PENDING" },
+        });
+        const pendingNgos = await this.prisma.ngo.count({
+            where: { isVerified: false },
+        });
+        const totalPending = pendingNgos + volunteerApplications;
+        return {
+            ngoVerifications,
+            volunteerApplications,
+            pendingNgos,
+            totalPending,
+        };
+    }
 }
