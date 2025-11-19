@@ -52,15 +52,12 @@ export class DashboardController {
         return this.dashboardService.getActivityDivision();
     }
 
-    // ---------------------------------------------
-    // PENDING APPLICATIONS
-    // ---------------------------------------------
-    //   @ApiOperation({ summary: "Super Admin: Get pending application counts" })
-    //   @Get('pending-applications')
-    //   async getPendingApplications(@GetVerifiedUser() user: VerifiedUser) {
-    //     if (user.role !== 'SUPER_ADMIN') {
-    //       throw new ForbiddenException('Forbidden access');
-    //     }
-    //     return this.dashboardService.getPendingApplications();
-    //   }
+    @ApiOperation({ summary: "Super Admin: Get pending application counts" })
+    @Get("pending-applications")
+    async getPendingApplications(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+        return this.dashboardService.getPendingApplications();
+    }
 }
