@@ -9,10 +9,13 @@ import { MarketplaceManagementController } from "./controller/marketplaceManagem
 import { MarketplaceManagementService } from "./service/marketplaceManagement.service";
 import { OrderTransactionController } from "./controller/orderTransaction.controller";
 import { OrderTransactionService } from "./service/orderTransation.service";
+import { UserManagementController } from "./controller/userManagement.controller";
+import { UserManagementService } from "./service/userManagement.service";
 
 @Module({
     controllers: [
         DashboardController,
+        UserManagementController,
         CommunityNgoController,
         EventController,
         MarketplaceManagementController,
@@ -20,6 +23,7 @@ import { OrderTransactionService } from "./service/orderTransation.service";
     ],
     providers: [
         DashboardService,
+        UserManagementService,
         CommunityNgoService,
         EventService,
         MarketplaceManagementService,
