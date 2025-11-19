@@ -43,17 +43,14 @@ export class DashboardController {
         return this.dashboardService.getRevenueTrends();
     }
 
-    // ---------------------------------------------
-    // ACTIVITY DIVISION (percentage)
-    // ---------------------------------------------
-    //   @ApiOperation({ summary: "Super Admin: Get activity division breakdown" })
-    //   @Get('activity-division')
-    //   async getActivityDivision(@GetVerifiedUser() user: VerifiedUser) {
-    //     if (user.role !== 'SUPER_ADMIN') {
-    //       throw new ForbiddenException('Forbidden access');
-    //     }
-    //     return this.dashboardService.getActivityDivision();
-    //   }
+    @ApiOperation({ summary: "Super Admin: Get activity division breakdown" })
+    @Get("activity-division")
+    async getActivityDivision(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+        return this.dashboardService.getActivityDivision();
+    }
 
     // ---------------------------------------------
     // PENDING APPLICATIONS
