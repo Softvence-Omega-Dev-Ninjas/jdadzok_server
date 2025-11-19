@@ -136,29 +136,22 @@ export class DashboardService {
             },
         };
     }
-
-    //   // --------------------------------------------------
-    //   // Pending Applications
-    //   // --------------------------------------------------
-    //   async getPendingApplications() {
-    //     const communityRequests = await this.prisma.ngo.count({
-    //       where: { approvalStatus: 'PENDING' },
-    //     });
-
-    //     const eventRequests = await this.prisma.event.count({
-    //       where: { approvalStatus: 'PENDING' },
-    //     });
-
-    //     const volunteerRequests = await this.prisma.volunteerProject.count({
-    //       where: { approvalStatus: 'PENDING' },
-    //     });
-
-    //     return {
-    //       pendingApplications: {
-    //         communityRequests,
-    //         eventRequests,
-    //         volunteerRequests,
-    //       },
-    //     };
-    //   }
+    async getPendingApplications() {
+        const ngoVerifications = await this.prisma.ngoVerification.count({
+            where: { status: "PENDING" },
+        });
+        const volunteerApplications = await this.prisma.volunteerApplication.count({
+            where: { status: "PENDING" },
+        });
+        const pendingNgos = await this.prisma.ngo.count({
+            where: { isVerified: false },
+        });
+        const totalPending = pendingNgos + volunteerApplications;
+        return {
+            ngoVerifications,
+            volunteerApplications,
+            pendingNgos,
+            totalPending,
+        };
+    }
 }
