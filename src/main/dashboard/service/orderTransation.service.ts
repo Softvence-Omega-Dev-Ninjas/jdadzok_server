@@ -62,12 +62,31 @@ export class OrderTransactionService {
                 skip,
                 take: limit,
                 orderBy: { createdAt: "desc" },
-                include: {
-                    buyer: { include: { profile: true } },
-                    product: { include: { seller: { include: { profile: true } } } },
-                    payments: true,
+
+                select: {
+                    id: true,
+                    totalPrice: true,
+                    status: true,
+                    createdAt: true,
+
+                    buyer: {
+                        select: {
+                            profile: { select: { name: true } },
+                        },
+                    },
+                    product: {
+                        select: {
+                            title: true,
+                            seller: {
+                                select: {
+                                    profile: { select: { name: true } },
+                                },
+                            },
+                        },
+                    },
                 },
             }),
+
             this.prisma.order.count({ where }),
         ]);
 
