@@ -87,18 +87,21 @@ export class UserManagementService {
         if (status === "active") where.bans = { none: {} };
         if (status === "suspended") where.bans = { some: { isActive: true } };
         if (role) where.role = role;
+
         const users = await this.prisma.user.findMany({
             where,
             skip: (page - 1) * limit,
             take: limit,
             include: {
                 profile: true,
-                bans: { where: { isActive: true } }, // only active bans
+                bans: true,
+                metrics: true,
             },
             orderBy: { createdAt: "desc" },
         });
 
         const total = await this.prisma.user.count({ where });
+
         return {
             pagination: {
                 page,
@@ -108,11 +111,12 @@ export class UserManagementService {
             },
             data: users.map((u) => ({
                 id: u.id,
-                name: u.profile?.name,
+                name: u.profile?.name || "",
                 email: u.email,
                 role: u.role,
-                status: u.bans.length > 0 ? "suspended" : "active",
+                status: u.bans?.length > 0 ? "suspended" : "active",
                 level: u.capLevel,
+                points: u.metrics?.activityScore || 0,
                 joinedAt: u.createdAt,
             })),
         };

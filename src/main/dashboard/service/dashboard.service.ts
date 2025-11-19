@@ -136,22 +136,56 @@ export class DashboardService {
             },
         };
     }
-    async getPendingApplications() {
-        const ngoVerifications = await this.prisma.ngoVerification.count({
+    async getPendingApplicationsDetailed() {
+        // Pending NGO verifications
+        const ngoVerifications = await this.prisma.ngoVerification.findMany({
             where: { status: "PENDING" },
+            select: {
+                id: true,
+                ngo: {
+                    select: {
+                        profile: { select: { title: true } }, // NGO title from profile
+                    },
+                },
+                createdAt: true,
+            },
         });
-        const volunteerApplications = await this.prisma.volunteerApplication.count({
+
+        const ngoVerificationFormatted = ngoVerifications.map((nv) => ({
+            id: nv.id,
+            title: nv.ngo.profile?.title || "Untitled NGO", // fallback if title missing
+            applicationTime: nv.createdAt,
+            type: "Ngo Verification",
+        }));
+
+        // Pending volunteer project applications
+        const volunteerApplications = await this.prisma.volunteerApplication.findMany({
             where: { status: "PENDING" },
+            select: {
+                id: true,
+                project: { select: { title: true } },
+                createdAt: true,
+            },
         });
-        const pendingNgos = await this.prisma.ngo.count({
-            where: { isVerified: false },
-        });
-        const totalPending = pendingNgos + volunteerApplications;
-        return {
-            ngoVerifications,
-            volunteerApplications,
-            pendingNgos,
-            totalPending,
-        };
+
+        const volunteerApplicationsFormatted = volunteerApplications.map((va) => ({
+            id: va.id,
+            title: va.project.title,
+            applicationTime: va.createdAt,
+            type: "Project Verification",
+        }));
+
+        // Combine both for admin dashboard
+        const pendingApplications = [
+            ...ngoVerificationFormatted,
+            ...volunteerApplicationsFormatted,
+        ];
+
+        // Sort by applicationTime descending
+        pendingApplications.sort(
+            (a, b) => b.applicationTime.getTime() - a.applicationTime.getTime(),
+        );
+
+        return pendingApplications;
     }
 }
