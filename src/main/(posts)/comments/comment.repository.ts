@@ -8,63 +8,43 @@ export class CommentRepository {
 
     // fix comment
     async createComment(data: CreateCommentDto) {
-        return await this.prisma.$transaction(async (tx) => {
-            await tx.comment.create({
-                data: {
-                    ...data,
-                    postId: data.postId!,
-                    authorId: data.authorId!,
-                },
-            });
-
-            // Update PostMetrics totalComments
-            await tx.postMetrics.upsert({
-                where: { postId: data.postId! },
-                create: {
-                    postId: data.postId!,
-                    totalComments: 1,
-                },
-                update: {
-                    totalComments: { increment: 1 },
-                    lastUpdated: new Date(),
-                },
-            });
-
-            // Update UserMetrics (increase total comments for the user)
-            await tx.userMetrics.upsert({
-                where: { userId: data.authorId! },
-                create: {
-                    userId: data.authorId!,
-                    totalComments: 1,
-                },
-                update: {
-                    totalComments: { increment: 1 },
-                    lastUpdated: new Date(),
-                },
-            });
-            const post = await this.prisma.post.findFirst({
-                where: {
-                    id: data.postId,
-                },
-            });
-            const adminScore = await this.prisma.activityScore.findFirst();
-            const userMatrix = await this.prisma.userMetrics.findFirst({
-                where: {
-                    userId: post?.authorId,
-                },
-            });
-
-            if (userMatrix) {
-                await this.prisma.userMetrics.update({
-                    where: {
-                        userId: post?.authorId,
-                    },
+        return await this.prisma.$transaction(
+            async (tx) => {
+                const comment = await tx.comment.create({
                     data: {
-                        activityScore: { increment: adminScore?.comment },
+                        ...data,
+                        postId: data.postId!,
+                        authorId: data.authorId!,
                     },
                 });
-            }
-        });
+                await tx.postMetrics.upsert({
+                    where: { postId: data.postId! },
+                    create: { postId: data.postId!, totalComments: 1 },
+                    update: { totalComments: { increment: 1 }, lastUpdated: new Date() },
+                });
+                await tx.userMetrics.upsert({
+                    where: { userId: data.authorId! },
+                    create: { userId: data.authorId!, totalComments: 1 },
+                    update: { totalComments: { increment: 1 }, lastUpdated: new Date() },
+                });
+                const post = await tx.post.findUnique({ where: { id: data.postId! } });
+                const adminScore = await tx.activityScore.findFirst();
+                if (post && adminScore) {
+                    await tx.userMetrics.update({
+                        where: { userId: post.authorId },
+                        data: { activityScore: { increment: adminScore.comment } },
+                    });
+                }
+                return {
+                    commentId: comment.id,
+                    postId: comment.postId,
+                    authorId: comment.authorId,
+                    text: comment.text,
+                    createdAt: comment.createdAt,
+                };
+            },
+            { timeout: 10000 },
+        );
     }
 
     async getCommentsForPost(postId: string) {
