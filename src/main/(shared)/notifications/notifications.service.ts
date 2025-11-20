@@ -7,15 +7,13 @@ import { ReadNotificationDto } from "./dto/read.notification.dto";
 
 @Injectable()
 export class NotificationsService {
-    constructor(private readonly prisma: PrismaService) { }
-
+    constructor(private readonly prisma: PrismaService) {}
 
     // ---------get all notifications
     @HandleError("Failed to get all notifications")
     async getAllNotification() {
         return this.prisma.notification.findMany({});
     }
-
 
     // Mark notification as READ
     @HandleError("Failed to mark notification as read")

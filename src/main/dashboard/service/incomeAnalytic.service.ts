@@ -1,19 +1,117 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
+import { endOfMonth, startOfMonth, subMonths } from "date-fns";
 
 @Injectable()
 export class IncomeAnalyticService {
     constructor(private readonly prisma: PrismaService) {}
 
     async getOverview() {
-        let verifiedNgoAndCommunity = 0;
-        const totaVerifiedNgo = await this.prisma.ngo.count({ where: { isVerified: true } });
-        const totalVerifiedCommunity = await this.prisma.community.count({
-            where: { isVerified: true },
+        const now = new Date();
+        const startThisMonth = startOfMonth(now);
+        const startLastMonth = startOfMonth(subMonths(now, 1));
+        const endLastMonth = endOfMonth(subMonths(now, 1));
+
+        const usersThisMonth = await this.prisma.user.count({
+            where: { createdAt: { gte: startThisMonth } },
         });
-        verifiedNgoAndCommunity = totaVerifiedNgo + totalVerifiedCommunity;
+        const usersLastMonth = await this.prisma.user.count({
+            where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
+        });
+        const userIncreasePercent =
+            usersLastMonth === 0 ? 100 : ((usersThisMonth - usersLastMonth) / usersLastMonth) * 100;
+
+        const totalCommunities = await this.prisma.ngo.count();
+        const communitiesThisMonth = await this.prisma.ngo.count({
+            where: { foundationDate: { gte: startThisMonth } },
+        });
+        const communitiesLastMonth = await this.prisma.ngo.count({
+            where: { foundationDate: { gte: startLastMonth, lte: endLastMonth } },
+        });
+        const communitiesIncreasePercent =
+            communitiesLastMonth === 0
+                ? 100
+                : ((communitiesThisMonth - communitiesLastMonth) / communitiesLastMonth) * 100;
+
+        const activeVolunteerProjectsCount = await this.prisma.volunteerProject.count({
+            where: { isActive: true },
+        });
+        const volunteerProjectsThisMonth = await this.prisma.volunteerProject.count({
+            where: { createdAt: { gte: startThisMonth } },
+        });
+        const volunteerProjectsLastMonth = await this.prisma.volunteerProject.count({
+            where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
+        });
+        const volunteerProjectsIncreasePercent =
+            volunteerProjectsLastMonth === 0
+                ? 100
+                : ((volunteerProjectsThisMonth - volunteerProjectsLastMonth) /
+                      volunteerProjectsLastMonth) *
+                  100;
+
+        const promoThisMonthAgg = await this.prisma.product.aggregate({
+            where: { createdAt: { gte: startThisMonth } },
+            _sum: { promotionFee: true },
+        });
+        const promoPrevMonthAgg = await this.prisma.product.aggregate({
+            where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
+            _sum: { promotionFee: true },
+        });
+
+        const promoThisMonth = promoThisMonthAgg._sum.promotionFee || 0;
+        const promoPrevMonth = promoPrevMonthAgg._sum.promotionFee || 0;
+
+        const promoIncreasePercent =
+            promoPrevMonth === 0 ? 100 : ((promoThisMonth - promoPrevMonth) / promoPrevMonth) * 100;
+
         return {
-            verifiedNgoAndCommunity,
+            usersThisMonth,
+            userIncreasePercent,
+            totalCommunities,
+            communitiesIncreasePercent,
+            activeVolunteerProjectsCount,
+            volunteerProjectsIncreasePercent,
+            marketplacePromotionEarningsThisMonth: promoThisMonth,
+            promoIncreasePercent,
+        };
+    }
+
+    async getRevenueGrowth() {
+        const data = [];
+
+        for (let i = 5; i >= 0; i--) {
+            const monthStart = startOfMonth(subMonths(new Date(), i));
+            const monthEnd = endOfMonth(subMonths(new Date(), i));
+            const total = await this.prisma.product.aggregate({
+                where: {
+                    createdAt: { gte: monthStart, lte: monthEnd },
+                },
+                _sum: {
+                    promotionFee: true,
+                },
+            });
+
+            data.push({
+                month: monthStart.toLocaleString("en-US", { month: "long" }),
+                total: total._sum.promotionFee || 0,
+            });
+        }
+
+        return { revenueTrends: data };
+    }
+
+    async getRevenueCategory() {
+        const volunteer = await this.prisma.volunteerProject.count();
+        const promotions = await this.prisma.product.count({
+            where: { promotionFee: { gt: 0 } },
+        });
+        const donations = 0;
+        const total = volunteer + promotions + donations;
+
+        return {
+            volunteerProjects: total ? Math.round((volunteer / total) * 100) : 0,
+            marketplacePromotions: total ? Math.round((promotions / total) * 100) : 0,
+            donations: total ? Math.round((donations / total) * 100) : 0,
         };
     }
 }
