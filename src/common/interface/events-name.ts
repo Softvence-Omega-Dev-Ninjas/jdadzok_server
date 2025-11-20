@@ -1,4 +1,4 @@
-import { Comment, Community, Ngo, PostEvent, UserRegistration } from "./events-payload";
+import { Comment, Community, Custom, Ngo, PostEvent, UserRegistration } from "./events-payload";
 
 //  EVENT TYPE CONSTANTS (All in UPPERCASE for consistency)
 export const EVENT_TYPES = {
@@ -24,6 +24,8 @@ export const EVENT_TYPES = {
 
     MESSAGE_CREATE: "message.crate",
     CONVERSATION_CREATE: "conversation.create",
+
+    CUSTOM_CREATE: "custom.create",
 } as const;
 
 // Type-safe keys for autocomplete
@@ -51,5 +53,6 @@ export type EventPayloadMap = {
     [EVENT_TYPES.NGO_UPDATE]: Ngo;
     [EVENT_TYPES.NGO_DELETE]: Ngo;
 
+    [EVENT_TYPES.CUSTOM_CREATE]: Custom;
     [EVENT_TYPES.MESSAGE_CREATE]?: any;
 };

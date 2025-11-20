@@ -1,6 +1,7 @@
 import {
     CommentMeta,
     CommunityMeta,
+    CustomMeta,
     MessageMeta,
     NgoMeta,
     PostMeta,
@@ -78,5 +79,12 @@ export interface Message extends BaseEvent<MessageMeta> {
         toUserId: string;
         content: string;
         sendEmail: boolean;
+    };
+}
+export interface Custom extends BaseEvent<CustomMeta> {
+    info: {
+        title: string;
+        message: string;
+        recipients: { id: string; email: string }[];
     };
 }

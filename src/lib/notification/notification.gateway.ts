@@ -1,5 +1,5 @@
 import { EVENT_TYPES } from "@common/interface/events-name";
-import { Community, Ngo, Notification, PostEvent } from "@common/interface/events-payload";
+import { Community, Ngo, Notification, PostEvent, Custom } from "@common/interface/events-payload";
 import { PayloadForSocketClient } from "@common/interface/socket-client-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable, Logger } from "@nestjs/common";
@@ -86,6 +86,7 @@ export class NotificationGateway
                 message: user.NotificationToggle?.[0]?.message || false,
                 ngo: user.NotificationToggle?.[0]?.ngo ?? true,
                 userRegistration: user.NotificationToggle?.[0]?.userRegistration || false,
+                Custom: user.NotificationToggle?.[0]?.Custom || false,
             };
 
             client.data.user = payloadForSocketClient;

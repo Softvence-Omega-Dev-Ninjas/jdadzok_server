@@ -10,4 +10,5 @@ export type PayloadForSocketClient = {
     message: boolean;
     userRegistration: boolean;
     ngo: boolean;
+    Custom: boolean;
 };

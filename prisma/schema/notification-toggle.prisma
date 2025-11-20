@@ -9,6 +9,7 @@ model NotificationToggle {
   message          Boolean @default(true)
   userRegistration Boolean @default(true)
   ngo              Boolean @default(true)
+  Custom           Boolean @default(true)
   userId           String  @unique
   user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 

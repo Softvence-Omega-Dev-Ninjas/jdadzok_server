@@ -39,3 +39,8 @@ export interface NgoMeta {
     ngoId: string;
     ownerBy: string;
 }
+
+export interface CustomMeta {
+    title: string;
+    message: string;
+}
