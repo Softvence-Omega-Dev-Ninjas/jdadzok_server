@@ -114,4 +114,82 @@ export class IncomeAnalyticService {
             donations: total ? Math.round((donations / total) * 100) : 0,
         };
     }
+
+    async getTopSellers() {
+        const products = await this.prisma.product.findMany({
+            include: {
+                orders: true,
+                seller: {
+                    include: {
+                        profile: true,
+                    },
+                },
+            },
+        });
+
+        const sellerMap: Record<
+            string,
+            {
+                sellerId: string;
+                sellerName: string | null;
+                totalOrders: number;
+                totalRevenue: number;
+            }
+        > = {};
+
+        for (const product of products) {
+            const sellerId = product.sellerId;
+            const sellerName = product.seller?.profile?.name ?? null;
+
+            if (!sellerMap[sellerId]) {
+                sellerMap[sellerId] = {
+                    sellerId,
+                    sellerName,
+                    totalOrders: 0,
+                    totalRevenue: 0,
+                };
+            }
+
+            const totalOrders = product.orders.length;
+            const totalRevenue = product.orders.reduce((sum, o) => sum + o.totalPrice, 0);
+
+            sellerMap[sellerId].totalOrders += totalOrders;
+            sellerMap[sellerId].totalRevenue += totalRevenue;
+        }
+
+        const topSellers = Object.values(sellerMap).sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+        const orders = await this.prisma.order.findMany({
+            select: {
+                product: { select: { promotionFee: true } },
+                createdAt: true,
+            },
+        });
+
+        const totalCommission = orders.reduce(
+            (sum, order) => sum + (order.product?.promotionFee || 0),
+            0,
+        );
+
+        const now = new Date();
+        const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+        const ordersThisMonth = orders.filter((o) => o.createdAt >= startOfThisMonth).length;
+        const ordersLastMonth = orders.filter(
+            (o) => o.createdAt >= startOfLastMonth && o.createdAt <= endOfLastMonth,
+        ).length;
+
+        const orderIncreaseRate =
+            ordersLastMonth > 0
+                ? Number((((ordersThisMonth - ordersLastMonth) / ordersLastMonth) * 100).toFixed(1))
+                : 100;
+
+        return {
+            topSellers,
+            totalCommission: Number(totalCommission.toFixed(2)),
+            orderIncreaseRate,
+        };
+    }
 }
