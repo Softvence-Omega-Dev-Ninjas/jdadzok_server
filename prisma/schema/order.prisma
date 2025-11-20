@@ -15,9 +15,9 @@ model Order {
   status     OrderStatus @default(PENDING)
 
   // Shipping information
-  shippingAddress String? @db.Text
+  shippingAddress String?   @db.Text
   trackingNumber  String?
-  payments Payment[]
+  payments        Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -27,5 +27,3 @@ model Order {
   @@index([createdAt])
   @@map("orders")
 }
-
-

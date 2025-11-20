@@ -39,5 +39,3 @@ model UserNotification {
 
   @@unique([userId, notificationId])
 }
-
-

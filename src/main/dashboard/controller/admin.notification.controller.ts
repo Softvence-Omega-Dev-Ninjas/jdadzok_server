@@ -16,13 +16,12 @@ export class AdminNotificationController {
         return this.adminNotificationService.sendCustomNotification(dto);
     }
 
-
     // ------------scheduled notifications---------------
     @ApiOperation({ summary: "Schedule a notification for later" })
-@Post("schedule-custom-notification")
-async scheduleNotification(@Body() dto: CustomNotificationDto) {
-    return this.adminNotificationService.scheduleNotification(dto);
-}
+    @Post("schedule-custom-notification")
+    async scheduleNotification(@Body() dto: CustomNotificationDto) {
+        return this.adminNotificationService.scheduleNotification(dto);
+    }
     @ApiOperation({ summary: "Get notification stats: total, read, rate, last month" })
     @Get("stats")
     async getStats() {
