@@ -10,12 +10,21 @@ import { VerifiedUser } from "@type/shared.types";
 export class IncomeAnalyticController {
     constructor(private readonly incomeAnalyticService: IncomeAnalyticService) {}
 
-    @ApiOperation({ summary: "Super Admin: Get all community & NGO overview statistics" })
+    @ApiOperation({ summary: "Super Admin: Get Income & Analytic overview statistics" })
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Get("overview")
     async getOverview(@GetVerifiedUser() user: VerifiedUser) {
         if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbidden access");
         return this.incomeAnalyticService.getOverview();
+    }
+
+    @ApiOperation({ summary: "Super Admin: Get all community & NGO overview statistics" })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get("revenue-growth")
+    async getRevenueGrowth(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbidden access");
+        return this.incomeAnalyticService.getRevenueGrowth();
     }
 }

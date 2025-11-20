@@ -1,5 +1,5 @@
 import { EVENT_TYPES } from "@common/interface/events-name";
-import { Community, Ngo, Notification, PostEvent, Custom } from "@common/interface/events-payload";
+import { Community, Ngo, Notification, PostEvent } from "@common/interface/events-payload";
 import { PayloadForSocketClient } from "@common/interface/socket-client-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable, Logger } from "@nestjs/common";
