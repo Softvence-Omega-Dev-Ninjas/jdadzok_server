@@ -13,7 +13,7 @@ COPY prisma.config.ts ./
 COPY prisma ./prisma
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy rest of the project files
 COPY . .
@@ -38,7 +38,7 @@ COPY --from=builder /app/prisma.config.ts ./
 COPY --from=builder /app/prisma ./prisma
 
 # Install production dependencies
-RUN npm ci --only=production
+RUN npm install
 
 # Set production env
 ENV NODE_ENV=production
