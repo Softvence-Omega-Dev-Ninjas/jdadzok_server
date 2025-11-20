@@ -6,7 +6,7 @@ import { AdminNotificationService } from "../service/admin.notification.service"
 @ApiTags("Notification & Announcement Management")
 @Controller("notification-admin")
 export class AdminNotificationController {
-    constructor(private readonly adminNotificationService: AdminNotificationService) {}
+    constructor(private readonly adminNotificationService: AdminNotificationService) { }
     @ApiOperation({ summary: "Super Admin: create custom notification" })
     // @ApiBearerAuth()
     // @ValidateSuperAdmin()
@@ -21,4 +21,13 @@ export class AdminNotificationController {
     async getStats() {
         return this.adminNotificationService.getNotificationStats();
     }
+
+    // ----------LATEST 6 notications----------
+    @ApiOperation({ summary: "Get latest  notifications" })
+    @Get("latest")
+    async getLatestNotifications() {
+        return this.adminNotificationService.getLatestNotifications();
+    }
+
+
 }
