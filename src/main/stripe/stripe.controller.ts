@@ -4,8 +4,8 @@ import { Body, Controller, Get, Headers, Post, Req, UseGuards } from "@nestjs/co
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { VerifiedUser } from "@type/shared.types";
 import { Request } from "express";
-import { StripeService } from "./stripe.service";
 import { CreatePayoutDto } from "./dto/create-payout.dto";
+import { StripeService } from "./stripe.service";
 
 @Controller("stripe")
 export class StripeController {
