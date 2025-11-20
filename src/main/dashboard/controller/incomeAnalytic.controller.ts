@@ -19,12 +19,21 @@ export class IncomeAnalyticController {
         return this.incomeAnalyticService.getOverview();
     }
 
-    @ApiOperation({ summary: "Super Admin: Get all community & NGO overview statistics" })
+    @ApiOperation({ summary: "Super Admin: Get Income & Analytic Revenue Growth" })
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Get("revenue-growth")
     async getRevenueGrowth(@GetVerifiedUser() user: VerifiedUser) {
         if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbidden access");
         return this.incomeAnalyticService.getRevenueGrowth();
+    }
+
+    @ApiOperation({ summary: "Super Admin: Get Income & Analytic Revenue Category" })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get("revenue-category")
+    async getRevenueCategory(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbidden access");
+        return this.incomeAnalyticService.getRevenueCategory();
     }
 }

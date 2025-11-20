@@ -11,7 +11,7 @@ export class AdminNotificationService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
-    ) { }
+    ) {}
 
     async sendCustomNotification(dto: CustomNotificationDto) {
         const users = await this.prisma.user.findMany({
@@ -128,5 +128,4 @@ export class AdminNotificationService {
         });
         return notifications;
     }
-
 }
