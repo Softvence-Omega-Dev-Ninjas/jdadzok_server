@@ -56,10 +56,19 @@ export class NotificationToggleDto {
     })
     @IsOptional()
     @IsBoolean()
-    userRegistration?: boolean = false;
+    userRegistration?: boolean = true;
 
     @ApiPropertyOptional({ default: true })
     @IsOptional()
     @IsBoolean()
     ngo?: boolean = true;
+
+
+    @ApiPropertyOptional({ default: true })
+    @IsOptional()
+    @IsBoolean()
+    Custom?: boolean = true;
+
+
+
 }
