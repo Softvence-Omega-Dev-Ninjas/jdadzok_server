@@ -56,9 +56,29 @@ export class CommentRepository {
                 parentCommentId: null,
             },
             include: {
-                author: true,
+                author: {
+                    include: {
+                        profile: {
+                            select: {
+                                name: true,
+                                avatarUrl: true,
+                            },
+                        },
+                    },
+                },
                 replies: {
-                    include: { author: true },
+                    include: {
+                        author: {
+                            include: {
+                                profile: {
+                                    select: {
+                                        name: true,
+                                        avatarUrl: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
                 likes: true,
             },
