@@ -4,15 +4,20 @@ import { Custom } from "@common/interface/events-payload";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { SchedulerRegistry } from "@nestjs/schedule";
+import { DateTime } from "luxon";
 import { CustomNotificationDto } from "../dto/custom-notification.dto";
-
+import { parseCustomDate } from "../dto/parse-custom-date";
 @Injectable()
 export class AdminNotificationService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
+        private readonly schedulerRegistry: SchedulerRegistry,
     ) {}
 
+    // --------schedule notification ---------
+    @HandleError("Failed to send custom notification")
     async sendCustomNotification(dto: CustomNotificationDto) {
         const users = await this.prisma.user.findMany({
             where: { NotificationToggle: { some: { Custom: true } } },
@@ -23,7 +28,7 @@ export class AdminNotificationService {
             throw new NotFoundException("No users found with Custom toggle ON");
         }
 
-        // Save notification for first user (or system user if you prefer)
+        //---------- Save notification for first user ------------
         const notification = await this.prisma.notification.create({
             data: {
                 title: dto.title,
@@ -52,12 +57,77 @@ export class AdminNotificationService {
         return notification;
     }
 
+    // -------- ---------schedule notification ----------------
+    @HandleError("Failed to schedule custom notification")
+    async scheduleNotification(dto: CustomNotificationDto) {
+        if (!dto.scheduleTime) {
+            return { error: "scheduleTime is required for scheduling" };
+        }
+
+        const scheduleDate = parseCustomDate(dto.scheduleTime);
+        if (!scheduleDate) {
+            return { error: "Invalid scheduleTime format. Use DD-MM-h.mm AM/PM" };
+        }
+
+        const now = new Date();
+        if (scheduleDate <= now) {
+            return { error: "Schedule time must be in the future" };
+        }
+
+        const delay = scheduleDate.getTime() - now.getTime();
+        const jobName = `custom-notification-${Date.now()}`;
+
+        const timeout = setTimeout(async () => {
+            const users = await this.prisma.user.findMany({
+                where: { NotificationToggle: { some: { Custom: true } } },
+                select: { id: true, email: true },
+            });
+
+            if (!users.length) return;
+
+            const notification = await this.prisma.notification.create({
+                data: {
+                    title: dto.title,
+                    message: dto.message,
+                    userId: users[0].id,
+                    type: "Custom",
+                },
+            });
+
+            console.log("schedule notification now", notification);
+            const recipients = users.map((u) => ({ id: u.id, email: u.email }));
+            const payload: Custom = {
+                action: "CREATE",
+                meta: { title: dto.title, message: dto.message },
+                info: { title: dto.title, message: dto.message, recipients },
+            };
+            this.eventEmitter.emit(EVENT_TYPES.CUSTOM_CREATE, payload);
+
+            console.log(`Scheduled notification sent at UTC: ${scheduleDate.toISOString()}`);
+            this.schedulerRegistry.deleteTimeout(jobName);
+        }, delay);
+
+        this.schedulerRegistry.addTimeout(jobName, timeout);
+
+        // Normalize to local time for API response
+        const normalizedTime = DateTime.fromJSDate(scheduleDate)
+            .setZone("Asia/Dhaka") // your timezone
+            .toFormat("yyyy-LL-dd hh:mm a"); // e.g., "2025-11-21 03:40 AM"
+
+        return {
+            message: "Notification scheduled successfully",
+            scheduleTimeUTC: scheduleDate.toISOString(),
+            scheduleTimeLocal: normalizedTime,
+            jobName,
+        };
+    }
+
     // -------------get notification get---------------
     @HandleError(" failed to getNotificationStats")
     async getNotificationStats() {
         const now = new Date();
 
-        // Today start & end
+        // ------------Today start & end--------------
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const endOfToday = new Date(startOfToday);
         endOfToday.setDate(endOfToday.getDate() + 1);

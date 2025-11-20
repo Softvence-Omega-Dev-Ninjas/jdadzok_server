@@ -10,7 +10,5 @@ model Payment {
   updatedAt DateTime      @updatedAt
 
   @@index([orderId])
- 
   @@map("payments")
 }
-
