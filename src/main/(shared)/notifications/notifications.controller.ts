@@ -1,15 +1,7 @@
 import { GetUser, ValidateAuth } from "@common/jwt/jwt.decorator";
 import { TResponse } from "@common/utils/response.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
-import {
-    Body,
-    Controller,
-    Get,
-    Patch,
-    UseGuards,
-    UsePipes,
-    ValidationPipe
-} from "@nestjs/common";
+import { Body, Controller, Get, Patch, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { NotificationToggleDto } from "./dto/notification-toggle";
 import { ReadNotificationDto } from "./dto/read.notification.dto";
@@ -19,7 +11,7 @@ import { NotificationsService } from "./notifications.service";
 @ApiBearerAuth()
 @Controller("notifications")
 export class NotificaitonsController {
-    constructor(private readonly NotificationsService: NotificationsService) { }
+    constructor(private readonly NotificationsService: NotificationsService) {}
 
     // -----------get all notification show---
     @ApiBearerAuth()
@@ -34,7 +26,7 @@ export class NotificaitonsController {
     @ValidateAuth()
     @ApiOperation({ summary: "Mark notification as read" })
     @Patch("read")
-    async readOne(@Body() dto: ReadNotificationDto, @GetUser("userId") userId: string,) {
+    async readOne(@Body() dto: ReadNotificationDto, @GetUser("userId") userId: string) {
         return this.NotificationsService.markAsRead(dto, userId);
     }
 

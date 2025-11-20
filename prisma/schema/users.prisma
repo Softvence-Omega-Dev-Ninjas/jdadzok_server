@@ -37,9 +37,9 @@ model User {
   orders   Order[]    @relation("UserOrders")
   wishlist Wishlist[]
 
-  stripeAccountId String?
+  stripeAccountId  String?
   stripeCustomerId String?
-  sellerEarnings  SellerEarnings?
+  sellerEarnings   SellerEarnings?
 
   // Volunteer system
   volunteerApps     VolunteerApplication[]
@@ -108,16 +108,16 @@ model User {
   VolunteerApplication VolunteerApplication[] @relation("ConfirmedByNgo")
 
   // Calling relations
-  hostedCalls    Calling[]       @relation("HostedCalls")
+  hostedCalls Calling[] @relation("HostedCalls")
   // activityScores ActivityScore[]
 
   // ----------donation relation -----------`
   donations Donations[]
+  withdraws Withdraw[]
 
   @@index([email])
   @@index([capLevel])
   @@index([role])
   @@index([createdAt])
   @@map("users")
-  withdraws Withdraw[]
 }
