@@ -1,3 +1,4 @@
+import { HandleError } from "@common/error/handle-error.decorator";
 import { EVENT_TYPES } from "@common/interface/events-name";
 import { Custom } from "@common/interface/events-payload";
 import { PrismaService } from "@lib/prisma/prisma.service";
@@ -10,7 +11,7 @@ export class AdminNotificationService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
-    ) {}
+    ) { }
 
     async sendCustomNotification(dto: CustomNotificationDto) {
         const users = await this.prisma.user.findMany({
@@ -45,43 +46,87 @@ export class AdminNotificationService {
             },
         };
 
-        console.log("the paload", payload);
+        console.log("the payload", payload);
         this.eventEmitter.emit(EVENT_TYPES.CUSTOM_CREATE, payload);
 
         return notification;
     }
 
+    // -------------get notification get---------------
+    @HandleError(" failed to getNotificationStats")
     async getNotificationStats() {
-        // Total notifications
+        const now = new Date();
+
+        // Today start & end
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const endOfToday = new Date(startOfToday);
+        endOfToday.setDate(endOfToday.getDate() + 1);
+
+        // This month start
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        // Last month start + this month start
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+        // --------------- Total Count ----------------
         const total = await this.prisma.notification.count();
 
-        // Read notifications
+        // --------------- Read Count ----------------
         const readCount = await this.prisma.notification.count({
             where: { read: true },
         });
 
-        // Read rate (%)
-        const readRate = total ? Math.round((readCount / total) * 100) : 0;
+        // --------------- Read Rate (Open Rate) ----------------
+        const openRate = total ? Math.round((readCount / total) * 100) : 0;
 
-        // Last month notifications count
-        const now = new Date();
-        const firstDayCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        // --------------- Today Count ----------------
+        const todayCount = await this.prisma.notification.count({
+            where: {
+                createdAt: { gte: startOfToday, lt: endOfToday },
+            },
+        });
 
+        // --------------- This Month Count ----------------
+        const thisMonthCount = await this.prisma.notification.count({
+            where: {
+                createdAt: { gte: startOfMonth, lt: endOfToday },
+            },
+        });
+
+        // --------------- Last Month Count ----------------
         const lastMonthCount = await this.prisma.notification.count({
             where: {
                 createdAt: {
-                    gte: firstDayLastMonth,
-                    lt: firstDayCurrentMonth,
+                    gte: startOfLastMonth,
+                    lt: startOfMonth,
                 },
             },
         });
 
         return {
-            total,
-            readCount,
-            readRate,
+            totalNotifications: total,
+            readNotifications: readCount,
+            openRate,
+            todayCount,
+            thisMonthCount,
             lastMonthCount,
         };
     }
+    // -------------- latest 6 notification  with title date,message & time, type ------
+    @HandleError("getLatestNotifications")
+    async getLatestNotifications() {
+        const notifications = await this.prisma.notification.findMany({
+            orderBy: { createdAt: "desc" },
+            take: 6,
+            select: {
+                id: true,
+                title: true,
+                message: true,
+                createdAt: true,
+                type: true,
+            },
+        });
+        return notifications;
+    }
+
 }

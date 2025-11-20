@@ -1,12 +1,53 @@
 import { HandleError } from "@common/error/handle-error.decorator";
 import { successResponse, TResponse } from "@common/utils/response.util";
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { NotificationToggleDto } from "./dto/notification-toggle";
+import { ReadNotificationDto } from "./dto/read.notification.dto";
 
 @Injectable()
 export class NotificationsService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
+
+
+    // ---------get all notifications
+    @HandleError("Failed to get all notifications")
+    async getAllNotification() {
+        return this.prisma.notification.findMany({});
+    }
+
+
+    // Mark notification as READ
+    @HandleError("Failed to mark notification as read")
+    async markAsRead(dto: ReadNotificationDto, userId: string) {
+        const exists = await this.prisma.notification.findFirst({
+            where: {
+                id: dto.notificationId,
+                userId,
+            },
+        });
+
+        if (!exists) {
+            throw new NotFoundException("Notification not found");
+        }
+
+        return this.prisma.notification.update({
+            where: { id: dto.notificationId },
+            data: { read: true },
+        });
+    }
+
+    //  Mark ALL notifications as READ
+    @HandleError("Failed to mark all notifications as read")
+    async markAllAsRead(userId: string) {
+        await this.prisma.notification.updateMany({
+            where: { userId, read: false },
+            data: { read: true },
+        });
+
+        return { message: "All notifications marked as read" };
+    }
+
     // --------------  get the notification    -----------------------
     @HandleError("Failed to get notification setting")
     async getNotificationSetting(userId: string): Promise<TResponse<any>> {

@@ -1,6 +1,4 @@
-import { Roles } from "@common/decorators/roles.decorator";
-import { RoleGuard } from "@common/guards/role.guard";
-import { GetUser, GetVerifiedUser, ValidateAuth } from "@common/jwt/jwt.decorator";
+import { GetUser, ValidateAuth } from "@common/jwt/jwt.decorator";
 import { TResponse } from "@common/utils/response.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
@@ -8,43 +6,47 @@ import {
     Controller,
     Get,
     Patch,
-    Put,
     UseGuards,
     UsePipes,
-    ValidationPipe,
+    ValidationPipe
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { TUser, VerifiedUser } from "@type/index";
 import { NotificationToggleDto } from "./dto/notification-toggle";
+import { ReadNotificationDto } from "./dto/read.notification.dto";
 import { NotificationsService } from "./notifications.service";
 @ApiTags("Notification Setting")
 @ValidateAuth()
 @ApiBearerAuth()
 @Controller("notifications")
 export class NotificaitonsController {
-    constructor(private readonly NotificationsService: NotificationsService) {}
+    constructor(private readonly NotificationsService: NotificationsService) { }
 
-    @UseGuards(JwtAuthGuard)
-    async fetchSystemAdminNotificaiton(@GetUser() user: TUser) {
-        try {
-            console.info(user);
-            return "system admin notificaiton";
-        } catch (err) {
-            return err;
-        }
+    // -----------get all notification show---
+    @ApiBearerAuth()
+    @ValidateAuth()
+    @ApiOperation({ summary: "Get all notification" })
+    @Get("all")
+    async getAllNotification() {
+        return this.NotificationsService.getAllNotification();
+    }
+    // ----------------read notification---------------
+    @ApiBearerAuth()
+    @ValidateAuth()
+    @ApiOperation({ summary: "Mark notification as read" })
+    @Patch("read")
+    async readOne(@Body() dto: ReadNotificationDto, @GetUser("userId") userId: string,) {
+        return this.NotificationsService.markAsRead(dto, userId);
     }
 
-    @Put("mark-as-read")
-    @Roles("SUPER_ADMIN", "ADMIN")
-    @UseGuards(RoleGuard)
-    async markAsRead(@GetVerifiedUser() user: VerifiedUser) {
-        try {
-            console.info(user);
-            return "make as reads";
-        } catch (err) {
-            return err;
-        }
+    @ApiBearerAuth()
+    @ValidateAuth()
+    @ApiOperation({ summary: "Mark all notifications as read" })
+    @Patch("read-all")
+    async readAll(@GetUser("userId") userId: string) {
+        return this.NotificationsService.markAllAsRead(userId);
     }
+
+    //   ----------notification settings-------------
 
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)

@@ -45,7 +45,7 @@
 
             function connect() {
                 const token =
-                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ZmU0YzE2Ny1iOTRhLTQwOTctYWM1My04MzNjZjFjZjgzZGIiLCJyb2xlcyI6IlVTRVIiLCJlbWFpbCI6InNvZnR2YW5jZXdlYkBnbWFpbC5jb20iLCJpYXQiOjE3NjIyMDk0MjQsImV4cCI6MTc2OTk4NTQyNH0.4Uhox6U5eBwEgFrmPxucRl8mPCP_nPKazQ7OoJIQhZ0";
+                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YjVmZjFjNy1mZjZkLTRkODEtOWViNy1kOWE3M2E5ZDk2YWUiLCJyb2xlcyI6IlVTRVIiLCJlbWFpbCI6InNvZnR2YW5jZXdlYkBnbWFpbC5jb20iLCJpYXQiOjE3NjM2NTkwNDEsImV4cCI6MTc3MTQzNTA0MX0.hCiTmzGdI2UxhTv3nQe_va3rrUE_TLYSDiA56dWbpdI";
 
                 if (socket) socket.close();
 
@@ -80,6 +80,12 @@
                 });
                 socket.on("post.create", (data) => {
                     console.log("post Notification Received:", data);
+                    showNotification(data);
+                    playSound();
+                });
+
+                socket.on("custom.create", (data) => {
+                    console.log("post.comment Notification Received:", data);
                     showNotification(data);
                     playSound();
                 });

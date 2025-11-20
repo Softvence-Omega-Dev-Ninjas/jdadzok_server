@@ -16,7 +16,7 @@ export class NgoService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
-    ) {}
+    ) { }
 
     // create new ngo......
     // async createNgo(userId: string, dto: CreateNgoDto) {
@@ -60,12 +60,16 @@ export class NgoService {
     //         },
     //     });
     // }
+    // 
+
+
     async createNgo(userId: string, dto: CreateNgoDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
             throw new ForbiddenException("Unauthorized Access.");
         }
 
+        // Prevent duplicate NGO titles for same user
         const ngo = await this.prisma.ngo.findFirst({
             where: {
                 ownerId: userId,
@@ -76,6 +80,7 @@ export class NgoService {
             throw new BadRequestException("This User Create another NGO using this title.");
         }
 
+        // Create NGO
         const createdNgo = await this.prisma.ngo.create({
             data: {
                 owner: { connect: { id: userId } },
@@ -88,14 +93,48 @@ export class NgoService {
         });
 
         // --------------------------------------------------------------
-        // NOTIFICATION: Notify all users with NGO toggle ON
+        // NOTIFICATION SYSTEM
         // --------------------------------------------------------------
+
+        // Get all recipients with NGO toggle ON
         const recipients = await this.prisma.notificationToggle.findMany({
-            // where: { ngo: true },
+            where: { ngo: true },
             select: {
                 user: { select: { id: true, email: true } },
             },
         });
+
+        // Create main notification (system-level)
+        const notification = await this.prisma.notification.create({
+            data: {
+                type: "Ngo",
+                title: `New NGO Created: ${dto.profile?.title}`,
+                message: `${user.email} created a new NGO "${dto.profile?.title}"`,
+                userId: userId,   // creator receives the root notification (or system user)
+                entityId: createdNgo.id,
+                metadata: {
+                    ngoId: createdNgo.id,
+                    ngoTitle: dto.profile?.title,
+                    owner: user.email,
+                },
+            },
+        });
+
+        // Create UserNotification entries for each recipient
+        await this.prisma.$transaction(
+            recipients.map((r) =>
+                this.prisma.userNotification.create({
+                    data: {
+                        userId: r.user.id,
+                        notificationId: notification.id,
+                    },
+                })
+            )
+        );
+
+        // --------------------------------------------------------------
+        // EVENT EMITTER (optional – your existing logic)
+        // --------------------------------------------------------------
 
         const payload: Ngo = {
             action: "CREATE",
@@ -114,7 +153,6 @@ export class NgoService {
         };
 
         this.eventEmitter.emit(EVENT_TYPES.NGO_CREATE, payload);
-        // console.log(`handleNgoCreated called for ${payload.info.recipients.length} recipients`);
 
         return createdNgo;
     }

@@ -1,5 +1,5 @@
 import { EVENT_TYPES } from "@common/interface/events-name";
-import { Community, Ngo, Notification, PostEvent, Custom } from "@common/interface/events-payload";
+import { Community, Custom, Ngo, Notification, PostEvent } from "@common/interface/events-payload";
 import { PayloadForSocketClient } from "@common/interface/socket-client-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable, Logger } from "@nestjs/common";
@@ -23,8 +23,7 @@ import { PrismaService } from "../prisma/prisma.service";
 })
 @Injectable()
 export class NotificationGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger = new Logger(NotificationGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private userSockets = new Map<string, string>();
@@ -32,7 +31,7 @@ export class NotificationGateway
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
-    ) {}
+    ) { }
 
     @WebSocketServer()
     server: Server;
@@ -394,4 +393,46 @@ export class NotificationGateway
 
         this.logger.log("POST_CREATE processing complete");
     }
+
+
+
+    @OnEvent(EVENT_TYPES.CUSTOM_CREATE)
+    async handleCustomCreated(payload: Custom) {
+        this.logger.log("CUSTOM_CREATE EVENT RECEIVED");
+        this.logger.log(`Payload: ${JSON.stringify(payload, null, 2)}`);
+
+        if (!payload.info?.recipients?.length) {
+            this.logger.warn("No recipients → skipping");
+            return;
+        }
+
+        for (const r of payload.info.recipients) {
+            const clients = this.getClientsForUser(r.id);
+
+            if (clients.size === 0) {
+                this.logger.warn(`No active socket for user ${r.id}`);
+                continue;
+            }
+
+            const client = Array.from(clients).find(
+                (c) => c.data.user?.Custom === true,
+            );
+
+            if (!client) {
+                this.logger.warn(`User ${r.id} has socket but Custom toggle OFF`);
+                continue;
+            }
+
+            client.emit(EVENT_TYPES.CUSTOM_CREATE, {
+                type: EVENT_TYPES.CUSTOM_CREATE,
+                title: payload.info.title,
+                message: payload.info.message,
+                createdAt: new Date(),
+                meta: payload.meta,
+            });
+
+            this.logger.log(`CUSTOM_CREATE sent to ${r.id} (socket ${client.id})`);
+        }
+    }
+
 }
