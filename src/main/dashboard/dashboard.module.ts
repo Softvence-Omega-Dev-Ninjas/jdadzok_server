@@ -13,6 +13,8 @@ import { EventService } from "./service/event.service";
 import { MarketplaceManagementService } from "./service/marketplaceManagement.service";
 import { OrderTransactionService } from "./service/orderTransation.service";
 import { UserManagementService } from "./service/userManagement.service";
+import { IncomeAnalyticController } from "./controller/incomeAnalytic.controller";
+import { IncomeAnalyticService } from "./service/incomeAnalytic.service";
 
 @Module({
     controllers: [
@@ -22,7 +24,9 @@ import { UserManagementService } from "./service/userManagement.service";
         EventController,
         MarketplaceManagementController,
         OrderTransactionController,
+        IncomeAnalyticController,
         AdminNotificationController,
+
     ],
     providers: [
         DashboardService,
@@ -31,6 +35,7 @@ import { UserManagementService } from "./service/userManagement.service";
         EventService,
         MarketplaceManagementService,
         OrderTransactionService,
+        IncomeAnalyticService,
         AdminNotificationService,
     ],
 })

@@ -7,7 +7,6 @@ import { ProductQueryDto } from "../dto/producQuery.dto";
 export class MarketplaceManagementService {
     constructor(private readonly prisma: PrismaService) {}
 
-    // --- Stats for the top cards in screenshot ---
     async getMarketplaceStats() {
         // total products
         const totalProducts = await this.prisma.product.count();
