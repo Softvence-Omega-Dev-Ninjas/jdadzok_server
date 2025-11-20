@@ -26,7 +26,6 @@ import { IncomeAnalyticService } from "./service/incomeAnalytic.service";
         OrderTransactionController,
         IncomeAnalyticController,
         AdminNotificationController,
-
     ],
     providers: [
         DashboardService,
