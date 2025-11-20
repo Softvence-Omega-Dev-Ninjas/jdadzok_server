@@ -4,15 +4,17 @@ import { Custom } from "@common/interface/events-payload";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { SchedulerRegistry } from "@nestjs/schedule";
 import { CustomNotificationDto } from "../dto/custom-notification.dto";
-
 @Injectable()
 export class AdminNotificationService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
+        private readonly schedulerRegistry: SchedulerRegistry,
     ) { }
 
+    @HandleError("Failed to send custom notification")
     async sendCustomNotification(dto: CustomNotificationDto) {
         const users = await this.prisma.user.findMany({
             where: { NotificationToggle: { some: { Custom: true } } },
@@ -51,6 +53,64 @@ export class AdminNotificationService {
 
         return notification;
     }
+
+    // --------schedule notification ----
+    async scheduleNotification(dto: CustomNotificationDto) {
+        if (!dto.scheduleTime) {
+            return { error: "scheduleTime is required for scheduling" };
+        }
+
+        const scheduleDate = new Date(dto.scheduleTime);
+        if (scheduleDate <= new Date()) {
+            return { error: "Schedule time must be in the future" };
+        }
+
+        const delay = scheduleDate.getTime() - Date.now();
+        const jobName = `custom-notification-${Date.now()}`;
+
+        const timeout = setTimeout(async () => {
+            // Fetch users at execution time
+            const users = await this.prisma.user.findMany({
+                where: { NotificationToggle: { some: { Custom: true } } },
+                select: { id: true, email: true, NotificationToggle: true },
+            });
+
+            if (!users.length) return;
+
+            // Create notification for first user
+            const notification = await this.prisma.notification.create({
+                data: {
+                    title: dto.title,
+                    message: dto.message,
+                    userId: users[0].id,
+                    type: "Custom",
+                },
+            });
+            console.log(notification)
+            // Emit event
+            const recipients = users.map((u) => ({ id: u.id, email: u.email }));
+            const payload: Custom = {
+                action: "CREATE",
+                meta: { title: dto.title, message: dto.message },
+                info: { title: dto.title, message: dto.message, recipients },
+            };
+            this.eventEmitter.emit(EVENT_TYPES.CUSTOM_CREATE, payload);
+
+            console.log(`Scheduled notification sent at: ${scheduleDate}`);
+
+            // Remove from registry
+            this.schedulerRegistry.deleteTimeout(jobName);
+        }, delay);
+
+        this.schedulerRegistry.addTimeout(jobName, timeout);
+
+        return {
+            message: "Notification scheduled successfully",
+            scheduleTime: dto.scheduleTime,
+            jobName,
+        };
+    }
+
 
     // -------------get notification get---------------
     @HandleError(" failed to getNotificationStats")

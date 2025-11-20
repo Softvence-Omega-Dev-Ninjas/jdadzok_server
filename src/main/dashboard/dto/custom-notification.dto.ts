@@ -1,6 +1,6 @@
 // src/admin/dto/custom-notification.dto.ts
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CustomNotificationDto {
     @ApiProperty({ description: "Title of the custom notification" })
@@ -12,4 +12,12 @@ export class CustomNotificationDto {
     @IsString()
     @IsNotEmpty()
     message: string;
+
+    @ApiProperty({
+        required: false,
+        description: "Schedule time (ISO date string). Example: 2025-11-21T14:30:00Z"
+    })
+    @IsOptional()
+    @IsDateString()
+    scheduleTime?: string;
 }
