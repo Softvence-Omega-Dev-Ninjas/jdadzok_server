@@ -1,15 +1,17 @@
 import { Module } from "@nestjs/common";
-import { DashboardController } from "./controller/dashboard.controller";
-import { DashboardService } from "./service/dashboard.service";
+import { AdminNotificationController } from "./controller/admin.notification.controller";
 import { CommunityNgoController } from "./controller/communityNgo.controller";
-import { CommunityNgoService } from "./service/communityNgo.service";
+import { DashboardController } from "./controller/dashboard.controller";
 import { EventController } from "./controller/event.controller";
-import { EventService } from "./service/event.service";
 import { MarketplaceManagementController } from "./controller/marketplaceManagement.controller";
-import { MarketplaceManagementService } from "./service/marketplaceManagement.service";
 import { OrderTransactionController } from "./controller/orderTransaction.controller";
-import { OrderTransactionService } from "./service/orderTransation.service";
 import { UserManagementController } from "./controller/userManagement.controller";
+import { AdminNotificationService } from "./service/admin.notification.service";
+import { CommunityNgoService } from "./service/communityNgo.service";
+import { DashboardService } from "./service/dashboard.service";
+import { EventService } from "./service/event.service";
+import { MarketplaceManagementService } from "./service/marketplaceManagement.service";
+import { OrderTransactionService } from "./service/orderTransation.service";
 import { UserManagementService } from "./service/userManagement.service";
 
 @Module({
@@ -20,6 +22,7 @@ import { UserManagementService } from "./service/userManagement.service";
         EventController,
         MarketplaceManagementController,
         OrderTransactionController,
+        AdminNotificationController,
     ],
     providers: [
         DashboardService,
@@ -28,6 +31,7 @@ import { UserManagementService } from "./service/userManagement.service";
         EventService,
         MarketplaceManagementService,
         OrderTransactionService,
+        AdminNotificationService,
     ],
 })
 export class DashboardModule {}
