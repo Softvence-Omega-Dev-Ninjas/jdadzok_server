@@ -180,25 +180,25 @@ export class StripeService {
             const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
             if (!stripeSecret) {
-                this.logger.error("STRIPE_SECRET environment variable is missing");
-                return ApiResponse.error("Server misconfiguration: STRIPE_SECRET missing");
+                const msg = "STRIPE_SECRET environment variable is missing";
+                this.logger.error(msg);
+                return ApiResponse.error(msg);
             }
 
             if (!webhookSecret) {
-                this.logger.error("STRIPE_WEBHOOK_SECRET environment variable is missing");
-                return ApiResponse.error("Server misconfiguration: STRIPE_WEBHOOK_SECRET missing");
+                const msg = "STRIPE_WEBHOOK_SECRET environment variable is missing";
+                this.logger.error(msg);
+                return ApiResponse.error(msg);
             }
 
             const stripe = new Stripe(stripeSecret);
 
-            let event: Stripe.Event;
-            try {
-                event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
-            } catch (err) {
-                this.logger.error("Webhook signature verification failed", err);
-                return ApiResponse.error("Invalid webhook signature");
-            }
-
+            // Construct the event (errors will be caught by outer try/catch)
+            const event: Stripe.Event = stripe.webhooks.constructEvent(
+                req.body,
+                signature,
+                webhookSecret,
+            );
             this.logger.log(`Received Stripe event: ${event.type}`);
 
             switch (event.type) {
@@ -207,8 +207,9 @@ export class StripeService {
                     const orderId = paymentIntent.metadata.orderId;
 
                     if (!orderId) {
-                        this.logger.error("PaymentIntent metadata missing orderId", paymentIntent);
-                        return ApiResponse.error("Order ID missing in PaymentIntent metadata");
+                        const msg = "PaymentIntent metadata missing orderId";
+                        this.logger.error(msg, paymentIntent);
+                        return ApiResponse.error(msg);
                     }
 
                     const order = await this.prisma.order.findUnique({
@@ -217,8 +218,9 @@ export class StripeService {
                     });
 
                     if (!order) {
-                        this.logger.error(`Order not found: ${orderId}`);
-                        return ApiResponse.error("Order not found");
+                        const msg = `Order not found: ${orderId}`;
+                        this.logger.error(msg);
+                        return ApiResponse.error(msg);
                     }
 
                     // Update order status
@@ -227,32 +229,28 @@ export class StripeService {
                         data: { status: "PAID" },
                     });
 
-                    // Calculate admin commission (e.g. 10%)
+                    // Calculate admin commission (e.g., 10%)
                     const adminCommission = order.totalPrice * 0.1;
                     const sellerAmount = order.totalPrice - adminCommission;
 
-                    try {
-                        await this.handlePayout(order.product.sellerId, {
-                            amount: sellerAmount,
-                        });
-                    } catch (err) {
-                        this.logger.error(
-                            `Failed to process payout for seller ${order.product.sellerId}`,
-                            err,
-                        );
-                        return ApiResponse.error("Failed to process payout");
-                    }
+                    await this.handlePayout(order.product.sellerId, { amount: sellerAmount });
 
                     break;
                 }
-                default:
-                    this.logger.log(`Unhandled Stripe event type: ${event.type}`);
+
+                default: {
+                    // Handle unhandled events
+                    const msg = `Unhandled Stripe event type: ${event.type}`;
+                    this.logger.warn(msg, event);
+                    return ApiResponse.success(msg); // still returns success to Stripe
+                }
             }
 
             return ApiResponse.success("Webhook processed successfully");
-        } catch (err) {
-            this.logger.error("Unexpected error in Stripe webhook handler", err);
-            return ApiResponse.error("Internal server error");
+        } catch (err: any) {
+            const msg = `Error processing Stripe webhook: ${err.message || err}`;
+            this.logger.error(msg, err);
+            return ApiResponse.error(msg);
         }
     }
 }
