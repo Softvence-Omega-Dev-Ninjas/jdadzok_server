@@ -23,7 +23,8 @@ import { PrismaService } from "../prisma/prisma.service";
 })
 @Injectable()
 export class NotificationGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
     private readonly logger = new Logger(NotificationGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private userSockets = new Map<string, string>();
@@ -31,7 +32,7 @@ export class NotificationGateway
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly prisma: PrismaService,
-    ) { }
+    ) {}
 
     @WebSocketServer()
     server: Server;
@@ -394,8 +395,6 @@ export class NotificationGateway
         this.logger.log("POST_CREATE processing complete");
     }
 
-
-
     @OnEvent(EVENT_TYPES.CUSTOM_CREATE)
     async handleCustomCreated(payload: Custom) {
         this.logger.log("CUSTOM_CREATE EVENT RECEIVED");
@@ -414,9 +413,7 @@ export class NotificationGateway
                 continue;
             }
 
-            const client = Array.from(clients).find(
-                (c) => c.data.user?.Custom === true,
-            );
+            const client = Array.from(clients).find((c) => c.data.user?.Custom === true);
 
             if (!client) {
                 this.logger.warn(`User ${r.id} has socket but Custom toggle OFF`);
@@ -434,5 +431,4 @@ export class NotificationGateway
             this.logger.log(`CUSTOM_CREATE sent to ${r.id} (socket ${client.id})`);
         }
     }
-
 }

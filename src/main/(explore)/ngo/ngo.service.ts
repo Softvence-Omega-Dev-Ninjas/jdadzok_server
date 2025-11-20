@@ -16,7 +16,7 @@ export class NgoService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
-    ) { }
+    ) {}
 
     // create new ngo......
     // async createNgo(userId: string, dto: CreateNgoDto) {
@@ -60,8 +60,7 @@ export class NgoService {
     //         },
     //     });
     // }
-    // 
-
+    //
 
     async createNgo(userId: string, dto: CreateNgoDto) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -110,7 +109,7 @@ export class NgoService {
                 type: "Ngo",
                 title: `New NGO Created: ${dto.profile?.title}`,
                 message: `${user.email} created a new NGO "${dto.profile?.title}"`,
-                userId: userId,   // creator receives the root notification (or system user)
+                userId: userId, // creator receives the root notification (or system user)
                 entityId: createdNgo.id,
                 metadata: {
                     ngoId: createdNgo.id,
@@ -128,8 +127,8 @@ export class NgoService {
                         userId: r.user.id,
                         notificationId: notification.id,
                     },
-                })
-            )
+                }),
+            ),
         );
 
         // --------------------------------------------------------------
