@@ -36,4 +36,13 @@ export class IncomeAnalyticController {
         if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbidden access");
         return this.incomeAnalyticService.getRevenueCategory();
     }
+
+    @ApiOperation({ summary: "Super Admin: Get Income & Analytic Top Seller" })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get("top-sellers")
+    async getTopSellers(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") throw new ForbiddenException("Forbidden access");
+        return this.incomeAnalyticService.getTopSellers();
+    }
 }
