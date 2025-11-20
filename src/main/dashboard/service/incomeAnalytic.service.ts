@@ -99,4 +99,19 @@ export class IncomeAnalyticService {
 
         return { revenueTrends: data };
     }
+
+    async getRevenueCategory() {
+        const volunteer = await this.prisma.volunteerProject.count();
+        const promotions = await this.prisma.product.count({
+            where: { promotionFee: { gt: 0 } },
+        });
+        const donations = 0;
+        const total = volunteer + promotions + donations;
+
+        return {
+            volunteerProjects: total ? Math.round((volunteer / total) * 100) : 0,
+            marketplacePromotions: total ? Math.round((promotions / total) * 100) : 0,
+            donations: total ? Math.round((donations / total) * 100) : 0,
+        };
+    }
 }
