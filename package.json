@@ -34,7 +34,7 @@
         "db:seed": "tsx prisma/seed.ts",
         "seed:cap": "tsx src/scripts/seed-cap-requirements.ts",
         "prepare": "husky",
-        "postinstall": "npx prisma migrate dev"
+        "postinstall": "npx prisma generate"
     },
     "dependencies": {
         "@anatine/zod-nestjs": "^2.0.12",
