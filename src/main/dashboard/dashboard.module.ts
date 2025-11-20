@@ -11,6 +11,8 @@ import { OrderTransactionController } from "./controller/orderTransaction.contro
 import { OrderTransactionService } from "./service/orderTransation.service";
 import { UserManagementController } from "./controller/userManagement.controller";
 import { UserManagementService } from "./service/userManagement.service";
+import { IncomeAnalyticController } from "./controller/incomeAnalytic.controller";
+import { IncomeAnalyticService } from "./service/incomeAnalytic.service";
 
 @Module({
     controllers: [
@@ -20,6 +22,7 @@ import { UserManagementService } from "./service/userManagement.service";
         EventController,
         MarketplaceManagementController,
         OrderTransactionController,
+        IncomeAnalyticController,
     ],
     providers: [
         DashboardService,
@@ -28,6 +31,7 @@ import { UserManagementService } from "./service/userManagement.service";
         EventService,
         MarketplaceManagementService,
         OrderTransactionService,
+        IncomeAnalyticService,
     ],
 })
 export class DashboardModule {}

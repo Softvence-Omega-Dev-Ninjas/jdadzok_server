@@ -1,5 +1,11 @@
-import { ApiHideProperty, ApiProperty, IntersectionType } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import {
+    ApiHideProperty,
+    ApiProperty,
+    ApiPropertyOptional,
+    IntersectionType,
+} from "@nestjs/swagger";
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { MediaType } from "@prisma/client";
 
 export class CreateComment {
     @ApiProperty({
@@ -11,9 +17,9 @@ export class CreateComment {
     @IsUUID()
     postId: string;
 
-    @ApiProperty({
+    @ApiPropertyOptional({
         example: "b85f1c7e-2d36-4d5f-95d1-abcdef123456",
-        description: "Optional parent comment ID (for replies)",
+        description: "Optional parent comment ID (for nested replies)",
         type: String,
         format: "uuid",
         required: false,
@@ -41,6 +47,27 @@ export class CreateComment {
     @IsString()
     @IsNotEmpty()
     text: string;
+
+    @ApiPropertyOptional({
+        example: "https://example.com/image.jpg",
+        description: "Optional media URL attached to the comment",
+        type: String,
+        required: false,
+        nullable: true,
+    })
+    @IsOptional()
+    @IsString()
+    mediaUrl?: string;
+
+    @ApiPropertyOptional({
+        description: "Type of media attached to the comment",
+        enum: MediaType,
+        example: MediaType.IMAGE,
+        required: false,
+    })
+    @IsOptional()
+    @IsEnum(MediaType)
+    mediaType?: MediaType = MediaType.IMAGE;
 }
 
 export class CreateCommentDto extends IntersectionType(CreateComment) {}

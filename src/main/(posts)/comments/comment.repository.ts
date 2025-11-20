@@ -40,6 +40,8 @@ export class CommentRepository {
                     postId: comment.postId,
                     authorId: comment.authorId,
                     text: comment.text,
+                    mediaUrl: comment.mediaUrl,
+                    mediaType: comment.mediaType,
                     createdAt: comment.createdAt,
                 };
             },
