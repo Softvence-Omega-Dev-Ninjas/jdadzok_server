@@ -1,39 +1,44 @@
-# Stage 1: Build
-FROM node:20 AS builder
+# ====== BUILD STAGE ======
+FROM node:24-slim AS builder
 
+# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install system dependencies for build
+RUN apt update && apt install -y openssl
 
-# Install deps
-RUN npm i -g pnpm@latest && pnpm i 
-
-# Copy prisma folder
-COPY prisma ./prisma
+# Copy package.json, package-lock.json & prisma folder
+COPY package.json package-lock.json ./ 
 COPY prisma.config.ts ./
+COPY prisma ./prisma
 
-# Copy source code
+# Install dependencies
+RUN npm install
+
+# Copy rest of the project files
 COPY . .
 
-# Generate Prisma client
-RUN pnpm prisma:generate
+# Build the app (NestJS -> dist/)
+RUN npm run build
 
-# Build the app
-RUN pnpm build
+# ====== PRODUCTION STAGE ======
+FROM node:24-slim AS production
 
-# Stage 2: Run
-FROM node:20-alpine
-
+# Set working directory
 WORKDIR /app
 
-# Copy build output & dependencies
+# Install system dependencies needed at runtime
+RUN apt update && apt install -y openssl curl
+
+# Copy only necessary files from builder stage
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
+COPY --from=builder /app/prisma.config.ts ./
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/Caddyfile ./Caddyfile
+
+# Install production dependencies
+RUN npm install
 
 # Set production env
 ENV NODE_ENV=production

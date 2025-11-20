@@ -2,7 +2,6 @@
 /dist
 /node_modules
 /build
-package-lock.json
 pnpm-lock.yaml
 pnpm-lock.yml
 
@@ -68,7 +67,6 @@ pnpm-lock.yaml
 .env
 
 
-package-lock.json
 pnpm-lock.yml
 .env.keys
 pnpm-lock.yaml
