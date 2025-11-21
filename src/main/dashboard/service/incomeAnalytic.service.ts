@@ -124,55 +124,81 @@ export class IncomeAnalyticService {
     }
 
     async getTopSellers() {
-        const products = await this.prisma.product.findMany({
+        // Fetch all users with products + orders + profile
+        const users = await this.prisma.user.findMany({
             include: {
-                seller: {
-                    include: { profile: true },
+                profile: true,
+                products: {
+                    include: {
+                        orders: true,
+                    },
                 },
-                orders: true,
             },
         });
 
-        const sellerMap: Record<
-            string,
-            {
-                sellerId: string;
-                sellerName: string | null;
-                totalOrders: number;
-                totalRevenue: number;
-                totalCommission: number;
+        const now = new Date();
+        const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+        const sellerAnalytics = [];
+
+        for (const user of users) {
+            // Skip users without any product
+            if (!user.products || user.products.length === 0) continue;
+
+            let totalOrders = 0;
+            let totalRevenue = 0;
+            let totalCommission = 0;
+
+            let ordersThisMonth = 0;
+            let ordersLastMonth = 0;
+
+            for (const product of user.products) {
+                const productOrders = product.orders;
+
+                totalOrders += productOrders.length;
+                /* eslint-disable @typescript-eslint/no-unused-vars */
+                totalRevenue += productOrders.reduce((s, o) => s + o.totalPrice, 0);
+                totalCommission += productOrders.reduce(
+                    (s, o) => s + (product.promotionFee || 0),
+                    0,
+                );
+
+                for (const order of productOrders) {
+                    const date = order.createdAt;
+                    if (date >= startOfThisMonth) ordersThisMonth++;
+                    if (date >= startOfLastMonth && date <= endOfLastMonth) ordersLastMonth++;
+                }
             }
-        > = {};
 
-        for (const product of products) {
-            const sellerId = product.sellerId;
-            const sellerName = product.seller?.profile?.name ?? null;
+            const orderIncreaseRate =
+                ordersLastMonth > 0
+                    ? Number(
+                          (((ordersThisMonth - ordersLastMonth) / ordersLastMonth) * 100).toFixed(
+                              1,
+                          ),
+                      )
+                    : 100;
 
-            if (!sellerMap[sellerId]) {
-                sellerMap[sellerId] = {
-                    sellerId,
-                    sellerName,
-                    totalOrders: 0,
-                    totalRevenue: 0,
-                    totalCommission: 0,
-                };
-            }
-
-            const orders = product.orders;
-            const totalOrders = orders.length;
-            const totalRevenue = orders.reduce((sum, o) => sum + o.totalPrice, 0);
-            const totalCommission = (product.promotionFee || 0) * totalOrders;
-
-            sellerMap[sellerId].totalOrders += totalOrders;
-            sellerMap[sellerId].totalRevenue += totalRevenue;
-            sellerMap[sellerId].totalCommission += totalCommission;
+            sellerAnalytics.push({
+                sellerId: user.id,
+                sellerName: user.profile?.name ?? null,
+                totalOrders,
+                totalRevenue,
+                totalCommission: Number(totalCommission.toFixed(2)),
+                ordersThisMonth,
+                ordersLastMonth,
+                orderIncreaseRate,
+            });
         }
 
-        const topSellers = Object.values(sellerMap).sort((a, b) => b.totalRevenue - a.totalRevenue);
+        // Sort by totalRevenue
+        const topSellers = sellerAnalytics.sort((a, b) => b.totalRevenue - a.totalRevenue);
 
         return {
             status: "success",
-            message: "Top sellers fetched",
+            message: "Top seller analytics",
             data: topSellers,
         };
     }
