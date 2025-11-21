@@ -70,30 +70,9 @@ services:
             retries: 5
             start_period: 5s
 
-    caddy:
-        image: caddy:latest
-        profiles:
-            - prod
-        container_name: caddy_server
-        restart: unless-stopped
-        depends_on:
-            - db
-            - redis
-            - app
-        ports:
-            - "80:80"
-            - "443:443"
-        volumes:
-            - /var/www:/var/www
-            - ./Caddyfile:/etc/caddy/Caddyfile
-            - caddy_data:/data
-            - caddy_config:/config
-
 volumes:
     redis:
     pg:
-    caddy_data:
-    caddy_config:
     files-data:
 networks:
     default:
