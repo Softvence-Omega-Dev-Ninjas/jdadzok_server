@@ -14,7 +14,7 @@ export class AdminNotificationService {
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
         private readonly schedulerRegistry: SchedulerRegistry,
-    ) {}
+    ) { }
 
     // --------schedule notification ---------
     @HandleError("Failed to send custom notification")
@@ -127,10 +127,10 @@ export class AdminNotificationService {
         const endOfToday = new Date(startOfToday);
         endOfToday.setDate(endOfToday.getDate() + 1);
 
-        // This month start
+        // -------------------This month start
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        // Last month start + this month start
+        // ------------------Last month start + this month start
         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
         // --------------- Total Count ----------------
