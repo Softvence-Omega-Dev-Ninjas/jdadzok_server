@@ -19,9 +19,6 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const configService = app.get(ConfigService);
 
-    // for all other routes use json parser
-    app.use(bodyParser.json());
-
     // use raw body for only /payments/webhook (or bookings/webhook etc.)
     app.use("/stripe/webhook", bodyParser.raw({ type: "application/json" }));
 

@@ -1,9 +1,17 @@
 import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
-import { Body, Controller, Get, Headers, Post, Req, UseGuards } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Get,
+    Headers,
+    HttpCode,
+    HttpStatus,
+    Post,
+    UseGuards,
+} from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { VerifiedUser } from "@type/shared.types";
-import { Request } from "express";
 import { CreatePayoutDto } from "./dto/create-payout.dto";
 import { StripeService } from "./stripe.service";
 
@@ -34,7 +42,16 @@ export class StripeController {
     }
 
     @Post("webhook")
-    async stripeWebhook(@Req() req: Request, @Headers("stripe-signature") signature: string) {
-        return this.stripeService.handleWebhook(req, signature);
+    @HttpCode(HttpStatus.OK)
+    async handleWebhook(
+        @Headers("stripe-signature") signature: string,
+        @Body() body: Buffer, // raw body for Stripe verification
+    ) {
+        try {
+            this.stripeService.handleWebhook(body, signature);
+            return { received: true };
+        } catch (error) {
+            return { received: false, error: error.message };
+        }
     }
 }
