@@ -6,16 +6,12 @@ import { MaintenanceSettingsDto } from "../dto/maintenance.dto";
 import { PlatformInformationDto } from "../dto/platform-information.dto";
 @Injectable()
 export class AdminSettingsService {
-    constructor(
-        private readonly prisma: PrismaService,
-
-    ) { }
-
+    constructor(private readonly prisma: PrismaService) {}
 
     // ---------------admin platform info-----------------------
     @HandleError("Failed to update platform information")
     async updatePlatformInfo(dto: PlatformInformationDto) {
-        let platformInfo = await this.prisma.platformInformation.findFirst();
+        const platformInfo = await this.prisma.platformInformation.findFirst();
 
         if (!platformInfo) {
             return this.prisma.platformInformation.create({
@@ -36,8 +32,6 @@ export class AdminSettingsService {
             },
         });
     }
-
-
 
     // --------------------------------update maintenance settings------------------
 
@@ -66,8 +60,7 @@ export class AdminSettingsService {
 
         return {
             message: "Maintenance settings updated successfully",
-            settings: updated
+            settings: updated,
         };
     }
-
 }

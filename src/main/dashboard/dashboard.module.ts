@@ -28,7 +28,7 @@ import { UserManagementService } from "./service/userManagement.service";
         OrderTransactionController,
         IncomeAnalyticController,
         AdminNotificationController,
-        AdminSettingsController
+        AdminSettingsController,
     ],
     providers: [
         DashboardService,
@@ -39,7 +39,7 @@ import { UserManagementService } from "./service/userManagement.service";
         OrderTransactionService,
         IncomeAnalyticService,
         AdminNotificationService,
-        AdminSettingsService
-    ]
+        AdminSettingsService,
+    ],
 })
-export class DashboardModule { }
+export class DashboardModule {}
