@@ -1,5 +1,5 @@
 import { ValidateSuperAdmin } from "@common/jwt/jwt.decorator";
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { MaintenanceSettingsDto } from "../dto/maintenance.dto";
 import { PlatformInformationDto } from "../dto/platform-information.dto"; // ⬅️ Correct DTO
@@ -25,5 +25,20 @@ export class AdminSettingsController {
     @ValidateSuperAdmin()
     async updateMaintenanceSettings(@Body() body: MaintenanceSettingsDto) {
         return this.adminSettingsService.updateMaintenanceSettings(body);
+    }
+
+    // ----------------get maintenance settings------------------
+    @ApiBearerAuth()
+    @ValidateSuperAdmin()
+    @Get("maintenance")
+    async getMaintenanceSettings() {
+        return this.adminSettingsService.getMaintenanceSettings();
+    }
+    // ----------------get platform settings------------------
+    @ApiBearerAuth()
+    @ValidateSuperAdmin()
+    @Get("platform")
+    async getPlatformSettings() {
+        return this.adminSettingsService.getPlatformSettings();
     }
 }
