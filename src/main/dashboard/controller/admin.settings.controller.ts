@@ -1,4 +1,4 @@
-import { ValidateAuth, ValidateSuperAdmin } from "@common/jwt/jwt.decorator";
+import { ValidateSuperAdmin } from "@common/jwt/jwt.decorator";
 import { Body, Controller, Post } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { MaintenanceSettingsDto } from "../dto/maintenance.dto";
@@ -13,16 +13,16 @@ export class AdminSettingsController {
     // ------------------- Admin Settings general platform settings -------------------
     @ApiBearerAuth()
     @ValidateSuperAdmin()
-    @ValidateAuth()
     @Post("platform")
     async updatePlatformInfo(@Body() body: PlatformInformationDto) {
         return this.adminSettingsService.updatePlatformInfo(body);
     }
     // --------- Admin Settings general platform settings -------------------
+    @ApiBearerAuth()
+    @ValidateSuperAdmin()
     @Post("maintenance")
     @ApiBearerAuth()
     @ValidateSuperAdmin()
-    @ValidateAuth()
     async updateMaintenanceSettings(@Body() body: MaintenanceSettingsDto) {
         return this.adminSettingsService.updateMaintenanceSettings(body);
     }
