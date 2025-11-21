@@ -5,7 +5,7 @@ export class MaintenanceSettingsDto {
     @ApiProperty({
         required: false,
         example: 100,
-        description: "Maximum events allowed per community"
+        description: "Maximum events allowed per community",
     })
     @IsOptional()
     @IsInt()
@@ -15,7 +15,7 @@ export class MaintenanceSettingsDto {
     @ApiProperty({
         required: false,
         example: 50,
-        description: "Maximum posts allowed per day"
+        description: "Maximum posts allowed per day",
     })
     @IsOptional()
     @IsInt()

@@ -1,5 +1,6 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 import Stripe from "stripe";
 
@@ -9,21 +10,24 @@ import { ApiResponse } from "./utils/api-response";
 @Injectable()
 export class StripeService {
     private readonly logger = new Logger(StripeService.name);
+    private readonly stripe: Stripe;
+    private readonly webhookSecret: string;
 
     constructor(
-        @Inject("STRIPE_CLIENT") private readonly stripe: Stripe,
         private readonly prisma: PrismaService,
-    ) {}
+        private readonly configService: ConfigService,
+    ) {
+        // Load Stripe secret and webhook secret from config
+        const stripeSecret = this.configService.getOrThrow<string>("STRIPE_SECRET");
+        this.webhookSecret = this.configService.getOrThrow<string>("STRIPE_WEBHOOK_SECRET");
+
+        // Initialize Stripe client
+        this.stripe = new Stripe(stripeSecret);
+    }
 
     /** Create Express Account for Seller */
     async createExpressAccount(userId: string) {
         try {
-            const stripeSecret = process.env.STRIPE_SECRET;
-            if (!stripeSecret) throw new Error("STRIPE_SECRET environment variable is missing");
-
-            //  create Stripe instance
-            const stripe = new Stripe(stripeSecret);
-
             const user = await this.prisma.user.findUnique({
                 where: { id: userId },
                 include: {
@@ -32,10 +36,9 @@ export class StripeService {
                 },
             });
 
-            if (!user) throw new NotFoundException("user not found");
+            if (!user) throw new NotFoundException("User not found");
 
-            // create stripe express account
-            const account = await stripe.accounts.create({
+            const account = await this.stripe.accounts.create({
                 type: "express",
                 country: "US",
                 capabilities: {
@@ -43,17 +46,15 @@ export class StripeService {
                     transfers: { requested: true },
                 },
                 business_type: "individual",
-                metadata: { userId, email: user?.email },
+                metadata: { userId, email: user.email },
             });
 
-            // save account ID in database
             await this.prisma.user.update({
                 where: { id: userId },
                 data: { stripeAccountId: account.id },
             });
 
-            // generate onboarding link
-            const link = await stripe.accountLinks.create({
+            const link = await this.stripe.accountLinks.create({
                 account: account.id,
                 refresh_url: "https://example.com/refresh",
                 return_url: "https://example.com/return",
@@ -63,8 +64,6 @@ export class StripeService {
             return ApiResponse.success("Stripe account created", { url: link.url });
         } catch (error) {
             this.logger.error(error);
-
-            // Return structured error
             return ApiResponse.error(
                 "Stripe account creation failed",
                 error instanceof Error ? error.message : "Unknown error",
@@ -72,15 +71,9 @@ export class StripeService {
         }
     }
 
-    // get Express Account for user
+    /** Get Express Account for Seller */
     async getExpressAccount(userId: string) {
         try {
-            const stripeSecret = process.env.STRIPE_SECRET;
-            if (!stripeSecret) throw new Error("STRIPE_SECRET environment variable is missing");
-
-            // Create Stripe instance
-            const stripe = new Stripe(stripeSecret);
-            // Fetch user from DB
             const user = await this.prisma.user.findUnique({
                 where: { id: userId },
                 select: { stripeAccountId: true },
@@ -90,15 +83,11 @@ export class StripeService {
                 throw new NotFoundException("Stripe account not found for this user");
             }
 
-            // retrieve Stripe account details
-            const account = await stripe.accounts.retrieve(user.stripeAccountId);
-
-            // retrieve balance for the connected account
-            const balance = await stripe.balance.retrieve({
+            const account = await this.stripe.accounts.retrieve(user.stripeAccountId);
+            const balance = await this.stripe.balance.retrieve({
                 stripeAccount: user.stripeAccountId,
             });
 
-            // Return relevant information (optional: you can return full object if needed)
             return ApiResponse.success("Stripe account retrieved", {
                 id: account.id,
                 email: account.email,
@@ -108,11 +97,10 @@ export class StripeService {
                 details_submitted: account.details_submitted,
                 capabilities: account.capabilities,
                 business_type: account.business_type,
-                balance: balance,
+                balance,
             });
         } catch (error) {
             this.logger.error(error);
-
             return ApiResponse.error(
                 "Failed to retrieve Stripe account",
                 error instanceof Error ? error.message : "Unknown error",
@@ -120,7 +108,7 @@ export class StripeService {
         }
     }
 
-    // handle seller payout
+    /** Handle Seller Payout */
     async handlePayout(sellerId: string, dto: CreatePayoutDto) {
         this.logger.log(`Processing payout for seller ${sellerId}`);
 
@@ -131,14 +119,12 @@ export class StripeService {
 
         try {
             if (seller.stripeAccountId) {
-                // Stripe payout
                 const transfer: any = await this.stripe.transfers.create({
                     amount: amountInCents,
                     currency: "usd",
                     destination: seller.stripeAccountId,
                 });
 
-                // Check if transfer is reversed
                 if (!transfer.reversed) {
                     this.logger.log(`Stripe payout successful for ${sellerId}`);
                     return {
@@ -151,7 +137,6 @@ export class StripeService {
                     return { status: "error", message: "Payout was reversed", data: transfer };
                 }
             } else {
-                // Manual payout
                 await this.prisma.sellerEarnings.upsert({
                     where: { sellerId },
                     update: {
@@ -173,31 +158,15 @@ export class StripeService {
         }
     }
 
-    // Webhook for Stripe Payment Confirmation
+    /** Handle Stripe Webhook */
     async handleWebhook(req: Request, signature: string) {
+        this.logger.log("Stripe Request", req.body);
         try {
-            const stripeSecret = process.env.STRIPE_SECRET;
-            const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-            if (!stripeSecret) {
-                const msg = "STRIPE_SECRET environment variable is missing";
-                this.logger.error(msg);
-                return ApiResponse.error(msg);
-            }
-
-            if (!webhookSecret) {
-                const msg = "STRIPE_WEBHOOK_SECRET environment variable is missing";
-                this.logger.error(msg);
-                return ApiResponse.error(msg);
-            }
-
-            const stripe = new Stripe(stripeSecret);
-
-            // Construct the event (errors will be caught by outer try/catch)
-            const event: Stripe.Event = stripe.webhooks.constructEvent(
+            // Construct the event using raw body (ensure controller provides Buffer)
+            const event: Stripe.Event = this.stripe.webhooks.constructEvent(
                 req.body,
                 signature,
-                webhookSecret,
+                this.webhookSecret,
             );
             this.logger.log(`Received Stripe event: ${event.type}`);
 
@@ -223,26 +192,22 @@ export class StripeService {
                         return ApiResponse.error(msg);
                     }
 
-                    // Update order status
                     await this.prisma.order.update({
                         where: { id: orderId },
                         data: { status: "PAID" },
                     });
 
-                    // Calculate admin commission (e.g., 10%)
                     const adminCommission = order.totalPrice * 0.1;
                     const sellerAmount = order.totalPrice - adminCommission;
 
                     await this.handlePayout(order.product.sellerId, { amount: sellerAmount });
-
                     break;
                 }
 
                 default: {
-                    // Handle unhandled events
                     const msg = `Unhandled Stripe event type: ${event.type}`;
                     this.logger.warn(msg, event);
-                    return ApiResponse.success(msg); // still returns success to Stripe
+                    return ApiResponse.success(msg);
                 }
             }
 
