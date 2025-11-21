@@ -4,7 +4,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import bodyParser from "body-parser";
+import * as bodyParser from "body-parser";
 import { config } from "dotenv";
 import { expand } from "dotenv-expand";
 import path from "path";

@@ -5,11 +5,10 @@ import { MaintenanceSettingsDto } from "../dto/maintenance.dto";
 import { PlatformInformationDto } from "../dto/platform-information.dto"; // ⬅️ Correct DTO
 import { AdminSettingsService } from "../service/admin.settings.service";
 
-
 @ApiTags("Dashboard Admin Settings")
 @Controller("settings-admin")
 export class AdminSettingsController {
-    constructor(private readonly adminSettingsService: AdminSettingsService) { }
+    constructor(private readonly adminSettingsService: AdminSettingsService) {}
 
     // ------------------- Admin Settings general platform settings -------------------
     @ApiBearerAuth()
