@@ -1,7 +1,6 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Request } from "express";
 import Stripe from "stripe";
 
 import { CreatePayoutDto } from "./dto/create-payout.dto";
@@ -159,12 +158,11 @@ export class StripeService {
     }
 
     /** Handle Stripe Webhook */
-    async handleWebhook(req: Request, signature: string) {
-        this.logger.log("Stripe Request", req.body);
+    async handleWebhook(rawBody: Buffer, signature: string) {
         try {
             // Construct the event using raw body (ensure controller provides Buffer)
             const event: Stripe.Event = this.stripe.webhooks.constructEvent(
-                req.body,
+                rawBody,
                 signature,
                 this.webhookSecret,
             );
