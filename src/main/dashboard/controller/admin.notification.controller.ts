@@ -1,5 +1,6 @@
+import { ValidateSuperAdmin } from "@common/jwt/jwt.decorator";
 import { Body, Controller, Get, Post } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CustomNotificationDto } from "../dto/custom-notification.dto";
 import { AdminNotificationService } from "../service/admin.notification.service";
 
@@ -8,20 +9,25 @@ import { AdminNotificationService } from "../service/admin.notification.service"
 export class AdminNotificationController {
     constructor(private readonly adminNotificationService: AdminNotificationService) {}
     @ApiOperation({ summary: "Super Admin: create custom notification" })
-    // @ApiBearerAuth()
-    // @ValidateSuperAdmin()
-    // @ValidateAuth()
+    @ApiBearerAuth()
+    @ValidateSuperAdmin()
     @Post("custom-notification")
     async sendCustomNotification(@Body() dto: CustomNotificationDto) {
         return this.adminNotificationService.sendCustomNotification(dto);
     }
 
     // ------------scheduled notifications---------------
+    @ApiBearerAuth()
+    @ValidateSuperAdmin()
     @ApiOperation({ summary: "Schedule a notification for later" })
     @Post("schedule-custom-notification")
     async scheduleNotification(@Body() dto: CustomNotificationDto) {
         return this.adminNotificationService.scheduleNotification(dto);
     }
+
+    // ------------notification stats---------------
+    @ApiBearerAuth()
+    @ValidateSuperAdmin()
     @ApiOperation({ summary: "Get notification stats: total, read, rate, last month" })
     @Get("stats")
     async getStats() {
