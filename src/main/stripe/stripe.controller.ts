@@ -37,7 +37,6 @@ export class StripeController {
     @UseGuards(JwtAuthGuard)
     @Post("payout")
     payout(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreatePayoutDto) {
-        console.log(user.id, dto);
         return this.stripeService.handlePayout(user.id, dto);
     }
 
@@ -53,5 +52,12 @@ export class StripeController {
         } catch (error) {
             return { received: false, error: error.message };
         }
+    }
+
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Get("payouts")
+    getAllPayouts(@GetVerifiedUser() user: VerifiedUser) {
+        return this.stripeService.getAllPayouts(user.id);
     }
 }
