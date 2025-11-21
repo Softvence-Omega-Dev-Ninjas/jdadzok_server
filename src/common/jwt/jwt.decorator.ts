@@ -1,4 +1,4 @@
-import { Roles } from "@common/decorators/roles.decorator";
+import { Roles, RolesGuard } from "@common/decorators/roles.decorator";
 import { RoleGuard } from "@common/guards/role.guard";
 import { Role } from "@constants/enums";
 import { PrismaService } from "@lib/prisma/prisma.service";
@@ -90,18 +90,25 @@ export function ValidateAuth<R extends Role>(...roles: R[]) {
     return applyDecorators(...decorators);
 }
 
+export function RoleValidateAuth(...roles: Role[]) {
+    const decorators = [UseGuards(JwtAuthGuard, RolesGuard)];
+    if (roles.length > 0) {
+        decorators.push(Roles(...roles));
+    }
+    return applyDecorators(...decorators);
+}
 export function ValidateSuperAdmin() {
-    return ValidateAuth("SUPER_ADMIN");
+    return RoleValidateAuth("SUPER_ADMIN");
 }
 
 export function ValidateAdmin() {
-    return ValidateAuth("ADMIN", "SUPER_ADMIN");
+    return RoleValidateAuth("ADMIN", "SUPER_ADMIN");
 }
 
 export function ValidateUser() {
-    return ValidateAuth("USER", "SUPER_ADMIN");
+    return RoleValidateAuth("USER", "SUPER_ADMIN");
 }
 
 export function ValidateAll() {
-    return ValidateAuth("USER", "ADMIN", "SUPER_ADMIN");
+    return RoleValidateAuth("USER", "ADMIN", "SUPER_ADMIN");
 }
