@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, Validate } from "class-validator";
-import { parseCustomDate } from "./parse-custom-date";
+import { IsNotEmpty, IsString, Validate } from "class-validator";
+import { parseCustomDate } from "../helper/parse-custom-date";
 
 class CustomDateValidator {
     validate(value: string) {
@@ -23,12 +23,11 @@ export class CustomNotificationDto {
     message: string;
 
     @ApiProperty({
-        required: false,
-        example: "21-11-3.40 AM",
-        description: "Schedule time in format DD-MM-h.mm AM/PM",
+        required: true,
+        example: "2025-11-21 3:40 AM",
+        description: "Schedule time in format yyyy-MM-dd h:mm AM/PM",
     })
-    @IsOptional()
     @IsString()
     @Validate(CustomDateValidator)
-    scheduleTime?: string;
+    scheduleTime: string;
 }

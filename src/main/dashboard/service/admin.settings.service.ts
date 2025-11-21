@@ -63,4 +63,15 @@ export class AdminSettingsService {
             settings: updated,
         };
     }
+
+    // -------------------get maintenance settings------------------
+    async getMaintenanceSettings() {
+        const settings = await this.prisma.maintenanceModel.findFirst();
+        return { settings };
+    }
+    // ---------------------getPlatformSettings-------------
+    async getPlatformSettings() {
+        const settings = await this.prisma.platformInformation.findFirst();
+        return { settings };
+    }
 }

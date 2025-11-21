@@ -7,7 +7,7 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { SchedulerRegistry } from "@nestjs/schedule";
 import { DateTime } from "luxon";
 import { CustomNotificationDto } from "../dto/custom-notification.dto";
-import { parseCustomDate } from "../dto/parse-custom-date";
+import { parseCustomDate } from "../helper/parse-custom-date";
 @Injectable()
 export class AdminNotificationService {
     constructor(
@@ -60,13 +60,9 @@ export class AdminNotificationService {
     // -------- ---------schedule notification ----------------
     @HandleError("Failed to schedule custom notification")
     async scheduleNotification(dto: CustomNotificationDto) {
-        if (!dto.scheduleTime) {
-            return { error: "scheduleTime is required for scheduling" };
-        }
-
         const scheduleDate = parseCustomDate(dto.scheduleTime);
         if (!scheduleDate) {
-            return { error: "Invalid scheduleTime format. Use DD-MM-h.mm AM/PM" };
+            return { error: "Invalid scheduleTime format. Use yyyy-MM-dd h:mm AM/PM" };
         }
 
         const now = new Date();
@@ -93,8 +89,8 @@ export class AdminNotificationService {
                     type: "Custom",
                 },
             });
+            console.log(notification);
 
-            console.log("schedule notification now", notification);
             const recipients = users.map((u) => ({ id: u.id, email: u.email }));
             const payload: Custom = {
                 action: "CREATE",
@@ -109,10 +105,9 @@ export class AdminNotificationService {
 
         this.schedulerRegistry.addTimeout(jobName, timeout);
 
-        // Normalize to local time for API response
         const normalizedTime = DateTime.fromJSDate(scheduleDate)
-            .setZone("Asia/Dhaka") // your timezone
-            .toFormat("yyyy-LL-dd hh:mm a"); // e.g., "2025-11-21 03:40 AM"
+            .setZone("Asia/Dhaka")
+            .toFormat("yyyy-MM-dd h:mm a");
 
         return {
             message: "Notification scheduled successfully",
