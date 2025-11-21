@@ -17,6 +17,8 @@ import { IncomeAnalyticService } from "./service/incomeAnalytic.service";
 import { MarketplaceManagementService } from "./service/marketplaceManagement.service";
 import { OrderTransactionService } from "./service/orderTransation.service";
 import { UserManagementService } from "./service/userManagement.service";
+import { PayoutManagementController } from "./controller/payout.management.controller";
+import { PayoutManagementService } from "./service/payout.management.service";
 
 @Module({
     controllers: [
@@ -27,6 +29,7 @@ import { UserManagementService } from "./service/userManagement.service";
         MarketplaceManagementController,
         OrderTransactionController,
         IncomeAnalyticController,
+        PayoutManagementController,
         AdminNotificationController,
         AdminSettingsController,
     ],
@@ -38,6 +41,7 @@ import { UserManagementService } from "./service/userManagement.service";
         MarketplaceManagementService,
         OrderTransactionService,
         IncomeAnalyticService,
+        PayoutManagementService,
         AdminNotificationService,
         AdminSettingsService,
     ],

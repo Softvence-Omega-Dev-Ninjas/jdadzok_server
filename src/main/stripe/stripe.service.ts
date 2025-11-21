@@ -216,4 +216,35 @@ export class StripeService {
             return ApiResponse.error(msg);
         }
     }
+
+    async getAllPayouts(sellerId: string) {
+        const seller = await this.prisma.user.findUnique({ where: { id: sellerId } });
+
+        if (!seller) return { status: "error", message: "Seller not found" };
+
+        // Case 1: Seller has a Stripe account → fetch stripe transfers
+        if (seller.stripeAccountId) {
+            const transfers = await this.stripe.transfers.list({
+                destination: seller.stripeAccountId,
+                limit: 100,
+            });
+
+            return {
+                status: "success",
+                message: "Payout list fetched",
+                data: transfers.data,
+            };
+        }
+
+        // Case 2: No Stripe account → fetch manual pending payouts from DB
+        const earnings = await this.prisma.sellerEarnings.findUnique({
+            where: { sellerId },
+        });
+
+        return {
+            status: "success",
+            message: "Manual payout records (non-Stripe)",
+            data: earnings,
+        };
+    }
 }
