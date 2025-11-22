@@ -14,7 +14,7 @@ export class AdminNotificationService {
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
         private readonly schedulerRegistry: SchedulerRegistry,
-    ) { }
+    ) {}
 
     // --------schedule notification ---------
     @HandleError("Failed to send custom notification")
