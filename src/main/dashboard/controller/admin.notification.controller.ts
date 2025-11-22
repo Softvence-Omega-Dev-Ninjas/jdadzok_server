@@ -1,7 +1,10 @@
 import { ValidateSuperAdmin } from "@common/jwt/jwt.decorator";
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { CustomNotificationDto } from "../dto/custom-notification.dto";
+import {
+    CustomNotificationDto,
+    CustomScheduleNotificationDto,
+} from "../dto/custom-notification.dto";
 import { AdminNotificationService } from "../service/admin.notification.service";
 
 @ApiTags("Notification & Announcement Management")
@@ -21,7 +24,7 @@ export class AdminNotificationController {
     @ValidateSuperAdmin()
     @ApiOperation({ summary: "Schedule a notification for later" })
     @Post("schedule-custom-notification")
-    async scheduleNotification(@Body() dto: CustomNotificationDto) {
+    async scheduleNotification(@Body() dto: CustomScheduleNotificationDto) {
         return this.adminNotificationService.scheduleNotification(dto);
     }
 
