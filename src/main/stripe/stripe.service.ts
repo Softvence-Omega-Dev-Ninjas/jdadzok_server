@@ -5,7 +5,6 @@ import Stripe from "stripe";
 
 import { CreatePayoutDto } from "./dto/create-payout.dto";
 import { ApiResponse } from "./utils/api-response";
-
 @Injectable()
 export class StripeService {
     private readonly logger = new Logger(StripeService.name);
