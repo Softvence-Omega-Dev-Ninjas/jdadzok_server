@@ -6,7 +6,10 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { SchedulerRegistry } from "@nestjs/schedule";
 import { DateTime } from "luxon";
-import { CustomNotificationDto } from "../dto/custom-notification.dto";
+import {
+    CustomNotificationDto,
+    CustomScheduleNotificationDto,
+} from "../dto/custom-notification.dto";
 import { parseCustomDate } from "../helper/parse-custom-date";
 @Injectable()
 export class AdminNotificationService {
@@ -14,14 +17,13 @@ export class AdminNotificationService {
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
         private readonly schedulerRegistry: SchedulerRegistry,
-    ) { }
+    ) {}
 
     // --------schedule notification ---------
     @HandleError("Failed to send custom notification")
     async sendCustomNotification(dto: CustomNotificationDto) {
         const users = await this.prisma.user.findMany({
-            where: { NotificationToggle: { some: { Custom: true } } },
-            select: { id: true, email: true, NotificationToggle: true },
+            select: { id: true, email: true },
         });
 
         if (!users.length) {
@@ -59,7 +61,7 @@ export class AdminNotificationService {
 
     // -------- ---------schedule notification ----------------
     @HandleError("Failed to schedule custom notification")
-    async scheduleNotification(dto: CustomNotificationDto) {
+    async scheduleNotification(dto: CustomScheduleNotificationDto) {
         const scheduleDate = parseCustomDate(dto.scheduleTime);
         if (!scheduleDate) {
             return { error: "Invalid scheduleTime format. Use yyyy-MM-dd h:mm AM/PM" };
