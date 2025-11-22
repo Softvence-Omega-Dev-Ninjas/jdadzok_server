@@ -1,16 +1,17 @@
-import { Controller, ForbiddenException, Get, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { PayoutManagementService } from "../service/payout.management.service";
 import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
-import { VerifiedUser } from "@type/shared.types";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
+import { Controller, ForbiddenException, Get, Query, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { VerifiedUser } from "@type/shared.types";
+import { PayoutManagementService } from "../service/payout.management.service";
+import { ProductOrderDto, ProductOrderSearchDto } from "../dto/productOrder.dto";
 
 @ApiTags("Payout-management")
 @Controller("admin/payoutManagement")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class PayoutManagementController {
-    constructor(private readonly dashboardService: PayoutManagementService) {}
+    constructor(private readonly payoutManagementService: PayoutManagementService) {}
 
     @ApiOperation({ summary: "Super Admin: Get dashboard summary overview" })
     @Get("summary")
@@ -18,6 +19,16 @@ export class PayoutManagementController {
         if (user.role !== "SUPER_ADMIN") {
             throw new ForbiddenException("Forbidden access");
         }
-        return this.dashboardService.getSummary();
+        return this.payoutManagementService.getSummary();
+    }
+    @Get("stats")
+    async getPaidOrders(
+        @GetVerifiedUser() user: VerifiedUser,
+        @Query() searchDto: ProductOrderSearchDto,
+    ): Promise<ProductOrderDto[]> {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+        return this.payoutManagementService.searchPaidOrders(searchDto);
     }
 }
