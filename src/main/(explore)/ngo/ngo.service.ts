@@ -106,7 +106,7 @@ export class NgoService {
         // Create main notification (system-level)
         const notification = await this.prisma.notification.create({
             data: {
-                type: "Ngo",
+                type: "SYSTEM",
                 title: `New NGO Created: ${dto.profile?.title}`,
                 message: `${user.email} created a new NGO "${dto.profile?.title}"`,
                 userId: userId, // creator receives the root notification (or system user)
