@@ -51,4 +51,75 @@ export class FriendRequestService {
             },
         });
     }
+
+    async getNonFriends(userId: string) {
+        const acceptedRequests = await this.prisma.friendRequest.findMany({
+            where: {
+                status: "ACCEPTED",
+                OR: [{ senderId: userId }, { receiverId: userId }],
+            },
+            select: { senderId: true, receiverId: true },
+        });
+
+        const friendIds = acceptedRequests.map((f) =>
+            f.senderId === userId ? f.receiverId : f.senderId,
+        );
+
+        const pendingRequests = await this.prisma.friendRequest.findMany({
+            where: {
+                status: "PENDING",
+                OR: [{ senderId: userId }, { receiverId: userId }],
+            },
+            select: { senderId: true, receiverId: true },
+        });
+
+        const pendingIds = pendingRequests.map((f) =>
+            f.senderId === userId ? f.receiverId : f.senderId,
+        );
+
+        const excludeIds = [...new Set([...friendIds, ...pendingIds, userId])];
+        const users = await this.prisma.user.findMany({
+            where: { id: { notIn: excludeIds } },
+            select: {
+                id: true,
+                email: true,
+                profile: {
+                    select: { name: true, avatarUrl: true },
+                },
+            },
+        });
+
+        return users;
+    }
+
+    async getFriends(userId: string) {
+        // 1. Get all accepted friend requests where user is sender or receiver
+        const acceptedRequests = await this.prisma.friendRequest.findMany({
+            where: {
+                status: "ACCEPTED",
+                OR: [{ senderId: userId }, { receiverId: userId }],
+            },
+            select: {
+                senderId: true,
+                receiverId: true,
+            },
+        });
+
+        // 2. Get the friend IDs (other party in the request)
+        const friendIds = acceptedRequests.map((f) =>
+            f.senderId === userId ? f.receiverId : f.senderId,
+        );
+
+        // 3. Fetch user info + profile of friends
+        const friends = await this.prisma.user.findMany({
+            where: { id: { in: friendIds } },
+            select: {
+                id: true,
+                email: true,
+                profile: { select: { name: true, avatarUrl: true } },
+            },
+        });
+
+        return friends;
+    }
 }
