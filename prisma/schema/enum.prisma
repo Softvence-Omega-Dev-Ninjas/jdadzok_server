@@ -90,6 +90,12 @@ enum Feelings {
   MEH
 }
 
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -140,18 +146,12 @@ enum NotificationType {
   SHARE
   MENTION
   EARNINGS
-  Community
-  Comment
-  UserRegistration
-  PostEvent
-  Ngo
-  Custom
 }
 
 enum OrderStatus {
   PENDING
   PAID
-  SHIPPED
+   SHIPPED
   DELIVERED
   CANCELLED
   REFUNDED

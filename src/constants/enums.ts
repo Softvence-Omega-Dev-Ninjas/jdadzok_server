@@ -146,3 +146,7 @@ export type Gender = (typeof gender)[number];
 
 export const withdrawStatus = ["PENDING", "PROCESSING", "SUCCESS", "FAILED"] as const;
 export type WithdrawStatus = (typeof withdrawStatus)[number];
+
+export const friendRequestStatus = ["PENDING", "ACCEPTED", "REJECTED"] as const;
+
+export type FriendRequestStatus = (typeof friendRequestStatus)[number];
