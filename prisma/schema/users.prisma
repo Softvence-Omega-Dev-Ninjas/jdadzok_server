@@ -115,6 +115,10 @@ model User {
   donations Donations[]
   withdraws Withdraw[]
 
+  sentRequests     FriendRequest[] @relation("FriendRequestSender")
+  receivedRequests FriendRequest[] @relation("FriendRequestReceiver")
+
+
   @@index([email])
   @@index([capLevel])
   @@index([role])

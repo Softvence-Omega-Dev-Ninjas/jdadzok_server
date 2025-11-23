@@ -36,7 +36,7 @@ export class AdminNotificationService {
                 title: dto.title,
                 message: dto.message,
                 userId: users[0].id,
-                type: "Custom",
+                type: "SYSTEM",
             },
         });
         console.log("notification", notification);
@@ -88,7 +88,7 @@ export class AdminNotificationService {
                     title: dto.title,
                     message: dto.message,
                     userId: users[0].id,
-                    type: "Custom",
+                    type: "SYSTEM",
                 },
             });
             console.log(notification);
