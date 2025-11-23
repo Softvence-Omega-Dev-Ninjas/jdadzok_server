@@ -4,6 +4,7 @@ import { UserModule } from "./users/users.module";
 import { PaymentMethodsModule } from "./payment-method/payment-method.module";
 import { FollowModule } from "./follow/follow.module";
 import { FriendRequestModule } from "./friend-request/friend-request.module";
+import { ReportModule } from "./report/report.module";
 
 @Module({
     imports: [
@@ -12,6 +13,7 @@ import { FriendRequestModule } from "./friend-request/friend-request.module";
         PaymentMethodsModule,
         FollowModule,
         FriendRequestModule,
+        ReportModule,
     ],
     controllers: [],
     providers: [],
