@@ -1,6 +1,6 @@
-import { Controller, Post, Body, Get, Patch, UseGuards } from "@nestjs/common";
+import { Controller, Post, Body, Get, Patch, UseGuards, Delete, Query } from "@nestjs/common";
 import { FriendRequestService } from "./friend-request.service";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { handleRequest } from "@common/utils/handle.request.util";
 import { FriendRequestAction, RespondRequestDto, SendRequestDto } from "./dto/friend-request.dto";
 import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
@@ -20,6 +20,16 @@ export class FriendRequestController {
         return handleRequest(
             () => this.service.sendRequest(user.id, dto.receiverId),
             "Friend request sent successfully",
+        );
+    }
+
+    @Delete("/cancel")
+    @ApiOperation({ summary: "Cancel a friend request sent by you to a user" })
+    @ApiQuery({ name: "receiverId", required: true, example: "user-uuid" })
+    async cancelRequest(@GetVerifiedUser() user: any, @Query("receiverId") receiverId: string) {
+        return handleRequest(
+            () => this.service.cancelRequestByReceiver(user.id, receiverId),
+            "Friend request cancelled successfully",
         );
     }
 
