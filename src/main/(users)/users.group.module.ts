@@ -3,9 +3,16 @@ import { UserProfileModule } from "./user-profile/user.profile.module";
 import { UserModule } from "./users/users.module";
 import { PaymentMethodsModule } from "./payment-method/payment-method.module";
 import { FollowModule } from "./follow/follow.module";
+import { FriendRequestModule } from "./friend-request/friend-request.module";
 
 @Module({
-    imports: [UserModule, UserProfileModule, PaymentMethodsModule, FollowModule],
+    imports: [
+        UserModule,
+        UserProfileModule,
+        PaymentMethodsModule,
+        FollowModule,
+        FriendRequestModule,
+    ],
     controllers: [],
     providers: [],
     exports: [],
