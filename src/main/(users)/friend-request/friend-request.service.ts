@@ -8,14 +8,52 @@ export class FriendRequestService {
 
     async sendRequest(senderId: string, receiverId: string) {
         if (senderId === receiverId) throw new Error("You cannot send request to yourself");
+        const existingFriend = await this.prisma.friendRequest.findFirst({
+            where: {
+                status: "ACCEPTED",
+                OR: [
+                    { senderId, receiverId },
+                    { senderId: receiverId, receiverId: senderId },
+                ],
+            },
+        });
+
+        if (existingFriend) throw new Error("You are already friends with this user");
+
+        const existingPending = await this.prisma.friendRequest.findFirst({
+            where: {
+                status: "PENDING",
+                OR: [
+                    { senderId, receiverId },
+                    { senderId: receiverId, receiverId: senderId },
+                ],
+            },
+        });
+
+        if (existingPending) throw new Error("Friend request is already pending with this user");
 
         return this.prisma.friendRequest.create({
             data: { senderId, receiverId },
         });
     }
 
+    async cancelRequestByReceiver(senderId: string, receiverId: string) {
+        const request = await this.prisma.friendRequest.findFirst({
+            where: {
+                senderId,
+                receiverId,
+                status: "PENDING",
+            },
+        });
+
+        if (!request) throw new Error("Pending friend request not found");
+
+        return this.prisma.friendRequest.delete({
+            where: { id: request.id },
+        });
+    }
+
     async respondRequest(requestId: string, userId: string, action: FriendRequestAction) {
-        // check if request exists and belongs to the receiver
         const request = await this.prisma.friendRequest.findUnique({
             where: { id: requestId },
         });
