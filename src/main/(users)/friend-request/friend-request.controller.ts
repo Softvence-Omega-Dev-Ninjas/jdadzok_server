@@ -14,7 +14,6 @@ import { VerifiedUser } from "@type/shared.types";
 export class FriendRequestController {
     constructor(private service: FriendRequestService) {}
 
-    // ➤ Send friend request
     @Post("/")
     @ApiOperation({ summary: "Send friend request" })
     async send(@Body() dto: SendRequestDto, @GetVerifiedUser() user: VerifiedUser) {
@@ -42,5 +41,20 @@ export class FriendRequestController {
             () => this.service.getPendingRequests(user.id),
             "Pending friend requests loaded",
         );
+    }
+
+    @Get("/non-friends")
+    @ApiOperation({ summary: "Get all users who are NOT friends or pending requests" })
+    async getNonFriends(@GetVerifiedUser() user: VerifiedUser) {
+        return handleRequest(
+            () => this.service.getNonFriends(user.id),
+            "Non-friends loaded successfully",
+        );
+    }
+
+    @Get("/friends")
+    @ApiOperation({ summary: "Get all friends of current user" })
+    async getFriends(@GetVerifiedUser() user: VerifiedUser) {
+        return handleRequest(() => this.service.getFriends(user.id), "Friends loaded successfully");
     }
 }
