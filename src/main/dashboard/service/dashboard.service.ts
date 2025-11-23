@@ -1,4 +1,5 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
+import { UpdateReportDto } from "@module/(users)/report/dto/report.dto";
 import { Injectable } from "@nestjs/common";
 import { endOfMonth, startOfMonth, subMonths } from "date-fns";
 
@@ -187,5 +188,42 @@ export class DashboardService {
         );
 
         return pendingApplications;
+    }
+
+    async getPendingReports() {
+        return this.prisma.report.findMany({
+            where: { status: "PENDING" },
+            include: {
+                reporter: {
+                    select: {
+                        id: true,
+                        profile: {
+                            select: {
+                                username: true,
+                                name: true,
+                                avatarUrl: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    async reviewReport(reportId: string, dto: UpdateReportDto, adminId: string) {
+        const report = await this.prisma.report.findUnique({
+            where: { id: reportId },
+        });
+
+        if (!report) throw new Error("Report not found");
+
+        return this.prisma.report.update({
+            where: { id: reportId },
+            data: {
+                status: dto.status,
+                adminNotes: dto.adminNotes || null,
+                reviewedById: adminId,
+            },
+        });
     }
 }

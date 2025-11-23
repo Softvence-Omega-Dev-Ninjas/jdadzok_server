@@ -1,10 +1,12 @@
-import { Controller, ForbiddenException, Get, UseGuards } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Get, Param, Patch, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { DashboardService } from "../service/dashboard.service";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { VerifiedUser } from "@type/shared.types";
+import { UpdateReportDto } from "@module/(users)/report/dto/report.dto";
+import { handleRequest } from "@common/utils/handle.request.util";
 
 @ApiTags("Admin Dashboard")
 @Controller("admin/dashboard")
@@ -59,5 +61,33 @@ export class DashboardController {
             throw new ForbiddenException("Forbidden access");
         }
         return this.dashboardService.getPendingApplicationsDetailed();
+    }
+
+    @Get("/pending")
+    @ApiOperation({ summary: "Get all pending reports (admin only)" })
+    async getPendingReports(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+        return handleRequest(
+            () => this.dashboardService.getPendingReports(),
+            "Pending reports loaded",
+        );
+    }
+
+    @Patch("/:id/review")
+    @ApiOperation({ summary: "Review report and update status (admin only)" })
+    async reviewReport(
+        @Param("id") reportId: string,
+        @Body() dto: UpdateReportDto,
+        @GetVerifiedUser() user: VerifiedUser,
+    ) {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+        return handleRequest(
+            () => this.dashboardService.reviewReport(reportId, dto, user.id),
+            "Report reviewed successfully",
+        );
     }
 }
