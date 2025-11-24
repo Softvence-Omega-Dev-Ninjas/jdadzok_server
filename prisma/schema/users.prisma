@@ -120,7 +120,6 @@ model User {
 
   savedPosts SavedPost[]
 
-
   @@index([email])
   @@index([capLevel])
   @@index([role])

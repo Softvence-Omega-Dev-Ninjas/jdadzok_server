@@ -1,5 +1,6 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
+import { TogglePostDto } from "./dto/toggle.post.dto";
 
 @Injectable()
 export class PostFeaturedService {
@@ -44,6 +45,34 @@ export class PostFeaturedService {
                 },
             },
             orderBy: { createdAt: "desc" },
+        });
+    }
+
+    async togglePostHide(userId: string, postId: string, dto: TogglePostDto) {
+        const post = await this.prisma.post.findUnique({
+            where: { id: postId },
+        });
+
+        if (!post || post.authorId !== userId) {
+            throw new Error("Post not found or unauthorized");
+        }
+        const newHideValue = dto.hide ?? !post.isHidden;
+
+        return this.prisma.post.update({
+            where: { id: postId },
+            data: { isHidden: newHideValue },
+        });
+    }
+
+    async getMyHiddenPosts(userId: string) {
+        return this.prisma.post.findMany({
+            where: {
+                authorId: userId,
+                isHidden: true,
+            },
+            orderBy: {
+                updatedAt: "desc",
+            },
         });
     }
 }
