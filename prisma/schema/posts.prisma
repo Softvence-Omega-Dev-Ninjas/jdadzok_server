@@ -47,6 +47,7 @@ model Post {
   acceptDonation  Boolean? @default(false)
 
   savedBy SavedPost[]
+  isHidden   Boolean @default(false) 
 
 
   createdAt DateTime @default(now())
