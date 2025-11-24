@@ -4,9 +4,10 @@ import { CommunityModule } from "./communities/communities.module";
 
 import { NewsFeedModule } from "./newsfeed/newsfeed.module";
 import { NgoModule } from "./ngo/ngo.module";
+import { ExploreModule } from "./explore/explore.module";
 
 @Module({
-    imports: [CommunityModule, NgoModule, NewsFeedModule],
+    imports: [CommunityModule, NgoModule, NewsFeedModule, ExploreModule],
     controllers: [],
     providers: [],
     exports: [],
