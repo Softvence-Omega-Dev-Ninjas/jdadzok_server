@@ -22,14 +22,12 @@ export class ExploreService {
 
     async exploreTop(search?: string) {
         const searchFilter = this.buildSearchFilter(search);
-
         const communities = await this.prisma.community.findMany({
             include: { profile: true },
             where: {
                 profile: { is: searchFilter },
             },
         });
-
         const ngos = await this.prisma.ngo.findMany({
             include: { profile: true },
             where: {
@@ -63,9 +61,63 @@ export class ExploreService {
                     createdAt: n.createdAt,
                 })),
         ];
-
         combined.sort((a, b) => (b.followersCount ?? 0) - (a.followersCount ?? 0));
-
         return combined;
+    }
+
+    // ======== TOP NGOs =========
+    async exploreTopNgos(search?: string) {
+        const searchFilter = this.buildSearchFilter(search);
+
+        const ngos = await this.prisma.ngo.findMany({
+            include: { profile: true },
+            where: {
+                profile: { is: searchFilter },
+            },
+            orderBy: {
+                profile: { followersCount: "desc" },
+            },
+        });
+
+        return ngos
+            .filter((n) => n.profile)
+            .map((n) => ({
+                id: n.id,
+                type: "ngo",
+                name: n.profile!.name,
+                username: n.profile!.username,
+                title: n.profile!.title,
+                avatarUrl: n.profile!.avatarUrl,
+                followersCount: n.profile!.followersCount,
+                createdAt: n.createdAt,
+            }));
+    }
+
+    // ======== TOP COMMUNITIES =========
+    async exploreTopCommunities(search?: string) {
+        const searchFilter = this.buildSearchFilter(search);
+
+        const communities = await this.prisma.community.findMany({
+            include: { profile: true },
+            where: {
+                profile: { is: searchFilter },
+            },
+            orderBy: {
+                profile: { followersCount: "desc" },
+            },
+        });
+
+        return communities
+            .filter((c) => c.profile)
+            .map((c) => ({
+                id: c.id,
+                type: "community",
+                name: c.profile!.name,
+                username: c.profile!.username,
+                title: c.profile!.title,
+                avatarUrl: c.profile!.avatarUrl,
+                followersCount: c.profile!.followersCount,
+                createdAt: c.createdAt,
+            }));
     }
 }
