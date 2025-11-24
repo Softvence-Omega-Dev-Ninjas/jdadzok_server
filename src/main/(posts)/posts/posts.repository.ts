@@ -12,7 +12,6 @@ import { CreatePostMetadataDto } from "../post-metadata/dto/post.metadata.dto";
 import { PostMetadataRepository } from "../post-metadata/post.metadata.repository";
 import { PostTagsRepository } from "../post-tags/post-tags.repository";
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
-import { PostQueryDto } from "./dto/posts.query.dto";
 
 @Injectable()
 export class PostRepository {
@@ -123,71 +122,71 @@ export class PostRepository {
         });
     }
 
-    async findAll(
-        options?: PostQueryDto,
-        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-        p0?: {
-            id: boolean;
-            mediaUrls: boolean;
-            text: boolean;
-            metadata: boolean;
-            author: {
-                select: {
-                    id: boolean;
-                    email: boolean;
-                    profile: { select: { avatarUrl: boolean; name: boolean } };
-                };
-            };
-            likes: boolean;
-            shares: boolean;
-            createdAt: boolean;
-        },
-    ) {
-        const limit = options?.limit ?? 10;
+    // async findAll(
+    //     options?: PostQueryDto,
+    //     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    //     p0?: {
+    //         id: boolean;
+    //         mediaUrls: boolean;
+    //         text: boolean;
+    //         metadata: boolean;
+    //         author: {
+    //             select: {
+    //                 id: boolean;
+    //                 email: boolean;
+    //                 profile: { select: { avatarUrl: boolean; name: boolean } };
+    //             };
+    //         };
+    //         likes: boolean;
+    //         shares: boolean;
+    //         createdAt: boolean;
+    //     },
+    // ) {
+    //     const limit = options?.limit ?? 10;
 
-        const posts = await this.prisma.post.findMany({
-            take: limit + 1,
-            ...(options?.cursor ? { skip: 1, cursor: { id: options.cursor } } : {}),
-            orderBy: { createdAt: "desc" },
-            include: {
-                author: {
-                    include: {
-                        profile: { select: { name: true, avatarUrl: true } },
-                    },
-                },
-                likes: true,
-                shares: true,
-                metadata: true,
-            },
-        });
+    //     const posts = await this.prisma.post.findMany({
+    //         take: limit + 1,
+    //         ...(options?.cursor ? { skip: 1, cursor: { id: options.cursor } } : {}),
+    //         orderBy: { createdAt: "desc" },
+    //         include: {
+    //             author: {
+    //                 include: {
+    //                     profile: { select: { name: true, avatarUrl: true } },
+    //                 },
+    //             },
+    //             likes: true,
+    //             shares: true,
+    //             metadata: true,
+    //         },
+    //     });
 
-        let nextCursor: string | undefined;
-        if (posts.length > limit) {
-            const nextItem = posts.pop();
-            nextCursor = nextItem?.id;
-        }
+    //     let nextCursor: string | undefined;
+    //     if (posts.length > limit) {
+    //         const nextItem = posts.pop();
+    //         nextCursor = nextItem?.id;
+    //     }
 
-        // Flatten author.profile into author
-        const formattedPosts = posts.map((post) => ({
-            ...post,
-            author: {
-                id: post.author.id,
-                email: post.author.email,
-                name: post.author.profile?.name ?? "Unknown",
-                avatarUrl:
-                    post.author.profile?.avatarUrl ?? "https://example.com/default-avatar.png",
-            },
-        }));
+    //     // Flatten author.profile into author
+    //     const formattedPosts = posts.map((post) => ({
+    //         ...post,
+    //         author: {
+    //             id: post.author.id,
+    //             email: post.author.email,
+    //             name: post.author.profile?.name ?? "Unknown",
+    //             avatarUrl:
+    //                 post.author.profile?.avatarUrl ?? "https://example.com/default-avatar.png",
+    //         },
+    //     }));
 
-        return {
-            data: formattedPosts,
-            metadata: {
-                nextCursor,
-                limit,
-                length: posts.length,
-            },
-        };
-    }
+    //     return {
+    //         data: formattedPosts,
+    //         metadata: {
+    //             nextCursor,
+    //             limit,
+    //             length: posts.length,
+    //         },
+    //     };
+    // }
 
     async update(id: string, data: UpdatePostDto) {
         return await this.prisma.$transaction(async (tx) => {
