@@ -7,6 +7,7 @@ import { CategoryModule } from "./post-category/category.module";
 import { PostMetadataModule } from "./post-metadata/post.metadata.module";
 import { PostModule } from "./posts/posts.module";
 import { ShareModule } from "./share/share.module";
+import { PostFeaturedModule } from "./post-featured/post.featured.module";
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { ShareModule } from "./share/share.module";
         LikeModule,
         CommentModule,
         ShareModule,
+        PostFeaturedModule,
     ],
     controllers: [],
     providers: [],
