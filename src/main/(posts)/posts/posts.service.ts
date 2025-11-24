@@ -12,6 +12,7 @@ import {
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { CreatePostDto, UpdatePostDto } from "./dto/create.post.dto";
 import { PostRepository } from "./posts.repository";
+import { PostQueryDto } from "./dto/posts.query.dto";
 
 @Injectable()
 export class PostService {
@@ -59,29 +60,52 @@ export class PostService {
         return post;
     }
 
-    /** Fetch posts with selected fields */
-    async index(options?: any) {
-        return await this.repository.findAll(options, {
-            id: true,
-            mediaUrls: true,
-            text: true,
-            metadata: true,
-            author: {
-                select: {
-                    id: true,
-                    email: true,
-                    profile: {
-                        select: {
-                            avatarUrl: true,
-                            name: true,
-                        },
+    async index(options?: PostQueryDto) {
+        const where: any = {
+            isHidden: false,
+        };
+
+        // Search by post text or author name
+        if (options?.search) {
+            where.OR = [
+                { text: { contains: options.search, mode: "insensitive" } },
+                {
+                    author: {
+                        profile: { name: { contains: options.search, mode: "insensitive" } },
                     },
                 },
+            ];
+        }
+
+        // Filter by feelings (PostMetadata)
+        if (options?.feelings && options.feelings.length > 0) {
+            where.metadata = { feelings: { in: options.feelings } };
+        }
+
+        const posts = await this.prisma.post.findMany({
+            where,
+            orderBy: { createdAt: "desc" },
+            include: {
+                author: { include: { profile: { select: { name: true, avatarUrl: true } } } },
+                likes: true,
+                shares: true,
+                metadata: true,
             },
-            likes: true,
-            shares: true,
-            createdAt: false,
         });
+
+        // Format author object
+        const formattedPosts = posts.map((post) => ({
+            ...post,
+            author: {
+                id: post.author.id,
+                email: post.author.email,
+                name: post.author.profile?.name ?? "Unknown",
+                avatarUrl:
+                    post.author.profile?.avatarUrl ?? "https://example.com/default-avatar.png",
+            },
+        }));
+
+        return { data: formattedPosts, metadata: { length: formattedPosts.length } };
     }
 
     async findOne(id: string) {
