@@ -92,19 +92,33 @@ jobs:
             - name: Deploy via SSH
               uses: appleboy/ssh-action@v1.0.3
               with:
-                  host: ${{ secrets.VPS_HOST }}
-                  username: ${{ secrets.VPS_USER }}
-                  key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-                  script: |
-                      cd ~/jdadzok_server
-                      # Pull the latest images
-                      docker compose --profile prod pull
+                host: ${{ secrets.VPS_HOST }}
+                username: ${{ secrets.VPS_USER }}
+                key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+                script: |
+                  cd ~/jdadzok_server
 
-                      # Stop and remove existing containers safely
-                      docker compose --profile prod down --remove-orphans
+                  # Detect docker compose command
+                  if docker compose version >/dev/null 2>&1; then
+                    COMPOSE_CMD="docker compose"
+                  elif docker-compose version >/dev/null 2>&1; then
+                    COMPOSE_CMD="docker-compose"
+                  else
+                    echo "❌ ERROR: docker compose or docker-compose not found"
+                    exit 1
+                  fi
 
-                      # Start containers in detached mode
-                      docker compose --profile prod up -d
+                  echo "Using compose command: $COMPOSE_CMD"
 
-                      # Prune unused Docker objects (optional, cleans disk)
-                      docker system prune -f
+                  # Pull latest images
+                  $COMPOSE_CMD --profile prod pull
+
+                  # Stop and remove containers safely
+                  $COMPOSE_CMD --profile prod down --remove-orphans
+
+                  # Start containers in detached mode
+                  $COMPOSE_CMD --profile prod up -d
+
+                  # Clean unused docker resources
+                  docker system prune -f
+
