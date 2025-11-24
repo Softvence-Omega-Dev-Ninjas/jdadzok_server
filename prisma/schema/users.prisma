@@ -118,6 +118,8 @@ model User {
   sentRequests     FriendRequest[] @relation("FriendRequestSender")
   receivedRequests FriendRequest[] @relation("FriendRequestReceiver")
 
+  savedPosts SavedPost[]
+
 
   @@index([email])
   @@index([capLevel])
