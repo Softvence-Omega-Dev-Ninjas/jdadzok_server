@@ -60,7 +60,7 @@ export class CommunitiesService {
                 ownerId: userId,
                 profile: {
                     is: {
-                        title: dto.profile?.title,
+                        title: dto.profile?.name,
                     },
                 },
             },
