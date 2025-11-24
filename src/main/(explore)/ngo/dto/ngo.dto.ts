@@ -1,6 +1,6 @@
 import { ApiProperty, OmitType, PartialType } from "@nestjs/swagger";
 import { CommunityType } from "@prisma/client";
-import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
+import { IsDateString, IsEnum, IsISO8601, IsOptional, IsString } from "class-validator";
 
 export class NgoProfileDto {
     @ApiProperty({ description: "NGO name", example: "Helping Hands" })
@@ -70,10 +70,14 @@ export class NgoAboutDto {
 
     @ApiProperty({
         description: "Date when the community was founded",
-        example: "2024-09-01T00:00:00.000Z",
+        example: "2020-06-15T00:00:00.000Z",
+        required: false,
+        type: String,
+        format: "date-time",
     })
-    @IsDateString()
-    foundingDate: string;
+    @IsOptional()
+    @IsISO8601({ strict: true })
+    foundingDate?: string;
 
     @ApiProperty({
         description: "NGO mission statement",

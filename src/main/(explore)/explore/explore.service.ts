@@ -8,7 +8,7 @@ export class ExploreService {
 
     private buildSearchFilter(
         search?: string,
-    ): Prisma.NgoProfileWhereInput & Prisma.CommunityProfileWhereInput {
+    ): Prisma.ProfileWhereInput & Prisma.CommunityProfileWhereInput & Prisma.NgoProfileWhereInput {
         if (!search || search.trim() === "") return {};
 
         return {
@@ -22,12 +22,21 @@ export class ExploreService {
 
     async exploreTop(search?: string) {
         const searchFilter = this.buildSearchFilter(search);
+
+        const users = await this.prisma.user.findMany({
+            include: { profile: true },
+            where: {
+                profile: { is: searchFilter },
+            },
+        });
+
         const communities = await this.prisma.community.findMany({
             include: { profile: true },
             where: {
                 profile: { is: searchFilter },
             },
         });
+
         const ngos = await this.prisma.ngo.findMany({
             include: { profile: true },
             where: {
@@ -36,6 +45,19 @@ export class ExploreService {
         });
 
         const combined = [
+            ...users
+                .filter((u) => u.profile)
+                .map((u) => ({
+                    id: u.id,
+                    type: "user",
+                    name: u.profile!.name,
+                    username: u.profile!.username,
+                    title: u.profile!.title,
+                    avatarUrl: u.profile!.avatarUrl,
+                    followersCount: u.profile!.followersCount,
+                    createdAt: u.createdAt,
+                })),
+
             ...communities
                 .filter((c) => c.profile)
                 .map((c) => ({
@@ -48,6 +70,7 @@ export class ExploreService {
                     followersCount: c.profile!.followersCount,
                     createdAt: c.createdAt,
                 })),
+
             ...ngos
                 .filter((n) => n.profile)
                 .map((n) => ({
@@ -61,7 +84,9 @@ export class ExploreService {
                     createdAt: n.createdAt,
                 })),
         ];
+
         combined.sort((a, b) => (b.followersCount ?? 0) - (a.followersCount ?? 0));
+
         return combined;
     }
 

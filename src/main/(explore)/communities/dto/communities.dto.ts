@@ -1,7 +1,6 @@
 // community.dto.ts
 import { ApiProperty, OmitType, PartialType } from "@nestjs/swagger";
-import { IsString, IsOptional, IsEnum, IsDateString } from "class-validator";
-import { Type } from "class-transformer";
+import { IsString, IsOptional, IsEnum, IsDateString, IsISO8601 } from "class-validator";
 import { CommunityType, CommunityRole } from "@prisma/client";
 
 // ---------------- COMMUNITY PROFILE ----------------
@@ -17,6 +16,7 @@ export class CommunityProfileDto {
         description: "Unique username/handle for the community",
         example: "tech_club",
     })
+    @IsOptional()
     @IsString()
     username: string;
 
@@ -24,6 +24,7 @@ export class CommunityProfileDto {
         description: "Short tagline or title of the community",
         example: "Exploring the Future of Technology",
     })
+    @IsOptional()
     @IsString()
     title: string;
 
@@ -73,14 +74,14 @@ export class CommunityAboutDto {
 
     @ApiProperty({
         description: "Date when the community was founded",
-        example: "2020-06-15T00:00:00.000Z",
+        example: "2020-06-15T00:00:00.000Z", // ISO format
         required: false,
         type: String,
         format: "date-time",
     })
     @IsOptional()
-    @Type(() => Date)
-    foundingDate?: Date;
+    @IsISO8601({ strict: true })
+    foundingDate?: string;
 
     @ApiProperty({
         description: "Community mission statement",
