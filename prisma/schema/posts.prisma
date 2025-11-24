@@ -46,6 +46,9 @@ model Post {
   acceptVolunteer Boolean? @default(false)
   acceptDonation  Boolean? @default(false)
 
+  savedBy SavedPost[]
+
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
