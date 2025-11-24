@@ -16,6 +16,7 @@ export class CommunityProfileDto {
         description: "Unique username/handle for the community",
         example: "tech_club",
     })
+    @IsOptional()
     @IsString()
     username: string;
 
@@ -23,6 +24,7 @@ export class CommunityProfileDto {
         description: "Short tagline or title of the community",
         example: "Exploring the Future of Technology",
     })
+    @IsOptional()
     @IsString()
     title: string;
 
