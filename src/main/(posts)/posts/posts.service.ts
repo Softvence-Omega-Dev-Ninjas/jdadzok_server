@@ -61,11 +61,13 @@ export class PostService {
     }
 
     async index(options?: PostQueryDto) {
-        const where: any = {
-            isHidden: false,
-        };
+        const page = options?.page ?? 1;
+        const limit = options?.limit ?? 10;
+        const skip = (page - 1) * limit;
 
-        // Search by post text or author name
+        const where: any = { isHidden: false };
+
+        // Search by text or author
         if (options?.search) {
             where.OR = [
                 { text: { contains: options.search, mode: "insensitive" } },
@@ -77,24 +79,34 @@ export class PostService {
             ];
         }
 
-        // Filter by feelings (PostMetadata)
-        if (options?.feelings && options.feelings.length > 0) {
+        // Filter by feelings
+        if (options?.feelings?.length) {
             where.metadata = { feelings: { in: options.feelings } };
         }
 
-        const posts = await this.prisma.post.findMany({
-            where,
-            orderBy: { createdAt: "desc" },
-            include: {
-                author: { include: { profile: { select: { name: true, avatarUrl: true } } } },
-                likes: true,
-                shares: true,
-                metadata: true,
-            },
-        });
+        const [posts, total] = await Promise.all([
+            this.prisma.post.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { createdAt: "desc" },
+                include: {
+                    author: {
+                        include: {
+                            profile: { select: { name: true, avatarUrl: true } },
+                        },
+                    },
+                    likes: true,
+                    shares: true,
+                    metadata: true,
+                },
+            }),
 
-        // Format author object
-        const formattedPosts = posts.map((post) => ({
+            this.prisma.post.count({ where }),
+        ]);
+
+        // Format author
+        const formatted = posts.map((post) => ({
             ...post,
             author: {
                 id: post.author.id,
@@ -105,7 +117,15 @@ export class PostService {
             },
         }));
 
-        return { data: formattedPosts, metadata: { length: formattedPosts.length } };
+        return {
+            data: formatted,
+            metadata: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
     }
 
     async findOne(id: string) {
