@@ -112,13 +112,18 @@ model User {
   // activityScores ActivityScore[]
 
   // ----------donation relation -----------`
-  donations Donations[]
   withdraws Withdraw[]
 
   sentRequests     FriendRequest[] @relation("FriendRequestSender")
   receivedRequests FriendRequest[] @relation("FriendRequestReceiver")
 
   savedPosts SavedPost[]
+
+    // For donor role
+  donationsMade DonationLog[] @relation("DonationDonor")
+
+  // For NGO owner receiving donations
+  donationsReceived DonationLog[] @relation("DonationReceiver")
 
   @@index([email])
   @@index([capLevel])
