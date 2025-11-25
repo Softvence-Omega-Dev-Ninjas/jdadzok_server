@@ -1,9 +1,21 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsOptional, IsEnum, IsString } from "class-validator";
-import { Feelings } from "@prisma/client"; // or your enum path
+import { IsBoolean, IsOptional, IsEnum, IsString, IsNumber } from "class-validator";
+import { Feelings } from "@prisma/client";
 
 export class PostQueryDto {
+    @ApiProperty({ required: false, default: 1, type: Number })
+    @IsOptional()
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
+    page?: number = 1;
+
+    @ApiProperty({ required: false, default: 10, type: Number })
+    @IsOptional()
+    @Transform(({ value }) => Number(value))
+    @IsNumber()
+    limit?: number = 10;
+
     @ApiProperty({ required: false, default: false, type: Boolean })
     @IsBoolean()
     @IsOptional()
@@ -35,5 +47,3 @@ export class PostQueryDto {
     @IsEnum(Feelings, { each: true })
     feelings?: Feelings[];
 }
-
-export class PostQueryFilterDto extends PartialType(PostQueryDto) {}
