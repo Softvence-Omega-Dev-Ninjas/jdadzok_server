@@ -11,8 +11,6 @@ export class DonationService {
 
     async donateToNgo(donorId: string, dto: DonationDto) {
         const { ngoId, amount } = dto;
-        console.log("dto: ", dto);
-
         // 1. Fetch donor
         const donor = await this.prisma.user.findUnique({
             where: { id: donorId },
@@ -25,7 +23,6 @@ export class DonationService {
             where: { id: ngoId },
             include: { owner: true },
         });
-        console.log("ngo :", ngo);
 
         if (!ngo) throw new BadRequestException("NGO not found");
         if (!ngo.owner?.stripeAccountId)
@@ -47,8 +44,7 @@ export class DonationService {
             transfer_group: "ngo-donation",
         });
 
-        // ⛔ DO NOT use transfer with destination=null — Stripe does not allow that!
-
+        //  DO NOT use transfer with destination=null — Stripe does not allow that!
         // ================================================
         // Step 2 — After payment succeeds → Transfer (Platform → NGO owner)
         // ================================================
@@ -79,6 +75,20 @@ export class DonationService {
             message: "Donation sent successfully",
             paymentIntentSecret: paymentIntent.client_secret,
             transfer,
+        };
+    }
+
+    // View total donations received by a specific NGO
+    async getNgoDonations(ngoId: string) {
+        const donations = await this.prisma.donationLog.findMany({
+            where: { ngoId },
+        });
+
+        const totalAmount = donations.reduce((sum, d) => sum + d.amount, 0);
+
+        return {
+            totalAmount,
+            donations,
         };
     }
 }

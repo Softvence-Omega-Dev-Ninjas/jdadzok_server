@@ -1,10 +1,11 @@
-import { GetUser } from "@common/jwt/jwt.decorator";
+import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { handleRequest } from "@common/utils/handle.request.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { CreateNgoDto, UpdateNgoDto } from "./dto/ngo.dto";
 import { NgoService } from "./ngo.service";
+import { VerifiedUser } from "@type/shared.types";
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -23,6 +24,11 @@ export class NgoController {
     @ApiOperation({ summary: "Get All community" })
     async findAll() {
         return handleRequest(() => this.service.findAll(), "Get All Ngo");
+    }
+
+    @Get("myNgo")
+    myNgo(@GetVerifiedUser() user: VerifiedUser) {
+        return handleRequest(() => this.service.myNgo(user.id), "Retrive my all ngo successfully");
     }
 
     //    delete Ngo...
