@@ -30,6 +30,9 @@ model Ngo {
 
   projects VolunteerProject[]
 
+  
+  donationLogs DonationLog[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
