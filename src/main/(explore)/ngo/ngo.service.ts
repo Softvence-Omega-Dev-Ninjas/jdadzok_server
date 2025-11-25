@@ -166,6 +166,25 @@ export class NgoService {
         return ngo;
     }
 
+    async myNgo(userId: string) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            throw new ForbiddenException("Unauthorized Access.");
+        }
+
+        const ngo = await this.prisma.ngo.findMany({
+            where: { ownerId: userId },
+            include: {
+                profile: true,
+                about: true,
+            },
+        });
+        if (!ngo) {
+            throw new NotFoundException("This user does not own any NGO");
+        }
+        return ngo;
+    }
+
     // delete ngo....
     async deleteNgo(userId: string, ngoId: string) {
         const isExistCommunity = await this.prisma.ngo.findFirst({

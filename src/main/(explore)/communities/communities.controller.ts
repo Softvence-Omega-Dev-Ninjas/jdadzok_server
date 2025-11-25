@@ -1,10 +1,11 @@
-import { GetUser } from "@common/jwt/jwt.decorator";
+import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { handleRequest } from "@common/utils/handle.request.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { CommunitiesService } from "./communities.service";
 import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
+import { VerifiedUser } from "@type/shared.types";
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -26,6 +27,14 @@ export class CommunitiesController {
     @ApiOperation({ summary: "Get All community" })
     async findAll() {
         return handleRequest(() => this.service.findAll(), "Get All Community");
+    }
+
+    @Get("myCommunity")
+    myNgo(@GetVerifiedUser() user: VerifiedUser) {
+        return handleRequest(
+            () => this.service.myCommunity(user.id),
+            "Retrive my all community successfully",
+        );
     }
 
     //get single community by ID

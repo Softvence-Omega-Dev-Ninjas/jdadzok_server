@@ -1,5 +1,5 @@
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { DonationService } from "./donation.service";
 import { DonationDto } from "./dto/donation.dto";
@@ -17,7 +17,15 @@ export class DonationController {
     donateToNgo(@GetVerifiedUser() user: VerifiedUser, @Body() dto: DonationDto) {
         return handleRequest(
             () => this.service.donateToNgo(user.id, dto),
-            "Donation payment intent create successfully",
+            "Donation payment successfully",
+        );
+    }
+
+    @Get("ngo/:ngoId")
+    async ngoDonations(@Param("ngoId") ngoId: string) {
+        return handleRequest(
+            () => this.service.getNgoDonations(ngoId),
+            "Donation payment successfully",
         );
     }
 }
