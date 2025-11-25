@@ -78,6 +78,15 @@ export class DonationService {
         };
     }
 
+    // View all donations by a donor
+    async getDonorDonations(donorId: string) {
+        return this.prisma.donationLog.findMany({
+            where: { donorId },
+            orderBy: { createdAt: "desc" },
+            include: { ngo: true, ngoOwner: true },
+        });
+    }
+
     // View total donations received by a specific NGO
     async getNgoDonations(ngoId: string) {
         const donations = await this.prisma.donationLog.findMany({
