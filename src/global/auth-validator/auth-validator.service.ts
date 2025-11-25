@@ -11,10 +11,10 @@ export class AuthValidatorService {
     ) {}
 
     async validateSocketToken(socket: Socket) {
-        // const parsed = cookie.parse(rawCookie);
         const token = this.extractToken(socket);
+
         if (!token) {
-            throw new BadGatewayException("Unauthorized user - Token not found in cookie");
+            throw new BadGatewayException("Unauthorized user - Token not found");
         }
 
         const isVerifiedToken = await this.jwtService.verifyAsync(token);
@@ -27,23 +27,66 @@ export class AuthValidatorService {
 
         if (!user) {
             throw new BadGatewayException("Unauthorized User ❌", {
-                description: "User not foudn with that email & id",
+                description: "User not found with that email & id",
             });
         }
 
         if (!user.isVerified) {
             throw new UnauthorizedException("Please verify your account first");
         }
+
         return user;
     }
 
-    private extractToken(client: Socket) {
-        // Common approaches: `auth` in handshake (v4), or query param
-        // Example using auth handshake: socket = io(url, { auth: { token } })
-        return (
-            (client.handshake.auth && client.handshake.auth.token) ||
-            client.handshake.query?.token ||
-            client.handshake.headers.cookie
-        );
+    // -------------------------------------------------------
+    // Token extractor supporting ALL methods (Bearer, cookie,
+    // query, Socket.io auth, raw header)
+    // -------------------------------------------------------
+    private extractToken(client: Socket): string | null {
+        // ---------------------------
+        // 1. Authorization header
+        // ---------------------------
+        const authHeader = client.handshake.headers["authorization"];
+        if (authHeader) {
+            // Case: "Bearer <token>"
+            if (authHeader.startsWith("Bearer ")) {
+                return authHeader.replace("Bearer ", "").trim();
+            }
+            // Case: "<token>"
+            return authHeader.trim();
+        }
+
+        // ---------------------------
+        // 2. socket.io auth: { token }
+        // ---------------------------
+        if (client.handshake.auth?.token) {
+            return client.handshake.auth.token;
+        }
+
+        // ---------------------------
+        // 3. Query param: ?token=abc
+        // ---------------------------
+        if (client.handshake.query?.token) {
+            return client.handshake.query.token as string;
+        }
+
+        // ---------------------------
+        // 4. Cookie: token=abc
+        // ---------------------------
+        const rawCookie = client.handshake.headers.cookie;
+        if (rawCookie) {
+            const cookies = rawCookie.split(";").reduce(
+                (acc, c) => {
+                    const [key, value] = c.trim().split("=");
+                    acc[key] = value;
+                    return acc;
+                },
+                {} as Record<string, string>,
+            );
+
+            if (cookies["token"]) return cookies["token"];
+        }
+
+        return null;
     }
 }

@@ -1,7 +1,4 @@
 -- CreateEnum
-CREATE TYPE "DonationStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'CANCELED');
-
--- CreateEnum
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
 
 -- CreateEnum
@@ -29,6 +26,9 @@ CREATE TYPE "CommunityType" AS ENUM ('PUBLIC', 'PRIVATE', 'CUSTOM');
 CREATE TYPE "Feelings" AS ENUM ('HAPPY', 'SAD', 'ANGRY', 'AMAZED', 'AMUSED', 'SCARED', 'PROUD', 'TIRED', 'CONFUSED', 'RELAXED', 'EXCITED', 'WORRIED', 'LOVED', 'GRATEFUL', 'BLESSED', 'HUNGRY', 'HOPEFUL', 'LONELY', 'SILLY', 'THANKFUL', 'AWESOME', 'BORED', 'COOL', 'DETERMINED', 'IN_LOVE', 'INSPIRED', 'MOTIVATED', 'SICK', 'SLEEPY', 'STRESSED', 'STRONG', 'FUNNY', 'MEH');
 
 -- CreateEnum
+CREATE TYPE "FriendRequestStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
+
+-- CreateEnum
 CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'TRANSGENDER', 'GENDERQUEER', 'GENDERFLUID', 'AGENDER', 'BIGENDER', 'PANGENDER');
 
 -- CreateEnum
@@ -50,13 +50,16 @@ CREATE TYPE "MessageStatus" AS ENUM ('SENT', 'DELIVERED', 'READ');
 CREATE TYPE "NotificationType" AS ENUM ('VOLUNTEER_MATCH', 'SYSTEM', 'CAP_UPGRADE', 'LIKE', 'COMMENT', 'FOLLOW', 'SHARE', 'MENTION', 'EARNINGS');
 
 -- CreateEnum
-CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAID', 'COMPLETED', 'PAYMENT_FAILED', 'CANCELED');
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED');
 
 -- CreateEnum
 CREATE TYPE "PayOutStatus" AS ENUM ('PENDING', 'PAID');
 
 -- CreateEnum
 CREATE TYPE "PaymentMethod" AS ENUM ('STRIPE', 'PAYPAL');
+
+-- CreateEnum
+CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'SUCCEEDED', 'FAILED', 'CANCELED');
 
 -- CreateEnum
 CREATE TYPE "PostFrom" AS ENUM ('COMMUNITY', 'NGO', 'REGULAR_PROFILE');
@@ -93,9 +96,6 @@ CREATE TYPE "LiveMessageStatus" AS ENUM ('SENT', 'DELIVERED', 'READ');
 
 -- CreateEnum
 CREATE TYPE "LiveMediaType" AS ENUM ('IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT');
-
--- CreateEnum
-CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'succeeded', 'failed', 'canceled');
 
 -- CreateEnum
 CREATE TYPE "Status" AS ENUM ('CONTINUED', 'SOLDOUT', 'DISCONTINUED');
@@ -318,7 +318,7 @@ CREATE TABLE "community_profiles" (
     "id" TEXT NOT NULL,
     "communityId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "username" TEXT NOT NULL,
+    "username" TEXT,
     "title" TEXT,
     "bio" TEXT,
     "avatarUrl" TEXT,
@@ -363,18 +363,17 @@ CREATE TABLE "DedicatedAd" (
 );
 
 -- CreateTable
-CREATE TABLE "Donations" (
+CREATE TABLE "DonationLog" (
     "id" TEXT NOT NULL,
-    "sessionId" TEXT,
-    "status" "DonationStatus" NOT NULL DEFAULT 'PENDING',
-    "TransactionId" TEXT,
-    "userId" TEXT NOT NULL,
-    "communityId" TEXT,
-    "amount" DOUBLE PRECISION NOT NULL,
+    "donorId" TEXT NOT NULL,
+    "ngoId" TEXT NOT NULL,
+    "ngoOwnerId" TEXT NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "stripeTxFrom" TEXT NOT NULL,
+    "stripeTxTo" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Donations_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "DonationLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -408,6 +407,18 @@ CREATE TABLE "file_instances" (
 );
 
 -- CreateTable
+CREATE TABLE "FinancialSettings" (
+    "id" TEXT NOT NULL,
+    "platformCOmmission" INTEGER,
+    "MinimumPayoutAmount" INTEGER,
+    "currency" TEXT,
+    "stripeApiKey" TEXT,
+    "autoApprovePayouts" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "FinancialSettings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "follows" (
     "id" TEXT NOT NULL,
     "followerId" TEXT NOT NULL,
@@ -415,6 +426,18 @@ CREATE TABLE "follows" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "follows_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FriendRequest" (
+    "id" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "receiverId" TEXT NOT NULL,
+    "status" "FriendRequestStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "FriendRequest_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -577,6 +600,7 @@ CREATE TABLE "notification-toggle" (
     "message" BOOLEAN NOT NULL DEFAULT true,
     "userRegistration" BOOLEAN NOT NULL DEFAULT true,
     "ngo" BOOLEAN NOT NULL DEFAULT true,
+    "Custom" BOOLEAN NOT NULL DEFAULT true,
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "notification-toggle_pkey" PRIMARY KEY ("id")
@@ -647,10 +671,10 @@ CREATE TABLE "payment-methods" (
 CREATE TABLE "payments" (
     "id" TEXT NOT NULL,
     "orderId" TEXT NOT NULL,
-    "stripePaymentId" TEXT NOT NULL,
+    "stripeId" TEXT,
     "amount" DOUBLE PRECISION NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'usd',
-    "status" "PaymentStatus" NOT NULL DEFAULT 'pending',
+    "status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -670,6 +694,25 @@ CREATE TABLE "payouts" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "payouts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PlatformInformation" (
+    "id" TEXT NOT NULL,
+    "platformName" TEXT,
+    "supportEmail" TEXT,
+    "platformUrl" TEXT,
+
+    CONSTRAINT "PlatformInformation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MaintenanceModel" (
+    "id" TEXT NOT NULL,
+    "maxEventsPerCommunity" INTEGER,
+    "MaxPostPerDay" INTEGER,
+
+    CONSTRAINT "MaintenanceModel_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -741,6 +784,7 @@ CREATE TABLE "posts" (
     "metadataId" TEXT,
     "acceptVolunteer" BOOLEAN DEFAULT false,
     "acceptDonation" BOOLEAN DEFAULT false,
+    "isHidden" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -779,7 +823,7 @@ CREATE TABLE "products" (
     "price" DOUBLE PRECISION NOT NULL,
     "location" TEXT,
     "availability" INTEGER NOT NULL DEFAULT 1,
-    "digitalFileUrl" TEXT,
+    "digitalFileUrl" TEXT[],
     "spent" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "promotionFee" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "isVisible" BOOLEAN NOT NULL DEFAULT true,
@@ -802,7 +846,7 @@ CREATE TABLE "profiles" (
     "coverUrl" TEXT,
     "location" TEXT,
     "balance" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
-    "isToggleNotification" BOOLEAN NOT NULL DEFAULT false,
+    "isToggleNotification" BOOLEAN NOT NULL DEFAULT true,
     "dateOfBirth" TIMESTAMP(3),
     "gender" "Gender" NOT NULL DEFAULT 'MALE',
     "experience" TEXT,
@@ -842,6 +886,28 @@ CREATE TABLE "Revenue" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Revenue_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "saved_posts" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "postId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "saved_posts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SellerEarnings" (
+    "id" TEXT NOT NULL,
+    "sellerId" TEXT NOT NULL,
+    "totalEarned" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "pending" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "totalPaid" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "lastPaidAt" TIMESTAMP(3),
+
+    CONSTRAINT "SellerEarnings_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -946,6 +1012,8 @@ CREATE TABLE "users" (
     "capLevel" "CapLevel" NOT NULL DEFAULT 'NONE',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "stripeAccountId" TEXT,
+    "stripeCustomerId" TEXT,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -1144,9 +1212,6 @@ CREATE INDEX "communities_isVerified_idx" ON "communities"("isVerified");
 CREATE UNIQUE INDEX "community_profiles_communityId_key" ON "community_profiles"("communityId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "community_profiles_username_key" ON "community_profiles"("username");
-
--- CreateIndex
 CREATE INDEX "community_profiles_username_idx" ON "community_profiles"("username");
 
 -- CreateIndex
@@ -1160,15 +1225,6 @@ CREATE INDEX "corporate_memberships_isActive_idx" ON "corporate_memberships"("is
 
 -- CreateIndex
 CREATE INDEX "corporate_memberships_contactEmail_idx" ON "corporate_memberships"("contactEmail");
-
--- CreateIndex
-CREATE INDEX "Donations_userId_idx" ON "Donations"("userId");
-
--- CreateIndex
-CREATE INDEX "Donations_communityId_idx" ON "Donations"("communityId");
-
--- CreateIndex
-CREATE INDEX "Donations_createdAt_idx" ON "Donations"("createdAt");
 
 -- CreateIndex
 CREATE INDEX "endorsements_fromUserId_idx" ON "endorsements"("fromUserId");
@@ -1202,6 +1258,12 @@ CREATE INDEX "follows_createdAt_idx" ON "follows"("createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "follows_followerId_followingId_key" ON "follows"("followerId", "followingId");
+
+-- CreateIndex
+CREATE INDEX "FriendRequest_receiverId_idx" ON "FriendRequest"("receiverId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FriendRequest_senderId_receiverId_key" ON "FriendRequest"("senderId", "receiverId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "gifs_url_key" ON "gifs"("url");
@@ -1318,13 +1380,7 @@ CREATE INDEX "payment-methods_method_idx" ON "payment-methods"("method");
 CREATE INDEX "payment-methods_createdAt_idx" ON "payment-methods"("createdAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "payments_stripePaymentId_key" ON "payments"("stripePaymentId");
-
--- CreateIndex
 CREATE INDEX "payments_orderId_idx" ON "payments"("orderId");
-
--- CreateIndex
-CREATE INDEX "payments_status_idx" ON "payments"("status");
 
 -- CreateIndex
 CREATE INDEX "payouts_userId_idx" ON "payouts"("userId");
@@ -1412,6 +1468,12 @@ CREATE INDEX "reports_targetType_targetId_idx" ON "reports"("targetType", "targe
 
 -- CreateIndex
 CREATE INDEX "reports_status_idx" ON "reports"("status");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "saved_posts_userId_postId_key" ON "saved_posts"("userId", "postId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SellerEarnings_sellerId_key" ON "SellerEarnings"("sellerId");
 
 -- CreateIndex
 CREATE INDEX "shares_userId_idx" ON "shares"("userId");
@@ -1549,10 +1611,13 @@ ALTER TABLE "DedicatedAd" ADD CONSTRAINT "DedicatedAd_postId_fkey" FOREIGN KEY (
 ALTER TABLE "DedicatedAd" ADD CONSTRAINT "DedicatedAd_adId_fkey" FOREIGN KEY ("adId") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Donations" ADD CONSTRAINT "Donations_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "DonationLog" ADD CONSTRAINT "DonationLog_donorId_fkey" FOREIGN KEY ("donorId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Donations" ADD CONSTRAINT "Donations_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "DonationLog" ADD CONSTRAINT "DonationLog_ngoId_fkey" FOREIGN KEY ("ngoId") REFERENCES "ngos"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DonationLog" ADD CONSTRAINT "DonationLog_ngoOwnerId_fkey" FOREIGN KEY ("ngoOwnerId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "endorsements" ADD CONSTRAINT "endorsements_fromUserId_fkey" FOREIGN KEY ("fromUserId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1571,6 +1636,12 @@ ALTER TABLE "follows" ADD CONSTRAINT "follows_followerId_fkey" FOREIGN KEY ("fol
 
 -- AddForeignKey
 ALTER TABLE "follows" ADD CONSTRAINT "follows_followingId_fkey" FOREIGN KEY ("followingId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FriendRequest" ADD CONSTRAINT "FriendRequest_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FriendRequest" ADD CONSTRAINT "FriendRequest_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "likes" ADD CONSTRAINT "likes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1697,6 +1768,15 @@ ALTER TABLE "Revenue" ADD CONSTRAINT "Revenue_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Revenue" ADD CONSTRAINT "Revenue_adId_fkey" FOREIGN KEY ("adId") REFERENCES "products"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "saved_posts" ADD CONSTRAINT "saved_posts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "saved_posts" ADD CONSTRAINT "saved_posts_postId_fkey" FOREIGN KEY ("postId") REFERENCES "posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SellerEarnings" ADD CONSTRAINT "SellerEarnings_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "shares" ADD CONSTRAINT "shares_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
