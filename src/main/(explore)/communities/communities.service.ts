@@ -2,7 +2,12 @@ import { PrismaService } from "@lib/prisma/prisma.service";
 
 import { EVENT_TYPES } from "@common/interface/events-name";
 import { Community } from "@common/interface/events-payload";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { CreateCommunityDto, UpdateCommunityDto } from "./dto/communities.dto";
 
@@ -131,6 +136,25 @@ export class CommunitiesService {
         );
 
         return newCommunity;
+    }
+    // my community
+    async myCommunity(userId: string) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            throw new ForbiddenException("Unauthorized Access.");
+        }
+
+        const community = await this.prisma.community.findMany({
+            where: { ownerId: userId },
+            include: {
+                profile: true,
+                about: true,
+            },
+        });
+        if (!community) {
+            throw new NotFoundException("This user does not own any Community");
+        }
+        return community;
     }
 
     // find one community
