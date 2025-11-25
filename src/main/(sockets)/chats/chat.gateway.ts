@@ -42,7 +42,7 @@ export class ChatGateway extends BaseSocketGateway {
     ) {
         const { receiverId } = data;
 
-        // Step 1: Find or create a chat between sender and receiver
+        //Find or create a chat between sender and receiver
         let chat = await this.prisma.liveChat.findFirst({
             where: {
                 OR: [
@@ -52,7 +52,7 @@ export class ChatGateway extends BaseSocketGateway {
                     },
                 ],
             },
-            include: { participants: true },
+            include: { participants: { include: { user: true } } },
         });
 
         if (!chat) {
@@ -62,36 +62,36 @@ export class ChatGateway extends BaseSocketGateway {
                         create: [{ userId: user.id }, { userId: receiverId }],
                     },
                 },
-                include: { participants: true },
+                include: { participants: { include: { user: true } } },
             });
         }
 
-        // Step 2: Verify sender is indeed part of this chat
+        //  Verify sender is indeed part of this chat
         const isParticipant = chat.participants.some((p) => p.userId === user.id);
         if (!isParticipant) {
             console.log("User not in chat:", user.id, chat.id);
             return client.emit("error", { message: "You are not in this chat" });
         }
 
-        // Step 3: Create the message
+        //  Create the message
         const message = await this.chatService.createMessage(user.id, chat.id, data);
 
-        // Step 4: Build payload
+        // Build payload
         const payload = {
             id: message.id,
-            chatId: chat.id,
+            chatId: message.chatId,
             content: message.content,
             mediaUrl: message.mediaUrl,
             mediaType: message.mediaType,
-            sender: {
-                id: message.sender.id,
-                name: message.sender.profile?.name,
-                avatar: message.sender.profile?.avatarUrl,
-            },
+            sender: message.sender, // full info from Prisma include
+            receiver:
+                message.chat.participants
+                    .map((p) => p.user)
+                    .find((u) => u.id !== message.senderId) ?? null,
             createdAt: message.createdAt,
         };
 
-        // Step 5: Emit message to both users (sender & receiver)
+        //  Emit message to both users (sender & receiver)
         this.emitToUserViaClientsMap(receiverId, "chat:message_receive", payload);
         this.emitToUserViaClientsMap(user.id, "chat:message_sent", payload);
     }
