@@ -14,13 +14,24 @@ export class ChatService {
             where: {
                 type: "INDIVIDUAL",
                 participants: {
-                    every: { userId: { in: [userA, userB] } },
+                    some: { userId: userA },
                 },
             },
-            include: { participants: true },
+            include: {
+                participants: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                profile: { select: { name: true, avatarUrl: true } },
+                            },
+                        },
+                    },
+                },
+            },
         });
 
-        if (existing && existing.participants.length === 2) {
+        if (existing) {
             return existing;
         }
 
@@ -30,14 +41,29 @@ export class ChatService {
                     type: "INDIVIDUAL",
                     createdById: userA,
                 },
+                include: {
+                    participants: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    profile: { select: { name: true, avatarUrl: true } },
+                                },
+                            },
+                        },
+                    },
+                },
             });
 
-            await tx.liveChatParticipant.createMany({
-                data: [
-                    { chatId: chat.id, userId: userA },
-                    { chatId: chat.id, userId: userB },
-                ],
-            });
+            const participants =
+                userA === userB
+                    ? [{ chatId: chat.id, userId: userA }]
+                    : [
+                          { chatId: chat.id, userId: userA },
+                          { chatId: chat.id, userId: userB },
+                      ];
+
+            await tx.liveChatParticipant.createMany({ data: participants });
 
             return chat;
         });
@@ -57,7 +83,27 @@ export class ChatService {
                 sender: {
                     select: {
                         id: true,
+                        email: true,
+                        role: true,
+                        isVerified: true,
                         profile: { select: { name: true, avatarUrl: true } },
+                    },
+                },
+                chat: {
+                    include: {
+                        participants: {
+                            include: {
+                                user: {
+                                    select: {
+                                        id: true,
+                                        email: true,
+                                        role: true,
+                                        isVerified: true,
+                                        profile: { select: { name: true, avatarUrl: true } },
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             },

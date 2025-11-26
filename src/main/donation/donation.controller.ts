@@ -21,6 +21,11 @@ export class DonationController {
         );
     }
 
+    @Get("myDonation")
+    async donorDonations(@GetVerifiedUser() user: VerifiedUser) {
+        return this.service.getDonorDonations(user.id);
+    }
+
     @Get("ngo/:ngoId")
     async ngoDonations(@Param("ngoId") ngoId: string) {
         return handleRequest(
