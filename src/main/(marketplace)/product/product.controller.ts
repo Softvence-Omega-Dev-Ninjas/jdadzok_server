@@ -28,7 +28,6 @@ export class ProductController {
     @Post("/")
     @ApiOperation({ summary: "Create new product" })
     async create(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreateProductDto) {
-        console.info("user",user);
         return handleRequest(
             () => this.service.create(user.id, dto),
             "Product created successfully",
