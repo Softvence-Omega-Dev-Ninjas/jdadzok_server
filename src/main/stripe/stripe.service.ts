@@ -157,30 +157,95 @@ export class StripeService {
     }
 
     /** Handle Stripe Webhook */
+    // async handleWebhook(rawBody: Buffer, signature: string) {
+    //     try {
+    //         // Construct the event using raw body (ensure controller provides Buffer)
+    //         const event: Stripe.Event = this.stripe.webhooks.constructEvent(
+    //             rawBody,
+    //             signature,
+    //             this.webhookSecret,
+    //         );
+    //         this.logger.log(`Received Stripe event: ${event.type}`);
+
+    //         switch (event.type) {
+    //             case "payment_intent.succeeded": {
+    //                 const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    //                 const orderId = paymentIntent.metadata.orderId;
+
+    //                 if (!orderId) {
+    //                     const msg = "PaymentIntent metadata missing orderId";
+    //                     this.logger.error(msg, paymentIntent);
+    //                     return ApiResponse.error(msg);
+    //                 }
+
+    //                 const order = await this.prisma.order.findUnique({
+    //                     where: { id: orderId },
+    //                     include: { product: { include: { seller: true } } },
+    //                 });
+
+    //                 if (!order) {
+    //                     const msg = `Order not found: ${orderId}`;
+    //                     this.logger.error(msg);
+    //                     return ApiResponse.error(msg);
+    //                 }
+
+    //                 await this.prisma.order.update({
+    //                     where: { id: orderId },
+    //                     data: { status: "PAID" },
+    //                 });
+
+    //                 const adminCommission = order.totalPrice * 0.1;
+    //                 const sellerAmount = order.totalPrice - adminCommission;
+
+    //                 await this.handlePayout(order.product.sellerId, { amount: sellerAmount });
+    //                 break;
+    //             }
+
+    //             default: {
+    //                 const msg = `Unhandled Stripe event type: ${event.type}`;
+    //                 this.logger.warn(msg, event);
+    //                 return ApiResponse.success(msg);
+    //             }
+    //         }
+
+    //         return ApiResponse.success("Webhook processed successfully");
+    //     } catch (err: any) {
+    //         const msg = `Error processing Stripe webhook: ${err.message || err}`;
+    //         this.logger.error(msg, err);
+    //         return ApiResponse.error(msg);
+    //     }
+    // }
+
     async handleWebhook(rawBody: Buffer, signature: string) {
         try {
-            // Construct the event using raw body (ensure controller provides Buffer)
             const event: Stripe.Event = this.stripe.webhooks.constructEvent(
                 rawBody,
                 signature,
                 this.webhookSecret,
             );
+
             this.logger.log(`Received Stripe event: ${event.type}`);
 
             switch (event.type) {
                 case "payment_intent.succeeded": {
                     const paymentIntent = event.data.object as Stripe.PaymentIntent;
-                    const orderId = paymentIntent.metadata.orderId;
 
+                    const orderId = paymentIntent.metadata.orderId;
                     if (!orderId) {
                         const msg = "PaymentIntent metadata missing orderId";
-                        this.logger.error(msg, paymentIntent);
+                        this.logger.error(msg);
                         return ApiResponse.error(msg);
                     }
 
                     const order = await this.prisma.order.findUnique({
                         where: { id: orderId },
-                        include: { product: { include: { seller: true } } },
+                        include: {
+                            product: {
+                                include: {
+                                    seller: true,
+                                },
+                            },
+                        },
                     });
 
                     if (!order) {
@@ -189,29 +254,66 @@ export class StripeService {
                         return ApiResponse.error(msg);
                     }
 
+                    // Update Order status
                     await this.prisma.order.update({
                         where: { id: orderId },
                         data: { status: "PAID" },
                     });
 
-                    const adminCommission = order.totalPrice * 0.1;
-                    const sellerAmount = order.totalPrice - adminCommission;
+                    // Stripe always returns amount in CENTS (100 = $1)
+                    const totalAmount = paymentIntent.amount; // already in cents
 
-                    await this.handlePayout(order.product.sellerId, { amount: sellerAmount });
+                    // === SPLIT PERCENTAGE ===
+                    const sellerPercent = 0.9; // 90%
+                    const adminPercent = 0.1; // 10%
+
+                    const sellerAmount = Math.round(totalAmount * sellerPercent);
+                    const adminAmount = Math.round(totalAmount * adminPercent);
+
+                    const sellerStripeId = order.product.seller.stripeAccountId;
+                    if (!sellerStripeId) {
+                        this.logger.error("Seller has no Stripe account.");
+                        return ApiResponse.error("Seller Stripe Account Missing");
+                    }
+
+                    // === Transfer to Seller ===
+                    await this.stripe.transfers.create({
+                        amount: sellerAmount,
+                        currency: "usd",
+                        destination: sellerStripeId,
+                        metadata: { orderId },
+                    });
+
+                    // === Transfer to Admin ===
+                    const admin = await this.prisma.user.findFirst({
+                        where: { role: "ADMIN" },
+                    });
+
+                    if (admin?.stripeAccountId) {
+                        await this.stripe.transfers.create({
+                            amount: adminAmount,
+                            currency: "usd",
+                            destination: admin.stripeAccountId,
+                            metadata: { orderId },
+                        });
+                    } else {
+                        this.logger.warn("Admin Stripe Account Missing");
+                    }
+
                     break;
                 }
 
                 default: {
                     const msg = `Unhandled Stripe event type: ${event.type}`;
-                    this.logger.warn(msg, event);
+                    this.logger.warn(msg);
                     return ApiResponse.success(msg);
                 }
             }
 
             return ApiResponse.success("Webhook processed successfully");
         } catch (err: any) {
-            const msg = `Error processing Stripe webhook: ${err.message || err}`;
-            this.logger.error(msg, err);
+            const msg = `Error processing Stripe webhook: ${err.message}`;
+            this.logger.error(msg);
             return ApiResponse.error(msg);
         }
     }
