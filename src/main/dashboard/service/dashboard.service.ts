@@ -192,7 +192,6 @@ export class DashboardService {
 
     async getPendingReports() {
         const reports = await this.prisma.report.findMany({
-            where: { status: "PENDING" },
             orderBy: { createdAt: "desc" },
             include: {
                 reporter: {
