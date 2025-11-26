@@ -34,6 +34,10 @@ export class UserService {
     ) {}
 
     async register(body: CreateUserDto) {
+        // email must need to be end with @gmail.com
+        if (!body.email.endsWith("@gmail.com"))
+            throw new BadRequestException("Email must end with @gmail.com");
+
         // has password if provider is email
         if (body.authProvider === "EMAIL") {
             if (!body.password)
@@ -290,5 +294,10 @@ export class UserService {
 
     async getUserById(id: string) {
         return await this.repository.getUserById(id);
+    }
+
+    async allUser() {
+        const allUser = await this.prisma.user.findMany({});
+        return allUser;
     }
 }

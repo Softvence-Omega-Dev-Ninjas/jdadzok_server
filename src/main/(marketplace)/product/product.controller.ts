@@ -1,4 +1,4 @@
-import { GetUser } from "@common/jwt/jwt.decorator";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { handleRequest } from "@common/utils/handle.request.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import {
@@ -18,6 +18,7 @@ import { CreateProductDto, updateProductDto } from "./dto/product.dto";
 import { ProductQueryDto } from "./dto/product.query.dto";
 import { ProductService } from "./product.service";
 import { UpdateProductStatusDto } from "./dto/updateStatusDto";
+import { VerifiedUser } from "@type/shared.types";
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("products")
@@ -26,9 +27,10 @@ export class ProductController {
 
     @Post("/")
     @ApiOperation({ summary: "Create new product" })
-    async create(@Body() dto: CreateProductDto, @GetUser("userId") userId: string) {
+    async create(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreateProductDto) {
+        console.log("User: ", user);
         return handleRequest(
-            () => this.service.create(userId, dto),
+            () => this.service.create(user.id, dto),
             "Product created successfully",
         );
     }
@@ -36,9 +38,9 @@ export class ProductController {
     @Get("/")
     @ApiOperation({ summary: "Get all products with filters" })
     @ApiResponse({ status: 200, description: "List of products" })
-    async findAll(@GetUser("userId") userId: string, @Query() query?: ProductQueryDto) {
+    async findAll(@GetVerifiedUser() user: VerifiedUser, @Query() query?: ProductQueryDto) {
         return handleRequest(
-            () => this.service.findAll(userId, query),
+            () => this.service.findAll(user.id, query),
             "Products fetched successfully",
         );
     }
@@ -46,9 +48,9 @@ export class ProductController {
     @Get(":id")
     @ApiOperation({ summary: "Get a single product by ID" })
     @ApiResponse({ status: 200, description: "Product details" })
-    async findOne(@GetUser("userId") userId: string, @Param("id") id: string) {
+    async findOne(@GetVerifiedUser() user: VerifiedUser, @Param("id") id: string) {
         return handleRequest(
-            () => this.service.findOne(userId, id),
+            () => this.service.findOne(user.id, id),
             "Get Single Product Successfully",
         );
     }
@@ -57,12 +59,12 @@ export class ProductController {
     @ApiOperation({ summary: "Update a product by ID" })
     @ApiResponse({ status: 200, description: "Product updated successfully" })
     async update(
-        @GetUser("userId") userId: string,
+        @GetVerifiedUser() user: VerifiedUser,
         @Param("id") id: string,
         @Body() dto: updateProductDto,
     ) {
         return handleRequest(
-            () => this.service.update(userId, id, dto),
+            () => this.service.update(user.id, id, dto),
             "Product updated successfully",
         );
     }
@@ -70,8 +72,11 @@ export class ProductController {
     @Delete(":id")
     @ApiOperation({ summary: "Delete a product by Id" })
     @ApiResponse({ status: 200, description: "Product deleted successfully" })
-    async remove(@Param("id") id: string, @GetUser("userId") userId: string) {
-        return handleRequest(() => this.service.remove(id, userId), "Product deleted successfully");
+    async remove(@GetVerifiedUser() user: VerifiedUser, @Param("id") id: string) {
+        return handleRequest(
+            () => this.service.remove(id, user.id),
+            "Product deleted successfully",
+        );
     }
 
     // update product status
@@ -81,10 +86,10 @@ export class ProductController {
     async updateStatus(
         @Param("id") id: string,
         @Body() dto: UpdateProductStatusDto,
-        @GetUser("userId") userId: string,
+        @GetVerifiedUser() user: VerifiedUser,
     ) {
         try {
-            const res = await this.service.updateProductStatus(id, dto, userId);
+            const res = await this.service.updateProductStatus(id, dto, user.id);
             return {
                 message: "Product status updated successfully",
                 data: res,

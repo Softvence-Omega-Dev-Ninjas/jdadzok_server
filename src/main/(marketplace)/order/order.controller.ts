@@ -1,10 +1,11 @@
-import { GetUser } from "@common/jwt/jwt.decorator";
+import { GetUser, GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { handleRequest } from "@common/utils/handle.request.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { CreateOrderDto } from "./dto/order.dto";
 import { OrderService } from "./order.service";
+import { VerifiedUser } from "@type/shared.types";
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -25,6 +26,13 @@ export class OrderController {
         return handleRequest(() => this.service.findAll(), "Get All Order Successfully");
     }
 
+    @Get("/myOrder")
+    @ApiOperation({ summary: "My all order" })
+    @ApiResponse({ status: 200, description: "List of the order" })
+    async myOrder(@GetVerifiedUser() user: VerifiedUser) {
+        return handleRequest(() => this.service.myOrder(user.id), "Get All Order Successfully");
+    }
+
     @Get(":id")
     @ApiOperation({ summary: "Get a single order by ID" })
     @ApiResponse({ status: 200, description: "Order details" })
@@ -34,13 +42,6 @@ export class OrderController {
             "Get Single Order Successfully",
         );
     }
-
-    // @Patch(':id')
-    // @ApiOperation({ summary: 'Update a product by ID' })
-    // @ApiResponse({ status: 200, description: 'Product updated successfully' })
-    // async update(@Param('id') id: string, @Body() dto: updateProductDto) {
-    //     return handleRequest(() => this.service.update(id, dto), 'Product updated successfully');
-    // }
 
     @Delete(":id")
     @ApiOperation({ summary: "Delete a order by Id" })
