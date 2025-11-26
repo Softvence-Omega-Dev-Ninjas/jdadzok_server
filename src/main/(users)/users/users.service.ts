@@ -291,4 +291,9 @@ export class UserService {
     async getUserById(id: string) {
         return await this.repository.getUserById(id);
     }
+
+    async allUser() {
+        const allUser = await this.prisma.user.findMany({});
+        return allUser;
+    }
 }

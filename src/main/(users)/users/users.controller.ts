@@ -6,6 +6,7 @@ import {
     Body,
     Controller,
     Delete,
+    ForbiddenException,
     Get,
     Param,
     Patch,
@@ -21,6 +22,7 @@ import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { UpdateUserDto } from "./dto/update.user.dto";
 import { CreateUserDto } from "./dto/users.dto";
 import { UserService } from "./users.service";
+import { handleRequest } from "@common/utils/handle.request.util";
 
 @Controller("users")
 export class UserController {
@@ -125,12 +127,26 @@ export class UserController {
     @Delete("delete")
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
-    async delete(@GetVerifiedUser() user: TUser) {
+    async delete(@GetVerifiedUser() user: VerifiedUser, @Param("id") id: string) {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+
         try {
-            const result = await this.service.deleteAcount(user.userId);
+            const result = await this.service.deleteAcount(id);
             return successResponse(result, "User account deleted success");
         } catch (err) {
             return err;
         }
+    }
+
+    @ApiBearerAuth()
+    @Get("allUser")
+    @UseGuards(JwtAuthGuard)
+    async allUser(@GetVerifiedUser() user: VerifiedUser) {
+        if (user.role !== "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access");
+        }
+        return handleRequest(() => this.service.allUser(), "Get all user successfully");
     }
 }
