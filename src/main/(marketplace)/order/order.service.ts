@@ -99,6 +99,17 @@ export class OrderService {
         }
         return order;
     }
+
+    async myOrder(userId: string) {
+        const user = await this.prisma.order.findFirst({ where: { buyerId: userId } });
+        if (!user) {
+            throw new NotFoundException("User is not found");
+        }
+        const order = await this.prisma.order.findFirst({
+            where: { buyerId: userId },
+        });
+        return order;
+    }
     // delete order
     async remove(id: string, userId: string) {
         const orderOwner = await this.prisma.order.findFirst({
