@@ -14,7 +14,6 @@ export class ReportService {
                 targetId: dto.targetId,
                 reason: dto.reason,
                 description: dto.description || null,
-                status: "PENDING",
             },
         });
     }
@@ -22,14 +21,7 @@ export class ReportService {
     async getReportsByUser(userId: string) {
         return this.prisma.report.findMany({
             where: { reporterId: userId },
-            select: {
-                id: true,
-                targetId: true,
-                targetType: true,
-                reason: true,
-                description: true,
-                status: true,
-                createdAt: true,
+            include: {
                 reporter: {
                     select: {
                         id: true,

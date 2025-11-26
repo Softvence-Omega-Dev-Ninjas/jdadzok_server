@@ -1,4 +1,5 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
+import { ApiResponse } from "@module/stripe/utils/api-response";
 import {
     BadRequestException,
     ForbiddenException,
@@ -6,10 +7,9 @@ import {
     NotAcceptableException,
     NotFoundException,
 } from "@nestjs/common";
-import { CreateOrderDto } from "./dto/order.dto";
 import { PaymentStatus } from "@prisma/client";
 import Stripe from "stripe";
-import { ApiResponse } from "@module/stripe/utils/api-response";
+import { CreateOrderDto } from "./dto/order.dto";
 @Injectable()
 export class OrderService {
     private stripe: Stripe;
@@ -23,12 +23,18 @@ export class OrderService {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user?.isVerified) throw new BadRequestException("Please verify your email.");
 
-        const product = await this.prisma.product.findUnique({ where: { id: dto.productId } });
+        const product = await this.prisma.product.findUnique({
+            where: { id: dto.productId },
+            include: { seller: true },
+        });
         if (!product) throw new BadRequestException("Product not found.");
         if (product.sellerId === userId)
             throw new BadRequestException("This product is unavailable for you.");
         if (product.availability < dto.quantity)
             throw new BadRequestException("Invalid order quantity.");
+
+        if (!product.seller.stripeAccountId)
+            throw new BadRequestException("Seller Is not ready to sell order.");
 
         const totalPrice = product.price * dto.quantity;
         if (totalPrice !== dto.totalPrice)
@@ -51,12 +57,19 @@ export class OrderService {
             include: { buyer: true, product: true },
         });
 
-        const amount = Math.round(totalPrice * 100);
+        const totalAmount = Math.round(totalPrice * 100); // in cents
+        const adminPercent = 0.1; // 10% platform fee
+        const applicationFee = Math.round(totalAmount * adminPercent);
+
         const paymentIntent = await this.stripe.paymentIntents.create({
-            amount,
+            amount: totalAmount,
             currency: "usd",
             automatic_payment_methods: { enabled: true },
             metadata: { orderId: order.id },
+            transfer_data: {
+                destination: product.seller.stripeAccountId,
+            },
+            application_fee_amount: applicationFee,
         });
 
         await this.prisma.payment.create({

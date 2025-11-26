@@ -191,31 +191,30 @@ export class DashboardService {
     }
 
     async getPendingReports() {
-        return this.prisma.report.findMany({
-            where: { status: "PENDING" },
+        const reports = await this.prisma.report.findMany({
+            orderBy: { createdAt: "desc" },
             include: {
                 reporter: {
                     select: {
                         id: true,
-                        profile: {
-                            select: {
-                                username: true,
-                                name: true,
-                                avatarUrl: true,
-                            },
-                        },
+                        profile: { select: { username: true, name: true, avatarUrl: true } },
                     },
                 },
             },
         });
+
+        // dynamically attach reported entity details
+        return Promise.all(
+            reports.map(async (r) => ({
+                ...r,
+                target: await this.resolveTarget(r.targetType, r.targetId),
+            })),
+        );
     }
 
     async reviewReport(reportId: string, dto: UpdateReportDto, adminId: string) {
-        const report = await this.prisma.report.findUnique({
-            where: { id: reportId },
-        });
-
-        if (!report) throw new Error("Report not found");
+        const exists = await this.prisma.report.findUnique({ where: { id: reportId } });
+        if (!exists) throw new Error("Report not found");
 
         return this.prisma.report.update({
             where: { id: reportId },
@@ -225,5 +224,68 @@ export class DashboardService {
                 reviewedById: adminId,
             },
         });
+    }
+
+    async resolveTarget(type: string, id: string) {
+        switch (type) {
+            case "POST":
+                return this.prisma.post.findUnique({
+                    where: { id },
+                    select: {
+                        id: true,
+                        text: true,
+                        mediaUrls: true,
+                        author: {
+                            select: {
+                                id: true,
+                                profile: { select: { username: true, avatarUrl: true } },
+                            },
+                        },
+                    },
+                });
+
+            case "PRODUCT":
+                return this.prisma.product.findUnique({
+                    where: { id },
+                    select: {
+                        id: true,
+                        title: true,
+                        price: true,
+                        seller: {
+                            select: {
+                                id: true,
+                                profile: { select: { username: true, avatarUrl: true } },
+                            },
+                        },
+                    },
+                });
+
+            case "USER":
+                return this.prisma.user.findUnique({
+                    where: { id },
+                    select: {
+                        id: true,
+                        profile: { select: { username: true, name: true, avatarUrl: true } },
+                    },
+                });
+
+            case "COMMENT":
+                return this.prisma.comment.findUnique({
+                    where: { id },
+                    select: {
+                        id: true,
+                        text: true,
+                        author: {
+                            select: {
+                                id: true,
+                                profile: { select: { username: true, avatarUrl: true } },
+                            },
+                        },
+                    },
+                });
+
+            default:
+                return null;
+        }
     }
 }

@@ -10,7 +10,7 @@ import { CreateReportDto } from "./dto/report.dto";
 export class ReportController {
     constructor(private service: ReportService) {}
     @Post()
-    @ApiOperation({ summary: "Submit a report for user, product, post, or comment" })
+    @ApiOperation({ summary: "Submit a report for USER, POST, PRODUCT, COMMENT" })
     async createReport(@GetVerifiedUser() user: any, @Body() dto: CreateReportDto) {
         return handleRequest(
             () => this.service.createReport(user.id, dto),
