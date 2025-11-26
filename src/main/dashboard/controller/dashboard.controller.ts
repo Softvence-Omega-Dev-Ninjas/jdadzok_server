@@ -65,7 +65,7 @@ export class DashboardController {
 
     @Get("/pending")
     @ApiOperation({ summary: "Get all pending reports (admin only)" })
-    async getPendingReports(@GetVerifiedUser() user: VerifiedUser) {
+    async getPendingReports(@GetVerifiedUser() user: any) {
         if (user.role !== "SUPER_ADMIN") {
             throw new ForbiddenException("Forbidden access");
         }
@@ -80,7 +80,7 @@ export class DashboardController {
     async reviewReport(
         @Param("id") reportId: string,
         @Body() dto: UpdateReportDto,
-        @GetVerifiedUser() user: VerifiedUser,
+        @GetVerifiedUser() user: any,
     ) {
         if (user.role !== "SUPER_ADMIN") {
             throw new ForbiddenException("Forbidden access");

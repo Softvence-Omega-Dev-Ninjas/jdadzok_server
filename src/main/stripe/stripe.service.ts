@@ -3,6 +3,7 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Stripe from "stripe";
 
+import { PaymentStatus } from "@prisma/client";
 import { CreatePayoutDto } from "./dto/create-payout.dto";
 import { ApiResponse } from "./utils/api-response";
 @Injectable()
@@ -240,11 +241,7 @@ export class StripeService {
                     const order = await this.prisma.order.findUnique({
                         where: { id: orderId },
                         include: {
-                            product: {
-                                include: {
-                                    seller: true,
-                                },
-                            },
+                            product: { include: { seller: true } },
                         },
                     });
 
@@ -254,53 +251,33 @@ export class StripeService {
                         return ApiResponse.error(msg);
                     }
 
-                    // Update Order status
+                    // Update order status to PAID
                     await this.prisma.order.update({
                         where: { id: orderId },
                         data: { status: "PAID" },
                     });
 
-                    // Stripe always returns amount in CENTS (100 = $1)
-                    const totalAmount = paymentIntent.amount; // already in cents
-
-                    // === SPLIT PERCENTAGE ===
-                    const sellerPercent = 0.9; // 90%
-                    const adminPercent = 0.1; // 10%
-
-                    const sellerAmount = Math.round(totalAmount * sellerPercent);
-                    const adminAmount = Math.round(totalAmount * adminPercent);
-
-                    const sellerStripeId = order.product.seller.stripeAccountId;
-                    if (!sellerStripeId) {
-                        this.logger.error("Seller has no Stripe account.");
-                        return ApiResponse.error("Seller Stripe Account Missing");
-                    }
-
-                    // === Transfer to Seller ===
-                    await this.stripe.transfers.create({
-                        amount: sellerAmount,
-                        currency: "usd",
-                        destination: sellerStripeId,
-                        metadata: { orderId },
+                    // Update payment record
+                    await this.prisma.payment.updateMany({
+                        where: { orderId },
+                        data: {
+                            status: PaymentStatus.SUCCEEDED,
+                        },
                     });
 
-                    // === Transfer to Admin ===
-                    const admin = await this.prisma.user.findFirst({
-                        where: { role: "ADMIN" },
-                    });
+                    // Logging processed fees for your dashboard
+                    const applicationFee = paymentIntent.application_fee_amount ?? 0;
+                    const receivedBySeller = paymentIntent.amount_received - applicationFee;
 
-                    if (admin?.stripeAccountId) {
-                        await this.stripe.transfers.create({
-                            amount: adminAmount,
-                            currency: "usd",
-                            destination: admin.stripeAccountId,
-                            metadata: { orderId },
-                        });
-                    } else {
-                        this.logger.warn("Admin Stripe Account Missing");
-                    }
+                    this.logger.log(
+                        `Payment complete:
+                        Order: ${orderId}
+                        Buyer Paid: ${paymentIntent.amount} cents
+                        Seller Received: ${receivedBySeller} cents
+                        Platform Fee: ${applicationFee} cents`,
+                    );
 
-                    break;
+                    return ApiResponse.success("Payment processed successfully");
                 }
 
                 default: {
@@ -309,8 +286,6 @@ export class StripeService {
                     return ApiResponse.success(msg);
                 }
             }
-
-            return ApiResponse.success("Webhook processed successfully");
         } catch (err: any) {
             const msg = `Error processing Stripe webhook: ${err.message}`;
             this.logger.error(msg);
