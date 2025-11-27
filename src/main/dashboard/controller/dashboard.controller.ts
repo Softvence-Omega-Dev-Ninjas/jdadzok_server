@@ -1,4 +1,13 @@
-import { Body, Controller, ForbiddenException, Get, Param, Patch, UseGuards } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    ForbiddenException,
+    Get,
+    Param,
+    Patch,
+    Query,
+    UseGuards,
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { DashboardService } from "../service/dashboard.service";
 import { PrismaService } from "@lib/prisma/prisma.service";
@@ -7,6 +16,7 @@ import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
 import { VerifiedUser } from "@type/shared.types";
 import { UpdateReportDto } from "@module/(users)/report/dto/report.dto";
 import { handleRequest } from "@common/utils/handle.request.util";
+import { ReportQueryDto } from "../dto/report.dto";
 
 @ApiTags("Admin Dashboard")
 @Controller("admin/dashboard")
@@ -63,15 +73,16 @@ export class DashboardController {
         return this.dashboardService.getPendingApplicationsDetailed();
     }
 
-    @Get("/pending")
+    @Get("/report")
     @ApiOperation({ summary: "Get all pending reports (admin only)" })
-    async getPendingReports(@GetVerifiedUser() user: any) {
+    async getPendingReports(@GetVerifiedUser() user: any, @Query() query: ReportQueryDto) {
         if (user.role !== "SUPER_ADMIN") {
             throw new ForbiddenException("Forbidden access");
         }
+
         return handleRequest(
-            () => this.dashboardService.getPendingReports(),
-            "Pending reports loaded",
+            () => this.dashboardService.getPendingReports(query),
+            "Reports loaded successfully",
         );
     }
 
