@@ -68,7 +68,7 @@ export class CreateAdminActivity {
 
     @ApiProperty({
         description: "set the percentage for product spent",
-        example: 4,
+        example: 1,
     })
     @IsNumber()
     @IsNotEmpty()

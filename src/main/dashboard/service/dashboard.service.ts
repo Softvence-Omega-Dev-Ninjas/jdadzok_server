@@ -14,47 +14,64 @@ export class DashboardService {
         const startLastMonth = startOfMonth(subMonths(now, 1));
         const endLastMonth = endOfMonth(subMonths(now, 1));
 
+        // --- Users ---
         const usersThisMonth = await this.prisma.user.count({
             where: { createdAt: { gte: startThisMonth } },
         });
+
         const usersLastMonth = await this.prisma.user.count({
             where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
         });
-        const userIncreasePercent =
-            usersLastMonth === 0 ? 100 : ((usersThisMonth - usersLastMonth) / usersLastMonth) * 100;
 
+        const userIncreasePercent =
+            usersThisMonth + usersLastMonth === 0
+                ? 0
+                : ((usersThisMonth - usersLastMonth) / (usersThisMonth + usersLastMonth)) * 100;
+
+        // --- Communities ---
         const totalCommunities = await this.prisma.ngo.count();
+
         const communitiesThisMonth = await this.prisma.ngo.count({
             where: { foundationDate: { gte: startThisMonth } },
         });
+
         const communitiesLastMonth = await this.prisma.ngo.count({
             where: { foundationDate: { gte: startLastMonth, lte: endLastMonth } },
         });
-        const communitiesIncreasePercent =
-            communitiesLastMonth === 0
-                ? 100
-                : ((communitiesThisMonth - communitiesLastMonth) / communitiesLastMonth) * 100;
 
+        const communitiesIncreasePercent =
+            communitiesThisMonth + communitiesLastMonth === 0
+                ? 0
+                : ((communitiesThisMonth - communitiesLastMonth) /
+                      (communitiesThisMonth + communitiesLastMonth)) *
+                  100;
+
+        // --- Volunteer Projects ---
         const activeVolunteerProjectsCount = await this.prisma.volunteerProject.count({
             where: { isActive: true },
         });
+
         const volunteerProjectsThisMonth = await this.prisma.volunteerProject.count({
             where: { createdAt: { gte: startThisMonth } },
         });
+
         const volunteerProjectsLastMonth = await this.prisma.volunteerProject.count({
             where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
         });
+
         const volunteerProjectsIncreasePercent =
-            volunteerProjectsLastMonth === 0
-                ? 100
+            volunteerProjectsThisMonth + volunteerProjectsLastMonth === 0
+                ? 0
                 : ((volunteerProjectsThisMonth - volunteerProjectsLastMonth) /
-                      volunteerProjectsLastMonth) *
+                      (volunteerProjectsThisMonth + volunteerProjectsLastMonth)) *
                   100;
 
+        // --- Promotion Fee Earnings ---
         const promoThisMonthAgg = await this.prisma.product.aggregate({
             where: { createdAt: { gte: startThisMonth } },
             _sum: { promotionFee: true },
         });
+
         const promoPrevMonthAgg = await this.prisma.product.aggregate({
             where: { createdAt: { gte: startLastMonth, lte: endLastMonth } },
             _sum: { promotionFee: true },
@@ -64,17 +81,20 @@ export class DashboardService {
         const promoPrevMonth = promoPrevMonthAgg._sum.promotionFee || 0;
 
         const promoIncreasePercent =
-            promoPrevMonth === 0 ? 100 : ((promoThisMonth - promoPrevMonth) / promoPrevMonth) * 100;
+            promoThisMonth + promoPrevMonth === 0
+                ? 0
+                : ((promoThisMonth - promoPrevMonth) / (promoThisMonth + promoPrevMonth)) * 100;
 
+        // --- Return Summary ---
         return {
             usersThisMonth,
-            userIncreasePercent,
+            userIncreasePercent: Number(userIncreasePercent.toFixed(2)),
             totalCommunities,
-            communitiesIncreasePercent,
+            communitiesIncreasePercent: Number(communitiesIncreasePercent.toFixed(2)),
             activeVolunteerProjectsCount,
-            volunteerProjectsIncreasePercent,
+            volunteerProjectsIncreasePercent: Number(volunteerProjectsIncreasePercent.toFixed(2)),
             marketplacePromotionEarningsThisMonth: promoThisMonth,
-            promoIncreasePercent,
+            promoIncreasePercent: Number(promoIncreasePercent.toFixed(2)),
         };
     }
 

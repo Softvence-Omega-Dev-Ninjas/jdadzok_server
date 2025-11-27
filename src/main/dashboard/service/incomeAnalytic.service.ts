@@ -14,9 +14,6 @@ export class IncomeAnalyticService {
         const startThisMonth = startOfMonth(now);
         const startLastMonth = startOfMonth(subMonths(now, 1));
         const endLastMonth = endOfMonth(subMonths(now, 1));
-
-        /* ====== 1️⃣ PROMOTION FEE (Your Original Code) ====== */
-
         const promoThisMonthAgg = await this.prisma.product.aggregate({
             where: { createdAt: { gte: startThisMonth } },
             _sum: { promotionFee: true },
@@ -37,7 +34,7 @@ export class IncomeAnalyticService {
 
         const stripePaidAgg = await this.prisma.payout.aggregate({
             _sum: { amount: true },
-            where: { status: PayOutStatus.PAID }, // FIXED ENUM
+            where: { status: PayOutStatus.PAID },
         });
 
         const sellerPayouts = stripePaidAgg._sum?.amount ?? 0;
@@ -74,13 +71,13 @@ export class IncomeAnalyticService {
         return {
             // Revenue
             totalRevenue: promoThisMonth,
-            revenueIncreasePercent,
+            revenueIncreasePercent: Number(revenueIncreasePercent.toFixed(2)),
             platformCommision: promoThisMonth,
-            commisionIncreasePercent,
+            commisionIncreasePercent: Number(commisionIncreasePercent.toFixed(2)),
             sellerPayouts,
             pendingPayouts,
             avgOrderValue,
-            avgOrderIncreasePercent,
+            avgOrderIncreasePercent: Number(avgOrderIncreasePercent.toFixed(2)),
         };
     }
 
@@ -189,7 +186,7 @@ export class IncomeAnalyticService {
                 totalCommission: Number(totalCommission.toFixed(2)),
                 ordersThisMonth,
                 ordersLastMonth,
-                orderIncreaseRate,
+                orderIncreaseRate: Number(orderIncreaseRate.toFixed(2)),
             });
         }
 
