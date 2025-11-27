@@ -2,6 +2,7 @@ import { PrismaService } from "@lib/prisma/prisma.service";
 import { UpdateReportDto } from "@module/(users)/report/dto/report.dto";
 import { Injectable } from "@nestjs/common";
 import { endOfMonth, startOfMonth, subMonths } from "date-fns";
+import { ReportQueryDto } from "../dto/report.dto";
 
 @Injectable()
 export class DashboardService {
@@ -190,26 +191,44 @@ export class DashboardService {
         return pendingApplications;
     }
 
-    async getPendingReports() {
+    async getPendingReports(query: ReportQueryDto) {
+        const { page, limit } = query;
+        const skip = (page - 1) * limit;
+
+        const total = await this.prisma.report.count();
+
         const reports = await this.prisma.report.findMany({
+            skip,
+            take: limit,
             orderBy: { createdAt: "desc" },
             include: {
                 reporter: {
                     select: {
                         id: true,
-                        profile: { select: { username: true, name: true, avatarUrl: true } },
+                        profile: {
+                            select: { username: true, name: true, avatarUrl: true },
+                        },
                     },
                 },
             },
         });
 
-        // dynamically attach reported entity details
-        return Promise.all(
+        const resolvedReports = await Promise.all(
             reports.map(async (r) => ({
                 ...r,
                 target: await this.resolveTarget(r.targetType, r.targetId),
             })),
         );
+
+        return {
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+            data: resolvedReports,
+        };
     }
 
     async reviewReport(reportId: string, dto: UpdateReportDto, adminId: string) {
