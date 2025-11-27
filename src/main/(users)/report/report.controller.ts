@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get } from "@nestjs/common";
+import { Controller, Post, Body, Get, ForbiddenException } from "@nestjs/common";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { ReportService } from "./report.service";
 import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
@@ -12,6 +12,9 @@ export class ReportController {
     @Post()
     @ApiOperation({ summary: "Submit a report for USER, POST, PRODUCT, COMMENT" })
     async createReport(@GetVerifiedUser() user: any, @Body() dto: CreateReportDto) {
+        if (user.role === "SUPER_ADMIN") {
+            throw new ForbiddenException("Forbidden access only user can report.");
+        }
         return handleRequest(
             () => this.service.createReport(user.id, dto),
             "Report submitted successfully",
