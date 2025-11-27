@@ -52,7 +52,7 @@ export class DonationService {
         const transfer = await this.stripe.transfers.create({
             amount,
             currency: "usd",
-            destination: ngoOwnerStripeAccount, // must be string
+            destination: ngoOwnerStripeAccount,
             transfer_group: "ngo-donation",
         });
 

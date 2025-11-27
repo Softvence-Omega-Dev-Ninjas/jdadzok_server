@@ -88,13 +88,13 @@ export class OrderTransactionService {
         });
         return {
             totalOrders,
-            orderIncreaseRate,
+            orderIncreaseRate: Number(orderIncreaseRate.toFixed(2)),
 
             totalRevenue: totalRevenue._sum.amount || 0,
-            revenueIncreaseRate,
+            revenueIncreaseRate: Number(revenueIncreaseRate.toFixed(2)),
 
             commission: Number(totalCommission.toFixed(2)),
-            commissionIncreaseRate,
+            commissionIncreaseRate: Number(commissionIncreaseRate.toFixed(2)),
 
             completedOrders,
             completionRate:
