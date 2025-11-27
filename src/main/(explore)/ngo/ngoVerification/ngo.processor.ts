@@ -112,7 +112,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                 // ---- Authenticate ----
                 const decision = scanResult?.decision?.toLowerCase();
                 if (decision !== "accept") {
-                    status = "REJECTED";
+                    status = "PENDING";
                     errorReason = `Doc ${i + 1} failed authentication (decision: ${decision})`;
                     this.logger.warn(errorReason);
                     break;
@@ -132,7 +132,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                 const gender = scanResult?.data?.gender?.[0]?.value?.toUpperCase();
 
                 if (!fullName || !dob || !gender) {
-                    status = "REJECTED";
+                    status = "PENDING";
                     errorReason = `Doc ${i + 1} missing required fields: name=${!!fullName}, dob=${!!dob}, gender=${!!gender}`;
                     this.logger.warn(errorReason);
                     break;
@@ -145,7 +145,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                 // console.log(`Scanned → Name: "${fullName}" | DOB: "${dob}" | Gender: "${gender}"`);
             }
 
-            if (status === "REJECTED") throw new Error(errorReason);
+            if (status === "PENDING") throw new Error(errorReason);
 
             // -------------------------------------------------
             // 3. Compare name, DOB, gender
@@ -155,7 +155,7 @@ export class NgoVerificationProcessor extends WorkerHost {
             const genderMatches = scannedGenders.every((g) => g === expectedGender);
 
             if (!nameMatches || !dobMatches || !genderMatches) {
-                status = "REJECTED";
+                status = "PENDING";
                 errorReason = [
                     !nameMatches
                         ? `Name mismatch: DB="${expectedName}", Scanned="${scannedNames[0]}"`
@@ -182,7 +182,7 @@ export class NgoVerificationProcessor extends WorkerHost {
                 const uniqGenders = new Set(scannedGenders);
 
                 if (uniqNames.size > 1 || uniqDobs.size > 1 || uniqGenders.size > 1) {
-                    status = "REJECTED";
+                    status = "PENDING";
                     errorReason = "Inconsistent name, DOB, or gender across documents";
                     this.logger.warn(errorReason);
                     throw new Error(errorReason);
@@ -244,7 +244,7 @@ export class NgoVerificationProcessor extends WorkerHost {
             await this.prisma.ngoVerification.update({
                 where: { id: verificationId },
                 data: {
-                    status: "REJECTED",
+                    status: "PENDING",
                     verificationResponse: {
                         scans: scanResults,
                         error: errMsg,

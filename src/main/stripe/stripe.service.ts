@@ -257,6 +257,32 @@ export class StripeService {
                         data: { status: "PAID" },
                     });
 
+                    const product = await this.prisma.product.findFirst({
+                        where: { id: order.productId },
+                    });
+                    if (!product) throw new NotFoundException("Product is not found.");
+
+                    const dedicatedUser = await this.prisma.dedicatedAd.findMany({
+                        where: { adId: product.id },
+                        include: {
+                            post: {
+                                include: {
+                                    author: {
+                                        select: {
+                                            id: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    });
+
+                    if (!dedicatedUser) throw new NotFoundException("Ad is not found.");
+                    console.log("dedited user", dedicatedUser);
+                    for (const user of dedicatedUser) {
+                        console.log("user", user);
+                    }
+
                     // Update payment record
                     await this.prisma.payment.updateMany({
                         where: { orderId },

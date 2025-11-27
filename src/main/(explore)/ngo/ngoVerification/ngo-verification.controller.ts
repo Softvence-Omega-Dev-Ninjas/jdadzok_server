@@ -74,4 +74,13 @@ export class NgoVerificationController {
             "Fetched verification status",
         );
     }
+
+    @Get("verificationStatus")
+    @ApiOperation({ summary: "Get NGO verification status" })
+    async getVerifications() {
+        return handleRequest(
+            () => this.service.getVerifications(),
+            "Fetched ngo verification status",
+        );
+    }
 }

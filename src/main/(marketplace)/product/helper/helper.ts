@@ -11,6 +11,8 @@ export class HelperService {
             where: { id: productId },
         });
 
+        console.log(product);
+
         if (!product) {
             throw new NotFoundException(`Product with ID ${productId} not found`);
         }
