@@ -127,87 +127,21 @@ export class NgoVerificationService {
             documentUrls: uploadedDocs,
             verificationType: dto.verificationType,
         });
-
-        // -----------------------------------------------------
-        //    Return result
-        // -----------------------------------------------------
         return verification;
     }
-
-    // async applyVerification(
-    //     userId: string,
-    //     ngoId: string,
-    //     dto: CreateNgoVerificationDto,
-    //     documents: Array<Express.Multer.File>,
-    // ) {
-    //     const ngo = await this.prisma.ngo.findUnique({
-    //         where: { id: ngoId },
-    //         include: { owner: true },
-    //     });
-
-    //     if (!ngo) throw new NotFoundException("NGO not found");
-    //     if (ngo.ownerId !== userId)
-    //         throw new ForbiddenException("You are not authorized for this NGO");
-
-    //     const existing = await this.prisma.ngoVerification.findFirst({
-    //         where: { ngoId, status: { in: ["PENDING", "APPROVED"] } },
-    //     });
-
-    //     if (existing)
-    //         throw new BadRequestException(
-    //             "A verification request already exists or has been approved",
-    //         );
-
-    //     if (!documents || documents.length === 0) {
-    //         throw new BadRequestException("At least one document file is required");
-    //     }
-
-    //     // ----------------  Upload to S3 -------------
-    //     const uploadedDocs = await this.s3Service.uploadFiles(documents);
-
-    //     // ------------- Optionally verify via IDAnalyzer API-------------
-    //     let verificationResult: any = null;
-    //     console.log('the nid screen result ', verificationResult)
-    //     try {
-    //         const response = await axios.post(
-    //             "https://api2.idanalyzer.com/scan",
-    //             {
-    //                 file_base64: documents[0].buffer.toString("base64"), // or use S3 URL if supported
-    //                 documentType: dto.verificationType,
-    //             },
-    //             {
-    //                 headers: {
-    //                     accept: "application/json",
-    //                     "content-type": "application/json",
-    //                     "X-API-KEY": process.env.IDANALYZER_API_KEY || "FKFXzfmoDXuPwjv0HsCPFqphkk9Yavtm",
-    //                 },
-    //             },
-    //         );
-    //         verificationResult = response.data;
-    //     } catch (error) {
-    //         console.warn("IDAnalyzer verification failed:", error.message);
-    //     }
-
-    //     // Save in database
-    //     const verification = await this.prisma.ngoVerification.create({
-    //         data: {
-    //             ngoId,
-    //             verificationType: dto.verificationType,
-    //             documents: uploadedDocs,
-
-    //             status: "PENDING",
-    //         },
-    //     });
-
-    //     // 🧾 TODO: enqueue a background job for admin review if needed
-    //     return verification;
-    // }
 
     async getVerificationStatus(ngoId: string) {
         const verification = await this.prisma.ngoVerification.findFirst({
             where: { ngoId },
             orderBy: { createdAt: "desc" },
         });
+        if (!verification) throw new NotFoundException("No verification record found");
+
+        return verification;
+    }
+
+    async getVerifications() {
+        const verification = await this.prisma.ngoVerification.findMany({});
         if (!verification) throw new NotFoundException("No verification record found");
 
         return verification;

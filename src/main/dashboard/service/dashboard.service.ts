@@ -160,14 +160,16 @@ export class DashboardService {
     }
 
     async getPendingApplicationsDetailed() {
-        // Pending NGO verifications
+        // 1. Pending NGO Verification Applications
+        // ------------------------------------------------------------
         const ngoVerifications = await this.prisma.ngoVerification.findMany({
             where: { status: "PENDING" },
             select: {
                 id: true,
+                status: true,
                 ngo: {
                     select: {
-                        profile: { select: { title: true } }, // NGO title from profile
+                        profile: { select: { title: true } },
                     },
                 },
                 createdAt: true,
@@ -176,16 +178,20 @@ export class DashboardService {
 
         const ngoVerificationFormatted = ngoVerifications.map((nv) => ({
             id: nv.id,
-            title: nv.ngo.profile?.title || "Untitled NGO", // fallback if title missing
+            title: nv.ngo.profile?.title || "Untitled NGO",
             applicationTime: nv.createdAt,
+            status: nv.status,
             type: "Ngo Verification",
         }));
 
-        // Pending volunteer project applications
+        // ------------------------------------------------------------
+        // 2. Pending Volunteer Project Applications
+        // ------------------------------------------------------------
         const volunteerApplications = await this.prisma.volunteerApplication.findMany({
             where: { status: "PENDING" },
             select: {
                 id: true,
+                status: true,
                 project: { select: { title: true } },
                 createdAt: true,
             },
@@ -195,19 +201,18 @@ export class DashboardService {
             id: va.id,
             title: va.project.title,
             applicationTime: va.createdAt,
+            status: va.status,
             type: "Project Verification",
         }));
 
-        // Combine both for admin dashboard
+        // ------------------------------------------------------------
+        // 3. Merge + sort all pending applications
+        // ------------------------------------------------------------
+
         const pendingApplications = [
             ...ngoVerificationFormatted,
             ...volunteerApplicationsFormatted,
-        ];
-
-        // Sort by applicationTime descending
-        pendingApplications.sort(
-            (a, b) => b.applicationTime.getTime() - a.applicationTime.getTime(),
-        );
+        ].sort((a, b) => b.applicationTime.getTime() - a.applicationTime.getTime());
 
         return pendingApplications;
     }
