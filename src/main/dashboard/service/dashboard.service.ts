@@ -147,7 +147,7 @@ export class DashboardService {
         const promotions = await this.prisma.product.count({
             where: { promotionFee: { gt: 0 } },
         });
-        const donations = 0;
+        const donations = await this.prisma.donationLog.count();
         const total = volunteer + promotions + donations;
 
         return {
@@ -158,6 +158,7 @@ export class DashboardService {
             },
         };
     }
+
     async getPendingApplicationsDetailed() {
         // Pending NGO verifications
         const ngoVerifications = await this.prisma.ngoVerification.findMany({

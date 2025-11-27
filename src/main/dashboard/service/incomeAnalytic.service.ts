@@ -110,13 +110,23 @@ export class IncomeAnalyticService {
         const promotions = await this.prisma.product.count({
             where: { promotionFee: { gt: 0 } },
         });
-        const donations = 0;
+        const donations = await this.prisma.donationLog.count();
+
         const total = volunteer + promotions + donations;
+
+        const promoRevenueAgg = await this.prisma.product.aggregate({
+            _sum: { promotionFee: true },
+        });
+
+        const marketplaceTotalRevenue = promoRevenueAgg._sum.promotionFee || 0;
 
         return {
             volunteerProjects: total ? Math.round((volunteer / total) * 100) : 0,
             marketplacePromotions: total ? Math.round((promotions / total) * 100) : 0,
             donations: total ? Math.round((donations / total) * 100) : 0,
+
+            // added field
+            marketplaceTotalRevenue: Number(marketplaceTotalRevenue.toFixed(2)),
         };
     }
 
