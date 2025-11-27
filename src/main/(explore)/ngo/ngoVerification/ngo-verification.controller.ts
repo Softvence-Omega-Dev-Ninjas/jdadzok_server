@@ -51,7 +51,7 @@ export class NgoVerificationController {
     @UseInterceptors(
         FilesInterceptor("files", 20, {
             storage: multer.memoryStorage(),
-            limits: { files: 20 }, // TODO: based on the cap level it will be incress and dicress
+            limits: { files: 20 },
         }),
     )
     async applyVerification(

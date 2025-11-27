@@ -33,10 +33,6 @@ import {
     ApiTags,
 } from "@nestjs/swagger";
 
-/**
- * Controller for managing user metrics and activity scoring
- * Handles user engagement tracking, activity score calculations, and metrics analytics
- */
 @ApiBearerAuth()
 @ApiTags("User Metrics")
 @Controller("user-metrics")

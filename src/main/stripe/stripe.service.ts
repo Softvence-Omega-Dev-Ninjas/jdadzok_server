@@ -217,6 +217,153 @@ export class StripeService {
     //     }
     // }
 
+    // async handleWebhook(rawBody: Buffer, signature: string) {
+    //     try {
+    //         const event: Stripe.Event = this.stripe.webhooks.constructEvent(
+    //             rawBody,
+    //             signature,
+    //             this.webhookSecret,
+    //         );
+
+    //         this.logger.log(`Received Stripe event: ${event.type}`);
+
+    //         switch (event.type) {
+    //             case "payment_intent.succeeded": {
+    //                 const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+    //                 const orderId = paymentIntent.metadata.orderId;
+    //                 if (!orderId) {
+    //                     const msg = "PaymentIntent metadata missing orderId";
+    //                     this.logger.error(msg);
+    //                     return ApiResponse.error(msg);
+    //                 }
+
+    //                 const order = await this.prisma.order.findUnique({
+    //                     where: { id: orderId },
+    //                     include: {
+    //                         product: { include: { seller: true } },
+    //                     },
+    //                 });
+
+    //                 if (!order) {
+    //                     const msg = `Order not found: ${orderId}`;
+    //                     this.logger.error(msg);
+    //                     return ApiResponse.error(msg);
+    //                 }
+
+    //                 // Update order status to PAID
+    //                 await this.prisma.order.update({
+    //                     where: { id: orderId },
+    //                     data: { status: "PAID" },
+    //                 });
+
+    //                 const product = await this.prisma.product.findFirst({
+    //                     where: { id: order.productId },
+    //                 });
+    //                 if (!product) throw new NotFoundException("Product is not found.");
+
+    //                 const dedicatedUser = await this.prisma.dedicatedAd.findMany({
+    //                     where: { adId: product.id },
+    //                     include: {
+    //                         post: {
+    //                             include: {
+    //                                 author: {
+    //                                     select: {
+    //                                         id: true,
+    //                                         capLevel: true
+    //                                     }
+    //                                 }
+    //                             },
+    //                         },
+    //                     },
+    //                 });
+    //                 const adminActivity = await this.prisma.activityScore.findFirst()
+    //                 if (!dedicatedUser) throw new NotFoundException("Ad is not found.");
+    //                 for (const user of dedicatedUser) {
+    //                     console.log("userruyeeruiweqt ", user);
+    //                     switch (user.post.author.capLevel) {
+    //                         case "GREEN":
+    //                             await this.prisma.profile.update({
+    //                                 where: {
+    //                                     userId: user.post.author.id
+    //                                 }, data: {
+    //                                     balance: {
+    //                                         increment: (product.promotionFee * adminActivity?.greenCapPromtionFee!)
+    //                                     }
+    //                                 }
+    //                             })
+    //                             break;
+    //                         case "YELLOW":
+    //                             await this.prisma.profile.update({
+    //                                 where: {
+    //                                     userId: user.post.author.id
+    //                                 }, data: {
+    //                                     balance: {
+    //                                         increment: (product.promotionFee * adminActivity?.yeallowCapPromtionFee!)
+    //                                     }
+    //                                 }
+    //                             })
+    //                             break;
+    //                         case "BLACK":
+    //                             await this.prisma.profile.update({
+    //                                 where: {
+    //                                     userId: user.post.author.id
+    //                                 }, data: {
+    //                                     balance: {
+    //                                         increment: (product.promotionFee * adminActivity?.blackCapPromtionFee!)
+    //                                     }
+    //                                 }
+    //                             })
+    //                             break;
+    //                         case "RED":
+    //                             await this.prisma.profile.update({
+    //                                 where: {
+    //                                     userId: user.post.author.id
+    //                                 }, data: {
+    //                                     balance: {
+    //                                         increment: (product.promotionFee * adminActivity?.redCapPromtionFee!)
+    //                                     }
+    //                                 }
+    //                             })
+    //                             break;
+    //                     }
+
+    //                     // Update payment record
+    //                     await this.prisma.payment.updateMany({
+    //                         where: { orderId },
+    //                         data: {
+    //                             status: PaymentStatus.SUCCEEDED,
+    //                         },
+    //                     });
+
+    //                     // Logging processed fees for your dashboard
+    //                     const applicationFee = paymentIntent.application_fee_amount ?? 0;
+    //                     const receivedBySeller = paymentIntent.amount_received - applicationFee;
+
+    //                     this.logger.log(
+    //                         `Payment complete:
+    //                     Order: ${orderId}
+    //                     Buyer Paid: ${paymentIntent.amount} cents
+    //                     Seller Received: ${receivedBySeller} cents
+    //                     Platform Fee: ${applicationFee} cents`,
+    //                     );
+
+    //                     return ApiResponse.success("Payment processed successfully");
+    //                 }
+
+    //             default: {
+    //                 const msg = `Unhandled Stripe event type: ${event.type}`;
+    //                 this.logger.warn(msg);
+    //                 return ApiResponse.success(msg);
+    //             }
+    //         }
+    //     } catch (err: any) {
+    //         const msg = `Error processing Stripe webhook: ${err.message}`;
+    //         this.logger.error(msg);
+    //         return ApiResponse.error(msg);
+    //     }
+    // }
+
     async handleWebhook(rawBody: Buffer, signature: string) {
         try {
             const event: Stripe.Event = this.stripe.webhooks.constructEvent(
@@ -251,18 +398,18 @@ export class StripeService {
                         return ApiResponse.error(msg);
                     }
 
-                    // Update order status to PAID
                     await this.prisma.order.update({
                         where: { id: orderId },
                         data: { status: "PAID" },
                     });
 
-                    const product = await this.prisma.product.findFirst({
+                    const product = await this.prisma.product.findUnique({
                         where: { id: order.productId },
                     });
+
                     if (!product) throw new NotFoundException("Product is not found.");
 
-                    const dedicatedUser = await this.prisma.dedicatedAd.findMany({
+                    const dedicatedUsers = await this.prisma.dedicatedAd.findMany({
                         where: { adId: product.id },
                         include: {
                             post: {
@@ -270,6 +417,7 @@ export class StripeService {
                                     author: {
                                         select: {
                                             id: true,
+                                            capLevel: true,
                                         },
                                     },
                                 },
@@ -277,30 +425,55 @@ export class StripeService {
                         },
                     });
 
-                    if (!dedicatedUser) throw new NotFoundException("Ad is not found.");
-                    console.log("dedited user", dedicatedUser);
-                    for (const user of dedicatedUser) {
-                        console.log("user", user);
+                    if (!dedicatedUsers || dedicatedUsers.length === 0)
+                        throw new NotFoundException("No dedicated ad users found.");
+
+                    const adminActivity = await this.prisma.activityScore.findFirst();
+
+                    for (const user of dedicatedUsers) {
+                        const author = user.post.author;
+
+                        let percentage = 0;
+
+                        switch (author.capLevel) {
+                            case "GREEN":
+                                percentage = adminActivity?.greenCapPromtionFee ?? 0;
+                                break;
+                            case "YELLOW":
+                                percentage = adminActivity?.yeallowCapPromtionFee ?? 0;
+                                break;
+                            case "BLACK":
+                                percentage = adminActivity?.blackCapPromtionFee ?? 0;
+                                break;
+                            case "RED":
+                                percentage = adminActivity?.redCapPromtionFee ?? 0;
+                                break;
+                        }
+
+                        await this.prisma.profile.update({
+                            where: { userId: author.id },
+                            data: {
+                                balance: {
+                                    increment: product.promotionFee * percentage,
+                                },
+                            },
+                        });
                     }
 
-                    // Update payment record
                     await this.prisma.payment.updateMany({
                         where: { orderId },
-                        data: {
-                            status: PaymentStatus.SUCCEEDED,
-                        },
+                        data: { status: PaymentStatus.SUCCEEDED },
                     });
 
-                    // Logging processed fees for your dashboard
                     const applicationFee = paymentIntent.application_fee_amount ?? 0;
                     const receivedBySeller = paymentIntent.amount_received - applicationFee;
 
                     this.logger.log(
                         `Payment complete:
-                        Order: ${orderId}
-                        Buyer Paid: ${paymentIntent.amount} cents
-                        Seller Received: ${receivedBySeller} cents
-                        Platform Fee: ${applicationFee} cents`,
+                    Order: ${orderId}
+                    Buyer Paid: ${paymentIntent.amount} cents
+                    Seller Received: ${receivedBySeller} cents
+                    Platform Fee: ${applicationFee} cents`,
                     );
 
                     return ApiResponse.success("Payment processed successfully");

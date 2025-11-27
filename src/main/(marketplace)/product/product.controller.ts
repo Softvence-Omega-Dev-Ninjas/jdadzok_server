@@ -28,7 +28,6 @@ export class ProductController {
     @Post("/")
     @ApiOperation({ summary: "Create new product" })
     async create(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreateProductDto) {
-        console.log("User: ", user);
         return handleRequest(
             () => this.service.create(user.id, dto),
             "Product created successfully",
@@ -98,10 +97,4 @@ export class ProductController {
             throw new HttpException(err.message, err.status);
         }
     }
-
-    // Todo--------
-    // # Marketplaces
-    // ### update (marketplace to message page)
-    // ### added product report (if insure to the frontend developer)
-    // ### copyLink implement frontend devoloper
 }

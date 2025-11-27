@@ -31,16 +31,4 @@ export class OrderTransactionController {
 
         return this.service.listOrders(query);
     }
-
-    // @Get(":id")
-    // @ApiOperation({ summary: "Get details for a single order" })
-    // getOrder(@Param("id") id: string) {
-    //     return this.service.getOrderDetails(id);
-    // }
-
-    // @Get("export/csv")
-    // @ApiOperation({ summary: "Export orders to CSV" })
-    // exportCSV() {
-    //     return this.service.exportToCSV();
-    // }
 }

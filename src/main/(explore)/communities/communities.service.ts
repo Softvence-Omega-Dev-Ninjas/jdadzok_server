@@ -273,40 +273,6 @@ export class CommunitiesService {
         return { message: "User unfollowed community" };
     }
 
-    // community follow another community..
-
-    // async communityFollowCommunity(followerId: string, followingId: string) {
-    //   if (followerId === followingId) {
-    //     throw new BadRequestException("A community cannot follow itself");
-    //   }
-
-    //   const exists = await this.prisma.communityFollow.findUnique({
-    //     where: {
-    //       followerId_followingId: {
-    //         followerId,
-    //         followingId,
-    //       },
-    //     },
-    //   });
-    //   if (exists) throw new BadRequestException("Already following");
-
-    //   await this.prisma.$transaction([
-    //     this.prisma.communityFollow.create({
-    //       data: { followerId, followingId },
-    //     }),
-    //     this.prisma.communityProfile.update({
-    //       where: { communityId: followingId },
-    //       data: { followersCount: { increment: 1 } },
-    //     }),
-    //     this.prisma.communityProfile.update({
-    //       where: { communityId: followerId },
-    //       data: { followingCount: { increment: 1 } },
-    //     }),
-    //   ]);
-
-    //   return { message: "Community followed another community" };
-    // }
-
     // ----------LIKE ----------
     async likeCommunity(userId: string, communityId: string) {
         await this.prisma.community.update({
