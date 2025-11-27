@@ -17,17 +17,20 @@ export class UserManagementService {
             },
         });
 
+        // Normalized Growth %
         const totalUsersGrowth =
-            totalUsersLastMonth === 0
-                ? 100
-                : ((totalUsers - totalUsersLastMonth) / totalUsersLastMonth) * 100;
+            totalUsers + totalUsersLastMonth === 0
+                ? 0
+                : ((totalUsers - totalUsersLastMonth) / (totalUsers + totalUsersLastMonth)) * 100;
 
+        // Active User %
         const activeUsers = await this.prisma.user.count({
             where: { bans: { none: {} } },
         });
 
-        const activeUserPercent = totalUsers ? (activeUsers / totalUsers) * 100 : 0;
+        const activeUserPercent = totalUsers === 0 ? 0 : (activeUsers / totalUsers) * 100;
 
+        // Weekly Stats
         const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
         const lastWeekStart = subWeeks(thisWeekStart, 1);
 
@@ -44,8 +47,11 @@ export class UserManagementService {
             },
         });
 
+        // Normalized weekly growth %
         const newWeekPercent =
-            newLastWeek === 0 ? 100 : ((newThisWeek - newLastWeek) / newLastWeek) * 100;
+            newThisWeek + newLastWeek === 0
+                ? 0
+                : ((newThisWeek - newLastWeek) / (newThisWeek + newLastWeek)) * 100;
 
         const suspendedUsers = await this.prisma.user.count({
             where: { bans: { some: {} } },
@@ -61,7 +67,6 @@ export class UserManagementService {
             suspendedUsers,
         };
     }
-
     async getUsers({
         search,
         status,
