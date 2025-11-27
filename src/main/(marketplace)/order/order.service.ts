@@ -58,13 +58,8 @@ export class OrderService {
         });
 
         const totalAmount = Math.round(totalPrice * 100);
-        const adminPercent = await this.prisma.activityScore.findFirst();
-
-        if (!adminPercent?.productSpentPercentage) {
-            throw new Error("Admin percent (productSpentPercentage) not found");
-        }
-        const applicationFee = Math.round(totalAmount * adminPercent?.productSpentPercentage);
-
+        const adminPercent = product.spent;
+        const applicationFee = Math.round(totalAmount * adminPercent);
         const paymentIntent = await this.stripe.paymentIntents.create({
             amount: totalAmount,
             currency: "usd",
