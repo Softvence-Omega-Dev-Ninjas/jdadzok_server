@@ -1,5 +1,12 @@
 import { EVENT_TYPES } from "@common/interface/events-name";
-import { Community, Custom, Ngo, Notification, PostEvent } from "@common/interface/events-payload";
+import {
+    CapLevelEvent,
+    Community,
+    Custom,
+    Ngo,
+    Notification,
+    PostEvent,
+} from "@common/interface/events-payload";
 import { PayloadForSocketClient } from "@common/interface/socket-client-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable, Logger } from "@nestjs/common";
@@ -87,6 +94,7 @@ export class NotificationGateway
                 ngo: user.NotificationToggle?.[0]?.ngo ?? true,
                 userRegistration: user.NotificationToggle?.[0]?.userRegistration || false,
                 Custom: user.NotificationToggle?.[0]?.Custom || false,
+                capLevel: user.NotificationToggle?.[0]?.capLevel || false,
             };
 
             client.data.user = payloadForSocketClient;
@@ -430,5 +438,49 @@ export class NotificationGateway
 
             this.logger.log(`CUSTOM_CREATE sent to ${r.id} (socket ${client.id})`);
         }
+    }
+
+    // -------------------------- END LISTENERS --------------------------
+
+    @OnEvent(EVENT_TYPES.CAPLEVEL_CREATE)
+    async handleCapLevelCreated(payload: CapLevelEvent) {
+        this.logger.log("CAPLEVEL_CREATE EVENT RECEIVED");
+        this.logger.log(`Payload: ${JSON.stringify(payload, null, 2)}`);
+
+        if (!payload.info?.recipients?.length) {
+            this.logger.warn("No recipients → skipping");
+            return;
+        }
+
+        this.logger.log(`Sending to ${payload.info.recipients.length} recipient(s)`);
+
+        for (const r of payload.info.recipients) {
+            const clients = this.getClientsForUser(r.id);
+
+            if (clients.size === 0) {
+                this.logger.debug(`No socket for user ${r.id}`);
+                continue;
+            }
+
+            const client = Array.from(clients).find((c) => c.data.user?.capLevel === true);
+
+            if (!client) {
+                this.logger.debug(`User ${r.id} has socket but capLevel toggle = false`);
+                continue;
+            }
+
+            const notification: Notification = {
+                type: EVENT_TYPES.CAPLEVEL_CREATE,
+                title: payload.info.title,
+                message: payload.info.message,
+                createdAt: new Date(),
+                meta: payload.meta,
+            };
+
+            client.emit(EVENT_TYPES.CAPLEVEL_CREATE, notification);
+            this.logger.log(`CAPLEVEL_CREATE → ${r.id} (socket ${client.id})`);
+        }
+
+        this.logger.log("CAPLEVEL_CREATE processing complete");
     }
 }
