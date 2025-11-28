@@ -1,9 +1,12 @@
 import { ValidateSuperAdmin } from "@common/jwt/jwt.decorator";
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { MaintenanceSettingsDto } from "../dto/maintenance.dto";
 import { PlatformInformationDto } from "../dto/platform-information.dto"; // ⬅️ Correct DTO
 import { AdminSettingsService } from "../service/admin.settings.service";
+import { handleRequest } from "@common/utils/handle.request.util";
+
+import { UpdateCapLevelQueryDto } from "../dto/updateCapLevelQuery.dto";
 
 @ApiTags("Dashboard Admin Settings")
 @Controller("settings-admin")
@@ -40,5 +43,15 @@ export class AdminSettingsController {
     @Get("platform")
     async getPlatformSettings() {
         return this.adminSettingsService.getPlatformSettings();
+    }
+
+    @ApiBearerAuth()
+    @ValidateSuperAdmin()
+    @Patch("updateCaplevel/:userId")
+    async updateCaplevel(@Param("userId") userId: string, @Body() dto: UpdateCapLevelQueryDto) {
+        return handleRequest(
+            () => this.adminSettingsService.updateCaplevel(userId, dto),
+            "User Promote successfully",
+        );
     }
 }
