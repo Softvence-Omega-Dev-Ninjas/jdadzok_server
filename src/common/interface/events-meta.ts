@@ -27,6 +27,11 @@ export interface PostMeta {
     publishedAt: Date;
 }
 
+export interface CapLevelMeta {
+    postId: string;
+    performedBy: string;
+    publishedAt: Date;
+}
 // Message event meta
 export interface MessageMeta {
     messageId: string;

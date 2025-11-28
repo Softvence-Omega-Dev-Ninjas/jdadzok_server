@@ -146,12 +146,19 @@ enum NotificationType {
   SHARE
   MENTION
   EARNINGS
+  capLevel
+  community
+  comment
+  userRegistration
+  ngo
+  Custom
+  message
 }
 
 enum OrderStatus {
   PENDING
   PAID
-   SHIPPED
+  SHIPPED
   DELIVERED
   CANCELLED
   REFUNDED

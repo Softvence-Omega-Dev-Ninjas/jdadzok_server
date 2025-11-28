@@ -69,7 +69,7 @@ export class ChatService {
         });
     }
 
-    /** Send message */
+    /**---------------- Send message ------------------------------------------*/
     async createMessage(senderId: string, chatId: string, dto: CreateMessageDto) {
         return this.prisma.liveMessage.create({
             data: {
