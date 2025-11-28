@@ -113,7 +113,7 @@ export class AdminSettingsService {
         // Only send notification to the specific user whose caplevel was changed
         const recipient = { id: user.id, email: user.email };
         const oldLevel = user.capLevel;
-        const newLevel = targetLevel;
+        // const newLevel = targetLevel;
         //---------- Save notification for this specific user ------------
         const notification = await this.prisma.notification.create({
             data: {
@@ -123,7 +123,7 @@ export class AdminSettingsService {
                 type: "SYSTEM",
             },
         });
-        console.log("notification", notification);
+        // console.log("notification", notification);
 
         // Emit event only to this specific user
         const payload: CapLevelEvent = {
@@ -142,7 +142,7 @@ export class AdminSettingsService {
             },
         };
 
-        console.log("the payload", payload);
+        // console.log("the payload", payload);
         this.eventEmitter.emit(EVENT_TYPES.CAPLEVEL_CREATE, payload);
 
         return {
