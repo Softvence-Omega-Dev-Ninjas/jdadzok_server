@@ -1,4 +1,5 @@
 import {
+    CapLevelMeta,
     CommentMeta,
     CommunityMeta,
     CustomMeta,
@@ -68,6 +69,19 @@ export interface PostEvent extends BaseEvent<PostMeta> {
         title: string;
         message: string;
         authorId: string;
+        recipients: { id: string; email: string }[];
+    };
+}
+
+// -----------------CAPLEVEL-------------------
+export interface CapLevelEvent extends BaseEvent<CapLevelMeta> {
+    action: "CREATE" | "UPDATE" | "DELETE";
+    meta: CapLevelMeta;
+    info: {
+        title: string;
+        message: string;
+        authorId: string;
+        caplevelDetials: [{}];
         recipients: { id: string; email: string }[];
     };
 }
