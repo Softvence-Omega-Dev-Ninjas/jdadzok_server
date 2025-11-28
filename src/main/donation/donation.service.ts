@@ -18,6 +18,12 @@ export class DonationService {
 
         if (!donor) throw new BadRequestException("Donor not found");
 
+        if (!donor.stripeAccountId) {
+            throw new BadRequestException(
+                "Doner is not ready to donetion. please add stripe account.",
+            );
+        }
+
         // 2. Fetch NGO + owner
         const ngo = await this.prisma.ngo.findUnique({
             where: { id: ngoId },

@@ -12,7 +12,6 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { VerifiedUser } from "@type/shared.types";
-import { CreatePayoutDto } from "./dto/create-payout.dto";
 import { StripeService } from "./stripe.service";
 
 @Controller("stripe")
@@ -33,13 +32,6 @@ export class StripeController {
         return this.stripeService.getExpressAccount(user.id);
     }
 
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    @Post("payout")
-    payout(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreatePayoutDto) {
-        return this.stripeService.handlePayout(user.id, dto);
-    }
-
     @Post("webhook")
     @HttpCode(HttpStatus.OK)
     async handleWebhook(
@@ -52,12 +44,5 @@ export class StripeController {
         } catch (error) {
             return { received: false, error: error.message };
         }
-    }
-
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    @Get("payouts")
-    getAllPayouts(@GetVerifiedUser() user: VerifiedUser) {
-        return this.stripeService.getAllPayouts(user.id);
     }
 }
