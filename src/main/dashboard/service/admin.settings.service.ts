@@ -115,7 +115,7 @@ export class AdminSettingsService {
         const oldLevel = user.capLevel;
         // const newLevel = targetLevel;
         //---------- Save notification for this specific user ------------
-        const notification = await this.prisma.notification.create({
+        await this.prisma.notification.create({
             data: {
                 title: `CapLevel Updated: ${oldLevel} → ${targetLevel}`,
                 message: `Your CapLevel has been changed from ${oldLevel} to ${targetLevel}`,
