@@ -5,6 +5,7 @@ model NotificationToggle {
   communication    Boolean @default(true)
   community        Boolean @default(true)
   comment          Boolean @default(true)
+  capLevel         Boolean @default(true)
   post             Boolean @default(true)
   message          Boolean @default(true)
   userRegistration Boolean @default(true)

@@ -1,4 +1,12 @@
-import { Comment, Community, Custom, Ngo, PostEvent, UserRegistration } from "./events-payload";
+import {
+    CapLevelEvent,
+    Comment,
+    Community,
+    Custom,
+    Ngo,
+    PostEvent,
+    UserRegistration,
+} from "./events-payload";
 
 //  EVENT TYPE CONSTANTS (All in UPPERCASE for consistency)
 export const EVENT_TYPES = {
@@ -26,6 +34,11 @@ export const EVENT_TYPES = {
     CONVERSATION_CREATE: "conversation.create",
 
     CUSTOM_CREATE: "custom.create",
+    CUSTOM_DELETE: "custom.delete",
+
+    CAPLEVEL_CREATE: "caplevel.create",
+    CAPLEVEL_UPDATE: "caplevel.update",
+    CAPLEVEL_DELETE: "caplevel.delete",
 } as const;
 
 // Type-safe keys for autocomplete
@@ -55,4 +68,8 @@ export type EventPayloadMap = {
 
     [EVENT_TYPES.CUSTOM_CREATE]: Custom;
     [EVENT_TYPES.MESSAGE_CREATE]?: any;
+
+    [EVENT_TYPES.CAPLEVEL_CREATE]: CapLevelEvent;
+    [EVENT_TYPES.CAPLEVEL_UPDATE]: CapLevelEvent;
+    [EVENT_TYPES.CAPLEVEL_DELETE]: CapLevelEvent;
 };

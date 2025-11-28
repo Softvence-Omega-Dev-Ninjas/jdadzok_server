@@ -2,12 +2,18 @@ import { HandleError } from "@common/error/handle-error.decorator";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
+import { EVENT_TYPES } from "@common/interface/events-name";
+import { CapLevelEvent } from "@common/interface/events-payload";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { MaintenanceSettingsDto } from "../dto/maintenance.dto";
 import { PlatformInformationDto } from "../dto/platform-information.dto";
 import { UpdateCapLevelQueryDto } from "../dto/updateCapLevelQuery.dto";
 @Injectable()
 export class AdminSettingsService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly eventEmitter: EventEmitter2,
+    ) {}
 
     // ---------------admin platform info-----------------------
     @HandleError("Failed to update platform information")
@@ -75,7 +81,9 @@ export class AdminSettingsService {
         const settings = await this.prisma.platformInformation.findFirst();
         return { settings };
     }
-
+    // ----------------------------
+    // notify user caplevel update specific user------------------
+    @HandleError("Failed to update user caplevel")
     async updateCaplevel(userId: string, dto: UpdateCapLevelQueryDto) {
         const { targetLevel, bypassVerification } = dto;
         const user = await this.prisma.user.findUnique({
@@ -100,6 +108,42 @@ export class AdminSettingsService {
                 capLevel: targetLevel,
             },
         });
+
+        // ---------- notification now ------------------
+        // Only send notification to the specific user whose caplevel was changed
+        const recipient = { id: user.id, email: user.email };
+        const oldLevel = user.capLevel;
+        // const newLevel = targetLevel;
+        //---------- Save notification for this specific user ------------
+        const notification = await this.prisma.notification.create({
+            data: {
+                title: `CapLevel Updated: ${oldLevel} → ${targetLevel}`,
+                message: `Your CapLevel has been changed from ${oldLevel} to ${targetLevel}`,
+                userId: user.id,
+                type: "SYSTEM",
+            },
+        });
+        // console.log("notification", notification);
+
+        // Emit event only to this specific user
+        const payload: CapLevelEvent = {
+            action: "CREATE",
+            meta: {
+                postId: userId,
+                performedBy: userId,
+                publishedAt: new Date(),
+            },
+            info: {
+                title: `CapLevel Updated: ${oldLevel} → ${targetLevel}`,
+                message: `Your CapLevel has been changed from ${oldLevel} to ${targetLevel}`,
+                authorId: userId,
+                caplevelDetials: [{ oldLevel, newLevel: targetLevel }],
+                recipients: [recipient], // Only the specific user
+            },
+        };
+
+        // console.log("the payload", payload);
+        this.eventEmitter.emit(EVENT_TYPES.CAPLEVEL_CREATE, payload);
 
         return {
             message: "User CapLevel updated",
