@@ -6,62 +6,6 @@ import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/com
 export class CommunityRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    /**
-     * Create a new community
-     */
-    // async createCommunity(ownerId: string, data: CreateCommunityDto) {
-    //     // Check if username is taken
-    //     if (data.profile?.username) {
-    //         const existingCommunity = await this.prisma.communityProfile.findUnique({
-    //             where: { username: data.profile.username },
-    //         });
-    //         if (existingCommunity) {
-    //             throw new BadRequestException("Community username already taken");
-    //         }
-    //     }
-    //     // if(!data.profile?.username) throw new NotFoundException("Username not")
-    //     return await this.prisma.$transaction(async (prisma) => {
-    //         const community = await prisma.community.create({
-    //             data: {
-    //                 ownerId,
-    //                 foundationDate: new Date(),
-    //                 communityType: data.communityType,
-    //                 profile: {
-    //                     create: {
-    //                         name: data?.profile?.name ?? "",
-    //                         username: data?.profile?.username as string,
-    //                         title: data?.profile?.title ?? "",
-    //                         bio: data?.profile?.bio ?? "",
-    //                         location: data?.profile?.location ?? "",
-    //                         avatarUrl: data?.profile?.avatarUrl ?? "",
-    //                         coverUrl: data?.profile?.avatarUrl ?? "",
-    //                         followersCount: 0,
-    //                         followingCount: 0,
-    //                     },
-    //                 },
-    //             },
-    //             include: {
-    //                 profile: true,
-    //                 owner: { include: { profile: true } },
-    //             },
-    //         });
-
-    //         // Add owner as admin member
-    //         await prisma.communitiesMembership.create({
-    //             data: {
-    //                 userId: ownerId,
-    //                 communityId: community.id,
-    //                 role: "ADMIN",
-    //             },
-    //         });
-
-    //         return community;
-    //     });
-    // }
-
-    /**
-     * Join/Leave community
-     */
     async toggleCommunityMembership(
         userId: string,
         communityId: string,

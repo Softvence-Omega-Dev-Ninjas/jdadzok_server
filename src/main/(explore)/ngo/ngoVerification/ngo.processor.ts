@@ -231,16 +231,6 @@ export class NgoVerificationProcessor extends WorkerHost {
                       ? `${e.code} - ${e.msg}`
                       : (e?.message ?? "Unknown error");
 
-            // console.log(
-            //     `Failed to verify NGO (${verificationId}): ${errMsg}`,
-            //     "\nError Reason:",
-            //     errorReason || errMsg,
-            //     "\nScanner Results (partial):",
-            //     JSON.stringify(scanResults, null, 2),
-            // );
-
-            // console.log(`Failed to verify NGO (${verificationId}): ${errMsg}`);
-
             await this.prisma.ngoVerification.update({
                 where: { id: verificationId },
                 data: {

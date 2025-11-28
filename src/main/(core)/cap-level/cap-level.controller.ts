@@ -43,30 +43,6 @@ export class CapLevelController {
         }
     }
 
-    // @Get('status/:userId')
-    // @ApiOperation({ summary: 'Get comprehensive cap status for a user' })
-    // @ApiParam({ name: 'userId', description: 'User ID' })
-    // @ApiResponse({ status: 200, description: 'User cap level status with progress and eligibility' })
-    // async getUserCapStatus(@Param('userId') userId: string) {
-    //   try {
-    //     return await this.service.getUserCapStatus(userId);
-    //   } catch (error) {
-    //     throw error;
-    //   }
-    // }
-
-    // @Post('calculate/:userId')
-    // @ApiOperation({ summary: 'Calculate user eligibility for cap level promotion' })
-    // @ApiParam({ name: 'userId', description: 'User ID' })
-    // @ApiResponse({ status: 200, description: 'Cap level eligibility calculation result' })
-    // async calculateEligibility(@Param('userId') userId: string) {
-    //   try {
-    //     return await this.service.calculateCapEligibility(userId);
-    //   } catch (error) {
-    //     throw error;
-    //   }
-    // }
-
     @ApiOperation({
         summary: "Promote user to next eligible cap level or specific level",
     })

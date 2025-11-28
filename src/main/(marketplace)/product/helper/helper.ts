@@ -10,9 +10,6 @@ export class HelperService {
         const product = await this.prisma.product.findUnique({
             where: { id: productId },
         });
-
-        console.log(product);
-
         if (!product) {
             throw new NotFoundException(`Product with ID ${productId} not found`);
         }

@@ -9,6 +9,10 @@ model ActivityScore {
   redCapScore                Float
   blackCapScore              Float
   yellowCapScore             Float
+  greenCapPromtionFee        Float?  
+  redCapPromtionFee          Float?
+  blackCapPromtionFee        Float?
+  yeallowCapPromtionFee      Float?
   productSpentPercentage     Float    @default(0.0)
   productPromotionPercentage Float    @default(0.0)
   createdAt                  DateTime @default(now())

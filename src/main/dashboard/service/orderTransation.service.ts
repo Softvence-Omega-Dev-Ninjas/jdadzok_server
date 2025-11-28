@@ -168,45 +168,4 @@ export class OrderTransactionService {
             data,
         };
     }
-
-    // async getOrderDetails(orderId: string) {
-    //     const order = await this.prisma.order.findUnique({
-    //         where: { id: orderId },
-    //         include: {
-    //             buyer: { include: { profile: true } },
-    //             product: {
-    //                 include: {
-    //                     seller: { include: { profile: true } },
-    //                 },
-    //             },
-    //             payments: true,
-    //         },
-    //     });
-
-    //     if (!order) throw new NotFoundException("Order not found");
-
-    //     return order;
-    // }
-
-    // async exportToCSV() {
-    //     const orders = await this.prisma.order.findMany({
-    //         include: {
-    //             buyer: { include: { profile: true } },
-    //             product: true,
-    //             payments: true,
-    //         },
-    //     });
-
-    //     // Build CSV text
-    //     let csv = "Order ID,Customer,Product,Amount,Status,Date\n";
-
-    //     orders.forEach((o) => {
-    //         csv += `${o.id},${o.buyer.profile?.name || "N/A"},${o.product.title},${o.totalPrice},${o.status},${o.createdAt}\n`;
-    //     });
-
-    //     return {
-    //         filename: "orders_report.csv",
-    //         data: csv,
-    //     };
-    // }
 }
