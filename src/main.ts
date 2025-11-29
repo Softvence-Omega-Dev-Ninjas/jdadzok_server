@@ -36,6 +36,7 @@ async function bootstrap() {
             "http://localhost:5176",
             "http://localhost:5177",
             "https://jdadzok-admin-dashboard.netlify.app",
+            "http://13.204.75.28:5056",
         ],
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
         credentials: true,
