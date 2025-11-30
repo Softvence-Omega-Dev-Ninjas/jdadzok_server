@@ -4,7 +4,6 @@ import { ConfigService } from "@nestjs/config";
 import Stripe from "stripe";
 
 import { PaymentStatus } from "@prisma/client";
-import { CreatePayoutDto } from "./dto/create-payout.dto";
 import { ApiResponse } from "./utils/api-response";
 @Injectable()
 export class StripeService {
@@ -16,15 +15,11 @@ export class StripeService {
         private readonly prisma: PrismaService,
         private readonly configService: ConfigService,
     ) {
-        // Load Stripe secret and webhook secret from config
         const stripeSecret = this.configService.getOrThrow<string>("STRIPE_SECRET");
         this.webhookSecret = this.configService.getOrThrow<string>("STRIPE_WEBHOOK_SECRET");
-
-        // Initialize Stripe client
         this.stripe = new Stripe(stripeSecret);
     }
 
-    /** Create Express Account for Seller */
     async createExpressAccount(userId: string) {
         try {
             const user = await this.prisma.user.findUnique({
@@ -69,8 +64,6 @@ export class StripeService {
             );
         }
     }
-
-    /** Get Express Account for Seller */
     async getExpressAccount(userId: string) {
         try {
             const user = await this.prisma.user.findUnique({
@@ -106,264 +99,6 @@ export class StripeService {
             );
         }
     }
-
-    /** Handle Seller Payout */
-    async handlePayout(sellerId: string, dto: CreatePayoutDto) {
-        this.logger.log(`Processing payout for seller ${sellerId}`);
-
-        const seller = await this.prisma.user.findUnique({ where: { id: sellerId } });
-        if (!seller) return { status: "error", message: "Seller not found" };
-
-        const amountInCents = Math.round(dto.amount * 100);
-
-        try {
-            if (seller.stripeAccountId) {
-                const transfer: any = await this.stripe.transfers.create({
-                    amount: amountInCents,
-                    currency: "usd",
-                    destination: seller.stripeAccountId,
-                });
-
-                if (!transfer.reversed) {
-                    this.logger.log(`Stripe payout successful for ${sellerId}`);
-                    return {
-                        status: "success",
-                        message: "Payout processed successfully",
-                        data: transfer,
-                    };
-                } else {
-                    this.logger.warn(`Stripe payout was reversed`, transfer);
-                    return { status: "error", message: "Payout was reversed", data: transfer };
-                }
-            } else {
-                await this.prisma.sellerEarnings.upsert({
-                    where: { sellerId },
-                    update: {
-                        totalEarned: { increment: dto.amount },
-                        pending: { increment: dto.amount },
-                    },
-                    create: {
-                        sellerId,
-                        totalEarned: dto.amount,
-                        pending: dto.amount,
-                    },
-                });
-                this.logger.warn(`Seller ${sellerId} has no Stripe account. Marked as pending.`);
-                return { status: "success", message: "Payout marked as pending (manual)" };
-            }
-        } catch (error: any) {
-            this.logger.error(error);
-            return { status: "error", message: "Payout failed", error: error.message };
-        }
-    }
-
-    /** Handle Stripe Webhook */
-    // async handleWebhook(rawBody: Buffer, signature: string) {
-    //     try {
-    //         // Construct the event using raw body (ensure controller provides Buffer)
-    //         const event: Stripe.Event = this.stripe.webhooks.constructEvent(
-    //             rawBody,
-    //             signature,
-    //             this.webhookSecret,
-    //         );
-    //         this.logger.log(`Received Stripe event: ${event.type}`);
-
-    //         switch (event.type) {
-    //             case "payment_intent.succeeded": {
-    //                 const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    //                 const orderId = paymentIntent.metadata.orderId;
-
-    //                 if (!orderId) {
-    //                     const msg = "PaymentIntent metadata missing orderId";
-    //                     this.logger.error(msg, paymentIntent);
-    //                     return ApiResponse.error(msg);
-    //                 }
-
-    //                 const order = await this.prisma.order.findUnique({
-    //                     where: { id: orderId },
-    //                     include: { product: { include: { seller: true } } },
-    //                 });
-
-    //                 if (!order) {
-    //                     const msg = `Order not found: ${orderId}`;
-    //                     this.logger.error(msg);
-    //                     return ApiResponse.error(msg);
-    //                 }
-
-    //                 await this.prisma.order.update({
-    //                     where: { id: orderId },
-    //                     data: { status: "PAID" },
-    //                 });
-
-    //                 const adminCommission = order.totalPrice * 0.1;
-    //                 const sellerAmount = order.totalPrice - adminCommission;
-
-    //                 await this.handlePayout(order.product.sellerId, { amount: sellerAmount });
-    //                 break;
-    //             }
-
-    //             default: {
-    //                 const msg = `Unhandled Stripe event type: ${event.type}`;
-    //                 this.logger.warn(msg, event);
-    //                 return ApiResponse.success(msg);
-    //             }
-    //         }
-
-    //         return ApiResponse.success("Webhook processed successfully");
-    //     } catch (err: any) {
-    //         const msg = `Error processing Stripe webhook: ${err.message || err}`;
-    //         this.logger.error(msg, err);
-    //         return ApiResponse.error(msg);
-    //     }
-    // }
-
-    // async handleWebhook(rawBody: Buffer, signature: string) {
-    //     try {
-    //         const event: Stripe.Event = this.stripe.webhooks.constructEvent(
-    //             rawBody,
-    //             signature,
-    //             this.webhookSecret,
-    //         );
-
-    //         this.logger.log(`Received Stripe event: ${event.type}`);
-
-    //         switch (event.type) {
-    //             case "payment_intent.succeeded": {
-    //                 const paymentIntent = event.data.object as Stripe.PaymentIntent;
-
-    //                 const orderId = paymentIntent.metadata.orderId;
-    //                 if (!orderId) {
-    //                     const msg = "PaymentIntent metadata missing orderId";
-    //                     this.logger.error(msg);
-    //                     return ApiResponse.error(msg);
-    //                 }
-
-    //                 const order = await this.prisma.order.findUnique({
-    //                     where: { id: orderId },
-    //                     include: {
-    //                         product: { include: { seller: true } },
-    //                     },
-    //                 });
-
-    //                 if (!order) {
-    //                     const msg = `Order not found: ${orderId}`;
-    //                     this.logger.error(msg);
-    //                     return ApiResponse.error(msg);
-    //                 }
-
-    //                 // Update order status to PAID
-    //                 await this.prisma.order.update({
-    //                     where: { id: orderId },
-    //                     data: { status: "PAID" },
-    //                 });
-
-    //                 const product = await this.prisma.product.findFirst({
-    //                     where: { id: order.productId },
-    //                 });
-    //                 if (!product) throw new NotFoundException("Product is not found.");
-
-    //                 const dedicatedUser = await this.prisma.dedicatedAd.findMany({
-    //                     where: { adId: product.id },
-    //                     include: {
-    //                         post: {
-    //                             include: {
-    //                                 author: {
-    //                                     select: {
-    //                                         id: true,
-    //                                         capLevel: true
-    //                                     }
-    //                                 }
-    //                             },
-    //                         },
-    //                     },
-    //                 });
-    //                 const adminActivity = await this.prisma.activityScore.findFirst()
-    //                 if (!dedicatedUser) throw new NotFoundException("Ad is not found.");
-    //                 for (const user of dedicatedUser) {
-    //                     console.log("userruyeeruiweqt ", user);
-    //                     switch (user.post.author.capLevel) {
-    //                         case "GREEN":
-    //                             await this.prisma.profile.update({
-    //                                 where: {
-    //                                     userId: user.post.author.id
-    //                                 }, data: {
-    //                                     balance: {
-    //                                         increment: (product.promotionFee * adminActivity?.greenCapPromtionFee!)
-    //                                     }
-    //                                 }
-    //                             })
-    //                             break;
-    //                         case "YELLOW":
-    //                             await this.prisma.profile.update({
-    //                                 where: {
-    //                                     userId: user.post.author.id
-    //                                 }, data: {
-    //                                     balance: {
-    //                                         increment: (product.promotionFee * adminActivity?.yeallowCapPromtionFee!)
-    //                                     }
-    //                                 }
-    //                             })
-    //                             break;
-    //                         case "BLACK":
-    //                             await this.prisma.profile.update({
-    //                                 where: {
-    //                                     userId: user.post.author.id
-    //                                 }, data: {
-    //                                     balance: {
-    //                                         increment: (product.promotionFee * adminActivity?.blackCapPromtionFee!)
-    //                                     }
-    //                                 }
-    //                             })
-    //                             break;
-    //                         case "RED":
-    //                             await this.prisma.profile.update({
-    //                                 where: {
-    //                                     userId: user.post.author.id
-    //                                 }, data: {
-    //                                     balance: {
-    //                                         increment: (product.promotionFee * adminActivity?.redCapPromtionFee!)
-    //                                     }
-    //                                 }
-    //                             })
-    //                             break;
-    //                     }
-
-    //                     // Update payment record
-    //                     await this.prisma.payment.updateMany({
-    //                         where: { orderId },
-    //                         data: {
-    //                             status: PaymentStatus.SUCCEEDED,
-    //                         },
-    //                     });
-
-    //                     // Logging processed fees for your dashboard
-    //                     const applicationFee = paymentIntent.application_fee_amount ?? 0;
-    //                     const receivedBySeller = paymentIntent.amount_received - applicationFee;
-
-    //                     this.logger.log(
-    //                         `Payment complete:
-    //                     Order: ${orderId}
-    //                     Buyer Paid: ${paymentIntent.amount} cents
-    //                     Seller Received: ${receivedBySeller} cents
-    //                     Platform Fee: ${applicationFee} cents`,
-    //                     );
-
-    //                     return ApiResponse.success("Payment processed successfully");
-    //                 }
-
-    //             default: {
-    //                 const msg = `Unhandled Stripe event type: ${event.type}`;
-    //                 this.logger.warn(msg);
-    //                 return ApiResponse.success(msg);
-    //             }
-    //         }
-    //     } catch (err: any) {
-    //         const msg = `Error processing Stripe webhook: ${err.message}`;
-    //         this.logger.error(msg);
-    //         return ApiResponse.error(msg);
-    //     }
-    // }
-
     async handleWebhook(rawBody: Buffer, signature: string) {
         try {
             const event: Stripe.Event = this.stripe.webhooks.constructEvent(
@@ -490,36 +225,5 @@ export class StripeService {
             this.logger.error(msg);
             return ApiResponse.error(msg);
         }
-    }
-
-    async getAllPayouts(sellerId: string) {
-        const seller = await this.prisma.user.findUnique({ where: { id: sellerId } });
-
-        if (!seller) return { status: "error", message: "Seller not found" };
-
-        // Case 1: Seller has a Stripe account → fetch stripe transfers
-        if (seller.stripeAccountId) {
-            const transfers = await this.stripe.transfers.list({
-                destination: seller.stripeAccountId,
-                limit: 100,
-            });
-
-            return {
-                status: "success",
-                message: "Payout list fetched",
-                data: transfers.data,
-            };
-        }
-
-        // Case 2: No Stripe account → fetch manual pending payouts from DB
-        const earnings = await this.prisma.sellerEarnings.findUnique({
-            where: { sellerId },
-        });
-
-        return {
-            status: "success",
-            message: "Manual payout records (non-Stripe)",
-            data: earnings,
-        };
     }
 }

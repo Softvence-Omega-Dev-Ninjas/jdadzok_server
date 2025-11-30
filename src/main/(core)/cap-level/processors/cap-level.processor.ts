@@ -8,7 +8,6 @@ import { CapLevelService } from "../cap-lavel.service";
 import { capLevelJobType } from "../constants";
 import {
     BatchMetricsJobData,
-    BatchPromotionJobData,
     MonthlyRevenueJobData,
     UserEligibilityJobData,
     UserMetricsUpdateJobData,
@@ -46,17 +45,11 @@ export class CapLevelProcessor extends WorkerHost {
                 case capLevelJobType["CALCULATE_USER_ELIGIBILITY"]:
                     return await this.processUserEligibility(job);
 
-                case capLevelJobType["PROMOTE_USER"]:
-                    return await this.processUserPromotion(job);
-
                 case capLevelJobType["UPDATE_USER_METRICS"]:
                     return await this.processUserMetricsUpdate(job);
 
                 case capLevelJobType["RECALCULATE_ACTIVITY_SCORE"]:
                     return await this.processActivityScoreRecalculation(job);
-
-                case capLevelJobType["BATCH_PROMOTE_USERS"]:
-                    return await this.processBatchPromotion(job);
 
                 case capLevelJobType["BATCH_RECALCULATE_METRICS"]:
                     return await this.processBatchMetricsRecalculation(job);
@@ -150,36 +143,13 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process user cap level promotion
      */
-    private async processUserPromotion(job: Job<UserPromotionJobData>): Promise<any> {
-        const { userId, targetLevel, bypassVerification, triggeredBy } = job.data;
 
-        this.logger.log(
-            `Promoting user ${userId} to ${targetLevel || "next eligible level"} (by: ${triggeredBy})`,
-        );
-
-        const promotedUser = await this.capLevelService.promoteUserCapLevel(
-            userId,
-            targetLevel,
-            bypassVerification,
-        );
-
-        // TODO: Queue notification job (would be handled by notification system)
-        // await this.queue.add('send-promotion-notification', {
-        //   userId,
-        //   newLevel: promotedUser.capLevel,
-        //   triggeredBy,
-        // });
-
-        this.logger.log(`Successfully promoted user ${userId} to ${promotedUser.capLevel}`);
-
-        return {
-            userId,
-            oldLevel: "NONE", // Would get from user data
-            newLevel: promotedUser.capLevel,
-            promotedAt: new Date(),
-            triggeredBy,
-        };
-    }
+    // TODO: Queue notification job (would be handled by notification system)
+    // await this.queue.add('send-promotion-notification', {
+    //   userId,
+    //   newLevel: promotedUser.capLevel,
+    //   triggeredBy,
+    // });
 
     /**
      * Process user metrics update
@@ -254,28 +224,6 @@ export class CapLevelProcessor extends WorkerHost {
     /**
      * Process batch user promotions
      */
-    private async processBatchPromotion(job: Job<BatchPromotionJobData>) {
-        const { capLevel, maxUsers = 100, dryRun = false, adminId } = job.data;
-
-        this.logger.log(
-            `Processing batch promotion to ${capLevel} (max: ${maxUsers}, dryRun: ${dryRun})`,
-        );
-
-        const result = await this.capLevelService.processPendingPromotions(capLevel);
-
-        // Limit the number of users processed
-        const actualPromoted = Math.min(result.promoted, maxUsers);
-
-        return {
-            capLevel,
-            promoted: actualPromoted,
-            failed: result.failed,
-            maxUsers,
-            dryRun,
-            adminId,
-            processedAt: new Date(),
-        };
-    }
 
     /**
      * Process batch metrics recalculation
