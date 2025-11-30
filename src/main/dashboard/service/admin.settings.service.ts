@@ -113,7 +113,8 @@ export class AdminSettingsService {
         // Only send notification to the specific user whose caplevel was changed
         const recipient = { id: user.id, email: user.email };
         const oldLevel = user.capLevel;
-        // const newLevel = targetLevel;
+        const newLevel = targetLevel;
+        console.log(newLevel);
         //---------- Save notification for this specific user ------------
         await this.prisma.notification.create({
             data: {
