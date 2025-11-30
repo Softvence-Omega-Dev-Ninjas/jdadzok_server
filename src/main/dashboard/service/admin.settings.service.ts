@@ -114,6 +114,7 @@ export class AdminSettingsService {
         const recipient = { id: user.id, email: user.email };
         const oldLevel = user.capLevel;
         const newLevel = targetLevel;
+        console.log(newLevel);
         //---------- Save notification for this specific user ------------
         const notification = await this.prisma.notification.create({
             data: {

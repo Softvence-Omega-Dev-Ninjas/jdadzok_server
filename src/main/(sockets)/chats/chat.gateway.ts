@@ -83,7 +83,7 @@ export class ChatGateway extends BaseSocketGateway {
             content: message.content,
             mediaUrl: message.mediaUrl,
             mediaType: message.mediaType,
-            sender: message.sender, // full info from Prisma include
+            sender: message.sender,
             receiver:
                 message.chat.participants
                     .map((p) => p.user)
