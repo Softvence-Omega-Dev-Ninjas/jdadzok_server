@@ -12,6 +12,7 @@ import { BaseSocketGateway } from "../base/abstract-socket.gateway";
 import { SocketAuthGuard } from "../guards/socket-auth.guard";
 import { SocketMiddleware } from "../middleware/socket.middleware";
 import { RedisService } from "../services/redis.service";
+import { ActiveUsersService } from "./active-user.service";
 import { ChatService } from "./chat.service";
 import { CreateMessageDto } from "./dto/create.message.dto";
 
@@ -30,6 +31,8 @@ export class ChatGateway extends BaseSocketGateway {
         private prisma: PrismaService,
         redisService: RedisService,
         socketMiddleware: SocketMiddleware,
+
+        private activeUsersService: ActiveUsersService,
     ) {
         super(redisService, socketMiddleware);
     }
@@ -114,5 +117,62 @@ export class ChatGateway extends BaseSocketGateway {
                 .except(user.id)
                 .emit("chat:message_read", { messageId, readBy: user.id });
         }
+    }
+
+    @SubscribeMessage("chat:typing_start")
+    async handleTypingStart(
+        @GetSocketUser() user: SocketUser,
+        @MessageBody() { chatId }: { chatId: string },
+    ) {
+        await this.activeUsersService.setUserTyping(chatId, user.id);
+
+        // Notify other participants
+        this.server.to(chatId).except(user.id).emit("chat:typing_start", {
+            userId: user.id,
+            chatId,
+        });
+    }
+
+    @SubscribeMessage("chat:typing_stop")
+    async handleTypingStop(
+        @GetSocketUser() user: SocketUser,
+        @MessageBody() { chatId }: { chatId: string },
+    ) {
+        await this.activeUsersService.removeUserTyping(chatId, user.id);
+
+        // Notify other participants
+        this.server.to(chatId).except(user.id).emit("chat:typing_stop", {
+            userId: user.id,
+            chatId,
+        });
+    }
+
+    @SubscribeMessage("user:get_status")
+    async handleGetUserStatus(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() { userId }: { userId: string },
+    ) {
+        const presence = await this.activeUsersService.getUserPresence(userId);
+
+        client.emit("user:status", {
+            userId,
+            status: presence?.status || "offline",
+            lastSeen: presence?.lastSeen || null,
+        });
+    }
+
+    @SubscribeMessage("user:set_status")
+    async handleSetStatus(
+        @GetSocketUser() user: SocketUser,
+        @MessageBody() { status }: { status: "online" | "away" | "offline" },
+    ) {
+        await this.activeUsersService.setUserStatus(user.id, status);
+
+        // Broadcast status change
+        this.server.emit("user:status_changed", {
+            userId: user.id,
+            status,
+            timestamp: new Date(),
+        });
     }
 }
