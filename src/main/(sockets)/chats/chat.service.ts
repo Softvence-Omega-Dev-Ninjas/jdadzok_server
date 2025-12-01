@@ -131,7 +131,7 @@ export class ChatService {
         return chat;
     }
 
-    /** Send message */
+    /**------------- Send message---------------------------- */
     async createMessage(senderId: string, chatId: string, dto: CreateMessageDto) {
         // Verify sender is participant
         const chat = await this.prisma.liveChat.findUnique({
@@ -187,7 +187,7 @@ export class ChatService {
         });
     }
 
-    /** Mark message as read */
+    /** Mark message as read------------------ */
     async markRead(messageId: string, userId: string) {
         const message = await this.prisma.liveMessage.findUnique({
             where: { id: messageId },
@@ -280,9 +280,9 @@ export class ChatService {
         const messages = await this.prisma.liveMessage.findMany({
             where: { chatId },
             orderBy: { createdAt: "desc" },
-            take: take + 1, // Fetch one extra to check if there are more
+            take: take + 1,
             cursor: cursor ? { id: cursor } : undefined,
-            skip: cursor ? 1 : 0, // Skip the cursor itself
+            skip: cursor ? 1 : 0,
             include: {
                 sender: {
                     select: {

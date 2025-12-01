@@ -21,6 +21,14 @@ enum CallStatus {
   MISSED
   DECLINED
 }
+// enum CallStatus {
+//   CALLING
+//   ACTIVE
+//   ENDED
+//   CANCELLED
+//   MISSED
+//   DECLINED
+// }
 
 enum CallType {
   AUDIO

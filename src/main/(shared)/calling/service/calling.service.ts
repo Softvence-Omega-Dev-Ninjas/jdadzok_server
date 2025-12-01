@@ -1,9 +1,10 @@
-// src/call/call.service.ts
-import { Injectable, Logger } from "@nestjs/common";
-import { Inject } from "@nestjs/common";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Cache } from "cache-manager";
+// src/call/service/call.service.ts
+
 import { PrismaService } from "@lib/prisma/prisma.service";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { BadRequestException, Inject, Injectable, Logger } from "@nestjs/common";
+import { Cache } from "cache-manager";
+import { CallGateway } from "../calling.gateway";
 
 export interface Participant {
     socketId: string;
@@ -26,13 +27,69 @@ export class CallService {
     private readonly CALL_ROOM_PREFIX = "call_room:";
     private readonly USER_ROOM_PREFIX = "user_room:";
     private readonly CALL_LOCK_PREFIX = "call_lock:";
-    private readonly CACHE_TTL = 3600 * 24; // 24 hours
+    private readonly CACHE_TTL = 3600 * 24;
 
     constructor(
         private readonly prisma: PrismaService,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) {}
 
+    async startCallToUser(
+        callerId: string,
+        recipientUserId: string,
+        callGateway: CallGateway,
+    ): Promise<{ callId: string; status: "ringing" | "recipient_offline" }> {
+        if (callerId === recipientUserId) {
+            throw new BadRequestException("Cannot call yourself");
+        }
+
+        // Create call record
+        const call = await this.prisma.calling.create({
+            data: {
+                hostUserId: callerId,
+                status: "CALLING",
+            },
+        });
+
+        // Get caller info for notification
+        const caller = await this.prisma.user.findUnique({
+            where: { id: callerId },
+            select: {
+                id: true,
+                profile: {
+                    select: { name: true, avatarUrl: true },
+                },
+            },
+        });
+
+        const recipientSockets = callGateway.getClientsForUser(recipientUserId);
+
+        if (recipientSockets.size === 0) {
+            // Mark as missed later (optional)
+            return { callId: call.id, status: "recipient_offline" };
+        }
+
+        const payload = {
+            callId: call.id,
+            caller: {
+                userId: callerId,
+                name: caller?.profile?.name || "Unknown User",
+                avatarUrl: caller?.profile?.avatarUrl || null,
+            },
+            timestamp: new Date().toISOString(),
+        };
+
+        // Send to ALL devices of the recipient
+        recipientSockets.forEach((socket) => {
+            socket.emit("incomingCall", payload);
+        });
+
+        this.logger.log(
+            `Incoming call sent from ${callerId} → ${recipientUserId} (call: ${call.id})`,
+        );
+
+        return { callId: call.id, status: "ringing" };
+    }
     /**
      * Join a call room
      */
@@ -69,7 +126,7 @@ export class CallService {
                         },
                         create: {
                             id: callId,
-                            hostUserId: userId || socketId, // Use userId if available
+                            hostUserId: userId || socketId,
                             status: "ACTIVE",
                             startedAt: new Date(),
                         },
@@ -332,12 +389,26 @@ export class CallService {
      */
     async createCall(userId: string): Promise<any> {
         try {
-            return await this.prisma.calling.create({
+            const call = await this.prisma.calling.create({
                 data: {
                     hostUserId: userId,
                     status: "CALLING",
+                    startedAt: new Date(),
                 },
             });
+
+            await this.prisma.callParticipant.create({
+                data: {
+                    callId: call.id,
+                    socketId: `host-${userId}`,
+                    userName: "Host",
+                    hasAudio: true,
+                    hasVideo: true,
+                    joinedAt: new Date(),
+                },
+            });
+
+            return call;
         } catch (error) {
             this.logger.error(`Error creating call: ${error.message}`, error.stack);
             throw error;
@@ -410,6 +481,7 @@ export class CallService {
                         },
                     },
                     participants: {
+                        // FIXED: Removed where clause to show all participants in history
                         orderBy: {
                             joinedAt: "desc",
                         },
@@ -431,8 +503,6 @@ export class CallService {
      */
     async getActiveCallsCount(): Promise<number> {
         try {
-            // This would require scanning cache keys or maintaining a counter
-            // For now, query database
             const count = await this.prisma.calling.count({
                 where: {
                     status: "ACTIVE",
@@ -450,8 +520,6 @@ export class CallService {
      */
     async cleanupStaleRooms(): Promise<void> {
         try {
-            // This would require implementing cache key scanning
-            // For now, focus on database cleanup
             const staleTime = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
 
             await this.prisma.calling.updateMany({
