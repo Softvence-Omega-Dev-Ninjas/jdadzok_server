@@ -2,6 +2,7 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { AuthModule } from "@module/(started)/auth/auth.module"; // Correct path
 import { Module } from "@nestjs/common";
+import { ActiveUsersService } from "./active-user.service";
 import { ChatController } from "./chat.controller";
 import { ChatGateway } from "./chat.gateway";
 import { ChatService } from "./chat.service";
@@ -12,9 +13,10 @@ import { ChatService } from "./chat.service";
         ChatService,
         ChatGateway,
         PrismaService,
+        ActiveUsersService,
         // DO NOT ADD AuthValidatorService here
     ],
     controllers: [ChatController],
-    exports: [ChatService],
+    exports: [ChatService, ActiveUsersService],
 })
 export class ChatModule {}

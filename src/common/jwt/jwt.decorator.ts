@@ -106,7 +106,7 @@ export function ValidateAdmin() {
 }
 
 export function ValidateUser() {
-    return RoleValidateAuth("USER", "SUPER_ADMIN");
+    return RoleValidateAuth("USER", "SUPER_ADMIN", "ADMIN", "MODERATOR");
 }
 
 export function ValidateAll() {

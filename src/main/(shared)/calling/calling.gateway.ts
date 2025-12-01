@@ -13,12 +13,12 @@ import { Server, Socket } from "socket.io";
 import { CallingPayloadForSocketClient } from "@common/interface/calling-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { IceCandidateDto, JoinCallDto, StartMediaDto, WebRTCSignalDto } from "./dto/calling.dto";
 import { CallService } from "./service/calling.service";
-
+@Injectable()
 @WebSocketGateway({
     cors: {
         origin: "*",
@@ -36,8 +36,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly clients = new Map<string, Set<Socket>>();
     private readonly socketToUserId = new Map<string, string>();
     private readonly socketToCallId = new Map<string, string>();
-    private readonly pendingAuthentication = new Set<string>(); // Track unauthenticated sockets
-
+    private readonly pendingAuthentication = new Set<string>();
     constructor(
         private readonly callService: CallService,
         private readonly jwtService: JwtService,
@@ -152,7 +151,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 userId: user.id,
             });
 
-            this.logger.log(`Client authenticated: ${user.id} (socket: ${client.id})`);
+            this.logger.log(
+                `Client authenticated: ${user.id} (email: ${user.email}) (socket: ${client.id})`,
+            );
         } catch (err: any) {
             this.logger.warn(`Authentication failed for ${client.id}: ${err.message}`);
             client.emit("authError", { message: "Authentication failed" });
@@ -187,6 +188,11 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const authHeader = client.handshake.headers.authorization;
         const authToken = client.handshake.auth?.token;
         const queryToken = client.handshake.query?.token as string;
+        // Barer token
+
+        if (!authHeader && !authToken && !queryToken) {
+            return null;
+        }
 
         let token: string | null = null;
 
@@ -244,51 +250,59 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             this.logger.log(`User ${userId} (${socket.id}) joining call: ${callId}`);
 
-            // Leave previous room if exists
+            // Leave previous call if exists
             const previousCallId = this.socketToCallId.get(socket.id);
             if (previousCallId && previousCallId !== callId) {
                 await this.handleUserLeavingCall(socket, previousCallId);
             }
 
-            // Join new room
+            // Validate the call
+            const call = await this.callService.getCallById(callId);
+            if (!call) {
+                return socket.emit("error", { message: "Invalid call ID" });
+            }
+
+            if (["ENDED", "CANCELLED"].includes(call.status)) {
+                return socket.emit("error", { message: "Call already finished" });
+            }
+
+            // Join WebSocket room
             socket.join(callId);
             this.socketToCallId.set(socket.id, callId);
 
-            // Get or create call room
-            const room = await this.callService.joinCall(
+            // Add/update participant in DB
+            const participant = await this.callService.joinCall(
                 callId,
                 socket.id,
                 userName,
-                hasVideo,
-                hasAudio,
-                userId, // Pass actual userId for database
+                hasVideo ?? true,
+                hasAudio ?? true,
+                userId,
             );
 
-            // Get existing participants (excluding the new joiner)
-            const existingParticipants = room.participants.filter((p) => p.socketId !== socket.id);
+            // Fetch list of participants
+            const callRoom = await this.callService.getCallRoom(callId);
+            const participants = callRoom?.participants || [];
 
-            // Send existing participants to the new user
-            socket.emit("existingParticipants", {
-                participants: existingParticipants.map((p) => ({
-                    socketId: p.socketId,
-                    userName: p.userName,
-                    hasVideo: p.hasVideo,
-                    hasAudio: p.hasAudio,
-                })),
-            });
-
-            // Notify others about the new participant
-            socket.to(callId).emit("participantJoined", {
+            // Notify others
+            socket.to(callId).emit("userJoined", {
                 socketId: socket.id,
+                userId,
                 userName,
                 hasVideo,
                 hasAudio,
             });
 
-            this.logger.log(`Call ${callId} now has ${room.participants.length} participants`);
+            // Return room data to this socket
+            return socket.emit("joinedCall", {
+                callId,
+                userId,
+                socketId: socket.id,
+                participants,
+            });
         } catch (error) {
-            this.logger.error(`Error in joinCall: ${error.message}`, error.stack);
-            socket.emit("error", { message: "Failed to join call" });
+            this.logger.error(`Error joining call: ${error.message}`);
+            socket.emit("error", { message: "Internal server error" });
         }
     }
 

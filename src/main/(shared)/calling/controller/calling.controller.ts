@@ -1,38 +1,77 @@
-import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
+// src/call/controller/call.controller.ts
+
 import {
+    Body,
     Controller,
     Delete,
+    ForbiddenException,
     Get,
-    HttpCode,
-    HttpStatus,
+    NotFoundException,
     Param,
     Post,
-    Request,
-    UseGuards,
+    UnauthorizedException,
 } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
-import { AuthenticatedRequest } from "@type/apiResponse";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+
+import { GetUser, ValidateAuth } from "@common/jwt/jwt.decorator";
+import { CallGateway } from "../calling.gateway";
+import { StartCallToUserDto } from "../dto/calling.dto";
 import { CallService } from "../service/calling.service";
 
 @Controller("calls")
 @ApiTags("calls-audio-video")
-@UseGuards(JwtAuthGuard)
 export class CallController {
-    constructor(private readonly callService: CallService) {}
+    constructor(
+        private readonly callService: CallService,
+        private readonly callGateway: CallGateway,
+    ) {}
 
+    /**
+     * Create a new call
+     */
+    @ValidateAuth()
+    @ApiBearerAuth()
     @Post()
-    @HttpCode(HttpStatus.CREATED)
-    async createCall(@Request() req: AuthenticatedRequest) {
-        const userId = req.user.userId;
+    @ApiOperation({ summary: "Create a new call" })
+    async createCall(@GetUser("userId") userId: string) {
+        if (!userId) {
+            throw new UnauthorizedException("User ID is required");
+        }
+
         return await this.callService.createCall(userId);
     }
 
+    @Post("start")
+    @ValidateAuth()
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Start a 1-on-1 call to another user" })
+    async startCallToUser(@GetUser("userId") callerId: string, @Body() dto: StartCallToUserDto) {
+        return this.callService.startCallToUser(callerId, dto.recipientUserId, this.callGateway);
+    }
+    /**
+     * Get call details by ID
+     */
+    @ValidateAuth()
+    @ApiBearerAuth()
     @Get(":id")
+    @ApiOperation({ summary: "Get call details" })
     async getCall(@Param("id") id: string) {
-        return await this.callService.getCallById(id);
+        const call = await this.callService.getCallById(id);
+
+        if (!call) {
+            throw new NotFoundException("Call not found");
+        }
+
+        return call;
     }
 
+    /**
+     * Get active participants in a call room
+     */
+    @ValidateAuth()
+    @ApiBearerAuth()
     @Get(":id/room")
+    @ApiOperation({ summary: "Get active participants in call room" })
     async getCallRoom(@Param("id") id: string) {
         const room = await this.callService.getCallRoom(id);
 
@@ -58,20 +97,44 @@ export class CallController {
         };
     }
 
-    @Get("user/:userId/history")
-    async getCallHistory(@Param("userId") userId: string, @Request() req: AuthenticatedRequest) {
-        // Ensure user can only access their own history
-        if (req.user.userId !== userId) {
-            throw new Error("Unauthorized");
+    /**
+     * Get call history for the authenticated user
+     */
+    @ValidateAuth()
+    @ApiBearerAuth()
+    @Get("user/history")
+    @ApiOperation({ summary: "Get call history" })
+    async getCallHistory(@GetUser("userId") userId: string) {
+        if (!userId) {
+            throw new UnauthorizedException("User ID is required");
         }
 
         return await this.callService.getCallHistory(userId);
     }
 
+    /**
+     * End a call (only host can do this)
+     */
+    @ValidateAuth()
+    @ApiBearerAuth()
     @Delete(":id")
-    @HttpCode(HttpStatus.NO_CONTENT)
-    async endCall(@Param("id") id: string) {
-        // Add authorization check here
+    @ApiOperation({ summary: "End a call" })
+    async endCall(@Param("id") id: string, @GetUser("userId") userId: string) {
+        if (!userId) {
+            throw new UnauthorizedException("User ID is required");
+        }
+
+        // Check if call exists and user is authorized
+        const call = await this.callService.getCallById(id);
+
+        if (!call) {
+            throw new NotFoundException("Call not found");
+        }
+
+        if (call.hostUserId !== userId) {
+            throw new ForbiddenException("Only the host can end the call");
+        }
+
         await this.callService.deleteCall(id);
     }
 }
