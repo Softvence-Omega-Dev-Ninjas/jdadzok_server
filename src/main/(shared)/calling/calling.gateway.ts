@@ -13,12 +13,12 @@ import { Server, Socket } from "socket.io";
 import { CallingPayloadForSocketClient } from "@common/interface/calling-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { Injectable, Logger } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { IceCandidateDto, JoinCallDto, StartMediaDto, WebRTCSignalDto } from "./dto/calling.dto";
 import { CallService } from "./service/calling.service";
-@Injectable()
+
 @WebSocketGateway({
     cors: {
         origin: "*",
@@ -28,7 +28,7 @@ import { CallService } from "./service/calling.service";
     pingInterval: 25000,
     pingTimeout: 20000,
     connectTimeout: 45000,
-    // Allow connection without immediate auth check
+
     allowEIO3: true,
 })
 export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -279,7 +279,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 hasAudio ?? true,
                 userId,
             );
-
+            console.log(participant);
             // Fetch list of participants
             const callRoom = await this.callService.getCallRoom(callId);
             const participants = callRoom?.participants || [];
