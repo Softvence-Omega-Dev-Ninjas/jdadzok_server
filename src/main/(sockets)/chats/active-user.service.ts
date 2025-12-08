@@ -156,7 +156,7 @@ export class ActiveUsersService {
     async cleanupStalePresence(): Promise<void> {
         const activeUsers = await this.getActiveUsers();
         const now = new Date();
-        const staleThreshold = 5 * 60 * 1000; // 5 minutes
+        const staleThreshold = 5 * 60 * 1000;
 
         for (const userId of activeUsers) {
             const presence = await this.getUserPresence(userId);

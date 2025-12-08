@@ -187,7 +187,7 @@ export class ChatService {
         });
     }
 
-    /** Mark message as read------------------ */
+    /** ----------Mark message as read------------------ */
     async markRead(messageId: string, userId: string) {
         const message = await this.prisma.liveMessage.findUnique({
             where: { id: messageId },
@@ -276,13 +276,11 @@ export class ChatService {
     }
 
     /** Get paginated messages for a chat */
-    async getMessages(chatId: string, cursor?: string, take = 20) {
+    async getMessages(chatId: string) {
         const messages = await this.prisma.liveMessage.findMany({
             where: { chatId },
             orderBy: { createdAt: "desc" },
-            take: take + 1,
-            cursor: cursor ? { id: cursor } : undefined,
-            skip: cursor ? 1 : 0,
+
             include: {
                 sender: {
                     select: {
@@ -299,14 +297,8 @@ export class ChatService {
                 },
             },
         });
-
-        const hasMore = messages.length > take;
-        const resultMessages = hasMore ? messages.slice(0, -1) : messages;
-
         return {
-            messages: resultMessages.reverse(), // Return in ascending order (oldest first)
-            hasMore,
-            nextCursor: hasMore ? resultMessages[resultMessages.length - 1].id : null,
+            messages,
         };
     }
 
