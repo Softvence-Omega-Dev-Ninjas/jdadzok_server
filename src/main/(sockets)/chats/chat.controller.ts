@@ -1,6 +1,6 @@
 import { GetUser, ValidateAuth } from "@common/jwt/jwt.decorator";
 import { PrismaService } from "@lib/prisma/prisma.service";
-import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ActiveUsersService } from "./active-user.service";
 import { ChatService } from "./chat.service";
@@ -15,7 +15,7 @@ export class ChatController {
         private chatService: ChatService,
         private activeUsersService: ActiveUsersService,
         private prisma: PrismaService,
-    ) {}
+    ) { }
 
     @Post("private")
     @ValidateAuth()
@@ -42,17 +42,17 @@ export class ChatController {
         return this.chatService.getChatById(chatId, userId);
     }
 
+    // -------------- Messages ----------------
     @Get(":chatId/messages")
     @ValidateAuth()
     @ApiBearerAuth()
-    @ApiOperation({ summary: "Get paginated messages for a specific chat" })
+    @ApiOperation({
+        summary: "Get paginated messages for a specific chat chat id || last message id cursor",
+    })
     async getMessages(
         @Param("chatId") chatId: string,
-        @Query("cursor") cursor?: string,
-        @Query("take") take?: string,
     ) {
-        const takeNum = take ? parseInt(take, 10) : 20;
-        return this.chatService.getMessages(chatId, cursor, takeNum);
+        return this.chatService.getMessages(chatId);
     }
 
     @Post(":chatId/messages")
