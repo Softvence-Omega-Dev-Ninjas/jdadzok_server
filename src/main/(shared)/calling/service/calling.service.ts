@@ -2,12 +2,13 @@
 
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { BadRequestException, Inject, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { Cache } from "cache-manager";
 import { CallGateway } from "../calling.gateway";
 
 export interface Participant {
     socketId: string;
+    userId: string;
     userName: string;
     hasVideo: boolean;
     hasAudio: boolean;
@@ -16,7 +17,10 @@ export interface Participant {
 
 export interface CallRoom {
     callId: string;
+    hostUserId: string;
+    recipientUserId: string;
     participants: Participant[];
+    status: "CALLING" | "ACTIVE" | "ENDED" | "CANCELLED" | "MISSED" | "DECLINED";
     createdAt: Date;
     updatedAt: Date;
 }
@@ -26,7 +30,7 @@ export class CallService {
     private readonly logger = new Logger(CallService.name);
     private readonly CALL_ROOM_PREFIX = "call_room:";
     private readonly USER_ROOM_PREFIX = "user_room:";
-    private readonly CALL_LOCK_PREFIX = "call_lock:";
+    private readonly USER_CALL_PREFIX = "user_call:";
     private readonly CACHE_TTL = 3600 * 24;
 
     constructor(
@@ -34,22 +38,60 @@ export class CallService {
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) {}
 
+    /**
+     * Start a one-to-one call
+     */
     async startCallToUser(
         callerId: string,
         recipientUserId: string,
         callGateway: CallGateway,
-    ): Promise<{ callId: string; status: "ringing" | "recipient_offline" }> {
+    ): Promise<{ callId: string; status: "ringing" | "recipient_offline" | "user_busy" }> {
         if (callerId === recipientUserId) {
             throw new BadRequestException("Cannot call yourself");
         }
 
-        // Create call record
+        // Check if caller is already in a call
+        const callerActiveCall = await this.cacheManager.get(`${this.USER_CALL_PREFIX}${callerId}`);
+        if (callerActiveCall) {
+            throw new BadRequestException("You are already in a call");
+        }
+
+        // Check if recipient is already in a call
+        const recipientActiveCall = await this.cacheManager.get(
+            `${this.USER_CALL_PREFIX}${recipientUserId}`,
+        );
+        if (recipientActiveCall) {
+            throw new BadRequestException("User is busy on another call");
+        }
+
+        // Create call record in database
         const call = await this.prisma.calling.create({
             data: {
                 hostUserId: callerId,
                 status: "CALLING",
             },
         });
+
+        // Create call room in cache
+        const callRoom: CallRoom = {
+            callId: call.id,
+            hostUserId: callerId,
+            recipientUserId: recipientUserId,
+            participants: [],
+            status: "CALLING",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+
+        await this.cacheManager.set(`${this.CALL_ROOM_PREFIX}${call.id}`, callRoom, this.CACHE_TTL);
+
+        // Mark both users as "in call" (pending)
+        await this.cacheManager.set(`${this.USER_CALL_PREFIX}${callerId}`, call.id, this.CACHE_TTL);
+        await this.cacheManager.set(
+            `${this.USER_CALL_PREFIX}${recipientUserId}`,
+            call.id,
+            this.CACHE_TTL,
+        );
 
         // Get caller info for notification
         const caller = await this.prisma.user.findUnique({
@@ -65,7 +107,10 @@ export class CallService {
         const recipientSockets = callGateway.getClientsForUser(recipientUserId);
 
         if (recipientSockets.size === 0) {
-            // Mark as missed later (optional)
+            // Recipient is offline - mark as missed
+            await this.updateCallStatus(call.id, "MISSED");
+            await this.cacheManager.del(`${this.USER_CALL_PREFIX}${callerId}`);
+            await this.cacheManager.del(`${this.USER_CALL_PREFIX}${recipientUserId}`);
             return { callId: call.id, status: "recipient_offline" };
         }
 
@@ -79,188 +124,224 @@ export class CallService {
             timestamp: new Date().toISOString(),
         };
 
-        // Send to ALL devices of the recipient
+        // Send incoming call notification to all recipient devices
         recipientSockets.forEach((socket) => {
             socket.emit("incomingCall", payload);
         });
 
-        this.logger.log(
-            `Incoming call sent from ${callerId} → ${recipientUserId} (call: ${call.id})`,
-        );
+        this.logger.log(`Call initiated: ${callerId} → ${recipientUserId} (call: ${call.id})`);
 
         return { callId: call.id, status: "ringing" };
     }
+
     /**
-     * Join a call room
+     * Accept a call
+     */
+    async acceptCall(callId: string, userId: string): Promise<CallRoom> {
+        const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
+        const room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
+
+        if (!room) {
+            throw new NotFoundException("Call not found");
+        }
+
+        if (room.recipientUserId !== userId) {
+            throw new BadRequestException("You are not the recipient of this call");
+        }
+
+        if (room.status !== "CALLING") {
+            throw new BadRequestException(`Call is already ${room.status.toLowerCase()}`);
+        }
+
+        // Update call status to ACTIVE
+        room.status = "ACTIVE";
+        room.updatedAt = new Date();
+        await this.cacheManager.set(cacheKey, room, this.CACHE_TTL);
+
+        // Update database
+        await this.prisma.calling.update({
+            where: { id: callId },
+            data: {
+                status: "ACTIVE",
+                startedAt: new Date(),
+            },
+        });
+
+        this.logger.log(`Call ${callId} accepted by ${userId}`);
+
+        return room;
+    }
+
+    /**
+     * Decline a call
+     */
+    async declineCall(callId: string, userId: string): Promise<void> {
+        const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
+        const room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
+
+        if (!room) {
+            throw new NotFoundException("Call not found");
+        }
+
+        if (room.recipientUserId !== userId) {
+            throw new BadRequestException("You are not the recipient of this call");
+        }
+
+        // Update status
+        await this.updateCallStatus(callId, "DECLINED");
+
+        // Clean up cache
+        await this.cacheManager.del(cacheKey);
+        await this.cacheManager.del(`${this.USER_CALL_PREFIX}${room.hostUserId}`);
+        await this.cacheManager.del(`${this.USER_CALL_PREFIX}${room.recipientUserId}`);
+
+        this.logger.log(`Call ${callId} declined by ${userId}`);
+    }
+
+    /**
+     * Cancel a call (by caller)
+     */
+    async cancelCall(callId: string, userId: string): Promise<void> {
+        const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
+        const room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
+
+        if (!room) {
+            throw new NotFoundException("Call not found");
+        }
+
+        if (room.hostUserId !== userId) {
+            throw new BadRequestException("Only the caller can cancel the call");
+        }
+
+        // Update status
+        await this.updateCallStatus(callId, "CANCELLED");
+
+        // Clean up cache
+        await this.cacheManager.del(cacheKey);
+        await this.cacheManager.del(`${this.USER_CALL_PREFIX}${room.hostUserId}`);
+        await this.cacheManager.del(`${this.USER_CALL_PREFIX}${room.recipientUserId}`);
+
+        this.logger.log(`Call ${callId} cancelled by ${userId}`);
+    }
+
+    /**
+     * Join a call room (after acceptance)
      */
     async joinCall(
         callId: string,
         socketId: string,
+        userId: string,
         userName: string,
         hasVideo: boolean,
         hasAudio: boolean,
-        userId?: string,
     ): Promise<CallRoom> {
         const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
+        const room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
 
-        try {
-            // Get or create room from cache
-            let room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
-
-            if (!room) {
-                // Create new room
-                room = {
-                    callId,
-                    participants: [],
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                };
-
-                // Ensure call exists in database
-                try {
-                    await this.prisma.calling.upsert({
-                        where: { id: callId },
-                        update: {
-                            status: "ACTIVE",
-                            updatedAt: new Date(),
-                        },
-                        create: {
-                            id: callId,
-                            hostUserId: userId || socketId,
-                            status: "ACTIVE",
-                            startedAt: new Date(),
-                        },
-                    });
-                } catch (dbError) {
-                    this.logger.error(`Database error creating call ${callId}:`, dbError);
-                    // Continue anyway - cache-based operation can proceed
-                }
-            }
-
-            // Remove any existing participant with same socketId (reconnection case)
-            room.participants = room.participants.filter((p) => p.socketId !== socketId);
-
-            // Add new participant
-            const participant: Participant = {
-                socketId,
-                userName,
-                hasVideo,
-                hasAudio,
-                joinedAt: new Date(),
-            };
-
-            room.participants.push(participant);
-            room.updatedAt = new Date();
-
-            // Save to cache with TTL
-            await this.cacheManager.set(cacheKey, room, this.CACHE_TTL);
-
-            // Map socket to room
-            await this.cacheManager.set(
-                `${this.USER_ROOM_PREFIX}${socketId}`,
-                callId,
-                this.CACHE_TTL,
-            );
-
-            // Create participant record in database (best effort)
-            try {
-                // Check if participant already exists
-                const existingParticipant = await this.prisma.callParticipant.findFirst({
-                    where: {
-                        callId,
-                        socketId,
-                        leftAt: null,
-                    },
-                });
-
-                if (!existingParticipant) {
-                    await this.prisma.callParticipant.create({
-                        data: {
-                            callId,
-                            socketId,
-                            userName,
-                            hasVideo,
-                            hasAudio,
-                        },
-                    });
-                }
-            } catch (dbError) {
-                this.logger.warn(`Failed to create participant record: ${dbError.message}`);
-                // Don't fail the join operation
-            }
-
-            this.logger.log(
-                `User ${socketId} (${userName}) joined call ${callId}. Total: ${room.participants.length}`,
-            );
-
-            return room;
-        } catch (error) {
-            this.logger.error(`Error in joinCall: ${error.message}`, error.stack);
-            throw error;
+        if (!room) {
+            throw new NotFoundException("Call room not found");
         }
-    }
 
-    /**
-     * Leave a call room
-     */
-    async leaveCall(socketId: string, callId: string): Promise<CallRoom | null> {
-        const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
+        // Verify user is part of this call
+        if (room.hostUserId !== userId && room.recipientUserId !== userId) {
+            throw new BadRequestException("You are not part of this call");
+        }
 
+        // Remove existing participant with same socketId (reconnection)
+        room.participants = room.participants.filter((p) => p.socketId !== socketId);
+
+        // Add participant
+        const participant: Participant = {
+            socketId,
+            userId,
+            userName,
+            hasVideo,
+            hasAudio,
+            joinedAt: new Date(),
+        };
+
+        room.participants.push(participant);
+        room.updatedAt = new Date();
+
+        // Save to cache
+        await this.cacheManager.set(cacheKey, room, this.CACHE_TTL);
+        await this.cacheManager.set(`${this.USER_ROOM_PREFIX}${socketId}`, callId, this.CACHE_TTL);
+
+        // Create participant record in database
         try {
-            const room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
+            const existingParticipant = await this.prisma.callParticipant.findFirst({
+                where: { callId, socketId, leftAt: null },
+            });
 
-            if (!room) {
-                this.logger.warn(`Room ${callId} not found when ${socketId} tried to leave`);
-                return null;
-            }
-
-            // Remove participant
-            const participantName = room.participants.find(
-                (p) => p.socketId === socketId,
-            )?.userName;
-            room.participants = room.participants.filter((p) => p.socketId !== socketId);
-            room.updatedAt = new Date();
-
-            // Update cache
-            if (room.participants.length > 0) {
-                await this.cacheManager.set(cacheKey, room, this.CACHE_TTL);
-            } else {
-                // Remove empty room from cache
-                await this.cacheManager.del(cacheKey);
-            }
-
-            // Clear user-room mapping
-            await this.cacheManager.del(`${this.USER_ROOM_PREFIX}${socketId}`);
-
-            // Update database (best effort)
-            try {
-                await this.prisma.callParticipant.updateMany({
-                    where: {
-                        callId,
-                        socketId,
-                        leftAt: null,
-                    },
+            if (!existingParticipant) {
+                await this.prisma.callParticipant.create({
                     data: {
-                        leftAt: new Date(),
+                        callId,
+                        socketId,
+                        userName,
+                        hasVideo,
+                        hasAudio,
                     },
                 });
-            } catch (dbError) {
-                this.logger.warn(`Failed to update participant leave time: ${dbError.message}`);
             }
-
-            this.logger.log(
-                `User ${socketId} (${participantName}) left call ${callId}. Remaining: ${room.participants.length}`,
-            );
-
-            return room;
-        } catch (error) {
-            this.logger.error(`Error in leaveCall: ${error.message}`, error.stack);
-            throw error;
+        } catch (dbError) {
+            this.logger.warn(`Failed to create participant record: ${dbError.message}`);
         }
+
+        this.logger.log(
+            `User ${userId} (${socketId}) joined call ${callId}. Total: ${room.participants.length}`,
+        );
+
+        return room;
     }
 
     /**
-     * Update media state for a participant
+     * Leave a call
+     */
+    async leaveCall(socketId: string, userId: string, callId: string): Promise<CallRoom | null> {
+        const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
+        const room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
+
+        if (!room) {
+            this.logger.warn(`Room ${callId} not found`);
+            return null;
+        }
+
+        // Remove participant
+        room.participants = room.participants.filter((p) => p.socketId !== socketId);
+        room.updatedAt = new Date();
+
+        // Update cache
+        if (room.participants.length > 0) {
+            await this.cacheManager.set(cacheKey, room, this.CACHE_TTL);
+        } else {
+            // No participants left - end the call
+            await this.endCall(callId);
+        }
+
+        // Clear mappings
+        await this.cacheManager.del(`${this.USER_ROOM_PREFIX}${socketId}`);
+        await this.cacheManager.del(`${this.USER_CALL_PREFIX}${userId}`);
+
+        // Update database
+        try {
+            await this.prisma.callParticipant.updateMany({
+                where: { callId, socketId, leftAt: null },
+                data: { leftAt: new Date() },
+            });
+        } catch (dbError) {
+            this.logger.warn(`Failed to update participant leave time: ${dbError.message}`);
+        }
+
+        this.logger.log(
+            `User ${socketId} left call ${callId}. Remaining: ${room.participants.length}`,
+        );
+
+        return room;
+    }
+
+    /**
+     * Update media state
      */
     async updateMediaState(
         socketId: string,
@@ -269,87 +350,87 @@ export class CallService {
         enabled: boolean,
     ): Promise<void> {
         const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
+        const room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
 
-        try {
-            const room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
-
-            if (!room) {
-                this.logger.warn(`Room ${callId} not found for media update`);
-                return;
-            }
-
-            const participant = room.participants.find((p) => p.socketId === socketId);
-
-            if (!participant) {
-                this.logger.warn(`Participant ${socketId} not found in room ${callId}`);
-                return;
-            }
-
-            // Update participant state
-            if (mediaType === "video") {
-                participant.hasVideo = enabled;
-            } else {
-                participant.hasAudio = enabled;
-            }
-
-            room.updatedAt = new Date();
-            await this.cacheManager.set(cacheKey, room, this.CACHE_TTL);
-
-            // Update database (best effort, for analytics)
-            try {
-                const updateData: any = {};
-                if (mediaType === "video") {
-                    updateData.hasVideo = enabled;
-                } else {
-                    updateData.hasAudio = enabled;
-                }
-
-                await this.prisma.callParticipant.updateMany({
-                    where: {
-                        callId,
-                        socketId,
-                        leftAt: null,
-                    },
-                    data: updateData,
-                });
-            } catch (dbError) {
-                this.logger.warn(`Failed to update media state in DB: ${dbError.message}`);
-            }
-
-            this.logger.debug(
-                `Updated ${mediaType} to ${enabled} for ${socketId} in call ${callId}`,
-            );
-        } catch (error) {
-            this.logger.error(`Error updating media state: ${error.message}`, error.stack);
+        if (!room) {
+            this.logger.warn(`Room ${callId} not found`);
+            return;
         }
+
+        const participant = room.participants.find((p) => p.socketId === socketId);
+        if (!participant) {
+            this.logger.warn(`Participant ${socketId} not found`);
+            return;
+        }
+
+        if (mediaType === "video") {
+            participant.hasVideo = enabled;
+        } else {
+            participant.hasAudio = enabled;
+        }
+
+        room.updatedAt = new Date();
+        await this.cacheManager.set(cacheKey, room, this.CACHE_TTL);
+
+        this.logger.debug(`Updated ${mediaType} to ${enabled} for ${socketId}`);
     }
 
     /**
-     * Get the room a user is currently in
+     * End a call
      */
-    async getUserRoom(socketId: string): Promise<string | null> {
+    async endCall(callId: string): Promise<void> {
+        const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
+        const room: CallRoom | undefined = await this.cacheManager.get(cacheKey);
+
+        // Clean up cache
+        await this.cacheManager.del(cacheKey);
+
+        if (room) {
+            await this.cacheManager.del(`${this.USER_CALL_PREFIX}${room.hostUserId}`);
+            await this.cacheManager.del(`${this.USER_CALL_PREFIX}${room.recipientUserId}`);
+
+            // Clean up participant mappings
+            for (const participant of room.participants) {
+                await this.cacheManager.del(`${this.USER_ROOM_PREFIX}${participant.socketId}`);
+            }
+        }
+
+        // Update database
+        await this.updateCallStatus(callId, "ENDED");
+
+        this.logger.log(`Call ${callId} ended`);
+    }
+
+    /**
+     * Update call status in database
+     */
+    async updateCallStatus(
+        callId: string,
+        status: "CALLING" | "ACTIVE" | "ENDED" | "CANCELLED" | "MISSED" | "DECLINED",
+    ): Promise<void> {
         try {
-            const result = await this.cacheManager.get(`${this.USER_ROOM_PREFIX}${socketId}`);
-            return typeof result === "string" ? result : null;
+            await this.prisma.calling.update({
+                where: { id: callId },
+                data: {
+                    status,
+                    endedAt: ["ENDED", "CANCELLED", "MISSED", "DECLINED"].includes(status)
+                        ? new Date()
+                        : undefined,
+                },
+            });
         } catch (error) {
-            this.logger.error(`Error getting user room: ${error.message}`);
-            return null;
+            this.logger.error(`Failed to update call status: ${error.message}`);
         }
     }
 
     /**
-     * Get call room details
+     * Get call room
      */
     async getCallRoom(callId: string): Promise<CallRoom | null> {
         try {
             const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
             const result = await this.cacheManager.get(cacheKey);
-
-            if (result && typeof result === "object" && "callId" in result) {
-                return result as CallRoom;
-            }
-
-            return null;
+            return result ? (result as CallRoom) : null;
         } catch (error) {
             this.logger.error(`Error getting call room: ${error.message}`);
             return null;
@@ -357,66 +438,20 @@ export class CallService {
     }
 
     /**
-     * Delete a call room
+     * Get user's current call
      */
-    async deleteCall(callId: string): Promise<void> {
+    async getUserCurrentCall(userId: string): Promise<string | null> {
         try {
-            const cacheKey = `${this.CALL_ROOM_PREFIX}${callId}`;
-            await this.cacheManager.del(cacheKey);
-
-            // Update database
-            try {
-                await this.prisma.calling.update({
-                    where: { id: callId },
-                    data: {
-                        status: "END",
-                        endedAt: new Date(),
-                    },
-                });
-            } catch (dbError) {
-                // Call might not exist in DB, that's ok
-                this.logger.debug(`Could not update call status in DB: ${dbError.message}`);
-            }
-
-            this.logger.log(`Call ${callId} deleted`);
+            const result = await this.cacheManager.get(`${this.USER_CALL_PREFIX}${userId}`);
+            return typeof result === "string" ? result : null;
         } catch (error) {
-            this.logger.error(`Error deleting call: ${error.message}`);
+            this.logger.error(`Error getting user call: ${error.message}`);
+            return null;
         }
     }
 
     /**
-     * Create a new call
-     */
-    async createCall(userId: string): Promise<any> {
-        try {
-            const call = await this.prisma.calling.create({
-                data: {
-                    hostUserId: userId,
-                    status: "CALLING",
-                    startedAt: new Date(),
-                },
-            });
-
-            await this.prisma.callParticipant.create({
-                data: {
-                    callId: call.id,
-                    socketId: `host-${userId}`,
-                    userName: "Host",
-                    hasAudio: true,
-                    hasVideo: true,
-                    joinedAt: new Date(),
-                },
-            });
-
-            return call;
-        } catch (error) {
-            this.logger.error(`Error creating call: ${error.message}`, error.stack);
-            throw error;
-        }
-    }
-
-    /**
-     * Get call by ID with participants
+     * Get call by ID
      */
     async getCallById(callId: string): Promise<any> {
         try {
@@ -427,23 +462,15 @@ export class CallService {
                         select: {
                             id: true,
                             email: true,
-                            profile: {
-                                select: {
-                                    name: true,
-                                    avatarUrl: true,
-                                },
-                            },
+                            profile: { select: { name: true, avatarUrl: true } },
                         },
                     },
                     participants: {
-                        where: {
-                            leftAt: null,
-                        },
+                        where: { leftAt: null },
                     },
                 },
             });
 
-            // Also get active participants from cache
             if (call) {
                 const cachedRoom = await this.getCallRoom(callId);
                 if (cachedRoom) {
@@ -453,13 +480,13 @@ export class CallService {
 
             return call;
         } catch (error) {
-            this.logger.error(`Error getting call by ID: ${error.message}`);
+            this.logger.error(`Error getting call: ${error.message}`);
             throw error;
         }
     }
 
     /**
-     * Get call history for a user
+     * Get call history
      */
     async getCallHistory(userId: string, limit: number = 50): Promise<any[]> {
         try {
@@ -472,72 +499,19 @@ export class CallService {
                         select: {
                             id: true,
                             email: true,
-                            profile: {
-                                select: {
-                                    name: true,
-                                    avatarUrl: true,
-                                },
-                            },
+                            profile: { select: { name: true, avatarUrl: true } },
                         },
                     },
                     participants: {
-                        // FIXED: Removed where clause to show all participants in history
-                        orderBy: {
-                            joinedAt: "desc",
-                        },
+                        orderBy: { joinedAt: "desc" },
                     },
                 },
-                orderBy: {
-                    createdAt: "desc",
-                },
+                orderBy: { createdAt: "desc" },
                 take: limit,
             });
         } catch (error) {
             this.logger.error(`Error getting call history: ${error.message}`);
             throw error;
-        }
-    }
-
-    /**
-     * Get active calls count
-     */
-    async getActiveCallsCount(): Promise<number> {
-        try {
-            const count = await this.prisma.calling.count({
-                where: {
-                    status: "ACTIVE",
-                },
-            });
-            return count;
-        } catch (error) {
-            this.logger.error(`Error getting active calls count: ${error.message}`);
-            return 0;
-        }
-    }
-
-    /**
-     * Clean up stale call rooms (run periodically)
-     */
-    async cleanupStaleRooms(): Promise<void> {
-        try {
-            const staleTime = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
-
-            await this.prisma.calling.updateMany({
-                where: {
-                    status: "ACTIVE",
-                    updatedAt: {
-                        lt: staleTime,
-                    },
-                },
-                data: {
-                    status: "END",
-                    endedAt: new Date(),
-                },
-            });
-
-            this.logger.log("Cleaned up stale rooms");
-        } catch (error) {
-            this.logger.error(`Error cleaning up stale rooms: ${error.message}`);
         }
     }
 }

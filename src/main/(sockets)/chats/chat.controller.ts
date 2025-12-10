@@ -15,7 +15,7 @@ export class ChatController {
         private chatService: ChatService,
         private activeUsersService: ActiveUsersService,
         private prisma: PrismaService,
-    ) { }
+    ) {}
 
     @Post("private")
     @ValidateAuth()
@@ -49,9 +49,7 @@ export class ChatController {
     @ApiOperation({
         summary: "Get paginated messages for a specific chat chat id || last message id cursor",
     })
-    async getMessages(
-        @Param("chatId") chatId: string,
-    ) {
+    async getMessages(@Param("chatId") chatId: string) {
         return this.chatService.getMessages(chatId);
     }
 

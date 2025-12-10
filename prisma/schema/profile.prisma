@@ -8,7 +8,7 @@ model Profile {
   // Profile information
   name                 String
   username             String    @unique
-  title                String? // Professional title
+  title                String?
   bio                  String?   @db.Text // User bio/description
   avatarUrl            String? // Profile picture URL
   coverUrl             String? // Cover photo URL

@@ -1,64 +1,57 @@
-// src/call/dto/call.dto.ts
+// src/call/dto/calling.dto.ts
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsNotEmpty, IsObject, IsOptional, IsString } from "class-validator";
 
 export class JoinCallDto {
+    @ApiProperty({ description: "Call ID" })
     @IsString()
     @IsNotEmpty()
     callId: string;
 
+    @ApiProperty({ description: "User name" })
     @IsString()
     @IsNotEmpty()
     userName: string;
 
+    @ApiProperty({ description: "Has video enabled" })
     @IsBoolean()
-    hasVideo: boolean;
+    @IsOptional()
+    hasVideo?: boolean;
 
+    @ApiProperty({ description: "Has audio enabled" })
     @IsBoolean()
-    hasAudio: boolean;
+    @IsOptional()
+    hasAudio?: boolean;
 }
 
 export class StartMediaDto {
+    @ApiProperty({ description: "Call ID" })
     @IsString()
     @IsNotEmpty()
     callId: string;
 }
 
 export class WebRTCSignalDto {
+    @ApiProperty({ description: "Target socket ID" })
     @IsString()
     @IsNotEmpty()
     targetSocketId: string;
 
+    @ApiProperty({ description: "WebRTC signal data (SDP)" })
     @IsObject()
     signal: any;
 }
 
 export class IceCandidateDto {
+    @ApiProperty({ description: "Target socket ID" })
     @IsString()
     @IsNotEmpty()
     targetSocketId: string;
 
+    @ApiProperty({ description: "ICE candidate" })
     @IsObject()
     candidate: any;
 }
-
-export class CreateCallDto {
-    @IsString()
-    @IsOptional()
-    title?: string;
-
-    @IsBoolean()
-    @IsOptional()
-    isPrivate?: boolean;
-}
-
-export class UpdateCallDto {
-    @IsString()
-    @IsOptional()
-    status?: "CALLING" | "ACTIVE" | "ENDED" | "CANCELLED" | "MISSED" | "DECLINED";
-}
-
-// src/call/dto/start-call.dto.ts
 
 export class StartCallToUserDto {
     @ApiProperty({
@@ -68,4 +61,37 @@ export class StartCallToUserDto {
     @IsString()
     @IsNotEmpty()
     recipientUserId: string;
+}
+
+export class AcceptCallDto {
+    @ApiProperty({ description: "Call ID to accept" })
+    @IsString()
+    @IsNotEmpty()
+    callId: string;
+}
+
+export class DeclineCallDto {
+    @ApiProperty({ description: "Call ID to decline" })
+    @IsString()
+    @IsNotEmpty()
+    callId: string;
+}
+
+export class CancelCallDto {
+    @ApiProperty({ description: "Call ID to cancel" })
+    @IsString()
+    @IsNotEmpty()
+    callId: string;
+}
+
+export class ToggleMediaDto {
+    @ApiProperty({ description: "Call ID" })
+    @IsString()
+    @IsNotEmpty()
+    callId: string;
+
+    @ApiProperty({ description: "Media enabled state" })
+    @IsBoolean()
+    @IsNotEmpty()
+    enabled: boolean;
 }
