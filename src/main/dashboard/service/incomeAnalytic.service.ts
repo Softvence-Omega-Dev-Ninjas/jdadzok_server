@@ -2,7 +2,7 @@ import { PrismaService } from "@lib/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { endOfMonth, startOfMonth, subMonths } from "date-fns";
 
-import { PayOutStatus, OrderStatus } from "@prisma/client";
+import { OrderStatus } from "@prisma/client";
 
 @Injectable()
 export class IncomeAnalyticService {
@@ -32,12 +32,14 @@ export class IncomeAnalyticService {
 
         const commisionIncreasePercent = revenueIncreasePercent;
 
-        const stripePaidAgg = await this.prisma.payout.aggregate({
-            _sum: { amount: true },
-            where: { status: PayOutStatus.PAID },
+        const totalPaid = await this.prisma.order.aggregate({
+            where: { status: "PAID" },
+            _sum: {
+                totalPrice: true,
+            },
         });
 
-        const sellerPayouts = stripePaidAgg._sum?.amount ?? 0;
+        const sellerPayouts = totalPaid._sum.totalPrice ?? 0;
 
         const pendingAgg = await this.prisma.sellerEarnings.aggregate({
             _sum: { pending: true },

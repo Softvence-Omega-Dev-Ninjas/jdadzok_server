@@ -190,45 +190,6 @@ export class CapLevelService {
         return meetsAll;
     }
 
-    async promoteUserCapLevel(
-        userId: string,
-        targetLevel?: CapLevel,
-        bypassVerification: boolean = false,
-    ): Promise<User> {
-        const eligibility = await this.calculateCapEligibility(userId);
-
-        if (!eligibility.canPromote && !bypassVerification) {
-            throw new BadRequestException(
-                `User is not eligible for promotion. Missing: ${eligibility.missingRequirements.join(", ")}`,
-            );
-        }
-
-        const newLevel = targetLevel || eligibility.eligibleLevel;
-        const requirements = await this.repository.getCapRequirements(newLevel);
-
-        if (!requirements) {
-            throw new BadRequestException(`Requirements not found for level: ${newLevel}`);
-        }
-
-        // Check if admin verification is required and not bypassed
-        if (requirements.requiresVerification && !bypassVerification) {
-            throw new BadRequestException("Admin verification required for this level");
-        }
-
-        // Check if nomination is required and not bypassed
-        if (requirements.requiresNomination && !bypassVerification) {
-            throw new BadRequestException("Panel nomination required for this level");
-        }
-
-        // Update user's cap level
-        const updatedUser = await this.repository.updateUserCapLevel(userId, newLevel);
-
-        // TODO: Send notification about promotion
-        // await this.notificationService.sendCapLevelPromotionNotification(userId, newLevel);
-
-        return updatedUser;
-    }
-
     async getAllCapRequirements(): Promise<CapRequirements[]> {
         return await this.repository.getAllCapRequirements();
     }
@@ -293,37 +254,5 @@ export class CapLevelService {
             ...user,
             metrics: undefined, // Remove metrics from response for cleaner data
         }));
-    }
-
-    // Batch processing method for automatic promotions
-    async processPendingPromotions(
-        capLevel: CapLevel,
-    ): Promise<{ promoted: number; failed: number }> {
-        const eligibleUsers = await this.repository.getUsersEligibleForPromotion(capLevel);
-        const requirements = await this.repository.getCapRequirements(capLevel);
-
-        if (!requirements) {
-            throw new BadRequestException(`Requirements not found for level: ${capLevel}`);
-        }
-
-        // Skip levels that require verification or nomination for automatic promotion
-        if (requirements.requiresVerification || requirements.requiresNomination) {
-            return { promoted: 0, failed: 0 };
-        }
-
-        let promoted = 0;
-        let failed = 0;
-
-        for (const user of eligibleUsers) {
-            try {
-                await this.promoteUserCapLevel(user.id, capLevel, false);
-                promoted++;
-            } catch (error) {
-                console.error(`Failed to promote user ${user.id} to ${capLevel}:`, error);
-                failed++;
-            }
-        }
-
-        return { promoted, failed };
     }
 }

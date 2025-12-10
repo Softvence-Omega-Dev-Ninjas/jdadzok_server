@@ -47,6 +47,12 @@ export class NgoVerificationService {
             throw new ForbiddenException("You are not authorized for this NGO");
         }
 
+        if (!ngo.owner.stripeAccountId) {
+            throw new BadRequestException(
+                "NGO owner is not ready to receive payments. please add stripe account.",
+            );
+        }
+
         const profile = ngo.owner?.profile;
         if (!profile) {
             throw new BadRequestException(
