@@ -1,7 +1,6 @@
 import { HandleError } from "@common/error/handle-error.decorator";
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-
 import { EVENT_TYPES } from "@common/interface/events-name";
 import { CapLevelEvent } from "@common/interface/events-payload";
 import { EventEmitter2 } from "@nestjs/event-emitter";
@@ -113,8 +112,8 @@ export class AdminSettingsService {
         // Only send notification to the specific user whose caplevel was changed
         const recipient = { id: user.id, email: user.email };
         const oldLevel = user.capLevel;
-        const newLevel = targetLevel;
-        console.log(newLevel);
+
+        // console.log(newLevel);
         //---------- Save notification for this specific user ------------
         const notification = await this.prisma.notification.create({
             data: {
@@ -124,7 +123,7 @@ export class AdminSettingsService {
                 type: "SYSTEM",
             },
         });
-        console.log("notification", notification);
+        console.info("notification", notification);
 
         // Emit event only to this specific user
         const payload: CapLevelEvent = {
@@ -139,11 +138,11 @@ export class AdminSettingsService {
                 message: `Your CapLevel has been changed from ${oldLevel} to ${targetLevel}`,
                 authorId: userId,
                 caplevelDetials: [{ oldLevel, newLevel: targetLevel }],
-                recipients: [recipient], 
+                recipients: [recipient],
             },
         };
 
-        console.log("the payload", payload);
+        // console.log("the payload", payload);
         this.eventEmitter.emit(EVENT_TYPES.CAPLEVEL_CREATE, payload);
 
         return {
