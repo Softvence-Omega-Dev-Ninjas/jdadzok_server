@@ -139,7 +139,7 @@ export class AdminSettingsService {
                 message: `Your CapLevel has been changed from ${oldLevel} to ${targetLevel}`,
                 authorId: userId,
                 caplevelDetials: [{ oldLevel, newLevel: targetLevel }],
-                recipients: [recipient], // Only the specific user
+                recipients: [recipient], 
             },
         };
 

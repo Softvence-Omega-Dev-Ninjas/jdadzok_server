@@ -1,4 +1,4 @@
-// src/call/call.gateway.ts
+// src/call/calling.gateway.ts
 import {
     ConnectedSocket,
     MessageBody,
@@ -9,7 +9,6 @@ import {
     WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-
 import { CallingPayloadForSocketClient } from "@common/interface/calling-payload";
 import { JWTPayload } from "@common/jwt/jwt.interface";
 import { PrismaService } from "@lib/prisma/prisma.service";
@@ -20,23 +19,19 @@ import { IceCandidateDto, JoinCallDto, StartMediaDto, WebRTCSignalDto } from "./
 import { CallService } from "./service/calling.service";
 
 @WebSocketGateway({
-    cors: {
-        origin: "*",
-        credentials: true,
-    },
+    cors: { origin: "*", credentials: true },
     namespace: "/calling",
     pingInterval: 25000,
     pingTimeout: 20000,
     connectTimeout: 45000,
-
     allowEIO3: true,
 })
 export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger = new Logger(CallGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private readonly socketToUserId = new Map<string, string>();
-    private readonly socketToCallId = new Map<string, string>();
     private readonly pendingAuthentication = new Set<string>();
+
     constructor(
         private readonly callService: CallService,
         private readonly jwtService: JwtService,
@@ -48,37 +43,20 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     server: Server;
 
     afterInit(server: Server) {
-        this.logger.log(`Socket.IO server initialized for calling Gateway: ${server.adapter.name}`);
-
-        server.on("connect_error", (error) => {
-            this.logger.error("Connection error:", error);
-        });
-
-        server.on("connect_timeout", () => {
-            this.logger.error("Connection timeout");
-        });
+        this.logger.log(`Socket.IO server initialized: ${server.adapter.name}`);
     }
 
     async handleConnection(client: Socket) {
-        this.logger.log(`Client attempting connection: ${client.id}`);
-
-        // Mark as pending authentication
+        this.logger.log(`Client connecting: ${client.id}`);
         this.pendingAuthentication.add(client.id);
 
-        // Try to authenticate immediately if token is in handshake
         const token = this.extractTokenFromSocket(client);
-
         if (token) {
             await this.authenticateClient(client, token);
         } else {
-            // Give client 10 seconds to authenticate via 'authenticate' message
-            this.logger.log(
-                `Client ${client.id} connected without token, waiting for authentication`,
-            );
-
             setTimeout(() => {
                 if (this.pendingAuthentication.has(client.id)) {
-                    this.logger.warn(`Client ${client.id} failed to authenticate within timeout`);
+                    this.logger.warn(`Auth timeout: ${client.id}`);
                     client.emit("authError", { message: "Authentication timeout" });
                     client.disconnect(true);
                 }
@@ -92,10 +70,8 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         @MessageBody() data: { token: string },
     ) {
         if (!this.pendingAuthentication.has(client.id)) {
-            // Already authenticated
             return { success: true };
         }
-
         await this.authenticateClient(client, data.token);
         return { success: true };
     }
@@ -103,8 +79,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private async authenticateClient(client: Socket, token: string) {
         try {
             if (!token) {
-                this.logger.warn(`No token provided for client ${client.id}`);
-                client.emit("authError", { message: "No token provided" });
+                client.emit("authError", { message: "No token" });
                 client.disconnect(true);
                 return;
             }
@@ -113,23 +88,12 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 secret: this.configService.getOrThrow("JWT_SECRET"),
             });
 
-            if (!payload.sub) {
-                this.logger.warn(`Invalid token payload for client ${client.id}`);
-                client.emit("authError", { message: "Invalid token" });
-                client.disconnect(true);
-                return;
-            }
-
             const user = await this.prisma.user.findUnique({
                 where: { id: payload.sub },
-                select: {
-                    id: true,
-                    email: true,
-                },
+                select: { id: true, email: true, profile: { select: { name: true } } },
             });
 
             if (!user) {
-                this.logger.warn(`User not found: ${payload.sub}`);
                 client.emit("authError", { message: "User not found" });
                 client.disconnect(true);
                 return;
@@ -141,21 +105,19 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             };
 
             client.data.user = payloadForSocketClient;
+            client.data.userName = user.profile?.name || user.email;
             this.subscribeClient(user.id, client);
             this.socketToUserId.set(client.id, user.id);
             this.pendingAuthentication.delete(client.id);
 
-            // Emit connection success
             client.emit("authenticated", {
                 socketId: client.id,
                 userId: user.id,
             });
 
-            this.logger.log(
-                `Client authenticated: ${user.id} (email: ${user.email}) (socket: ${client.id})`,
-            );
+            this.logger.log(`Authenticated: ${user.id} (${client.id})`);
         } catch (err: any) {
-            this.logger.warn(`Authentication failed for ${client.id}: ${err.message}`);
+            this.logger.warn(`Auth failed for ${client.id}: ${err.message}`);
             client.emit("authError", { message: "Authentication failed" });
             client.disconnect(true);
         }
@@ -163,48 +125,30 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     async handleDisconnect(client: Socket) {
         const userId = client.data?.user?.sub;
-
         this.pendingAuthentication.delete(client.id);
 
         if (userId) {
-            // Handle active call cleanup
-            const callId = this.socketToCallId.get(client.id);
-            if (callId) {
-                await this.handleUserLeavingCall(client, callId);
+            // Handle call cleanup
+            const currentCall = await this.callService.getUserCurrentCall(userId);
+            if (currentCall) {
+                await this.handleUserLeavingCall(client, userId, currentCall);
             }
 
             this.unsubscribeClient(userId, client);
             this.socketToUserId.delete(client.id);
-            this.socketToCallId.delete(client.id);
-
-            this.logger.log(`Client disconnected: ${userId} (socket: ${client.id})`);
-        } else {
-            this.logger.log(`Unauthenticated client disconnected: ${client.id}`);
+            this.logger.log(`Disconnected: ${userId} (${client.id})`);
         }
     }
 
     private extractTokenFromSocket(client: Socket): string | null {
-        // Check multiple possible locations for the token
         const authHeader = client.handshake.headers.authorization;
         const authToken = client.handshake.auth?.token;
         const queryToken = client.handshake.query?.token as string;
-        // Barer token
-
-        if (!authHeader && !authToken && !queryToken) {
-            return null;
-        }
-
-        let token: string | null = null;
 
         if (authHeader) {
-            token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
-        } else if (authToken) {
-            token = authToken;
-        } else if (queryToken) {
-            token = queryToken;
+            return authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
         }
-
-        return token;
+        return authToken || queryToken || null;
     }
 
     private subscribeClient(userId: string, client: Socket) {
@@ -212,7 +156,6 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.clients.set(userId, new Set());
         }
         this.clients.get(userId)!.add(client);
-        this.logger.debug(`Subscribed client to user ${userId}`);
     }
 
     public getClientsForUser(userId: string): Set<Socket> {
@@ -222,13 +165,9 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private unsubscribeClient(userId: string, client: Socket) {
         const set = this.clients.get(userId);
         if (!set) return;
-
         set.delete(client);
-        this.logger.debug(`Unsubscribed client from user ${userId}`);
-
         if (set.size === 0) {
             this.clients.delete(userId);
-            this.logger.debug(`Removed empty client set for user ${userId}`);
         }
     }
 
@@ -240,49 +179,133 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return true;
     }
 
+    // ==================== CALL CONTROL EVENTS ====================
+
+    @SubscribeMessage("acceptCall")
+    async handleAcceptCall(
+        @ConnectedSocket() socket: Socket,
+        @MessageBody() data: { callId: string },
+    ) {
+        if (!this.requireAuth(socket)) return;
+
+        try {
+            const userId = socket.data.user.sub;
+            const room = await this.callService.acceptCall(data.callId, userId);
+
+            // Notify caller that call was accepted
+            const callerSockets = this.getClientsForUser(room.hostUserId);
+            callerSockets.forEach((s) => {
+                s.emit("callAccepted", {
+                    callId: data.callId,
+                    acceptedBy: userId,
+                });
+            });
+
+            socket.emit("callAccepted", {
+                callId: data.callId,
+                acceptedBy: userId,
+            });
+
+            this.logger.log(`Call ${data.callId} accepted by ${userId}`);
+        } catch (error) {
+            this.logger.error(`Error accepting call: ${error.message}`);
+            socket.emit("error", { message: error.message });
+        }
+    }
+
+    @SubscribeMessage("declineCall")
+    async handleDeclineCall(
+        @ConnectedSocket() socket: Socket,
+        @MessageBody() data: { callId: string },
+    ) {
+        if (!this.requireAuth(socket)) return;
+
+        try {
+            const userId = socket.data.user.sub;
+            const room = await this.callService.getCallRoom(data.callId);
+
+            if (room) {
+                await this.callService.declineCall(data.callId, userId);
+
+                // Notify caller
+                const callerSockets = this.getClientsForUser(room.hostUserId);
+                callerSockets.forEach((s) => {
+                    s.emit("callDeclined", {
+                        callId: data.callId,
+                        declinedBy: userId,
+                    });
+                });
+
+                this.logger.log(`Call ${data.callId} declined by ${userId}`);
+            }
+        } catch (error) {
+            this.logger.error(`Error declining call: ${error.message}`);
+            socket.emit("error", { message: error.message });
+        }
+    }
+
+    @SubscribeMessage("cancelCall")
+    async handleCancelCall(
+        @ConnectedSocket() socket: Socket,
+        @MessageBody() data: { callId: string },
+    ) {
+        if (!this.requireAuth(socket)) return;
+
+        try {
+            const userId = socket.data.user.sub;
+            const room = await this.callService.getCallRoom(data.callId);
+
+            if (room) {
+                await this.callService.cancelCall(data.callId, userId);
+
+                // Notify recipient
+                const recipientSockets = this.getClientsForUser(room.recipientUserId);
+                recipientSockets.forEach((s) => {
+                    s.emit("callCancelled", {
+                        callId: data.callId,
+                        cancelledBy: userId,
+                    });
+                });
+
+                this.logger.log(`Call ${data.callId} cancelled by ${userId}`);
+            }
+        } catch (error) {
+            this.logger.error(`Error cancelling call: ${error.message}`);
+            socket.emit("error", { message: error.message });
+        }
+    }
+
     @SubscribeMessage("joinCall")
     async handleJoinCall(@ConnectedSocket() socket: Socket, @MessageBody() data: JoinCallDto) {
         if (!this.requireAuth(socket)) return;
 
         try {
-            const { callId, userName, hasVideo, hasAudio } = data;
+            const { callId, hasVideo, hasAudio } = data;
             const userId = socket.data.user.sub;
+            const userName = socket.data.userName || data.userName;
 
-            this.logger.log(`User ${userId} (${socket.id}) joining call: ${callId}`);
+            this.logger.log(`User ${userId} joining call ${callId}`);
 
-            // Leave previous call if exists
-            const previousCallId = this.socketToCallId.get(socket.id);
-            if (previousCallId && previousCallId !== callId) {
-                await this.handleUserLeavingCall(socket, previousCallId);
-            }
-
-            // Validate the call
             const call = await this.callService.getCallById(callId);
-            if (!call) {
-                return socket.emit("error", { message: "Invalid call ID" });
+            if (!call || ["ENDED", "CANCELLED", "DECLINED"].includes(call.status)) {
+                return socket.emit("error", { message: "Call not available" });
             }
 
-            if (["ENDED", "CANCELLED"].includes(call.status)) {
-                return socket.emit("error", { message: "Call already finished" });
-            }
-
-            // Join WebSocket room
+            // Join socket room
             socket.join(callId);
-            this.socketToCallId.set(socket.id, callId);
 
-            // Add/update participant in DB
-            const participant = await this.callService.joinCall(
+            // Add to call room
+            const room = await this.callService.joinCall(
                 callId,
                 socket.id,
+                userId,
                 userName,
                 hasVideo ?? true,
                 hasAudio ?? true,
-                userId,
             );
-            console.log(participant);
-            // Fetch list of participants
-            const callRoom = await this.callService.getCallRoom(callId);
-            const participants = callRoom?.participants || [];
+
+            // Get other participant
+            const otherParticipants = room.participants.filter((p) => p.socketId !== socket.id);
 
             // Notify others
             socket.to(callId).emit("userJoined", {
@@ -293,165 +316,18 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 hasAudio,
             });
 
-            // Return room data to this socket
-            return socket.emit("joinedCall", {
+            // Send room info to joining user
+            socket.emit("joinedCall", {
                 callId,
                 userId,
                 socketId: socket.id,
-                participants,
+                participants: otherParticipants,
             });
+
+            this.logger.log(`User ${userId} joined call ${callId}`);
         } catch (error) {
             this.logger.error(`Error joining call: ${error.message}`);
-            socket.emit("error", { message: "Internal server error" });
-        }
-    }
-
-    @SubscribeMessage("startVideo")
-    async handleStartVideo(@ConnectedSocket() socket: Socket, @MessageBody() data: StartMediaDto) {
-        if (!this.requireAuth(socket)) return;
-
-        try {
-            const { callId } = data;
-            await this.callService.updateMediaState(socket.id, callId, "video", true);
-
-            socket.to(callId).emit("participantVideoStarted", {
-                socketId: socket.id,
-            });
-
-            this.logger.log(`User ${socket.id} started video in call ${callId}`);
-        } catch (error) {
-            this.logger.error(`Error starting video: ${error.message}`);
-            socket.emit("error", { message: "Failed to start video" });
-        }
-    }
-
-    @SubscribeMessage("stopVideo")
-    async handleStopVideo(@ConnectedSocket() socket: Socket, @MessageBody() data: StartMediaDto) {
-        if (!this.requireAuth(socket)) return;
-
-        try {
-            const { callId } = data;
-            await this.callService.updateMediaState(socket.id, callId, "video", false);
-
-            socket.to(callId).emit("participantVideoStopped", {
-                socketId: socket.id,
-            });
-
-            this.logger.log(`User ${socket.id} stopped video in call ${callId}`);
-        } catch (error) {
-            this.logger.error(`Error stopping video: ${error.message}`);
-            socket.emit("error", { message: "Failed to stop video" });
-        }
-    }
-
-    @SubscribeMessage("startAudio")
-    async handleStartAudio(@ConnectedSocket() socket: Socket, @MessageBody() data: StartMediaDto) {
-        if (!this.requireAuth(socket)) return;
-
-        try {
-            const { callId } = data;
-            await this.callService.updateMediaState(socket.id, callId, "audio", true);
-
-            socket.to(callId).emit("participantAudioStarted", {
-                socketId: socket.id,
-            });
-
-            this.logger.log(`User ${socket.id} started audio in call ${callId}`);
-        } catch (error) {
-            this.logger.error(`Error starting audio: ${error.message}`);
-            socket.emit("error", { message: "Failed to start audio" });
-        }
-    }
-
-    @SubscribeMessage("stopAudio")
-    async handleStopAudio(@ConnectedSocket() socket: Socket, @MessageBody() data: StartMediaDto) {
-        if (!this.requireAuth(socket)) return;
-
-        try {
-            const { callId } = data;
-            await this.callService.updateMediaState(socket.id, callId, "audio", false);
-
-            socket.to(callId).emit("participantAudioStopped", {
-                socketId: socket.id,
-            });
-
-            this.logger.log(`User ${socket.id} stopped audio in call ${callId}`);
-        } catch (error) {
-            this.logger.error(`Error stopping audio: ${error.message}`);
-            socket.emit("error", { message: "Failed to stop audio" });
-        }
-    }
-
-    @SubscribeMessage("offer")
-    handleOffer(@ConnectedSocket() socket: Socket, @MessageBody() data: WebRTCSignalDto) {
-        if (!this.requireAuth(socket)) return;
-
-        try {
-            const targetSocket = this.server.sockets.sockets.get(data.targetSocketId);
-
-            if (!targetSocket) {
-                this.logger.warn(`Target socket ${data.targetSocketId} not found for offer`);
-                socket.emit("error", { message: "Target peer not found" });
-                return;
-            }
-
-            this.logger.debug(`Relaying offer from ${socket.id} to ${data.targetSocketId}`);
-
-            targetSocket.emit("offer", {
-                offer: data.signal,
-                senderId: socket.id,
-            });
-        } catch (error) {
-            this.logger.error(`Error relaying offer: ${error.message}`);
-        }
-    }
-
-    @SubscribeMessage("answer")
-    handleAnswer(@ConnectedSocket() socket: Socket, @MessageBody() data: WebRTCSignalDto) {
-        if (!this.requireAuth(socket)) return;
-
-        try {
-            const targetSocket = this.server.sockets.sockets.get(data.targetSocketId);
-
-            if (!targetSocket) {
-                this.logger.warn(`Target socket ${data.targetSocketId} not found for answer`);
-                socket.emit("error", { message: "Target peer not found" });
-                return;
-            }
-
-            this.logger.debug(`Relaying answer from ${socket.id} to ${data.targetSocketId}`);
-
-            targetSocket.emit("answer", {
-                answer: data.signal,
-                senderId: socket.id,
-            });
-        } catch (error) {
-            this.logger.error(`Error relaying answer: ${error.message}`);
-        }
-    }
-
-    @SubscribeMessage("iceCandidate")
-    handleIceCandidate(@ConnectedSocket() socket: Socket, @MessageBody() data: IceCandidateDto) {
-        if (!this.requireAuth(socket)) return;
-
-        try {
-            const targetSocket = this.server.sockets.sockets.get(data.targetSocketId);
-
-            if (!targetSocket) {
-                this.logger.warn(
-                    `Target socket ${data.targetSocketId} not found for ICE candidate`,
-                );
-                return;
-            }
-
-            this.logger.debug(`Relaying ICE candidate from ${socket.id} to ${data.targetSocketId}`);
-
-            targetSocket.emit("iceCandidate", {
-                candidate: data.candidate,
-                senderId: socket.id,
-            });
-        } catch (error) {
-            this.logger.error(`Error relaying ICE candidate: ${error.message}`);
+            socket.emit("error", { message: error.message });
         }
     }
 
@@ -461,39 +337,194 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         @MessageBody() data: { callId: string },
     ) {
         if (!this.requireAuth(socket)) return;
-        await this.handleUserLeavingCall(socket, data.callId);
+        const userId = socket.data.user.sub;
+        await this.handleUserLeavingCall(socket, userId, data.callId);
     }
 
-    private async handleUserLeavingCall(socket: Socket, callId: string) {
+    private async handleUserLeavingCall(socket: Socket, userId: string, callId: string) {
         try {
-            this.logger.log(`User ${socket.id} leaving call ${callId}`);
+            this.logger.log(`User ${userId} leaving call ${callId}`);
 
             socket.leave(callId);
-            this.socketToCallId.delete(socket.id);
-
-            const room = await this.callService.leaveCall(socket.id, callId);
+            const room = await this.callService.leaveCall(socket.id, userId, callId);
 
             // Notify others
-            socket.to(callId).emit("participantLeft", {
-                socketId: socket.id,
-            });
+            socket.to(callId).emit("participantLeft", { socketId: socket.id, userId });
 
-            // Clean up empty rooms
+            // End call if no one left
             if (room && room.participants.length === 0) {
-                await this.callService.deleteCall(callId);
-                this.logger.log(`Call ${callId} deleted (no participants)`);
+                await this.callService.endCall(callId);
+                this.logger.log(`Call ${callId} ended (empty)`);
             }
         } catch (error) {
-            this.logger.error(`Error leaving call: ${error.message}`, error.stack);
+            this.logger.error(`Error leaving call: ${error.message}`);
         }
     }
 
-    // Utility methods
-    public getActiveCallsCount(): number {
-        return this.socketToCallId.size;
+    // ==================== MEDIA CONTROL ====================
+
+    @SubscribeMessage("toggleVideo")
+    async handleToggleVideo(
+        @ConnectedSocket() socket: Socket,
+        @MessageBody() data: { callId: string; enabled: boolean },
+    ) {
+        if (!this.requireAuth(socket)) return;
+
+        try {
+            await this.callService.updateMediaState(socket.id, data.callId, "video", data.enabled);
+            socket.to(data.callId).emit("participantVideoToggled", {
+                socketId: socket.id,
+                enabled: data.enabled,
+            });
+        } catch (error) {
+            this.logger.error(`Error toggling video: ${error.message}`);
+        }
     }
 
-    public getAuthenticatedClientsCount(): number {
-        return this.socketToUserId.size;
+    @SubscribeMessage("toggleAudio")
+    async handleToggleAudio(
+        @ConnectedSocket() socket: Socket,
+        @MessageBody() data: { callId: string; enabled: boolean },
+    ) {
+        if (!this.requireAuth(socket)) return;
+
+        try {
+            await this.callService.updateMediaState(socket.id, data.callId, "audio", data.enabled);
+            socket.to(data.callId).emit("participantAudioToggled", {
+                socketId: socket.id,
+                enabled: data.enabled,
+            });
+        } catch (error) {
+            this.logger.error(`Error toggling audio: ${error.message}`);
+        }
+    }
+
+    // ==================== WEBRTC SIGNALING ====================
+
+    @SubscribeMessage("offer")
+    handleOffer(@ConnectedSocket() socket: Socket, @MessageBody() data: WebRTCSignalDto) {
+        if (!this.requireAuth(socket)) return;
+
+        const targetSocket = this.server.sockets.sockets.get(data.targetSocketId);
+        if (!targetSocket) {
+            this.logger.warn(`Target socket ${data.targetSocketId} not found`);
+            return socket.emit("error", { message: "Peer not found" });
+        }
+
+        this.logger.debug(`Relaying offer: ${socket.id} → ${data.targetSocketId}`);
+        targetSocket.emit("offer", {
+            offer: data.signal,
+            senderId: socket.id,
+        });
+    }
+
+    @SubscribeMessage("answer")
+    handleAnswer(@ConnectedSocket() socket: Socket, @MessageBody() data: WebRTCSignalDto) {
+        if (!this.requireAuth(socket)) return;
+
+        const targetSocket = this.server.sockets.sockets.get(data.targetSocketId);
+        if (!targetSocket) {
+            this.logger.warn(`Target socket ${data.targetSocketId} not found`);
+            return socket.emit("error", { message: "Peer not found" });
+        }
+
+        this.logger.debug(`Relaying answer: ${socket.id} → ${data.targetSocketId}`);
+        targetSocket.emit("answer", {
+            answer: data.signal,
+            senderId: socket.id,
+        });
+    }
+
+    @SubscribeMessage("iceCandidate")
+    handleIceCandidate(@ConnectedSocket() socket: Socket, @MessageBody() data: IceCandidateDto) {
+        if (!this.requireAuth(socket)) return;
+
+        const targetSocket = this.server.sockets.sockets.get(data.targetSocketId);
+        if (!targetSocket) {
+            return;
+        }
+
+        this.logger.debug(`Relaying ICE: ${socket.id} → ${data.targetSocketId}`);
+        targetSocket.emit("iceCandidate", {
+            candidate: data.candidate,
+            senderId: socket.id,
+        });
+    }
+
+    // ----------------- send call buy user id socket io -------------------
+
+    @SubscribeMessage("callUser")
+    async handleDirectCallUser(
+        @ConnectedSocket() callerSocket: Socket,
+        @MessageBody() payload: { userId: string },
+    ) {
+        if (!this.requireAuth(callerSocket)) return;
+
+        const callerId = callerSocket.data.user.sub;
+        const callerName = callerSocket.data.userName || "Unknown";
+
+        if (callerId === payload.userId) {
+            return callerSocket.emit("error", { message: "Cannot call yourself" });
+        }
+
+        // Reuse your existing startCallToUser service
+        const result = await this.callService.startCallToUser(
+            callerId,
+            payload.userId,
+            this, // gateway
+        );
+
+        const callId = result.callId;
+
+        // Get caller info from DB (for avatar, name, etc.)
+        const callerInfo = await this.prisma.user.findUnique({
+            where: { id: callerId },
+            select: {
+                id: true,
+                profile: { select: { name: true, avatarUrl: true } },
+            },
+        });
+
+        // Auto-join the caller
+        await this.callService.joinCall(
+            callId,
+            callerSocket.id,
+            callerId,
+            callerInfo?.profile?.name || callerName,
+            true,
+            true,
+        );
+
+        // Send success to caller
+        callerSocket.emit("callStarted", {
+            callId,
+            status: result.status,
+            recipientUserId: payload.userId,
+        });
+
+        // Send incomingCall to recipient with FULL sender info
+        const recipientSockets = this.getClientsForUser(payload.userId);
+
+        if (recipientSockets.size === 0) {
+            callerSocket.emit("callFailed", { reason: "User offline" });
+            await this.callService.updateCallStatus(callId, "MISSED");
+            return;
+        }
+
+        const incomingPayload = {
+            callId,
+            caller: {
+                userId: callerId,
+                name: callerInfo?.profile?.name || callerName,
+                avatarUrl: callerInfo?.profile?.avatarUrl || null,
+            },
+            timestamp: new Date().toISOString(),
+        };
+
+        recipientSockets.forEach((socket) => {
+            socket.emit("incomingCall", incomingPayload);
+        });
+
+        this.logger.log(`Direct call ${callerId} → ${payload.userId} (callId: ${callId})`);
     }
 }
