@@ -14,12 +14,12 @@ enum AuthProvider {
 }
 
 enum CallStatus {
-  CALLING
-  RINING
-  ACTIVE
-  END
-  MISSED
-  DECLINED
+  CALLING    // Call initiated, ringing
+  ACTIVE     // Call in progress
+  ENDED      // Call completed normally
+  CANCELLED  // Caller cancelled before answer
+  MISSED     // Recipient didn't answer
+  DECLINED   // Recipient declined
 }
 // enum CallStatus {
 //   CALLING

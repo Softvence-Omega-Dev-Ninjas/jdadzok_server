@@ -1,5 +1,4 @@
 // src/call/controller/call.controller.ts
-
 import {
     Body,
     Controller,
@@ -12,10 +11,14 @@ import {
     UnauthorizedException,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-
 import { GetUser, ValidateAuth } from "@common/jwt/jwt.decorator";
 import { CallGateway } from "../calling.gateway";
-import { StartCallToUserDto } from "../dto/calling.dto";
+import {
+    AcceptCallDto,
+    CancelCallDto,
+    DeclineCallDto,
+    StartCallToUserDto,
+} from "../dto/calling.dto";
 import { CallService } from "../service/calling.service";
 
 @Controller("calls")
@@ -27,20 +30,8 @@ export class CallController {
     ) {}
 
     /**
-     * Create a new call
+     * Start a one-to-one call to another user
      */
-    @ValidateAuth()
-    @ApiBearerAuth()
-    @Post()
-    @ApiOperation({ summary: "Create a new call" })
-    async createCall(@GetUser("userId") userId: string) {
-        if (!userId) {
-            throw new UnauthorizedException("User ID is required");
-        }
-
-        return await this.callService.createCall(userId);
-    }
-
     @Post("start")
     @ValidateAuth()
     @ApiBearerAuth()
@@ -48,6 +39,48 @@ export class CallController {
     async startCallToUser(@GetUser("userId") callerId: string, @Body() dto: StartCallToUserDto) {
         return this.callService.startCallToUser(callerId, dto.recipientUserId, this.callGateway);
     }
+
+    /**
+     * Accept an incoming call
+     */
+    @Post("accept")
+    @ValidateAuth()
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Accept an incoming call" })
+    async acceptCall(@GetUser("userId") userId: string, @Body() dto: AcceptCallDto) {
+        const room = await this.callService.acceptCall(dto.callId, userId);
+        return {
+            callId: room.callId,
+            status: room.status,
+            hostUserId: room.hostUserId,
+            recipientUserId: room.recipientUserId,
+        };
+    }
+
+    /**
+     * Decline an incoming call
+     */
+    @Post("decline")
+    @ValidateAuth()
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Decline an incoming call" })
+    async declineCall(@GetUser("userId") userId: string, @Body() dto: DeclineCallDto) {
+        await this.callService.declineCall(dto.callId, userId);
+        return { success: true, message: "Call declined" };
+    }
+
+    /**
+     * Cancel an outgoing call (before it's answered)
+     */
+    @Post("cancel")
+    @ValidateAuth()
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Cancel an outgoing call" })
+    async cancelCall(@GetUser("userId") userId: string, @Body() dto: CancelCallDto) {
+        await this.callService.cancelCall(dto.callId, userId);
+        return { success: true, message: "Call cancelled" };
+    }
+
     /**
      * Get call details by ID
      */
@@ -55,11 +88,18 @@ export class CallController {
     @ApiBearerAuth()
     @Get(":id")
     @ApiOperation({ summary: "Get call details" })
-    async getCall(@Param("id") id: string) {
+    async getCall(@Param("id") id: string, @GetUser("userId") userId: string) {
         const call = await this.callService.getCallById(id);
-
         if (!call) {
             throw new NotFoundException("Call not found");
+        }
+
+        // Verify user is part of the call
+        const room = await this.callService.getCallRoom(id);
+        if (room) {
+            if (room.hostUserId !== userId && room.recipientUserId !== userId) {
+                throw new ForbiddenException("You are not part of this call");
+            }
         }
 
         return call;
@@ -72,7 +112,7 @@ export class CallController {
     @ApiBearerAuth()
     @Get(":id/room")
     @ApiOperation({ summary: "Get active participants in call room" })
-    async getCallRoom(@Param("id") id: string) {
+    async getCallRoom(@Param("id") id: string, @GetUser("userId") userId: string) {
         const room = await this.callService.getCallRoom(id);
 
         if (!room) {
@@ -83,10 +123,19 @@ export class CallController {
             };
         }
 
+        // Verify user is part of the call
+        if (room.hostUserId !== userId && room.recipientUserId !== userId) {
+            throw new ForbiddenException("You are not part of this call");
+        }
+
         return {
             callId: room.callId,
+            status: room.status,
+            hostUserId: room.hostUserId,
+            recipientUserId: room.recipientUserId,
             participants: room.participants.map((p) => ({
                 socketId: p.socketId,
+                userId: p.userId,
                 userName: p.userName,
                 hasVideo: p.hasVideo,
                 hasAudio: p.hasAudio,
@@ -108,12 +157,34 @@ export class CallController {
         if (!userId) {
             throw new UnauthorizedException("User ID is required");
         }
-
         return await this.callService.getCallHistory(userId);
     }
 
     /**
-     * End a call (only host can do this)
+     * Get current active call for user
+     */
+    @ValidateAuth()
+    @ApiBearerAuth()
+    @Get("user/current")
+    @ApiOperation({ summary: "Get user's current active call" })
+    async getCurrentCall(@GetUser("userId") userId: string) {
+        const callId = await this.callService.getUserCurrentCall(userId);
+
+        if (!callId) {
+            return { hasActiveCall: false, callId: null };
+        }
+
+        const room = await this.callService.getCallRoom(callId);
+        return {
+            hasActiveCall: true,
+            callId,
+            status: room?.status,
+            participants: room?.participants || [],
+        };
+    }
+
+    /**
+     * End a call (host or participant can end)
      */
     @ValidateAuth()
     @ApiBearerAuth()
@@ -124,17 +195,21 @@ export class CallController {
             throw new UnauthorizedException("User ID is required");
         }
 
-        // Check if call exists and user is authorized
-        const call = await this.callService.getCallById(id);
-
-        if (!call) {
+        const room = await this.callService.getCallRoom(id);
+        if (!room) {
             throw new NotFoundException("Call not found");
         }
 
-        if (call.hostUserId !== userId) {
-            throw new ForbiddenException("Only the host can end the call");
+        // Verify user is part of the call
+        if (room.hostUserId !== userId && room.recipientUserId !== userId) {
+            throw new ForbiddenException("You are not part of this call");
         }
 
-        await this.callService.deleteCall(id);
+        await this.callService.endCall(id);
+
+        return {
+            success: true,
+            message: "Call ended",
+        };
     }
 }
