@@ -123,7 +123,7 @@ export class AdminSettingsService {
                 type: "SYSTEM",
             },
         });
-        
+        console.info("notification", Notification);
 
         // Emit event only to this specific user
         const payload: CapLevelEvent = {

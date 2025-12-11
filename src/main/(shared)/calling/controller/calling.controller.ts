@@ -37,7 +37,12 @@ export class CallController {
     @ApiBearerAuth()
     @ApiOperation({ summary: "Start a 1-on-1 call to another user" })
     async startCallToUser(@GetUser("userId") callerId: string, @Body() dto: StartCallToUserDto) {
-        return this.callService.startCallToUser(callerId, dto.recipientUserId, this.callGateway);
+        return this.callService.startCallToUser(
+            callerId,
+            dto.recipientUserId,
+            "http-request",
+            this.callGateway,
+        );
     }
 
     /**
