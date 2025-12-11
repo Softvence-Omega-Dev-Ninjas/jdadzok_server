@@ -44,6 +44,7 @@ export class CallService {
     async startCallToUser(
         callerId: string,
         recipientUserId: string,
+        socketId: string,
         callGateway: CallGateway,
     ): Promise<{ callId: string; status: "ringing" | "recipient_offline" | "user_busy" }> {
         if (callerId === recipientUserId) {
@@ -64,6 +65,17 @@ export class CallService {
             throw new BadRequestException("User is busy on another call");
         }
 
+        // Get caller info for notification
+        const caller = await this.prisma.user.findUnique({
+            where: { id: callerId },
+            select: {
+                id: true,
+                profile: {
+                    select: { name: true, avatarUrl: true },
+                },
+            },
+        });
+
         // Create call record in database
         const call = await this.prisma.calling.create({
             data: {
@@ -72,12 +84,21 @@ export class CallService {
             },
         });
 
-        // Create call room in cache
+        // Create call room in cache WITH caller's socket ID
         const callRoom: CallRoom = {
             callId: call.id,
             hostUserId: callerId,
             recipientUserId: recipientUserId,
-            participants: [],
+            participants: [
+                {
+                    userId: callerId,
+                    socketId: socketId,
+                    userName: caller?.profile?.name || "Unknown User",
+                    hasVideo: false,
+                    hasAudio: false,
+                    joinedAt: new Date(),
+                },
+            ],
             status: "CALLING",
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -93,17 +114,6 @@ export class CallService {
             this.CACHE_TTL,
         );
 
-        // Get caller info for notification
-        const caller = await this.prisma.user.findUnique({
-            where: { id: callerId },
-            select: {
-                id: true,
-                profile: {
-                    select: { name: true, avatarUrl: true },
-                },
-            },
-        });
-
         const recipientSockets = callGateway.getClientsForUser(recipientUserId);
 
         if (recipientSockets.size === 0) {
@@ -118,6 +128,7 @@ export class CallService {
             callId: call.id,
             caller: {
                 userId: callerId,
+                socketId: socketId, // Include caller's socket ID
                 name: caller?.profile?.name || "Unknown User",
                 avatarUrl: caller?.profile?.avatarUrl || null,
             },
@@ -129,7 +140,9 @@ export class CallService {
             socket.emit("incomingCall", payload);
         });
 
-        this.logger.log(`Call initiated: ${callerId} → ${recipientUserId} (call: ${call.id})`);
+        this.logger.log(
+            `Call initiated: ${callerId} → ${recipientUserId} (call: ${call.id}, socket: ${socketId})`,
+        );
 
         return { callId: call.id, status: "ringing" };
     }
