@@ -521,7 +521,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         const socketId = callerSocket.id;
 
-        // Fix parameter order: callerId, recipientUserId, socketId, gateway
+        // ------  order: callerId, recipientUserId, socketId, gateway -------
         const result = await this.callService.startCallToUser(
             callerId,
             payload.userId,
@@ -531,7 +531,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         const callId = result.callId;
 
-        // Get caller info from DB (for avatar, name, etc.)
+        // Get caller info from save to bd
         const callerInfo = await this.prisma.user.findUnique({
             where: { id: callerId },
             select: {
@@ -556,7 +556,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             callId,
             status: result.status,
             recipientUserId: payload.userId,
-            yourSocketId: socketId,
+            recipientSocketId: socketId,
         });
 
         // incomingCall event emit to recipient
