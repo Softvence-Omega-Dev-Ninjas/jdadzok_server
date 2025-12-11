@@ -19,6 +19,59 @@ export class WithdrawProcessor extends WorkerHost {
         this.stripe = new Stripe(key);
     }
 
+    // async process(job: Job) {
+    //     const { withdrawId, stripeAccountId, amount, userId } = job.data;
+
+    //     let withdraw = null;
+
+    //     if (withdrawId) {
+    //         withdraw = await this.prisma.withdraw.findUnique({
+    //             where: { id: withdrawId },
+    //         });
+    //         if (!withdraw) throw new Error("Withdraw not found");
+    //     }
+
+    //     const finalAmount = amount ?? withdraw?.amount ?? 0;
+
+    //     try {
+    //         const payout = await this.stripe.payouts.create(
+    //             {
+    //                 amount: Math.round(finalAmount * 100),
+    //                 currency: "usd",
+    //             },
+    //             { stripeAccount: stripeAccountId },
+    //         );
+
+    //         if (withdrawId) {
+    //             await this.prisma.withdraw.update({
+    //                 where: { id: withdrawId },
+    //                 data: {
+    //                     status: "SUCCESS",
+    //                     stripeTxnId: payout.id,
+    //                 },
+    //             });
+    //         }
+
+    //         this.logger.log(
+    //             `Payout success for user ${userId ?? withdraw?.userId} amount $${finalAmount}`,
+    //         );
+
+    //         return payout;
+    //     } catch (error: any) {
+    //         if (withdrawId) {
+    //             await this.prisma.withdraw.update({
+    //                 where: { id: withdrawId },
+    //                 data: {
+    //                     status: "FAILED",
+    //                     errorMessage: error.message,
+    //                 },
+    //             });
+    //         }
+
+    //         this.logger.error("Payout failed: " + error.message);
+    //     }
+    // }
+
     async process(job: Job) {
         const { withdrawId, stripeAccountId, amount, userId } = job.data;
 
@@ -67,7 +120,6 @@ export class WithdrawProcessor extends WorkerHost {
                     },
                 });
             }
-
             this.logger.error("Payout failed: " + error.message);
         }
     }

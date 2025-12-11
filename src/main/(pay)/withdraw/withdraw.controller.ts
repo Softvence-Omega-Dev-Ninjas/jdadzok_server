@@ -11,11 +11,19 @@ import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
 export class WithdrawController {
     constructor(private readonly withdrawService: WithdrawService) {}
 
+    // @ApiBearerAuth()
+    // @UseGuards(JwtAuthGuard)
+    // @Post("request")
+    // async request(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreateWithdrawDto) {
+    //     return this.withdrawService.requestWithdraw(user.id, dto);
+    // }
+
+    // Test withdraw with 1-minute delay
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Post("request")
-    async request(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreateWithdrawDto) {
-        return this.withdrawService.requestWithdraw(user.id, dto);
+    @Post("request-test")
+    async requestTest(@GetVerifiedUser() user: VerifiedUser, @Body() dto: CreateWithdrawDto) {
+        return this.withdrawService.requestWithdraw(user.id, dto, { delayMs: 60000 });
     }
 
     @Post("schedule")
