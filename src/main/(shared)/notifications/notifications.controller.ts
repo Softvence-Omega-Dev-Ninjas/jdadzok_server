@@ -1,11 +1,24 @@
 import { GetUser, ValidateAuth } from "@common/jwt/jwt.decorator";
 import { TResponse } from "@common/utils/response.util";
 import { JwtAuthGuard } from "@module/(started)/auth/guards/jwt-auth";
-import { Body, Controller, Get, Patch, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Query,
+    UseGuards,
+    UsePipes,
+    ValidationPipe,
+} from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { NotificationType } from "@prisma/client";
 import { NotificationToggleDto } from "./dto/notification-toggle";
 import { ReadNotificationDto } from "./dto/read.notification.dto";
 import { NotificationsService } from "./notifications.service";
+
 @ApiTags("Notification Setting")
 @ValidateAuth()
 @ApiBearerAuth()
@@ -13,15 +26,47 @@ import { NotificationsService } from "./notifications.service";
 export class NotificaitonsController {
     constructor(private readonly NotificationsService: NotificationsService) {}
 
-    // -----------get all notification show---
+    // -----------Get all notifications (Admin view)---
     @ApiBearerAuth()
     @ValidateAuth()
-    @ApiOperation({ summary: "Get all notification" })
+    @ApiOperation({ summary: "Get all notifications (Admin)" })
     @Get("all")
     async getAllNotification() {
         return this.NotificationsService.getAllNotification();
     }
-    // ----------------read notification---------------
+
+    // -----------Get user-specific notifications---
+    @ApiBearerAuth()
+    @ValidateAuth()
+    @ApiOperation({ summary: "Get current user's notifications" })
+    @Get("user-notifications")
+    async getUserNotifications(@GetUser("userId") userId: string): Promise<TResponse<any>> {
+        return this.NotificationsService.getUserNotifications(userId);
+    }
+
+    // -----------Get notifications by type---
+    @ApiBearerAuth()
+    @ValidateAuth()
+    @ApiOperation({ summary: "Get notifications by type" })
+    @ApiQuery({ name: "type", enum: NotificationType })
+    @Get("by-type")
+    async getNotificationsByType(
+        @GetUser("userId") userId: string,
+        @Query("type") type: NotificationType,
+    ): Promise<TResponse<any>> {
+        return this.NotificationsService.getNotificationsByType(userId, type);
+    }
+
+    // -----------Get unread count---
+    @ApiBearerAuth()
+    @ValidateAuth()
+    @ApiOperation({ summary: "Get unread notification count" })
+    @Get("unread-count")
+    async getUnreadCount(@GetUser("userId") userId: string): Promise<TResponse<any>> {
+        return this.NotificationsService.getUnreadCount(userId);
+    }
+
+    // ----------------Mark notification as read (using notificationId)---------------
     @ApiBearerAuth()
     @ValidateAuth()
     @ApiOperation({ summary: "Mark notification as read" })
@@ -30,6 +75,20 @@ export class NotificaitonsController {
         return this.NotificationsService.markAsRead(dto, userId);
     }
 
+    // ----------------Mark UserNotification as read (using userNotificationId)---------------
+    @ApiBearerAuth()
+    @ValidateAuth()
+    @ApiOperation({ summary: "Mark user notification as read" })
+    @ApiParam({ name: "id", description: "UserNotification ID" })
+    @Patch("read/:id")
+    async markUserNotificationAsRead(
+        @GetUser("userId") userId: string,
+        @Param("id") userNotificationId: string,
+    ): Promise<TResponse<any>> {
+        return this.NotificationsService.markUserNotificationAsRead(userId, userNotificationId);
+    }
+
+    // ----------------Mark all notifications as read---------------
     @ApiBearerAuth()
     @ValidateAuth()
     @ApiOperation({ summary: "Mark all notifications as read" })
@@ -38,19 +97,32 @@ export class NotificaitonsController {
         return this.NotificationsService.markAllAsRead(userId);
     }
 
-    //   ----------notification settings-------------
+    // ----------------Delete notification---------------
+    @ApiBearerAuth()
+    @ValidateAuth()
+    @ApiOperation({ summary: "Delete a notification" })
+    @ApiParam({ name: "id", description: "Notification ID" })
+    @Delete(":id")
+    async deleteNotification(
+        @GetUser("userId") userId: string,
+        @Param("id") notificationId: string,
+    ): Promise<TResponse<any>> {
+        return this.NotificationsService.deleteNotification(userId, notificationId);
+    }
 
+    //   ----------Get notification settings-------------
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)
     @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get notification settings" })
     @Get()
     async getNotificationSetting(@GetUser("userId") userId: string): Promise<TResponse<any>> {
         return await this.NotificationsService.getNotificationSetting(userId);
     }
 
-    // ---------update notification push settings
+    // ---------Update notification push settings
     @Patch("push-settings")
-    @ApiOperation({ summary: "Push notification: update notification push settings" })
+    @ApiOperation({ summary: "Update notification push settings" })
     async updateNotificationSetting(
         @GetUser("userId") userId: string,
         @Body() dto: NotificationToggleDto,
@@ -58,11 +130,10 @@ export class NotificaitonsController {
         return await this.NotificationsService.updateNotificationSetting(userId, dto);
     }
 
-    // --------------  profile change notification setting ON -----------------
-
+    // --------------  Profile notification toggle ON -----------------
     @ApiOperation({
-        summary: "Toggle notification setting on",
-        description: "Toggle notification setting on",
+        summary: "Toggle profile notification ON",
+        description: "Enable notifications for profile changes",
     })
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)
@@ -74,11 +145,10 @@ export class NotificaitonsController {
         return await this.NotificationsService.ProfileUpdateNotificationSettingOn(userId);
     }
 
-    // update notification change toggle turn of----
-
+    // --------------  Profile notification toggle OFF -----------------
     @ApiOperation({
-        summary: "ProfileToggle notification setting off",
-        description: "PROFILE Toggle notification setting off",
+        summary: "Toggle profile notification OFF",
+        description: "Disable notifications for profile changes",
     })
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)
@@ -90,26 +160,10 @@ export class NotificaitonsController {
         return await this.NotificationsService.ProfileToogleNotificationSettingOff(userId);
     }
 
-    // @Post('test-ngo-notification')
-    // async testNgoNotification(@Body() body: { userId: string }) {
-    //     const testPayload: Ngo = {
-    //         action: "CREATE",
-    //         meta: { ngoId: "test_123", ownerId: "owner_123" },
-    //         info: {
-    //             title: "TEST NGO",
-    //             message: "This is a test",
-    //             recipients: [{ id: body.userId, email: "test@x.com" }],
-    //         },
-    //     };
-    //     this.eventEmitter.emit(EVENT_TYPES.NGO_CREATE, testPayload);
-    //     return { sent: true };
-    // }
-
-    // --------------  Ngo change notification  ON -----------------
-
+    // --------------  NGO notification toggle ON -----------------
     @ApiOperation({
-        summary: "Ngo-Toggle notification setting on",
-        description: "Ngo-Toggle notification setting on",
+        summary: "Toggle NGO notification ON",
+        description: "Enable notifications for NGO activities",
     })
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)
@@ -121,11 +175,10 @@ export class NotificaitonsController {
         return await this.NotificationsService.NgoUpdateNotificationSettingOn(userId);
     }
 
-    // ngo update notification change toggle turn of----
-
+    // --------------  NGO notification toggle OFF -----------------
     @ApiOperation({
-        summary: "NGO -Toggle notification setting off",
-        description: "Ngo-Toggle notification setting off",
+        summary: "Toggle NGO notification OFF",
+        description: "Disable notifications for NGO activities",
     })
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)
@@ -137,11 +190,10 @@ export class NotificaitonsController {
         return await this.NotificationsService.NgoToogleNotificationSettingOff(userId);
     }
 
-    // --------------  community change notification  ON -----------------
-
+    // --------------  Community notification toggle ON -----------------
     @ApiOperation({
-        summary: "Community Toggle notification setting on",
-        description: "Community Toggle Toggle notification setting on",
+        summary: "Toggle community notification ON",
+        description: "Enable notifications for community activities",
     })
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)
@@ -153,11 +205,10 @@ export class NotificaitonsController {
         return await this.NotificationsService.CommunityUpdateNotificationSettingOn(userId);
     }
 
-    // community update notification change toggle turn off----
-
+    // --------------  Community notification toggle OFF -----------------
     @ApiOperation({
-        summary: "Community -Toggle notification setting off",
-        description: "Community-Toggle notification setting off",
+        summary: "Toggle community notification OFF",
+        description: "Disable notifications for community activities",
     })
     @ApiBearerAuth()
     @UsePipes(ValidationPipe)
@@ -168,26 +219,4 @@ export class NotificaitonsController {
     ): Promise<TResponse<any>> {
         return await this.NotificationsService.CommunityToogleNotificationSettingOff(userId);
     }
-
-    // ------------- All connected clients will receive it.---
-    // @Post("broadcast")
-    // async broadcast() {
-    //   await this.NotificationsService.notifyAllUsers("new-notification", {
-    //     title: "Broadcast",
-    //     message: "Hello all connected users!",
-    //     type: "SYSTEM",
-    //   } as any);
-    //   return { success: true };
-    // }
-
-    // @ApiBearerAuth()
-    // @UsePipes(ValidationPipe)
-    // @UseGuards(JwtAuthGuard)
-    // @Patch("setting")
-    // async TestupdateNotificationSetting(
-    //     @GetUser("userId") userId: string,
-    //     @Body() dto: NotificationToggleDto,
-    // ): Promise<TResponse<any>> {
-    //     return await this.NotificationsService.TestupdateNotificationSetting(userId, dto);
-    // }
 }
