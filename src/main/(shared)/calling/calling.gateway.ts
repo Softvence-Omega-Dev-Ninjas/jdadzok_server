@@ -181,89 +181,89 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // ==================== CALL CONTROL EVENTS ====================
 
-    @SubscribeMessage("acceptCall")
-    async handleAcceptCall(
-        @ConnectedSocket() recipientSocket: Socket,
-        @MessageBody() payload: { callId: string },
-    ) {
-        if (!this.requireAuth(recipientSocket)) return;
+    // @SubscribeMessage("acceptCall")
+    // async handleAcceptCall(
+    //     @ConnectedSocket() recipientSocket: Socket,
+    //     @MessageBody() payload: { callId: string },
+    // ) {
+    //     if (!this.requireAuth(recipientSocket)) return;
 
-        if (!payload?.callId) {
-            return recipientSocket.emit("error", {
-                message: "callId is required",
-                event: "acceptCall",
-            });
-        }
+    //     if (!payload?.callId) {
+    //         return recipientSocket.emit("error", {
+    //             message: "callId is required",
+    //             event: "acceptCall",
+    //         });
+    //     }
 
-        const recipientUserId = recipientSocket.data.user.sub;
-        const recipientName = recipientSocket.data.userName || "Unknown";
-        const recipientSocketId = recipientSocket.id;
+    //     const recipientUserId = recipientSocket.data.user.sub;
+    //     const recipientName = recipientSocket.data.userName || "Unknown";
+    //     const recipientSocketId = recipientSocket.id;
 
-        try {
-            // Accept the call through service
-            const callRoom = await this.callService.acceptCall(payload.callId, recipientUserId);
+    //     try {
+    //         // Accept the call through service
+    //         const callRoom = await this.callService.acceptCall(payload.callId, recipientUserId);
 
-            // Join the recipient to the call in DB
-            await this.callService.joinCall(
-                payload.callId,
-                recipientSocketId,
-                recipientUserId,
-                recipientName,
-                true,
-                true,
-            );
+    //         // Join the recipient to the call in DB
+    //         await this.callService.joinCall(
+    //             payload.callId,
+    //             recipientSocketId,
+    //             recipientUserId,
+    //             recipientName,
+    //             true,
+    //             true,
+    //         );
 
-            // Get recipient info
-            const recipientInfo = await this.prisma.user.findUnique({
-                where: { id: recipientUserId },
-                select: {
-                    id: true,
-                    profile: { select: { name: true, avatarUrl: true } },
-                },
-            });
+    //         // Get recipient info
+    //         const recipientInfo = await this.prisma.user.findUnique({
+    //             where: { id: recipientUserId },
+    //             select: {
+    //                 id: true,
+    //                 profile: { select: { name: true, avatarUrl: true } },
+    //             },
+    //         });
 
-            // Find caller's socket ID from participants
-            const callerParticipant = callRoom.participants.find(
-                (p) => p.userId === callRoom.hostUserId,
-            );
-            const callerSocketId = callerParticipant?.socketId;
+    //         // Find caller's socket ID from participants
+    //         const callerParticipant = callRoom.participants.find(
+    //             (p) => p.userId === callRoom.hostUserId,
+    //         );
+    //         const callerSocketId = callerParticipant?.socketId;
 
-            // Notify caller that call was accepted
-            const callerUserId = callRoom.hostUserId;
-            const callerSockets = this.getClientsForUser(callerUserId);
+    //         // Notify caller that call was accepted
+    //         const callerUserId = callRoom.hostUserId;
+    //         const callerSockets = this.getClientsForUser(callerUserId);
 
-            callerSockets.forEach((socket) => {
-                socket.emit("callAccepted", {
-                    callId: payload.callId,
-                    acceptedBy: recipientUserId,
-                    recipientSocketId: recipientSocketId, // Recipient's socket ID
-                    recipient: {
-                        userId: recipientUserId,
-                        name: recipientInfo?.profile?.name || recipientName,
-                        avatarUrl: recipientInfo?.profile?.avatarUrl || null,
-                    },
-                });
-            });
+    //         callerSockets.forEach((socket) => {
+    //             socket.emit("callAccepted", {
+    //                 callId: payload.callId,
+    //                 acceptedBy: recipientUserId,
+    //                 recipientSocketId: recipientSocketId, // Recipient's socket ID
+    //                 recipient: {
+    //                     userId: recipientUserId,
+    //                     name: recipientInfo?.profile?.name || recipientName,
+    //                     avatarUrl: recipientInfo?.profile?.avatarUrl || null,
+    //                 },
+    //             });
+    //         });
 
-            // Confirm to recipient with caller's socket ID
-            recipientSocket.emit("callJoined", {
-                callId: payload.callId,
-                status: "ACTIVE",
-                yourSocketId: recipientSocketId,
-                callerSocketId: callerSocketId, // Send caller's socket ID to recipient
-            });
+    //         // Confirm to recipient with caller's socket ID
+    //         recipientSocket.emit("callJoined", {
+    //             callId: payload.callId,
+    //             status: "ACTIVE",
+    //             yourSocketId: recipientSocketId,
+    //             callerSocketId: callerSocketId, // Send caller's socket ID to recipient
+    //         });
 
-            this.logger.log(
-                `Call ${payload.callId} accepted by ${recipientUserId} (socket: ${recipientSocketId})`,
-            );
-        } catch (error) {
-            this.logger.error(`Error accepting call: ${error.message}`);
-            recipientSocket.emit("error", {
-                message: "Failed to accept call",
-                details: error.message,
-            });
-        }
-    }
+    //         this.logger.log(
+    //             `Call ${payload.callId} accepted by ${recipientUserId} (socket: ${recipientSocketId})`,
+    //         );
+    //     } catch (error) {
+    //         this.logger.error(`Error accepting call: ${error.message}`);
+    //         recipientSocket.emit("error", {
+    //             message: "Failed to accept call",
+    //             details: error.message,
+    //         });
+    //     }
+    // }
 
     @SubscribeMessage("declineCall")
     async handleDeclineCall(
@@ -512,88 +512,205 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     ) {
         if (!this.requireAuth(callerSocket)) return;
 
+        if (!payload?.userId) {
+            return callerSocket.emit("error", { message: "userId is required" });
+        }
+
         const callerId = callerSocket.data.user.sub;
         const callerName = callerSocket.data.userName || "Unknown";
+        const callerSocketId = callerSocket.id;
 
         if (callerId === payload.userId) {
             return callerSocket.emit("error", { message: "Cannot call yourself" });
         }
 
-        const socketId = callerSocket.id;
+        try {
+            // Get recipient's socket IDs (if online)
+            const recipientSockets = this.getClientsForUser(payload.userId);
+            const recipientSocketId =
+                recipientSockets.size > 0 ? Array.from(recipientSockets)[0].id : null;
 
-        // ------  order: callerId, recipientUserId, socketId, gateway -------
-        const result = await this.callService.startCallToUser(
-            callerId,
-            payload.userId,
-            socketId,
-            this,
-        );
+            // Start the call
+            const result = await this.callService.startCallToUser(
+                callerId,
+                payload.userId,
+                callerSocketId,
+                this,
+            );
 
-        const callId = result.callId;
+            const callId = result.callId;
 
-        // Get caller info from save to bd
-        const callerInfo = await this.prisma.user.findUnique({
-            where: { id: callerId },
-            select: {
-                id: true,
-                email: true,
-                profile: { select: { name: true, avatarUrl: true } },
-            },
-        });
+            // Get caller info
+            const callerInfo = await this.prisma.user.findUnique({
+                where: { id: callerId },
+                select: {
+                    id: true,
+                    email: true,
+                    profile: { select: { name: true, avatarUrl: true } },
+                },
+            });
 
-        // Auto-join call
-        await this.callService.joinCall(
-            callId,
-            callerSocket.id,
-            callerId,
-            callerInfo?.profile?.name || callerName,
-            true,
-            true,
-        );
-
-        // Send success to caller with their socket ID
-        callerSocket.emit("callStarted", {
-            callId,
-            status: result.status,
-            recipientUserId: payload.userId,
-            recipientSocketId: socketId,
-        });
-
-        // incomingCall event emit to recipient
-        callerSocket.emit("incomingCall", {
-            callId,
-            from: {
-                userId: callerId,
-                name: callerInfo?.profile?.name || callerName,
-                avatarUrl: callerInfo?.profile?.avatarUrl || null,
-                socketId: callerSocket.id,
-            },
-        });
-
-        const recipientSockets = this.getClientsForUser(payload.userId);
-        recipientSockets.forEach((socket) => {
-            socket.emit("incomingCall", {
+            // Auto-join caller to the call
+            callerSocket.join(callId);
+            await this.callService.joinCall(
                 callId,
-                from: {
+                callerSocketId,
+                callerId,
+                callerInfo?.profile?.name || callerName,
+                true,
+                true,
+            );
+
+            // Send success to caller with BOTH socket IDs
+            callerSocket.emit("callStarted", {
+                callId,
+                status: result.status,
+                recipientUserId: payload.userId,
+                callerSocketId: callerSocketId,
+                recipientSocketId: recipientSocketId, // Recipient's socket ID (or null if offline)
+            });
+
+            // If recipient is offline, notify caller immediately
+            if (result.status === "recipient_offline") {
+                callerSocket.emit("callMissed", {
+                    callId,
+                    reason: "recipient_offline",
+                });
+
+                this.logger.log(`Call ${callId} failed: Recipient ${payload.userId} is offline`);
+                return;
+            }
+
+            // Recipient is online - send incoming call notification
+            const incomingCallPayload = {
+                callId,
+                caller: {
                     userId: callerId,
                     name: callerInfo?.profile?.name || callerName,
                     avatarUrl: callerInfo?.profile?.avatarUrl || null,
-                    socketId: callerSocket.id,
+                    socketId: callerSocketId,
+                },
+                recipientSocketId: recipientSocketId,
+                timestamp: new Date().toISOString(),
+            };
+
+            // Send to all recipient's devices
+            recipientSockets.forEach((socket) => {
+                socket.emit("incomingCall", incomingCallPayload);
+            });
+
+            this.logger.log(
+                `Call initiated: ${callerInfo?.profile?.name || callerName} (${callerId}) ` +
+                    `[socket: ${callerSocketId}] → ${payload.userId} [socket: ${recipientSocketId}] ` +
+                    `| callId: ${callId} | status: ${result.status}`,
+            );
+        } catch (error) {
+            this.logger.error(`Error starting call: ${error.message}`);
+            callerSocket.emit("error", {
+                message: error.message || "Failed to start call",
+            });
+        }
+    }
+
+    // -----------------accept call by user id socket io -------------------
+
+    @SubscribeMessage("acceptCall")
+    async handleAcceptCall(
+        @ConnectedSocket() recipientSocket: Socket,
+        @MessageBody() payload: { callId: string },
+    ) {
+        if (!this.requireAuth(recipientSocket)) return;
+
+        if (!payload?.callId) {
+            return recipientSocket.emit("error", {
+                message: "callId is required",
+                event: "acceptCall",
+            });
+        }
+
+        const recipientUserId = recipientSocket.data.user.sub;
+        const recipientName = recipientSocket.data.userName || "Unknown";
+        const recipientSocketId = recipientSocket.id;
+
+        try {
+            // Accept the call through service
+            const callRoom = await this.callService.acceptCall(payload.callId, recipientUserId);
+
+            // Find caller's socket ID from participants (caller joined when initiating call)
+            const callerParticipant = callRoom.participants.find(
+                (p) => p.userId === callRoom.hostUserId,
+            );
+            const callerSocketId = callerParticipant?.socketId;
+
+            if (!callerSocketId) {
+                this.logger.error(`Caller socket ID not found for call ${payload.callId}`);
+                return recipientSocket.emit("error", {
+                    message: "Caller is no longer available",
+                });
+            }
+
+            // Join recipient socket to the room
+            recipientSocket.join(payload.callId);
+
+            // Add recipient to call participants
+            await this.callService.joinCall(
+                payload.callId,
+                recipientSocketId,
+                recipientUserId,
+                recipientName,
+                true,
+                true,
+            );
+
+            // Get recipient info
+            const recipientInfo = await this.prisma.user.findUnique({
+                where: { id: recipientUserId },
+                select: {
+                    id: true,
+                    profile: { select: { name: true, avatarUrl: true } },
                 },
             });
-        });
-        // ------------------ log info -------------------
-        this.logger.log(
-            `Direct call: ${callerInfo?.profile?.name || "Unknown"} (${callerInfo?.email || "no-email"}) ` +
-                `→ ${payload.userId} ` +
-                `| callId: ${callId} | socket: ${socketId}`,
-        );
-        this.logger.log(
-            `Call: ${callerInfo?.email} → ${payload.userId} | ` +
-                `callId: ${callId} | socket: ${socketId} | status: ${result.status}`,
-        );
-        this.logger.log(
-            `Direct call ${callerId} & user email ${payload.userId} =>>>> ${payload.userId} (callId: ${callId}, socket: ${socketId})`,
-        );
+
+            // Notify caller that call was accepted - send BOTH socket IDs
+            const callerSockets = this.getClientsForUser(callRoom.hostUserId);
+            const callAcceptedPayload = {
+                callId: payload.callId,
+                acceptedBy: recipientUserId,
+                callerSocketId: callerSocketId, // Caller's own socket ID
+                recipientSocketId: recipientSocketId, // Recipient's socket ID
+                recipient: {
+                    userId: recipientUserId,
+                    name: recipientInfo?.profile?.name || recipientName,
+                    avatarUrl: recipientInfo?.profile?.avatarUrl || null,
+                },
+            };
+
+            callerSockets.forEach((socket) => {
+                socket.emit("callAccepted", callAcceptedPayload);
+            });
+
+            // Confirm to recipient with BOTH socket IDs
+            recipientSocket.emit("callJoined", {
+                callId: payload.callId,
+                status: "ACTIVE",
+                recipientSocketId: recipientSocketId, // Your socket ID
+                callerSocketId: callerSocketId, // Caller's socket ID
+                caller: {
+                    userId: callRoom.hostUserId,
+                },
+            });
+
+            this.logger.log(
+                `Call ${payload.callId} accepted: ` +
+                    `Recipient ${recipientUserId} [socket: ${recipientSocketId}] ` +
+                    `← Caller ${callRoom.hostUserId} [socket: ${callerSocketId}]`,
+            );
+        } catch (error) {
+            this.logger.error(`Error accepting call ${payload.callId}: ${error.message}`);
+            recipientSocket.emit("error", {
+                message: "Failed to accept call",
+                details: error.message,
+            });
+        }
     }
 }
