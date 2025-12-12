@@ -21,6 +21,7 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from "@nestjs/websockets";
+import { NotificationType } from "@prisma/client";
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 
@@ -35,6 +36,7 @@ export class NotificationGateway
     private readonly logger = new Logger(NotificationGateway.name);
     private readonly clients = new Map<string, Set<Socket>>();
     private userSockets = new Map<string, string>();
+
     constructor(
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
@@ -72,7 +74,8 @@ export class NotificationGateway
             });
 
             if (!user) return client.disconnect(true);
-            // --------- when disconnect then true-----------
+
+            // Create notification toggle if it doesn't exist
             if (!user.NotificationToggle?.length) {
                 await this.prisma.notificationToggle.create({
                     data: { userId: user.id },
@@ -81,6 +84,7 @@ export class NotificationGateway
                     where: { userId: user.id },
                 });
             }
+
             const payloadForSocketClient: PayloadForSocketClient = {
                 sub: user.id,
                 email: user.email,
@@ -107,16 +111,6 @@ export class NotificationGateway
         }
     }
 
-    /**
-     * Handles the disconnection of a client from the server.
-     *
-     * If a user ID is associated with the client, it unsubscribes the client from
-     * the user's notification room and logs the disconnection with the user ID.
-     * If no user ID is associated, logs the disconnection for an unknown user.
-     *
-     * @param client - The socket client that has disconnected.
-     */
-
     handleDisconnect(client: Socket) {
         const userId = client.data?.user?.sub;
         if (userId) {
@@ -127,25 +121,12 @@ export class NotificationGateway
         }
     }
 
-    /**
-     * Extracts the JWT token from the client's headers or query.
-     
-   
-     * @returns The extracted JWT token or null if not present.
-     */
     private extractTokenFromSocket(client: Socket): string | null {
         const authHeader = client.handshake.headers.authorization || client.handshake.auth?.token;
-
         if (!authHeader) return null;
-
         return authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
     }
 
-    /**
-     * Subscribes a client to a user's notification room.
-     *
-  
-     */
     private subscribeClient(userId: string, client: Socket) {
         if (!this.clients.has(userId)) {
             this.clients.set(userId, new Set());
@@ -154,11 +135,6 @@ export class NotificationGateway
         this.logger.debug(`Subscribed client to user ${userId}`);
     }
 
-    /**
-     * Unsubscribes a client from a user's notification room.
-     *
-    
-     */
     private unsubscribeClient(userId: string, client: Socket) {
         const set = this.clients.get(userId);
         if (!set) return;
@@ -171,25 +147,10 @@ export class NotificationGateway
         }
     }
 
-    /**
-     * Retrieves the set of clients subscribed to the given user's notification room.
-     *
-     * If the user ID is not present in the clients map, an empty Set is returned.
-     *
-     * @param userId - The ID of the user to retrieve clients for.
-     * @returns A Set of client sockets subscribed to the user's notification room.
-     */
     public getClientsForUser(userId: string): Set<Socket> {
         return this.clients.get(userId) || new Set();
     }
 
-    /**
-     * Calculates the delay in milliseconds between the current time and the given
-     * publish date.
-     * If the publish date is in the past, the delay is set to 0.
-     * @param publishAt - The date to calculate the delay for.
-     * @returns The calculated delay in milliseconds.
-     */
     public getDelay(publishAt: Date): number {
         const delay = publishAt.getTime() - Date.now();
         return delay > 0 ? delay : 0;
@@ -243,6 +204,7 @@ export class NotificationGateway
         this.logger.debug("Received ping from client");
         client.emit("pong");
     }
+
     @SubscribeMessage("Community_CREATE")
     handlePong(client: Socket) {
         this.logger.debug("Received pong from client");
@@ -254,20 +216,79 @@ export class NotificationGateway
         client.broadcast.emit(purpose, {});
     }
 
-    // ------listen create community----------------
+    // ==================== HELPER METHOD: Save Notifications to Database ====================
+    private async saveNotificationToDatabase(
+        recipients: Array<{ id: string; email: string }>,
+        type: NotificationType,
+        title: string,
+        message: string,
+        entityId: string | null,
+        metadata: any,
+    ): Promise<void> {
+        try {
+            // Create notification and UserNotification for each recipient
+            const notificationPromises = recipients.map(async (recipient) => {
+                // Create the notification
+                const notification = await this.prisma.notification.create({
+                    data: {
+                        userId: recipient.id,
+                        type: type,
+                        title: title,
+                        message: message,
+                        entityId: entityId,
+                        read: false,
+                        metadata: metadata,
+                    },
+                });
 
+                // Create UserNotification entry
+                await this.prisma.userNotification.create({
+                    data: {
+                        userId: recipient.id,
+                        notificationId: notification.id,
+                        read: false,
+                    },
+                });
+
+                this.logger.log(
+                    `✓ Saved notification to DB for user ${recipient.id} (${recipient.email})`,
+                );
+
+                return notification;
+            });
+
+            await Promise.all(notificationPromises);
+            this.logger.log(`✓ All notifications saved to database for ${recipients.length} users`);
+        } catch (error) {
+            this.logger.error(`Failed to save notifications to database: ${error}`);
+            throw error;
+        }
+    }
+
+    // ==================== COMMUNITY CREATE ====================
     @OnEvent(EVENT_TYPES.COMMUNITY_CREATE)
     async handlCommnityCreated(payload: Community) {
         this.logger.log("COMMUNITY_CREATE EVENT RECEIVED");
         this.logger.log(`Payload: ${JSON.stringify(payload, null, 2)}`);
 
         if (!payload.info?.recipients?.length) {
-            this.logger.warn("No recipients in payload → skipping emit");
+            this.logger.warn("No recipients in payload → skipping");
             return;
         }
 
         this.logger.log(`Found ${payload.info.recipients.length} recipient(s)`);
 
+        // 1. SAVE TO DATABASE FIRST
+        await this.saveNotificationToDatabase(
+            payload.info.recipients,
+            NotificationType.community,
+            payload.info.title,
+            payload.info.message,
+            payload.meta?.communityId || null,
+            payload.meta,
+        );
+
+        // 2. SEND REAL-TIME NOTIFICATIONS VIA WEBSOCKET
         for (const r of payload.info.recipients) {
             this.logger.log(`--- Processing recipient: ${r.id} (${r.email}) ---`);
 
@@ -279,20 +300,16 @@ export class NotificationGateway
                 continue;
             }
 
-            const client = Array.from(clients).find((c) => c.data.user?.ngo === true);
+            const client = Array.from(clients).find((c) => c.data.user?.community === true);
 
             if (!client) {
                 this.logger.warn(
                     `  User ${r.id} has socket but community toggle = false or missing`,
                 );
-                this.logger.debug(
-                    `  client.data.user: ${JSON.stringify(Array.from(clients)[0].data.user)}`,
-                );
                 continue;
             }
 
             this.logger.log(`  Sending notification to socket ${client.id}`);
-            this.logger.log(`  User toggle: ngo = ${client.data.user?.ngo}`);
 
             client.emit(EVENT_TYPES.COMMUNITY_CREATE, {
                 type: EVENT_TYPES.COMMUNITY_CREATE,
@@ -308,19 +325,30 @@ export class NotificationGateway
         this.logger.log("COMMUNITY_CREATE processing complete");
     }
 
-    // ------listen create ngo----------------
+    // ==================== NGO CREATE ====================
     @OnEvent(EVENT_TYPES.NGO_CREATE)
     async handleNgoCreated(payload: Ngo) {
         this.logger.log("NGO_CREATE EVENT RECEIVED");
         this.logger.log(`Payload: ${JSON.stringify(payload, null, 2)}`);
 
         if (!payload.info?.recipients?.length) {
-            this.logger.warn("No recipients in payload → skipping emit");
+            this.logger.warn("No recipients in payload → skipping");
             return;
         }
 
         this.logger.log(`Found ${payload.info.recipients.length} recipient(s)`);
 
+        // 1. SAVE TO DATABASE
+        await this.saveNotificationToDatabase(
+            payload.info.recipients,
+            NotificationType.ngo,
+            payload.info.title,
+            payload.info.message,
+            payload.meta?.ngoId || null,
+            payload.meta,
+        );
+
+        // 2. SEND REAL-TIME NOTIFICATIONS
         for (const r of payload.info.recipients) {
             this.logger.log(`--- Processing recipient: ${r.id} (${r.email}) ---`);
 
@@ -336,14 +364,10 @@ export class NotificationGateway
 
             if (!client) {
                 this.logger.warn(`  User ${r.id} has socket but ngo toggle = false or missing`);
-                this.logger.debug(
-                    `  client.data.user: ${JSON.stringify(Array.from(clients)[0].data.user)}`,
-                );
                 continue;
             }
 
             this.logger.log(`  Sending notification to socket ${client.id}`);
-            this.logger.log(`  User toggle: ngo = ${client.data.user?.ngo}`);
 
             client.emit(EVENT_TYPES.NGO_CREATE, {
                 type: EVENT_TYPES.NGO_CREATE,
@@ -353,13 +377,13 @@ export class NotificationGateway
                 meta: payload.meta,
             } satisfies Notification);
 
-            this.logger.log(`EMIT SUCCESS → ngo.create sent to user ${r.id}`);
+            this.logger.log(`EMIT SUCCESS → NGO_CREATE sent to user ${r.id}`);
         }
 
         this.logger.log("NGO_CREATE processing complete");
     }
-    // ------listen create post----------------
 
+    // ==================== POST CREATE ====================
     @OnEvent(EVENT_TYPES.POST_CREATE)
     async handlePostCreated(payload: PostEvent) {
         this.logger.log("POST_CREATE EVENT RECEIVED");
@@ -372,6 +396,17 @@ export class NotificationGateway
 
         this.logger.log(`Sending to ${payload.info.recipients.length} follower(s)`);
 
+        // 1. SAVE TO DATABASE
+        await this.saveNotificationToDatabase(
+            payload.info.recipients,
+            NotificationType.Post,
+            payload.info.title,
+            payload.info.message,
+            payload.meta?.postId || null,
+            payload.meta,
+        );
+
+        // 2. SEND REAL-TIME NOTIFICATIONS
         for (const r of payload.info.recipients) {
             const clients = this.getClientsForUser(r.id);
 
@@ -380,8 +415,6 @@ export class NotificationGateway
                 continue;
             }
 
-            // The toggle check is already done in the service,
-            // but we double-check the socket payload just in case.
             const client = Array.from(clients).find((c) => c.data.user?.post === true);
             if (!client) {
                 this.logger.debug(`User ${r.id} has socket but post toggle = false`);
@@ -403,6 +436,7 @@ export class NotificationGateway
         this.logger.log("POST_CREATE processing complete");
     }
 
+    // ==================== CUSTOM CREATE ====================
     @OnEvent(EVENT_TYPES.CUSTOM_CREATE)
     async handleCustomCreated(payload: Custom) {
         this.logger.log("CUSTOM_CREATE EVENT RECEIVED");
@@ -413,6 +447,17 @@ export class NotificationGateway
             return;
         }
 
+        // 1. SAVE TO DATABASE
+        await this.saveNotificationToDatabase(
+            payload.info.recipients,
+            NotificationType.Custom,
+            payload.info.title,
+            payload.info.message,
+            null,
+            payload.meta,
+        );
+
+        // 2. SEND REAL-TIME NOTIFICATIONS
         for (const r of payload.info.recipients) {
             const clients = this.getClientsForUser(r.id);
 
@@ -440,8 +485,7 @@ export class NotificationGateway
         }
     }
 
-    // -------------------------- END LISTENERS --------------------------
-
+    // ==================== CAP LEVEL CREATE ====================
     @OnEvent(EVENT_TYPES.CAPLEVEL_CREATE)
     async handleCapLevelCreated(payload: CapLevelEvent) {
         this.logger.log("CAPLEVEL_CREATE EVENT RECEIVED");
@@ -454,6 +498,17 @@ export class NotificationGateway
 
         this.logger.log(`Sending to ${payload.info.recipients.length} recipient(s)`);
 
+        // 1. SAVE TO DATABASE
+        await this.saveNotificationToDatabase(
+            payload.info.recipients,
+            NotificationType.capLevel,
+            payload.info.title,
+            payload.info.message,
+            payload.meta?.postId || null,
+            payload.meta,
+        );
+
+        // 2. SEND REAL-TIME NOTIFICATIONS
         for (const r of payload.info.recipients) {
             const clients = this.getClientsForUser(r.id);
 
