@@ -5,7 +5,6 @@ import { RealTimeCallService } from "./realtime-call.service";
 export class RealTimeCallController {
     constructor(private readonly callService: RealTimeCallService) {}
 
-    // ✅ Check from Postman
     @Get(":callId/status")
     async getCallStatus(@Param("callId") callId: string) {
         return this.callService.getCallStatus(callId);
