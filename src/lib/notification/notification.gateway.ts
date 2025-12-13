@@ -281,7 +281,7 @@ export class NotificationGateway
         // 1. SAVE TO DATABASE FIRST
         await this.saveNotificationToDatabase(
             payload.info.recipients,
-            NotificationType.community,
+            NotificationType.CAP_UPGRADE,
             payload.info.title,
             payload.info.message,
             payload.meta?.communityId || null,
@@ -341,7 +341,7 @@ export class NotificationGateway
         // 1. SAVE TO DATABASE
         await this.saveNotificationToDatabase(
             payload.info.recipients,
-            NotificationType.ngo,
+            NotificationType.CAP_UPGRADE,
             payload.info.title,
             payload.info.message,
             payload.meta?.ngoId || null,
@@ -399,7 +399,7 @@ export class NotificationGateway
         // 1. SAVE TO DATABASE
         await this.saveNotificationToDatabase(
             payload.info.recipients,
-            NotificationType.Post,
+            NotificationType.CAP_UPGRADE,
             payload.info.title,
             payload.info.message,
             payload.meta?.postId || null,
@@ -450,7 +450,7 @@ export class NotificationGateway
         // 1. SAVE TO DATABASE
         await this.saveNotificationToDatabase(
             payload.info.recipients,
-            NotificationType.Custom,
+            NotificationType.CAP_UPGRADE,
             payload.info.title,
             payload.info.message,
             null,
@@ -501,7 +501,7 @@ export class NotificationGateway
         // 1. SAVE TO DATABASE
         await this.saveNotificationToDatabase(
             payload.info.recipients,
-            NotificationType.capLevel,
+            NotificationType.CAP_UPGRADE,
             payload.info.title,
             payload.info.message,
             payload.meta?.postId || null,
