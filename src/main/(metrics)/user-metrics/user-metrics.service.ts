@@ -16,28 +16,4 @@ export class UserMetricsService {
         if (!metrics) throw new NotFoundException("User metrics not found");
         return metrics;
     }
-
-    // async updateMetrics(dto: UpdateUserMetricsDto) {
-    //     const metrics = await this.repo.findByUserId(dto.userId);
-    //     if (!metrics) {
-    //         await this.repo.createDefault(dto.userId);
-    //     }
-    //     return this.repo.updateMetrics(dto);
-    // }
-
-    // async calculateActivityScore({ userId }: CalculateActivityScoreDto) {
-    //     const metrics = await this.repo.findByUserId(userId);
-    //     if (!metrics) throw new NotFoundException("User metrics not found");
-
-    //     // Activity scoring algorithm (from CAP System)
-    //     const score =
-    //         metrics.totalPosts * 5 +
-    //         metrics.totalComments * 2 +
-    //         metrics.totalLikes * 1 +
-    //         metrics.totalShares * 3 +
-    //         metrics.totalFollowers * 0.5 +
-    //         metrics.volunteerHours * 10;
-
-    //     return this.repo.updateActivityScore(userId, score);
-    // }
 }
