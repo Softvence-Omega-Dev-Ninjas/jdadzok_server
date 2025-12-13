@@ -33,6 +33,9 @@ export class ProductService {
         if (!activityTable) {
             throw new BadRequestException("Activity data not found");
         }
+        if (user.stripeAccountId === null) {
+            throw new ForbiddenException("Seller Need To Add Stripe Account First");
+        }
 
         // Create product
         const { categoryId, ...rest } = dto;
