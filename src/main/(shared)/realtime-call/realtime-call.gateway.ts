@@ -68,7 +68,9 @@ export class RealTimeCallGateway implements OnGatewayConnection, OnGatewayDiscon
             data.title,
         );
 
-        const receiverSocket = this.users.get(data.recipientUserId);
+       const receiverSocket = this.users.get(data.recipientUserId);
+       console.log("Attempting to get recipient socket:", data.recipientUserId, receiverSocket);
+
 
         if (receiverSocket) {
             await this.callService.markRinging(call.id);
