@@ -14,21 +14,13 @@ enum AuthProvider {
 }
 
 enum CallStatus {
-  CALLING    // Call initiated, ringing
-  ACTIVE     // Call in progress
-  ENDED      // Call completed normally
-  CANCELLED  // Caller cancelled before answer
-  MISSED     // Recipient didn't answer
-  DECLINED   // Recipient declined
+  CALLING
+  RINING
+  ACTIVE
+  END
+  MISSED
+  DECLINED
 }
-// enum CallStatus {
-//   CALLING
-//   ACTIVE
-//   ENDED
-//   CANCELLED
-//   MISSED
-//   DECLINED
-// }
 
 enum CallType {
   AUDIO
@@ -154,20 +146,12 @@ enum NotificationType {
   SHARE
   MENTION
   EARNINGS
-  capLevel
-  community
-  comment
-  userRegistration
-  ngo
-  Custom
-  message
-  Post
 }
 
 enum OrderStatus {
   PENDING
   PAID
-  SHIPPED
+   SHIPPED
   DELIVERED
   CANCELLED
   REFUNDED
