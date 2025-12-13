@@ -5,6 +5,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { Cache } from "cache-manager";
 import { CallGateway } from "../calling.gateway";
+import { CallStatus } from "@prisma/client";
 
 export interface Participant {
     socketId: string;
@@ -24,6 +25,8 @@ export interface CallRoom {
     createdAt: Date;
     updatedAt: Date;
 }
+
+const END_STATUSES = new Set<CallStatus>([CallStatus.END, CallStatus.MISSED, CallStatus.DECLINED]);
 
 @Injectable()
 export class CallService {
@@ -227,7 +230,7 @@ export class CallService {
         }
 
         // Update status
-        await this.updateCallStatus(callId, "CANCELLED");
+        await this.updateCallStatus(callId, CallStatus.END);
 
         // Clean up cache
         await this.cacheManager.del(cacheKey);
@@ -409,7 +412,7 @@ export class CallService {
         }
 
         // Update database
-        await this.updateCallStatus(callId, "ENDED");
+        await this.updateCallStatus(callId, "END");
 
         this.logger.log(`Call ${callId} ended`);
     }
@@ -417,25 +420,22 @@ export class CallService {
     /**
      * Update call status in database
      */
-    async updateCallStatus(
-        callId: string,
-        status: "CALLING" | "ACTIVE" | "ENDED" | "CANCELLED" | "MISSED" | "DECLINED",
-    ): Promise<void> {
+
+    async updateCallStatus(callId: string, status: CallStatus): Promise<void> {
         try {
+            const shouldEndCall = END_STATUSES.has(status);
+
             await this.prisma.calling.update({
                 where: { id: callId },
                 data: {
                     status,
-                    endedAt: ["ENDED", "CANCELLED", "MISSED", "DECLINED"].includes(status)
-                        ? new Date()
-                        : undefined,
+                    ...(shouldEndCall && { endedAt: new Date() }),
                 },
             });
         } catch (error) {
             this.logger.error(`Failed to update call status: ${error.message}`);
         }
     }
-
     /**
      * Get call room
      */
