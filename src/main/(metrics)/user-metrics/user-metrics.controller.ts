@@ -24,21 +24,4 @@ export class UserMetricsController {
     async getUserMetricsById(@Param("userId") userId: string) {
         return this.service.getUserMetricsById(userId);
     }
-
-    // @ApiOperation({ summary: "Update user activity metrics" })
-    // @ApiResponse({ status: 200, type: UserMetricsResponseDto })
-    // @Put("update")
-    // async updateUserMetrics(
-    //     @GetVerifiedUser() user: VerifiedUser,
-    //     @Body() dto: UpdateUserMetricsDto,
-    // ) {
-    //     return this.service.updateMetrics({ ...dto, userId: user.id });
-    // }
-
-    // @ApiOperation({ summary: "Recalculate user activity score" })
-    // @ApiResponse({ status: 200, type: UserMetricsResponseDto })
-    // @Post("activity-score")
-    // async calculateActivityScore(@Body() dto: CalculateActivityScoreDto) {
-    //     return this.service.calculateActivityScore(dto);
-    // }
 }
