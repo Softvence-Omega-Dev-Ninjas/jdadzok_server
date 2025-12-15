@@ -18,7 +18,7 @@ export class RealTimeCallGateway implements OnGatewayConnection, OnGatewayDiscon
     @WebSocketServer()
     server: Server;
 
-    private users = new Map<string, string>(); 
+    private users = new Map<string, string>();
 
     constructor(private readonly callService: RealTimeCallService) {}
 
@@ -69,6 +69,7 @@ export class RealTimeCallGateway implements OnGatewayConnection, OnGatewayDiscon
         );
 
         const receiverSocket = this.users.get(data.recipientUserId);
+        console.log("Attempting to get recipient socket:", data.recipientUserId, receiverSocket);
 
         if (receiverSocket) {
             await this.callService.markRinging(call.id);
