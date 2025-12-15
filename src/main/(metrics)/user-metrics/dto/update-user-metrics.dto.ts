@@ -1,56 +1,37 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsOptional, IsUUID, Min } from "class-validator";
+import { IsEnum, IsOptional } from "class-validator";
 
-export class UpdateUserMetricsDto {
-    @ApiProperty({ example: "uuid-of-user", description: "User ID" })
-    @IsUUID()
-    userId: string;
+export enum MetricsType {
+    POST = "post",
+    LIKE = "like",
+    COMMENT = "comment",
+    SHARE = "share",
+    FOLLOWER = "follower",
+}
 
-    @ApiProperty({ example: 1, required: false })
+export enum MetricsRange {
+    DAYS_7 = "7d",
+    MONTH_1 = "1m",
+    MONTH_6 = "6m",
+    YEAR_1 = "1y",
+}
+
+export class UserMetricsFilterDto {
+    @ApiProperty({
+        enum: MetricsType,
+        required: false,
+        example: MetricsType.POST,
+    })
     @IsOptional()
-    @IsInt()
-    @Min(0)
-    totalPosts?: number;
+    @IsEnum(MetricsType)
+    type?: MetricsType;
 
-    @ApiProperty({ example: 10, required: false })
+    @ApiProperty({
+        enum: MetricsRange,
+        required: false,
+        example: MetricsRange.DAYS_7,
+    })
     @IsOptional()
-    @IsInt()
-    @Min(0)
-    totalComments?: number;
-
-    @ApiProperty({ example: 15, required: false })
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    totalLikes?: number;
-
-    @ApiProperty({ example: 5, required: false })
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    totalShares?: number;
-
-    @ApiProperty({ example: 20, required: false })
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    totalFollowers?: number;
-
-    @ApiProperty({ example: 8, required: false })
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    totalFollowing?: number;
-
-    @ApiProperty({ example: 5, required: false })
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    volunteerHours?: number;
-
-    @ApiProperty({ example: 1, required: false })
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    completedProjects?: number;
+    @IsEnum(MetricsRange)
+    range?: MetricsRange;
 }
