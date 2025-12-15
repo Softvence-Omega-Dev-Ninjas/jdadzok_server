@@ -157,4 +157,15 @@ export class ChatController {
 
         return { users };
     }
+    // ---------------- two user id & get chat id----------------
+    @Get("chat/:otherUserId")
+    @ValidateAuth()
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Get or create a private chat with another user" })
+    async getOrCreatePrivateChatId(
+        @GetUser("userId") userId: string,
+        @Param("otherUserId") otherUserId: string,
+    ) {
+        return this.chatService.getOrCreatePrivateChatId(userId, otherUserId);
+    }
 }
