@@ -1,6 +1,7 @@
 import { PrismaService } from "@lib/prisma/prisma.service";
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
+import { HandleError } from "@common/error/handle-error.decorator";
 import { LiveChat } from "@prisma/client";
 import { CreateMessageDto } from "./dto/create.message.dto";
 
@@ -9,6 +10,7 @@ export class ChatService {
     constructor(private prisma: PrismaService) {}
 
     /** Find or create 1-to-1 chat */
+    @HandleError("Failed to get or create chat", "chat")
     async getOrCreatePrivateChat(userA: string, userB: string): Promise<LiveChat> {
         const existing = await this.prisma.liveChat.findFirst({
             where: {
@@ -88,6 +90,7 @@ export class ChatService {
     }
 
     /** Get chat by ID with verification */
+    @HandleError("Failed to get chat", "chat")
     async getChatById(chatId: string, userId: string) {
         const chat = await this.prisma.liveChat.findUnique({
             where: { id: chatId },
@@ -132,6 +135,7 @@ export class ChatService {
     }
 
     /**------------- Send message---------------------------- */
+    @HandleError("Failed to send message", "message")
     async createMessage(senderId: string, chatId: string, dto: CreateMessageDto) {
         // Verify sender is participant
         const chat = await this.prisma.liveChat.findUnique({
@@ -188,6 +192,7 @@ export class ChatService {
     }
 
     /** ----------Mark message as read------------------ */
+    @HandleError("Failed to mark message as read", "message")
     async markRead(messageId: string, userId: string) {
         const message = await this.prisma.liveMessage.findUnique({
             where: { id: messageId },
@@ -216,6 +221,7 @@ export class ChatService {
     }
 
     /** List my private chats with last message & unread count */
+    @HandleError("Failed to get my chats", "chat")
     async getMyChats(userId: string) {
         const chats = await this.prisma.liveChat.findMany({
             where: {
@@ -276,6 +282,7 @@ export class ChatService {
     }
 
     /** Get paginated messages for a chat */
+    @HandleError("Failed to get messages", "chat")
     async getMessages(chatId: string) {
         const messages = await this.prisma.liveMessage.findMany({
             where: { chatId },
@@ -303,6 +310,7 @@ export class ChatService {
     }
 
     /** Get unread message count for a specific chat */
+    @HandleError("Failed to get unread message count", "chat")
     async getUnreadCount(chatId: string, userId: string) {
         const count = await this.prisma.liveMessage.count({
             where: {
@@ -313,5 +321,48 @@ export class ChatService {
         });
 
         return { chatId, unreadCount: count };
+    }
+
+    // --------------------- getOrCreatePrivateChat-----------------------
+    @HandleError("Failed to get or create private chat", "chat")
+    async getOrCreatePrivateChatId(userId: string, otherUserId: string) {
+        // Find chats where userId is a participant
+        const chats = await this.prisma.liveChat.findMany({
+            where: {
+                type: "INDIVIDUAL",
+                participants: {
+                    some: { userId },
+                },
+            },
+            include: {
+                participants: {
+                    select: { userId: true },
+                },
+            },
+        });
+
+        // Find the chat with exactly these two users
+        const existingChat = chats.find((chat) => {
+            if (chat.participants.length !== 2) return false;
+            const ids = chat.participants.map((p) => p.userId).sort();
+            return (
+                ids[0] === [userId, otherUserId].sort()[0] &&
+                ids[1] === [userId, otherUserId].sort()[1]
+            );
+        });
+
+        if (existingChat) {
+            return existingChat;
+        }
+
+        // Create new chat
+        return await this.prisma.liveChat.create({
+            data: {
+                type: "INDIVIDUAL",
+                participants: {
+                    create: [{ userId }, { userId: otherUserId }],
+                },
+            },
+        });
     }
 }
