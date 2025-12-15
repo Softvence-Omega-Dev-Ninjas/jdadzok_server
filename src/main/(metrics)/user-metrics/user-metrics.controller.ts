@@ -1,9 +1,9 @@
-import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { VerifiedUser } from "@type/index";
-import { UserMetricsResponseDto } from "./dto/user-metrics-response.dto";
 import { UserMetricsService } from "./user-metrics.service";
+import { GetVerifiedUser } from "@common/jwt/jwt.decorator";
+import { VerifiedUser } from "@type/shared.types";
+import { UserMetricsFilterDto } from "./dto/update-user-metrics.dto";
 
 @ApiBearerAuth()
 @ApiTags("User Metrics")
@@ -11,17 +11,23 @@ import { UserMetricsService } from "./user-metrics.service";
 export class UserMetricsController {
     constructor(private readonly service: UserMetricsService) {}
 
-    @ApiOperation({ summary: "Get user metrics summary" })
-    @ApiResponse({ status: 200, type: UserMetricsResponseDto })
+    @ApiOperation({ summary: "Get logged-in user metrics (with filter)" })
+    @ApiResponse({ status: 200 })
     @Get()
-    async getUserMetrics(@GetVerifiedUser() user: VerifiedUser) {
-        return this.service.getUserMetrics(user.id);
+    async getUserMetrics(
+        @GetVerifiedUser() user: VerifiedUser,
+        @Query() filter: UserMetricsFilterDto,
+    ) {
+        return this.service.getUserMetrics(user.id, filter);
     }
 
-    @ApiOperation({ summary: "Get metrics of another user by ID" })
-    @ApiResponse({ status: 200, type: UserMetricsResponseDto })
+    @ApiOperation({ summary: "Get another user metrics by ID (with filter)" })
+    @ApiResponse({ status: 200 })
     @Get(":userId")
-    async getUserMetricsById(@Param("userId") userId: string) {
-        return this.service.getUserMetricsById(userId);
+    async getUserMetricsById(
+        @Param("userId") userId: string,
+        @Query() filter: UserMetricsFilterDto,
+    ) {
+        return this.service.getUserMetrics(userId, filter);
     }
 }
