@@ -567,7 +567,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 status: result.status,
                 recipientUserId: payload.userId,
                 callerSocketId: callerSocketId,
-                recipientSocketId: recipientSocketId, // Recipient's socket ID (or null if offline)
+                recipientSocketId: recipientSocketId,
             });
 
             // If recipient is offline, notify caller immediately

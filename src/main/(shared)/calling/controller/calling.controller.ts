@@ -1,4 +1,5 @@
 // src/call/controller/call.controller.ts
+import { GetUser, ValidateAuth } from "@common/jwt/jwt.decorator";
 import {
     Body,
     Controller,
@@ -11,7 +12,6 @@ import {
     UnauthorizedException,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { GetUser, ValidateAuth } from "@common/jwt/jwt.decorator";
 import { CallGateway } from "../calling.gateway";
 import {
     AcceptCallDto,
@@ -46,7 +46,7 @@ export class CallController {
     }
 
     /**
-     * Accept an incoming call
+      Accept an incoming call
      */
     @Post("accept")
     @ValidateAuth()
@@ -63,7 +63,7 @@ export class CallController {
     }
 
     /**
-     * Decline an incoming call
+      Decline an incoming call
      */
     @Post("decline")
     @ValidateAuth()
@@ -75,7 +75,7 @@ export class CallController {
     }
 
     /**
-     * Cancel an outgoing call (before it's answered)
+      Cancel an outgoing call (before it's answered)
      */
     @Post("cancel")
     @ValidateAuth()
@@ -87,7 +87,7 @@ export class CallController {
     }
 
     /**
-     * Get call details by ID
+      Get call details by ID
      */
     @ValidateAuth()
     @ApiBearerAuth()
@@ -111,7 +111,7 @@ export class CallController {
     }
 
     /**
-     * Get active participants in a call room
+      Get active participants in a call room
      */
     @ValidateAuth()
     @ApiBearerAuth()
@@ -189,7 +189,7 @@ export class CallController {
     }
 
     /**
-     * End a call (host or participant can end)
+      End a call (host or participant can end)
      */
     @ValidateAuth()
     @ApiBearerAuth()
