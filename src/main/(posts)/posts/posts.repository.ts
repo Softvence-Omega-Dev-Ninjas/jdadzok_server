@@ -122,79 +122,12 @@ export class PostRepository {
         });
     }
 
-    // async findAll(
-    //     options?: PostQueryDto,
-    //     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-    //     p0?: {
-    //         id: boolean;
-    //         mediaUrls: boolean;
-    //         text: boolean;
-    //         metadata: boolean;
-    //         author: {
-    //             select: {
-    //                 id: boolean;
-    //                 email: boolean;
-    //                 profile: { select: { avatarUrl: boolean; name: boolean } };
-    //             };
-    //         };
-    //         likes: boolean;
-    //         shares: boolean;
-    //         createdAt: boolean;
-    //     },
-    // ) {
-    //     const limit = options?.limit ?? 10;
-
-    //     const posts = await this.prisma.post.findMany({
-    //         take: limit + 1,
-    //         ...(options?.cursor ? { skip: 1, cursor: { id: options.cursor } } : {}),
-    //         orderBy: { createdAt: "desc" },
-    //         include: {
-    //             author: {
-    //                 include: {
-    //                     profile: { select: { name: true, avatarUrl: true } },
-    //                 },
-    //             },
-    //             likes: true,
-    //             shares: true,
-    //             metadata: true,
-    //         },
-    //     });
-
-    //     let nextCursor: string | undefined;
-    //     if (posts.length > limit) {
-    //         const nextItem = posts.pop();
-    //         nextCursor = nextItem?.id;
-    //     }
-
-    //     // Flatten author.profile into author
-    //     const formattedPosts = posts.map((post) => ({
-    //         ...post,
-    //         author: {
-    //             id: post.author.id,
-    //             email: post.author.email,
-    //             name: post.author.profile?.name ?? "Unknown",
-    //             avatarUrl:
-    //                 post.author.profile?.avatarUrl ?? "https://example.com/default-avatar.png",
-    //         },
-    //     }));
-
-    //     return {
-    //         data: formattedPosts,
-    //         metadata: {
-    //             nextCursor,
-    //             limit,
-    //             length: posts.length,
-    //         },
-    //     };
-    // }
-
     async update(id: string, data: UpdatePostDto) {
         return await this.prisma.$transaction(async (tx) => {
             const { metadata, ...input } = data;
             let updatedMetadataId = input.metadataId;
 
             if (metadata) {
-                // Update or create metadata if it exists in the DTO
                 updatedMetadataId = await this.updateOrCreateMetadata(
                     tx,
                     input.metadataId!,
@@ -333,31 +266,26 @@ export class PostRepository {
         metadataId: string | undefined,
         originalPostId: string,
     ): Promise<void> {
-        const tags = await Promise.all(
-            taggedUserIds.map(async (userId) => {
-                const exist = await this.userRepo.findById(userId);
-                if (!exist) throw new NotFoundException("User id not found with the tagged user");
+        if (taggedUserIds.includes(input.authorId!)) {
+            throw new ConflictException("You can not tag yourself");
+        }
 
-                // creator can't make tager user itself
-                if (taggedUserIds.includes(input.authorId!))
-                    throw new ConflictException("You can not tag yourself");
+        const users = await tx.user.findMany({
+            where: { id: { in: taggedUserIds } },
+            select: { id: true },
+        });
 
-                await tx.post.create({
-                    data: {
-                        ...input,
-                        authorId: userId,
-                        metadataId,
-                    },
-                });
+        if (users.length !== taggedUserIds.length) {
+            throw new NotFoundException("One or more tagged users not found");
+        }
 
-                return {
-                    postId: originalPostId,
-                    userId,
-                };
-            }),
-        );
-
-        await this.tagsRepo.txStore(tx, tags);
+        await tx.postTagUser.createMany({
+            data: taggedUserIds.map((userId) => ({
+                postId: originalPostId,
+                userId,
+            })),
+            skipDuplicates: true,
+        });
     }
 
     private async cleanupMetadata(tx: HelperTx, metadataId: string): Promise<void> {
