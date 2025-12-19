@@ -36,6 +36,7 @@ export class UserProfileRepository {
             },
         });
     }
+
     async update(userId: string, input: CreateUserProfileDto) {
         return await this.prisma.$transaction(async (tx) => {
             const user = await tx.user.findFirst({
@@ -56,6 +57,7 @@ export class UserProfileRepository {
             });
         });
     }
+
     async delete(userId: string) {
         return await this.prisma.$transaction(async (tx) => {
             const profile = await tx.profile.findFirst({ where: { userId } });
@@ -91,6 +93,7 @@ export class UserProfileRepository {
             },
         });
     }
+
     async updateUserProfile(userId: string, data: CreateUserProfileDto) {
         // Check if username is taken by another user
         if (data.username) {
@@ -128,5 +131,23 @@ export class UserProfileRepository {
             },
             include: { profile: true },
         });
+    }
+
+    async getUserProfile(userId: string, id: string) {
+        const presentUser = await this.prisma.user.findFirst({ where: { id: userId } });
+        if (!presentUser) {
+            throw new BadRequestException("Forbiden Access");
+        }
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            include: {
+                profile: true,
+                about: true,
+            },
+        });
+        if (!user) {
+            throw new NotFoundException("User Is Not Found");
+        }
+        return user;
     }
 }

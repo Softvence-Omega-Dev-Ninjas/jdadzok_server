@@ -13,4 +13,8 @@ export class UserProfileService {
     async updateUserProfile(userId: string, data: CreateUserProfileDto) {
         return await this.profileRepository.updateUserProfile(userId, data);
     }
+
+    async getUserProfile(userId: string, id: string) {
+        return await this.profileRepository.getUserProfile(userId, id);
+    }
 }
