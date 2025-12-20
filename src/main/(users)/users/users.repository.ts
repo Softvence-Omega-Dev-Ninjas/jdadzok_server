@@ -121,6 +121,7 @@ export class UserRepository {
     }
 
     async update(id: string, data: UpdateUserDto) {
+        console.log(data);
         const { profile, ...rest } = data;
 
         await this.prisma.user.update({
