@@ -99,6 +99,20 @@ export class PostService {
                     likes: true,
                     shares: true,
                     metadata: true,
+                    taggedUsers: {
+                        select: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    profile: {
+                                        select: {
+                                            name: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
             }),
 
