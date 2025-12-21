@@ -3,7 +3,7 @@ import { JWTPayload } from "@common/jwt/jwt.interface";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import * as bcrypt from "argon2";
+import * as argon2 from "argon2"; // 🔴 name FIXED
 import { plainToInstance } from "class-transformer";
 
 @Injectable()
@@ -20,14 +20,18 @@ export class UtilsService {
     removeDuplicateIds(ids: string[]) {
         return Array.from(new Set(ids));
     }
-
-    // * AUTH UTILS
     async hash(value: string): Promise<string> {
-        return bcrypt.hash(value);
+        return argon2.hash(value, {
+            type: argon2.argon2id,
+        });
     }
 
-    async compare(hash: string, value: string): Promise<boolean> {
-        return bcrypt.verify(hash, value);
+    async compare(plainPassword: string, hashedPassword: string): Promise<boolean> {
+        if (!hashedPassword.startsWith("$argon2")) {
+            throw new Error("Stored password is not a valid argon2 hash");
+        }
+
+        return argon2.verify(hashedPassword, plainPassword);
     }
 
     generateToken(payload: JWTPayload): string {

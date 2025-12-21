@@ -16,12 +16,13 @@ import {
 } from "@nestjs/common";
 import { JwtServices } from "@service/jwt.service";
 import { TUser } from "@type/index";
-import { omit } from "@utils/index";
 import { Queue } from "bullmq";
 import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { VerifyTokenDto } from "./dto/verify-token.dto";
+import { ChangedPasswordDto } from "./dto/change.password.dto";
+import { PrismaService } from "@lib/prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
@@ -32,20 +33,19 @@ export class AuthService {
         private readonly jwtService: JwtServices,
         private readonly mailService: MailService,
         private readonly otpService: OptService,
+        private readonly prisma: PrismaService,
     ) {}
 
     async login(input: LoginDto) {
-        // email must need to be end with @gmail.com
         if (!input.email.endsWith("@gmail.com"))
             throw new BadRequestException("Email must end with @gmail.com");
 
         const user = await this.userRepository.findByEmail(input.email);
         if (!user) throw new NotFoundException("User not found, Please sign up first");
-
         if (!user.isVerified) throw new UnauthorizedException("Please verify your account first");
-        // compoare password if auth provider is email
+
         if (user.authProvider === "EMAIL" && user.password) {
-            const isMatch = await this.utilsService.compare(user.password, input.password!);
+            const isMatch = await this.utilsService.compare(input.password!, user.password);
             if (!isMatch) throw new ForbiddenException("Email or Password Invalid!");
         }
 
@@ -54,13 +54,23 @@ export class AuthService {
             roles: user.role,
             email: user.email,
         });
+        const safeUser = {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            isVerified: user.isVerified,
+            capLevel: user.capLevel,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            stripeAccountId: user.stripeAccountId,
+            stripeCustomerId: user.stripeCustomerId,
+        };
 
         return {
             accessToken,
-            user: omit(user, ["password"]),
+            user: safeUser,
         };
     }
-
     async forgetPassword(input: ForgetPasswordDto) {
         // email must need to be end with @gmail.com
         if (!input.email.endsWith("@gmail.com"))
@@ -127,6 +137,45 @@ export class AuthService {
         });
         await this.otpService.delete({ type: "RESET_PASSWORD", userId: user.id });
         return updatedUser;
+    }
+
+    async changedPassword(userId: string, dto: ChangedPasswordDto) {
+        const { currentPassword, newPassword } = dto;
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        if (!user.password) {
+            throw new BadRequestException("Password not set for this account");
+        }
+
+        const isValid = await this.utilsService.compare(currentPassword, user.password);
+
+        if (!isValid) {
+            throw new BadRequestException("Current password is incorrect");
+        }
+
+        const isSame = await this.utilsService.compare(newPassword, user.password);
+
+        if (isSame) {
+            throw new BadRequestException("New password cannot be same as current password");
+        }
+
+        const hash = await this.utilsService.hash(newPassword);
+
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { password: hash },
+        });
+
+        return {
+            message: "Password changed successfully",
+        };
     }
 
     async logout(email: string) {
