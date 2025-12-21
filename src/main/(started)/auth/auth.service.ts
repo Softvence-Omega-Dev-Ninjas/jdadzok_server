@@ -22,6 +22,8 @@ import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { VerifyTokenDto } from "./dto/verify-token.dto";
+import { ChangedPasswordDto } from "./dto/change.password.dto";
+import { PrismaService } from "@lib/prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
@@ -32,6 +34,7 @@ export class AuthService {
         private readonly jwtService: JwtServices,
         private readonly mailService: MailService,
         private readonly otpService: OptService,
+        private readonly prisma: PrismaService,
     ) {}
 
     async login(input: LoginDto) {
@@ -127,6 +130,45 @@ export class AuthService {
         });
         await this.otpService.delete({ type: "RESET_PASSWORD", userId: user.id });
         return updatedUser;
+    }
+
+    async changedPassword(userId: string, dto: ChangedPasswordDto) {
+        const { currentPassword, newPassword } = dto;
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        if (!user.password) {
+            throw new BadRequestException("Password not set for this account");
+        }
+
+        const isValid = await this.utilsService.compare(currentPassword, user.password);
+
+        if (!isValid) {
+            throw new BadRequestException("Current password is incorrect");
+        }
+
+        const isSame = await this.utilsService.compare(newPassword, user.password);
+
+        if (isSame) {
+            throw new BadRequestException("New password cannot be same as current password");
+        }
+
+        const hash = await this.utilsService.hash(newPassword);
+
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { password: hash },
+        });
+
+        return {
+            message: "Password changed successfully",
+        };
     }
 
     async logout(email: string) {

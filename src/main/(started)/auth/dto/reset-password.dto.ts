@@ -1,5 +1,5 @@
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
-import { IsString, IsUUID } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 
 class ResetPassword {
     @ApiProperty({
@@ -11,6 +11,7 @@ class ResetPassword {
     @ApiProperty({
         example: "pass123",
     })
+    @IsNotEmpty()
     @IsString()
     password: string;
 }
