@@ -16,7 +16,6 @@ import {
 } from "@nestjs/common";
 import { JwtServices } from "@service/jwt.service";
 import { TUser } from "@type/index";
-import { omit } from "@utils/index";
 import { Queue } from "bullmq";
 import { ForgetPasswordDto } from "./dto/forget.dto";
 import { LoginDto } from "./dto/login.dto";
@@ -38,17 +37,15 @@ export class AuthService {
     ) {}
 
     async login(input: LoginDto) {
-        // email must need to be end with @gmail.com
         if (!input.email.endsWith("@gmail.com"))
             throw new BadRequestException("Email must end with @gmail.com");
 
         const user = await this.userRepository.findByEmail(input.email);
         if (!user) throw new NotFoundException("User not found, Please sign up first");
-
         if (!user.isVerified) throw new UnauthorizedException("Please verify your account first");
-        // compoare password if auth provider is email
+
         if (user.authProvider === "EMAIL" && user.password) {
-            const isMatch = await this.utilsService.compare(user.password, input.password!);
+            const isMatch = await this.utilsService.compare(input.password!, user.password);
             if (!isMatch) throw new ForbiddenException("Email or Password Invalid!");
         }
 
@@ -57,13 +54,23 @@ export class AuthService {
             roles: user.role,
             email: user.email,
         });
+        const safeUser = {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            isVerified: user.isVerified,
+            capLevel: user.capLevel,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            stripeAccountId: user.stripeAccountId,
+            stripeCustomerId: user.stripeCustomerId,
+        };
 
         return {
             accessToken,
-            user: omit(user, ["password"]),
+            user: safeUser,
         };
     }
-
     async forgetPassword(input: ForgetPasswordDto) {
         // email must need to be end with @gmail.com
         if (!input.email.endsWith("@gmail.com"))

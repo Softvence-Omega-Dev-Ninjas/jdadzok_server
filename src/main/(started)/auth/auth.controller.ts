@@ -2,7 +2,16 @@ import { cookieHandler } from "@common/jwt/cookie.handler";
 import { GetVerifiedUser, MakePublic } from "@common/jwt/jwt.decorator";
 import { successResponse } from "@common/utils/response.util";
 import { ResentOtpDto } from "@module/(users)/users/dto/resent-otp.dto";
-import { Body, Controller, Post, Res, UsePipes, ValidationPipe } from "@nestjs/common";
+import {
+    Body,
+    ClassSerializerInterceptor,
+    Controller,
+    Post,
+    Res,
+    UseInterceptors,
+    UsePipes,
+    ValidationPipe,
+} from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { TUser, VerifiedUser } from "@type/index";
 import { Response } from "express";
@@ -17,6 +26,7 @@ import { ChangedPasswordDto } from "./dto/change.password.dto";
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
+    @UseInterceptors(ClassSerializerInterceptor)
     @MakePublic()
     @Post("login")
     @UsePipes(ValidationPipe)
