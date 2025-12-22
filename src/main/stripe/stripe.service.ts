@@ -99,6 +99,7 @@ export class StripeService {
             );
         }
     }
+
     async handleWebhook(rawBody: Buffer, signature: string) {
         try {
             const event: Stripe.Event = this.stripe.webhooks.constructEvent(

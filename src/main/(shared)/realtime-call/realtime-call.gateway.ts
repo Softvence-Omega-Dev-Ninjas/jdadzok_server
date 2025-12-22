@@ -5,6 +5,7 @@ import {
     OnGatewayConnection,
     OnGatewayDisconnect,
     MessageBody,
+    ConnectedSocket,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { RealTimeCallService } from "./realtime-call.service";
@@ -93,9 +94,19 @@ export class RealTimeCallGateway implements OnGatewayConnection, OnGatewayDiscon
     }
 
     @SubscribeMessage("accept-call")
-    async acceptCall(@MessageBody() data: { callId: string }) {
+    async acceptCall(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { callId: string; callerId: string },
+    ) {
         await this.callService.markActive(data.callId);
-        this.server.emit("call-active", { callId: data.callId });
+
+        const callerSocket = this.users.get(data.callerId);
+
+        if (callerSocket) {
+            this.server.to(callerSocket).emit("call-active", {
+                callId: data.callId,
+            });
+        }
     }
 
     @SubscribeMessage("decline-call")
@@ -105,9 +116,19 @@ export class RealTimeCallGateway implements OnGatewayConnection, OnGatewayDiscon
     }
 
     @SubscribeMessage("end-call")
-    async endCall(@MessageBody() data: { callId: string }) {
+    async endCall(@MessageBody() data: { callId: string; callerId: string; receiverId: string }) {
         await this.callService.endCall(data.callId);
-        this.server.emit("call-ended", { callId: data.callId });
+
+        const callerSocket = this.users.get(data.callerId);
+        const receiverSocket = this.users.get(data.receiverId);
+
+        if (callerSocket) {
+            this.server.to(callerSocket).emit("call-ended", { callId: data.callId });
+        }
+
+        if (receiverSocket) {
+            this.server.to(receiverSocket).emit("call-ended", { callId: data.callId });
+        }
     }
 
     //  WebRTC Signaling
