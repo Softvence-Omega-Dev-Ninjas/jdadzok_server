@@ -113,7 +113,7 @@ export class PostController {
         await this.service.delete(id, user.id);
         return successResponse(null, "Post deleted successfully");
     }
-    
+
     @Get("users-post")
     @UseGuards(JwtAuthGuard)
     async get_user_all_post(@GetUser() user: any) {
