@@ -44,12 +44,6 @@ services:
             - ${PG_PORT}:5432
         volumes:
             - pg:/var/lib/postgresql/data
-        healthcheck:
-            test: ["CMD", "pg_isready", "-U", postgres, "-d", mydb]
-            interval: 30s
-            timeout: 10s
-            retries: 5
-            start_period: 15s
 
     redis:
         image: redis:7-alpine # Use Alpine version for smaller size
