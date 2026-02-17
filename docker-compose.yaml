@@ -20,8 +20,7 @@ services:
               npm run start:docker
               "
         depends_on:
-            db:
-                condition: service_healthy
+            - db
         restart: unless-stopped
         # Enhanced health check for better zero-downtime deployment
         healthcheck:
