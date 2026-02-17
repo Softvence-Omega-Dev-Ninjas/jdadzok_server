@@ -42,8 +42,6 @@ services:
             POSTGRES_DB: ${PG_DATABASE}
         volumes:
             - pg:/var/lib/postgresql/data
-        networks:
-          - jdadzok_server
 
     redis:
         image: redis:7-alpine # Use Alpine version for smaller size
