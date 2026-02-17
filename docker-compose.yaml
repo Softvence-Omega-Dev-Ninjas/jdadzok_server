@@ -20,14 +20,15 @@ services:
               npm run start:docker
               "
         depends_on:
-            db:
-                condition: service_healthy
+            - db
         restart: unless-stopped
         # Enhanced health check for better zero-downtime deployment
         healthcheck:
             disable: true
         volumes:
             - files-data:/app/uploads
+        networks:
+          - jdadzok_server
 
     db:
         image: postgres:17
@@ -39,17 +40,10 @@ services:
             POSTGRES_USER: ${PG_USERNAME}
             POSTGRES_PASSWORD: ${PG_PASSWORD}
             POSTGRES_DB: ${PG_DATABASE}
-            POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements
-        ports:
-            - ${PG_PORT}:5432
         volumes:
             - pg:/var/lib/postgresql/data
-        healthcheck:
-            test: ["CMD", "pg_isready", "-U", postgres, "-d", mydb]
-            interval: 30s
-            timeout: 10s
-            retries: 5
-            start_period: 15s
+        networks:
+          - jdadzok_server
 
     redis:
         image: redis:7-alpine # Use Alpine version for smaller size
@@ -69,6 +63,10 @@ services:
             timeout: 3s
             retries: 5
             start_period: 5s
+        networks:
+          - jdadzok_server
+
+
 
     caddy:
         image: caddy:latest
@@ -92,4 +90,5 @@ volumes:
     pg:
     files-data:
 networks:
-    default:
+    jdadzok_server:
+      driver: bridge
