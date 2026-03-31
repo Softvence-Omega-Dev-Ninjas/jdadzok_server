@@ -1,4 +1,4 @@
-export type PayloadForSocketClient = {
+export interface PayloadForSocketClient {
     sub: string;
     email: string;
     emailToggle: boolean;
@@ -12,4 +12,4 @@ export type PayloadForSocketClient = {
     ngo: boolean;
     Custom: boolean;
     capLevel: boolean;
-};
+}

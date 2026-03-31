@@ -302,7 +302,7 @@ export class UserMetricsController {
         type: [ActivityLeaderboardDto],
     })
     async getActivityLeaderboard(
-        @Query("limit") limit: number = 50,
+        @Query("limit") limit = 50,
         @Query("capLevel") capLevel?: string,
     ) {
         try {
@@ -354,7 +354,7 @@ export class UserMetricsController {
         status: HttpStatus.OK,
         description: "High activity users retrieved successfully",
     })
-    async getHighActivityUsers(@Query("minScore") minScore: number = 50) {
+    async getHighActivityUsers(@Query("minScore") minScore = 50) {
         try {
             const highActivityUsers =
                 await this.userMetricsService.getUsersWithHighActivity(minScore);

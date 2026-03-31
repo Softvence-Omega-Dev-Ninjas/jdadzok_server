@@ -57,7 +57,7 @@ export class NgoVerificationController {
     async applyVerification(
         @GetVerifiedUser() user: VerifiedUser,
         @Param("ngoId") ngoId: string,
-        @UploadedFiles() files: Array<Express.Multer.File>,
+        @UploadedFiles() files: Express.Multer.File[],
         @Body() dto: CreateNgoVerificationDto,
     ) {
         return handleRequest(

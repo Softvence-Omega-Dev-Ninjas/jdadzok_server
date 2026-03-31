@@ -1,4 +1,4 @@
-export type PostEvent<T = any> = {
+export interface PostEvent<T = any> {
     "post:new": {
         userId: string;
         post: T;
@@ -7,4 +7,4 @@ export type PostEvent<T = any> = {
         userId: string;
         taggedUserId: string[];
     };
-};
+}

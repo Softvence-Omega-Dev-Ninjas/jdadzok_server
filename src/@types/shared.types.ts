@@ -4,13 +4,13 @@ import { DefaultArgs } from "@prisma/client/runtime/library";
 
 export type MakeRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
-export type TUser = {
+export interface TUser {
     userId: string;
     email: string;
     role: Role;
-};
+}
 
-export type VerifiedUser = {
+export interface VerifiedUser {
     id: string;
     email: string;
     authProvider: AuthProvider;
@@ -20,13 +20,13 @@ export type VerifiedUser = {
     createdAt: Date | string;
     updatedAt: Date | string;
     userId: string;
-};
+}
 
 export type HelperTx = Omit<
     PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
     "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
 >;
-export type PaginatedResult<T> = {
+export interface PaginatedResult<T> {
     data: T[];
     nextCursor?: string;
-};
+}

@@ -23,7 +23,7 @@ export class CapLevelCronJobProcessor extends WorkerHost {
                         // call your user eligibility service from here...
 
                         return await this.processorService.handleUserCaplevelCheckingAndDedicatedToUserusers(
-                            job.data.userArray as any,
+                            job.data.userArray,
                         );
 
                     case capLevelJobType.BATCH_PROMOTE_USERS:

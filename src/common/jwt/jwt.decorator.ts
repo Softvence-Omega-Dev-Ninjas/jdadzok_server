@@ -36,7 +36,7 @@ export const GetUser = createParamDecorator(
         if (!cookieHandler(request, "get"))
             throw new UnauthorizedException("Cookies not found on request");
 
-        if (!user || !user.userId) throw new NotFoundException("Request User not found!");
+        if (!user?.userId) throw new NotFoundException("Request User not found!");
         return key ? user?.[key] : user;
     },
 );
@@ -46,7 +46,7 @@ export const GetVerifiedUser = createParamDecorator(
         const request = ctx.switchToHttp().getRequest<RequestWithUser>();
 
         const token = cookieHandler(request, "get");
-        if (!token || !token.length) throw new NotFoundException("Request User not found!");
+        if (!token?.length) throw new NotFoundException("Request User not found!");
 
         // verify token
         const jwt = new JwtService();

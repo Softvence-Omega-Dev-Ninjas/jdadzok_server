@@ -7,11 +7,11 @@ export class ReportQueryDto {
     @Type(() => Number)
     @IsInt()
     @Min(1)
-    page: number = 1;
+    page = 1;
 
     @ApiProperty({ required: false, default: 10 })
     @Type(() => Number)
     @IsInt()
     @Min(1)
-    limit: number = 10;
+    limit = 10;
 }

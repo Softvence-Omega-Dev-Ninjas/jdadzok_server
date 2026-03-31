@@ -25,7 +25,7 @@ export class NgoVerificationService {
         userId: string,
         ngoId: string,
         dto: CreateNgoVerificationDto,
-        documents: Array<Express.Multer.File>,
+        documents: Express.Multer.File[],
     ) {
         // -----------------------------------------------------
         //  NGO ownership & authorization

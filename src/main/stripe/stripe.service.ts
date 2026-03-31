@@ -71,7 +71,7 @@ export class StripeService {
                 select: { stripeAccountId: true },
             });
 
-            if (!user || !user.stripeAccountId) {
+            if (!user?.stripeAccountId) {
                 throw new NotFoundException("Stripe account not found for this user");
             }
 
@@ -112,7 +112,7 @@ export class StripeService {
 
             switch (event.type) {
                 case "payment_intent.succeeded": {
-                    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+                    const paymentIntent = event.data.object;
 
                     const orderId = paymentIntent.metadata.orderId;
                     if (!orderId) {

@@ -218,7 +218,7 @@ export class NotificationGateway
 
     // ==================== HELPER METHOD: Save Notifications to Database ====================
     private async saveNotificationToDatabase(
-        recipients: Array<{ id: string; email: string }>,
+        recipients: { id: string; email: string }[],
         type: NotificationType,
         title: string,
         message: string,

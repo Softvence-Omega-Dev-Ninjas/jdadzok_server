@@ -14,7 +14,7 @@ export function parseQueryParams<T, U>(
 
     if (error) throw new Error("Invalid query params");
 
-    const parsedQuery = { ...data } as T as any;
+    const parsedQuery = { ...data } as any;
 
     if (modelSchema) {
         const modelResult = modelSchema.safeParse(query);

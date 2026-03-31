@@ -50,7 +50,7 @@ export class UserService {
         // skip creating account now.
         const { user, hasAccount } = await this.repository.store(body);
 
-        if (!user["isVerified"]) {
+        if (!user.isVerified) {
             // send otp again
             await this.userQueue.add(QUEUE_JOB_NAME.MAIL.SEND_OTP, {
                 email: body.email,
@@ -138,7 +138,7 @@ export class UserService {
                 description: "So, you cant update your account!",
             });
         // if update input has password then hash it
-        if (input.password) input.password = await this.utilsService.hash(input.password!);
+        if (input.password) input.password = await this.utilsService.hash(input.password);
 
         return await this.repository.update(userId, input);
     }

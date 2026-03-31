@@ -1,24 +1,20 @@
 import { Prisma } from "@prisma/client";
 import { BaseQueryDto } from "../dto/query.dto";
 
-export type ModelWhereInput = {
-    [key: string]: any;
-};
-export type ModelIncludeInput = {
-    [key: string]: boolean | object;
-};
+export type ModelWhereInput = Record<string, any>;
+export type ModelIncludeInput = Record<string, boolean | object>;
 
 /** Define a generic type for the combined query options */
-export type QueryOptions<
+export interface QueryOptions<
     WhereInput extends ModelWhereInput,
     IncludeInput extends ModelIncludeInput,
-> = {
+> {
     where?: WhereInput;
     skip?: number;
     take?: number;
     orderBy?: Prisma.SortOrder | Prisma.Enumerable<Prisma.SortOrder>;
     include: IncludeInput;
-};
+}
 
 /** Base types for Prisma-like operations */
 export type Primitive = string | number | boolean | Date | null | undefined;
@@ -84,7 +80,7 @@ export type Include<T> = {
           : boolean | IncludeConfig<T[K]>;
 };
 
-export type IncludeConfig<T> = {
+export interface IncludeConfig<T> {
     select?: Select<T>;
     include?: Include<T>;
     where?: Where<T>;
@@ -92,10 +88,10 @@ export type IncludeConfig<T> = {
     take?: number;
     skip?: number;
     distinct?: (keyof T)[];
-};
+}
 
 /** Main query configuration type */
-export type QueryConfig<T> = {
+export interface QueryConfig<T> {
     select?: Select<T>;
     include?: Include<T>;
     where?: Where<T>;
@@ -104,7 +100,7 @@ export type QueryConfig<T> = {
     skip?: number;
     distinct?: (keyof T)[];
     cursor?: { [K in keyof T]?: T[K] };
-};
+}
 
 /** DTO types for input */
 export type QueryDto<T> = BaseQueryDto & {

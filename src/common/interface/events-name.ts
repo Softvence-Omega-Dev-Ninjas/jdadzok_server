@@ -45,7 +45,7 @@ export const EVENT_TYPES = {
 export type EventType = keyof typeof EVENT_TYPES;
 
 //  Event payload mapping for type safety
-export type EventPayloadMap = {
+export interface EventPayloadMap {
     [EVENT_TYPES.COMMUNITY_CREATE]: Community;
     [EVENT_TYPES.COMMUNITY_UPDATE]: Community;
     [EVENT_TYPES.COMMUNITY_DELETE]: Community;
@@ -72,4 +72,4 @@ export type EventPayloadMap = {
     [EVENT_TYPES.CAPLEVEL_CREATE]: CapLevelEvent;
     [EVENT_TYPES.CAPLEVEL_UPDATE]: CapLevelEvent;
     [EVENT_TYPES.CAPLEVEL_DELETE]: CapLevelEvent;
-};
+}

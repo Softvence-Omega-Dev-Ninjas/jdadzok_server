@@ -19,7 +19,7 @@ export class UsersProcessor extends WorkerHost {
                         email: job.data.email,
                         userId: job.data.userId,
                     });
-                    return otp as OtpRedisData as T;
+                    return otp as T;
                 } catch (error: any) {
                     this.logger.error("Could not send opt", error);
                     throw new InternalServerErrorException("Could not send opt");

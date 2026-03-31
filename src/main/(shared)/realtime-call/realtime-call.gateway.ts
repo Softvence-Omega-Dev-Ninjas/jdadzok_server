@@ -32,7 +32,7 @@ export class RealTimeCallGateway implements OnGatewayConnection, OnGatewayDiscon
             if (!secret) throw new Error("JWT_SECRET not found");
 
             const decoded = jwt.verify(token, secret) as jwt.JwtPayload;
-            const userId = decoded.sub as string;
+            const userId = decoded.sub!;
 
             this.users.set(userId, client.id);
             console.log(`User connected: ${userId}`);

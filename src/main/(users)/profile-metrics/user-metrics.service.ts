@@ -181,7 +181,7 @@ export class UserMetricsService {
         });
     }
 
-    async getUsersWithHighActivity(minActivityScore: number = 50): Promise<UserMetrics[]> {
+    async getUsersWithHighActivity(minActivityScore = 50): Promise<UserMetrics[]> {
         return await this.prisma.userMetrics.findMany({
             where: {
                 activityScore: {
@@ -209,7 +209,7 @@ export class UserMetricsService {
         return usersWithHigherScore + 1; // +1 because rank starts from 1
     }
 
-    async getTopUsers(limit: number = 10): Promise<UserMetrics[]> {
+    async getTopUsers(limit = 10): Promise<UserMetrics[]> {
         return await this.prisma.userMetrics.findMany({
             take: limit,
             orderBy: {

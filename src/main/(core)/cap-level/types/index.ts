@@ -4,19 +4,19 @@ import { CapLevelJobType } from "../constants";
 /**
  * Job data interfaces
  */
-export type UserEligibilityJobData = {
+export interface UserEligibilityJobData {
     userId: string;
     triggerAction?: keyof CapLevelJobType; // What action triggered this check
-};
+}
 
-export type UserPromotionJobData = {
+export interface UserPromotionJobData {
     userId: string;
     targetLevel?: CapLevel;
     bypassVerification?: boolean;
     triggeredBy?: string; // admin ID or 'system'
-};
+}
 
-export type UserMetricsUpdateJobData = {
+export interface UserMetricsUpdateJobData {
     userId: string;
     metricsUpdate: {
         totalPosts?: number;
@@ -28,35 +28,35 @@ export type UserMetricsUpdateJobData = {
         completedProjects?: number;
     };
     recalculateScore?: boolean;
-};
+}
 
-export type BatchPromotionJobData = {
+export interface BatchPromotionJobData {
     capLevel: CapLevel;
     maxUsers?: number;
     dryRun?: boolean;
     adminId?: string;
-};
+}
 
-export type MonthlyRevenueJobData = {
+export interface MonthlyRevenueJobData {
     month: number;
     year: number;
     totalPlatformRevenue: number;
     dryRun?: boolean;
     adminId?: string;
-};
+}
 
-export type VolunteerHoursJobData = {
+export interface VolunteerHoursJobData {
     userId: string;
     hours: number;
     projectId?: string;
     workDescription?: string;
     workDate?: string;
-};
+}
 
-export type BatchMetricsJobData = {
+export interface BatchMetricsJobData {
     userIds?: string[];
     capLevel?: CapLevel;
     lastUpdatedBefore?: string;
     batchSize?: number;
     adminId?: string;
-};
+}

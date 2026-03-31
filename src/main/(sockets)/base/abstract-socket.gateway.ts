@@ -133,7 +133,7 @@ export abstract class BaseSocketGateway
     ): Promise<boolean> {
         try {
             const user = client.user;
-            if (!user || !user?.id) return false;
+            if (!user?.id) return false;
 
             await client.join(roomId);
 
@@ -169,7 +169,7 @@ export abstract class BaseSocketGateway
 
     protected async leaveRoom(client: Socket, roomId: string): Promise<boolean> {
         try {
-            if (!client.user || !client.user.id) return false;
+            if (!client.user?.id) return false;
 
             await client.leave(roomId);
             this.handleUserLeaveRoom(roomId, client.user.id);

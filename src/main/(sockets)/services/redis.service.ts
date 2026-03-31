@@ -147,7 +147,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
             email: userData.email,
             avatar: userData.avatar,
             role: userData.role,
-            status: userData.status as UserStatus,
+            status: userData.status,
             joinedAt: new Date(userData.joinedAt),
         };
     }

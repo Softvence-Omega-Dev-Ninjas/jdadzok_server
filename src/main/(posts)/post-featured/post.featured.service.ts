@@ -53,7 +53,7 @@ export class PostFeaturedService {
             where: { id: postId },
         });
 
-        if (!post || post.authorId !== userId) {
+        if (post?.authorId !== userId) {
             throw new Error("Post not found or unauthorized");
         }
         const newHideValue = dto.hide ?? !post.isHidden;

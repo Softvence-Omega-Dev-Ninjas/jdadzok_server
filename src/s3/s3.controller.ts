@@ -28,7 +28,7 @@ export class S3Controller {
             limits: { files: 20 }, // TODO: based on the cap level it will be incress and dicress
         }),
     )
-    async upload(@UploadedFiles() files: Array<Express.Multer.File>) {
+    async upload(@UploadedFiles() files: Express.Multer.File[]) {
         try {
             if (!files || files.length === 0) {
                 throw new BadRequestException("No file(s) uploaded");

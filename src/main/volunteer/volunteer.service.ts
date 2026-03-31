@@ -45,7 +45,7 @@ export class VolunteerService {
 
     async applyToProject(dto: ApplyVolunteerDto, userId: string) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user || user.role !== Role.USER)
+        if (user?.role !== Role.USER)
             throw new ForbiddenException("Only regular volunteers can apply");
 
         const existing = await this.prisma.volunteerApplication.findFirst({

@@ -8,7 +8,7 @@ import { SocketUser } from "./socket.type";
 import { UserStatusEvent } from "./user.event";
 
 // Type helpers for event handling
-export type SocketEventMap = {
+export interface SocketEventMap {
     // Connection Events
     [SOCKET_EVENTS.CONNECTION.USER_JOINED]: SocketUser;
     [SOCKET_EVENTS.CONNECTION.USER_LEFT]: { userId: string; reason?: string };
@@ -34,4 +34,4 @@ export type SocketEventMap = {
 
     // Notification Events
     [SOCKET_EVENTS.NOTIFICATION.SEND]: NotificationEvent;
-};
+}

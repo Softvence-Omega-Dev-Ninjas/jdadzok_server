@@ -1,10 +1,10 @@
-export type TResponse<T = unknown> = {
+export interface TResponse<T = unknown> {
     success: boolean;
     message: string | string[];
     data: T;
-};
+}
 
-export type TPaginatedResponse<T = unknown> = {
+export interface TPaginatedResponse<T = unknown> {
     success: boolean;
     message: string | string[];
     data: T[];
@@ -14,7 +14,7 @@ export type TPaginatedResponse<T = unknown> = {
         total: number;
         totalPage: number;
     };
-};
+}
 
 export const successResponse = <T>(data: T, message = "Request Success"): TResponse<T> => ({
     success: true,

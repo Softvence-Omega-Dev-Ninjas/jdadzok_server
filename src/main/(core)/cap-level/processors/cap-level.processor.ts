@@ -42,31 +42,31 @@ export class CapLevelProcessor extends WorkerHost {
 
         try {
             switch (job.name) {
-                case capLevelJobType["CALCULATE_USER_ELIGIBILITY"]:
+                case capLevelJobType.CALCULATE_USER_ELIGIBILITY:
                     return await this.processUserEligibility(job);
 
-                case capLevelJobType["UPDATE_USER_METRICS"]:
+                case capLevelJobType.UPDATE_USER_METRICS:
                     return await this.processUserMetricsUpdate(job);
 
-                case capLevelJobType["RECALCULATE_ACTIVITY_SCORE"]:
+                case capLevelJobType.RECALCULATE_ACTIVITY_SCORE:
                     return await this.processActivityScoreRecalculation(job);
 
-                case capLevelJobType["BATCH_RECALCULATE_METRICS"]:
+                case capLevelJobType.BATCH_RECALCULATE_METRICS:
                     return await this.processBatchMetricsRecalculation(job);
 
-                case capLevelJobType["CALCULATE_MONTHLY_REVENUE"]:
+                case capLevelJobType.CALCULATE_MONTHLY_REVENUE:
                     return await this.processMonthlyRevenue(job);
 
                 // case capLevelJobType["PROCESS_VOLUNTEER_HOURS"]:
                 //     return await this.processVolunteerHours(job);
 
-                case capLevelJobType["CHECK_SERVICE_COMPLETION"]:
+                case capLevelJobType.CHECK_SERVICE_COMPLETION:
                     return await this.processServiceCompletionCheck(job);
 
-                case capLevelJobType["CLEANUP_OLD_DATA"]:
+                case capLevelJobType.CLEANUP_OLD_DATA:
                     return await this.processDataCleanup(job);
 
-                case capLevelJobType["GENERATE_REPORTS"]:
+                case capLevelJobType.GENERATE_REPORTS:
                     return await this.processReportGeneration(job);
 
                 default:
@@ -101,7 +101,7 @@ export class CapLevelProcessor extends WorkerHost {
                 !requirements.requiresNomination
             ) {
                 await this.queue.add(
-                    capLevelJobType["PROMOTE_USER"],
+                    capLevelJobType.PROMOTE_USER,
                     {
                         userId,
                         targetLevel: eligibility.eligibleLevel,

@@ -31,6 +31,6 @@ export class JwtServices {
         return (await this.service.verifyAsync(token, {
             ...options,
             audience: "",
-        })) as T;
+        }));
     }
 }

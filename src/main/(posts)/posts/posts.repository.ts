@@ -130,7 +130,7 @@ export class PostRepository {
             if (metadata) {
                 updatedMetadataId = await this.updateOrCreateMetadata(
                     tx,
-                    input.metadataId!,
+                    input.metadataId,
                     metadata,
                 );
             } else if (input.metadataId && !metadata) {

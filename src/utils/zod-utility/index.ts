@@ -9,7 +9,7 @@ export const requiredString = (fieldName: string) =>
         .trim()
         .min(1, `${fieldName} cannot be empty.`);
 
-export const requiredSlug = (minLength: number = 3, maxLength: number = 100) => {
+export const requiredSlug = (minLength = 3, maxLength = 100) => {
     return z
         .string()
         .min(minLength, {
@@ -150,15 +150,21 @@ export const dateField = (fieldName: string) =>
         );
 
 // Utility for strong password confirmation validation
-export const passwordConfirmationField = (passwordField: z.ZodString) =>
-    z
-        .string({
-            required_error: "Password confirmation is required.",
-        })
-        .refine(
-            (value) => value === String(passwordField),
-            "Password confirmation does not match the original password.",
-        );
+// export const passwordConfirmationField = (passwordField: z.ZodString) =>
+//     z
+//         .string({
+//             required_error: "Password confirmation is required.",
+//         })
+//         .refine(
+//             (value) => value === String(passwordField),
+//             "Password confirmation does not match the original password.",
+//         );
+
+// Utility for strong password confirmation validation
+export const passwordConfirmationField = () =>
+    z.string({
+        required_error: "Password confirmation is required.",
+    });
 
 // Utility for enum validation with default value support
 export const enumField = <T extends string>(

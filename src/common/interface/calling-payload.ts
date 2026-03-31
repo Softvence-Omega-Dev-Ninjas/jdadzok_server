@@ -1,4 +1,4 @@
-export type CallingPayloadForSocketClient = {
+export interface CallingPayloadForSocketClient {
     sub: string;
     email: string;
-};
+}

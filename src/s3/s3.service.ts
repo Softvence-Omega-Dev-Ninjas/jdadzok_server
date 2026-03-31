@@ -61,7 +61,7 @@ export class S3Service {
             // Check Redis for existing URL
             const cached = await this.redisService.get<S3ResponseDto>(key);
 
-            if (cached) return cached["url"] as T; // Skip upload
+            if (cached) return cached.url as T; // Skip upload
         }
 
         // Build S3 Key
