@@ -36,6 +36,8 @@ services:
         profiles:
             - dev
             - prod
+        ports:
+            - "${PG_PORT}:5432"
         environment:
             POSTGRES_USER: ${PG_USERNAME}
             POSTGRES_PASSWORD: ${PG_PASSWORD}
