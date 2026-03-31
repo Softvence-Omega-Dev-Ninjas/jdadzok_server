@@ -46,7 +46,7 @@ export class AuthValidatorService {
         // ---------------------------
         // 1. Authorization header
         // ---------------------------
-        const authHeader = client.handshake.headers["authorization"];
+        const authHeader = client.handshake.headers.authorization;
         if (authHeader) {
             // Case: "Bearer <token>"
             if (authHeader.startsWith("Bearer ")) {
@@ -84,7 +84,7 @@ export class AuthValidatorService {
                 {} as Record<string, string>,
             );
 
-            if (cookies["token"]) return cookies["token"];
+            if (cookies.token) return cookies.token;
         }
 
         return null;

@@ -501,7 +501,7 @@ export class CallService {
     /**
      * Get call history
      */
-    async getCallHistory(userId: string, limit: number = 50): Promise<any[]> {
+    async getCallHistory(userId: string, limit = 50): Promise<any[]> {
         try {
             return await this.prisma.calling.findMany({
                 where: {

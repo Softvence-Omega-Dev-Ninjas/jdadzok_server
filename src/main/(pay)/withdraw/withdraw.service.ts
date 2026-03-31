@@ -86,7 +86,7 @@ export class WithdrawService {
             },
         });
 
-        if (!user || !user.stripeAccountId) {
+        if (!user?.stripeAccountId) {
             throw new BadRequestException("User has no Stripe Express Account");
         }
 

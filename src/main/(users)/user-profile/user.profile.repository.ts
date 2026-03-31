@@ -17,7 +17,7 @@ export class UserProfileRepository {
         if (user.profile) {
             return await tx.profile.update({
                 where: {
-                    userId: user.id!,
+                    userId: user.id,
                     username: user.profile.username,
                 },
                 data: {

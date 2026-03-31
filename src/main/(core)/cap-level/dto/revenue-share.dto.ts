@@ -239,13 +239,13 @@ export class PlatformRevenueStatsDto {
     >;
 
     @ApiProperty({ description: "Monthly revenue trend (last 12 months)" })
-    monthlyTrend: Array<{
+    monthlyTrend: {
         month: number;
         year: number;
         totalRevenue: number;
         totalDistributed: number;
         activeUsers: number;
-    }>;
+    }[];
 }
 
 /**

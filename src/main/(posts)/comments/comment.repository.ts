@@ -13,21 +13,21 @@ export class CommentRepository {
                 const comment = await tx.comment.create({
                     data: {
                         ...data,
-                        postId: data.postId!,
-                        authorId: data.authorId!,
+                        postId: data.postId,
+                        authorId: data.authorId,
                     },
                 });
                 await tx.postMetrics.upsert({
-                    where: { postId: data.postId! },
-                    create: { postId: data.postId!, totalComments: 1 },
+                    where: { postId: data.postId },
+                    create: { postId: data.postId, totalComments: 1 },
                     update: { totalComments: { increment: 1 }, lastUpdated: new Date() },
                 });
                 await tx.userMetrics.upsert({
-                    where: { userId: data.authorId! },
-                    create: { userId: data.authorId!, totalComments: 1 },
+                    where: { userId: data.authorId },
+                    create: { userId: data.authorId, totalComments: 1 },
                     update: { totalComments: { increment: 1 }, lastUpdated: new Date() },
                 });
-                const post = await tx.post.findUnique({ where: { id: data.postId! } });
+                const post = await tx.post.findUnique({ where: { id: data.postId } });
                 const adminScore = await tx.activityScore.findFirst();
                 if (post && adminScore) {
                     await tx.userMetrics.update({

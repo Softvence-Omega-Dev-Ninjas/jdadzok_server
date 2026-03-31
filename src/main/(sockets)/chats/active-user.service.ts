@@ -24,15 +24,15 @@ export class ActiveUsersService {
         const now = new Date().toISOString();
 
         // Store user presence data
-        await this.redis["redisClient"].hset(`${this.PRESENCE_KEY}:${userId}`, {
+        await this.redis.redisClient.hset(`${this.PRESENCE_KEY}:${userId}`, {
             socketId,
             status: "online",
             lastSeen: now,
         });
 
-        await this.redis["redisClient"].sadd(this.ACTIVE_USERS_KEY, userId);
+        await this.redis.redisClient.sadd(this.ACTIVE_USERS_KEY, userId);
 
-        await this.redis["redisClient"].expire(`${this.PRESENCE_KEY}:${userId}`, 300);
+        await this.redis.redisClient.expire(`${this.PRESENCE_KEY}:${userId}`, 300);
     }
 
     /**
@@ -42,15 +42,15 @@ export class ActiveUsersService {
         const now = new Date().toISOString();
 
         // Update last seen time
-        await this.redis["redisClient"].hset(`${this.PRESENCE_KEY}:${userId}`, {
+        await this.redis.redisClient.hset(`${this.PRESENCE_KEY}:${userId}`, {
             status: "offline",
             lastSeen: now,
         });
 
-        await this.redis["redisClient"].srem(this.ACTIVE_USERS_KEY, userId);
+        await this.redis.redisClient.srem(this.ACTIVE_USERS_KEY, userId);
 
         // Keep offline status for 24 hours
-        await this.redis["redisClient"].expire(`${this.PRESENCE_KEY}:${userId}`, 86400);
+        await this.redis.redisClient.expire(`${this.PRESENCE_KEY}:${userId}`, 86400);
     }
 
     /**
@@ -59,24 +59,24 @@ export class ActiveUsersService {
     async updateActivity(userId: string): Promise<void> {
         const now = new Date().toISOString();
 
-        await this.redis["redisClient"].hset(`${this.PRESENCE_KEY}:${userId}`, "lastSeen", now);
+        await this.redis.redisClient.hset(`${this.PRESENCE_KEY}:${userId}`, "lastSeen", now);
 
         // Refresh expiry
-        await this.redis["redisClient"].expire(`${this.PRESENCE_KEY}:${userId}`, 300);
+        await this.redis.redisClient.expire(`${this.PRESENCE_KEY}:${userId}`, 300);
     }
 
     /**
      * Get all currently active users
      */
     async getActiveUsers(): Promise<string[]> {
-        return this.redis["redisClient"].smembers(this.ACTIVE_USERS_KEY);
+        return this.redis.redisClient.smembers(this.ACTIVE_USERS_KEY);
     }
 
     /**
      * Check if a specific user is online
      */
     async isUserOnline(userId: string): Promise<boolean> {
-        const result = await this.redis["redisClient"].sismember(this.ACTIVE_USERS_KEY, userId);
+        const result = await this.redis.redisClient.sismember(this.ACTIVE_USERS_KEY, userId);
         return result === 1;
     }
 
@@ -84,7 +84,7 @@ export class ActiveUsersService {
      * Get user presence information
      */
     async getUserPresence(userId: string): Promise<UserPresence | null> {
-        const data = await this.redis["redisClient"].hgetall(`${this.PRESENCE_KEY}:${userId}`);
+        const data = await this.redis.redisClient.hgetall(`${this.PRESENCE_KEY}:${userId}`);
 
         if (!data || Object.keys(data).length === 0) {
             return null;
@@ -117,37 +117,37 @@ export class ActiveUsersService {
      * Set user as typing in a chat
      */
     async setUserTyping(chatId: string, userId: string): Promise<void> {
-        await this.redis["redisClient"].sadd(`${this.TYPING_KEY}:${chatId}`, userId);
+        await this.redis.redisClient.sadd(`${this.TYPING_KEY}:${chatId}`, userId);
         // Auto-remove after 5 seconds
-        await this.redis["redisClient"].expire(`${this.TYPING_KEY}:${chatId}`, 5);
+        await this.redis.redisClient.expire(`${this.TYPING_KEY}:${chatId}`, 5);
     }
 
     /**
      * Remove user from typing status
      */
     async removeUserTyping(chatId: string, userId: string): Promise<void> {
-        await this.redis["redisClient"].srem(`${this.TYPING_KEY}:${chatId}`, userId);
+        await this.redis.redisClient.srem(`${this.TYPING_KEY}:${chatId}`, userId);
     }
 
     /**
      * Get users currently typing in a chat
      */
     async getUsersTyping(chatId: string): Promise<string[]> {
-        return this.redis["redisClient"].smembers(`${this.TYPING_KEY}:${chatId}`);
+        return this.redis.redisClient.smembers(`${this.TYPING_KEY}:${chatId}`);
     }
 
     /**
      * Set user status (online, away, offline)
      */
     async setUserStatus(userId: string, status: "online" | "away" | "offline"): Promise<void> {
-        await this.redis["redisClient"].hset(`${this.PRESENCE_KEY}:${userId}`, "status", status);
+        await this.redis.redisClient.hset(`${this.PRESENCE_KEY}:${userId}`, "status", status);
     }
 
     /**
      * Get active users count
      */
     async getActiveUserCount(): Promise<number> {
-        return this.redis["redisClient"].scard(this.ACTIVE_USERS_KEY);
+        return this.redis.redisClient.scard(this.ACTIVE_USERS_KEY);
     }
 
     /**

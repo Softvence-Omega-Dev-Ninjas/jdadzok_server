@@ -26,15 +26,15 @@ export class LikeRepository {
                 data: {
                     ...data,
                     userId: data.userId!,
-                    postId: data.postId!,
+                    postId: data.postId,
                 },
             });
 
             // Update totalLikes in UserMetrics
             await tx.postMetrics.upsert({
-                where: { postId: data.postId! },
+                where: { postId: data.postId },
                 create: {
-                    postId: data.postId!,
+                    postId: data.postId,
                     totalLikes: 1,
                 },
                 update: {

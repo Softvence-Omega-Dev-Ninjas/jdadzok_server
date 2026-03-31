@@ -26,7 +26,7 @@ export class ActivityScoreWeightsDto {
     @IsNumber({ maxDecimalPlaces: 1 })
     @Min(0)
     @Max(100)
-    posts: number = 5;
+    posts = 5;
 
     @ApiProperty({
         description: "Points per comment made",
@@ -37,7 +37,7 @@ export class ActivityScoreWeightsDto {
     @IsNumber({ maxDecimalPlaces: 1 })
     @Min(0)
     @Max(100)
-    comments: number = 2;
+    comments = 2;
 
     @ApiProperty({
         description: "Points per like given",
@@ -48,7 +48,7 @@ export class ActivityScoreWeightsDto {
     @IsNumber({ maxDecimalPlaces: 1 })
     @Min(0)
     @Max(100)
-    likes: number = 1;
+    likes = 1;
 
     @ApiProperty({
         description: "Points per share made",
@@ -59,7 +59,7 @@ export class ActivityScoreWeightsDto {
     @IsNumber({ maxDecimalPlaces: 1 })
     @Min(0)
     @Max(100)
-    shares: number = 3;
+    shares = 3;
 
     @ApiProperty({
         description: "Points per follower gained",
@@ -70,7 +70,7 @@ export class ActivityScoreWeightsDto {
     @IsNumber({ maxDecimalPlaces: 1 })
     @Min(0)
     @Max(100)
-    followers: number = 0.5;
+    followers = 0.5;
 
     @ApiProperty({
         description: "Points per volunteer hour",
@@ -81,7 +81,7 @@ export class ActivityScoreWeightsDto {
     @IsNumber({ maxDecimalPlaces: 1 })
     @Min(0)
     @Max(100)
-    volunteerHours: number = 10;
+    volunteerHours = 10;
 }
 
 /**
@@ -252,12 +252,12 @@ export class UserActivityAnalyticsDto {
     currentScore: number;
 
     @ApiProperty({ description: "Activity score history (last 12 months)" })
-    scoreHistory: Array<{
+    scoreHistory: {
         month: number;
         year: number;
         score: number;
         rank: number;
-    }>;
+    }[];
 
     @ApiProperty({ description: "Activity breakdown by type" })
     activityBreakdown: {
@@ -295,12 +295,12 @@ export class UserActivityAnalyticsDto {
     percentile: number;
 
     @ApiProperty({ description: "Recent activity timeline (last 30 days)" })
-    recentActivity: Array<{
+    recentActivity: {
         date: string;
         activityType: "POST" | "COMMENT" | "LIKE" | "SHARE" | "FOLLOW" | "VOLUNTEER";
         points: number;
         description: string;
-    }>;
+    }[];
 }
 
 /**
@@ -536,12 +536,12 @@ export class PlatformActivityStatsDto {
     >;
 
     @ApiProperty({ description: "Monthly activity trend (last 12 months)" })
-    monthlyTrend: Array<{
+    monthlyTrend: {
         month: number;
         year: number;
         activeUsers: number;
         averageScore: number;
         totalPosts: number;
         totalVolunteerHours: number;
-    }>;
+    }[];
 }

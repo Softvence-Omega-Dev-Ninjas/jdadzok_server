@@ -49,7 +49,7 @@ export class OptService {
         return data;
     }
 
-    async verifyOtp(input: OtpVerifyPayload, isDelete: boolean = true): Promise<boolean> {
+    async verifyOtp(input: OtpVerifyPayload, isDelete = true): Promise<boolean> {
         const { userId, token, type } = input;
 
         const redisKey = this.getRedisKeyByType(type, userId);

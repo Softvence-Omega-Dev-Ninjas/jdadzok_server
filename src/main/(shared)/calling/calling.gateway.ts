@@ -404,7 +404,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
             socket.to(callId).emit("participantLeft", { socketId: socket.id, userId });
 
             // End call if no one left
-            if (room && room.participants.length === 0) {
+            if (room?.participants.length === 0) {
                 await this.callService.endCall(callId);
                 this.logger.log(`Call ${callId} ended (empty)`);
             }

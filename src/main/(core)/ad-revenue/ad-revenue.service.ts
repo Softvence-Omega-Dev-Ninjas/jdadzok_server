@@ -585,13 +585,13 @@ export class AdRevenueService {
      * Gets monthly revenue trend for the last 12 months
      */
     private async getMonthlyRevenueTrend(): Promise<
-        Array<{
+        {
             month: number;
             year: number;
             totalRevenue: number;
             totalDistributed: number;
             activeUsers: number;
-        }>
+        }[]
     > {
         const twelveMonthsAgo = new Date();
         twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);

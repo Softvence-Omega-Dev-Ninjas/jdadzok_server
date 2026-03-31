@@ -155,7 +155,7 @@ export class UserRepository {
         });
     }
 
-    async getUserById(id: string, includePrivateData: boolean = false) {
+    async getUserById(id: string, includePrivateData = false) {
         const user = await this.prisma.user.findUnique({
             where: { id },
             include: {

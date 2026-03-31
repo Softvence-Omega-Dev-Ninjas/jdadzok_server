@@ -260,13 +260,13 @@ export class UserVolunteerSummaryDto {
     volunteerRank: number;
 
     @ApiProperty({ description: "Recent volunteer activities" })
-    recentActivities: Array<{
+    recentActivities: {
         projectId: string;
         projectTitle: string;
         hoursContributed: number;
         status: ApplicationStatus;
         lastActivity: Date;
-    }>;
+    }[];
 }
 
 /**
@@ -411,14 +411,14 @@ export class PlatformVolunteerStatsDto {
     @ApiProperty({
         description: "Monthly volunteer activity trend (last 12 months)",
     })
-    monthlyTrend: Array<{
+    monthlyTrend: {
         month: number;
         year: number;
         totalHours: number;
         activeVolunteers: number;
         newApplications: number;
         completedProjects: number;
-    }>;
+    }[];
 
     @ApiProperty({ description: "Volunteer statistics by cap level" })
     volunteersByCapLevel: Record<

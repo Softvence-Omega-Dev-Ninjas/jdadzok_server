@@ -12,7 +12,7 @@ import {
 } from "../@types";
 import { SOCKET_EVENTS } from "./socket-events.constant";
 
-export type SocketEventMap = {
+export interface SocketEventMap {
     // Connection Events
     [SOCKET_EVENTS.CONNECTION.USER_JOINED]: SocketUser;
     [SOCKET_EVENTS.CONNECTION.USER_LEFT]: { userId: string; reason?: string };
@@ -40,6 +40,6 @@ export type SocketEventMap = {
 
     // Notification Events
     [SOCKET_EVENTS.NOTIFICATION.SEND]: NotificationEvent;
-};
+}
 
 export type EventData<T extends keyof SocketEventMap> = SocketEventMap[T];
