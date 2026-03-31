@@ -6,7 +6,7 @@ import { UpdateProductCategoryDto } from "./dto/update-product-category.dto";
 
 @Injectable()
 export class ProductCategoryService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     async create(dto: CreateProductCategoryDto) {
         const uniSlug = slugify(dto.name);
@@ -36,7 +36,7 @@ export class ProductCategoryService {
         });
 
         if (!category) {
-            throw new NotFoundException('Product Category Not Found.');
+            throw new NotFoundException("Product Category Not Found.");
         }
 
         return category;
@@ -48,7 +48,7 @@ export class ProductCategoryService {
         });
 
         if (!existingCategory) {
-            throw new NotFoundException('Product Category Not Found.');
+            throw new NotFoundException("Product Category Not Found.");
         }
 
         let newSlug = existingCategory.slug;
@@ -67,7 +67,7 @@ export class ProductCategoryService {
 
             if (duplicateCategory) {
                 throw new BadRequestException(
-                    'Another Product Category With This Name Already Exist.',
+                    "Another Product Category With This Name Already Exist.",
                 );
             }
         }
@@ -78,9 +78,7 @@ export class ProductCategoryService {
                 name: dto.name ?? existingCategory.name,
                 slug: newSlug,
                 description:
-                    dto.description !== undefined
-                        ? dto.description
-                        : existingCategory.description,
+                    dto.description !== undefined ? dto.description : existingCategory.description,
             },
         });
 
@@ -93,7 +91,7 @@ export class ProductCategoryService {
         });
 
         if (!existingCategory) {
-            throw new NotFoundException('Product Category Not Found.');
+            throw new NotFoundException("Product Category Not Found.");
         }
 
         return await this.prisma.productCategory.delete({

@@ -6,7 +6,7 @@ import { ProductCategoryService } from "./product-category.service";
 
 @Controller("product-category")
 export class ProductCategoryController {
-    constructor(private readonly service: ProductCategoryService) { }
+    constructor(private readonly service: ProductCategoryService) {}
 
     @Post("")
     async create(@Body() dto: CreateProductCategoryDto) {
@@ -17,30 +17,21 @@ export class ProductCategoryController {
         return handleRequest(() => this.service.findAll(), "Get All Product Category Successfully");
     }
 
-    @Get(':id')
-    async findOne(@Param('id') id: string) {
-        return handleRequest(
-            () => this.service.findOne(id),
-            'Get Product Category Successfully',
-        );
+    @Get(":id")
+    async findOne(@Param("id") id: string) {
+        return handleRequest(() => this.service.findOne(id), "Get Product Category Successfully");
     }
 
-    @Patch(':id')
-    async update(
-        @Param('id') id: string,
-        @Body() dto: UpdateProductCategoryDto,
-    ) {
+    @Patch(":id")
+    async update(@Param("id") id: string, @Body() dto: UpdateProductCategoryDto) {
         return handleRequest(
             () => this.service.update(id, dto),
-            'Update Product Category Successfully',
+            "Update Product Category Successfully",
         );
     }
 
-    @Delete(':id')
-    async remove(@Param('id') id: string) {
-        return handleRequest(
-            () => this.service.remove(id),
-            'Delete Product Category Successfully',
-        );
+    @Delete(":id")
+    async remove(@Param("id") id: string) {
+        return handleRequest(() => this.service.remove(id), "Delete Product Category Successfully");
     }
 }
