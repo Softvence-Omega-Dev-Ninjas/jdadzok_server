@@ -3,16 +3,16 @@ import { TTL, TTLKey } from "@constants/ttl.constants";
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
-import { SocketRoom, SocketUser, UserStatus } from "../@types";
+import { SocketRoom, SocketUser } from "../@types";
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(RedisService.name);
-    private redisClient: Redis;
+    public redisClient: Redis;
     private redisSubscriber: Redis;
     private redisPublisher: Redis;
 
-    constructor(private readonly configService: ConfigService) {}
+    constructor(private readonly configService: ConfigService) { }
 
     async onModuleInit() {
         await this.connect();
