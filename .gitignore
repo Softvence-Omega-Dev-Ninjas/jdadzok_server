@@ -32,18 +32,12 @@ lerna-debug.log*
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 # dotenv environment variable files
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
-.env
 
 # temp directory
 .temp
@@ -64,8 +58,6 @@ logs
 data
 .pnpm-store
 pnpm-lock.yaml
-.env
-.env
 
 
 pnpm-lock.yml
@@ -88,3 +80,7 @@ sajib.pem
 jdadzok_server.pem
 *.pem
 *.key
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
+branch_structure.json
