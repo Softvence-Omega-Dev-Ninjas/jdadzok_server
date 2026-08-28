@@ -37,7 +37,6 @@ lerna-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
-.env.local
 
 # temp directory
 .temp
@@ -75,7 +74,6 @@ jdadzok.pem
 
 jdadzok deploy.pem
 nginx
-.env.production
 sajib.pem
 jdadzok_server.pem
 *.pem
@@ -84,3 +82,4 @@ temp_auto_push.bat
 temp_interactive_push.bat
 .gitignore
 branch_structure.json
+config.bat
